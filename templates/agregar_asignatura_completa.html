@@ -1,0 +1,431 @@
+{% extends "index_master.html" %}
+{% load widget_tweaks %}
+{% block content %}
+<div class="main-content container-fluid py-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-7 col-md-9">
+      <div class="card border-0 shadow-sm p-4">
+        <div class="card-header bg-light border-0 mb-3">
+          <h4 class="mb-0 text-dark fw-bold">
+            <i class="fas fa-plus-circle text-info me-2"></i>Agregar Nueva Asignatura
+          </h4>
+        </div>
+        <div class="card-body">
+          <!-- Mensajes de estado -->
+          {% if mensaje %}
+            <div class="alert alert-success border-0 shadow-sm mb-4">
+              <i class="fas fa-check-circle me-2"></i>{{ mensaje }}
+            </div>
+          {% endif %}
+          
+          {% if errores %}
+            <div class="alert alert-danger border-0 shadow-sm mb-4">
+              <i class="fas fa-exclamation-triangle me-2"></i>
+              <strong>Se encontraron los siguientes errores:</strong>
+              <ul class="mb-0 mt-2">
+                {% for error in errores %}
+                  <li>{{ error }}</li>
+                {% endfor %}
+              </ul>
+            </div>
+          {% endif %}
+
+          <!-- Formulario principal -->
+          <form method="post" id="asignatura-form">
+            {% csrf_token %}
+            
+            <!-- Información básica -->
+            <div class="row mb-4">
+              <div class="col-md-6">
+                <label class="form-label fw-bold">
+                  <i class="fas fa-tag me-1 text-primary"></i>Nombre de la Asignatura
+                </label>
+                {{ form.nombre|add_class:"form-control" }}
+                {% if form.nombre.errors %}
+                  <div class="text-danger small mt-1">{{ form.nombre.errors.0 }}</div>
+                {% endif %}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-bold">
+                  <i class="fas fa-barcode me-1 text-primary"></i>Código de Asignatura
+                </label>
+                {{ form.codigo_asignatura|add_class:"form-control" }}
+                {% if form.codigo_asignatura.errors %}
+                  <div class="text-danger small mt-1">{{ form.codigo_asignatura.errors.0 }}</div>
+                {% endif %}
+              </div>
+            </div>
+
+            <!-- Descripción -->
+            <div class="mb-4">
+              <label class="form-label fw-bold">
+                <i class="fas fa-align-left me-1 text-primary"></i>Descripción (Opcional)
+              </label>
+              {{ form.descripcion|add_class:"form-control" }}
+              {% if form.descripcion.errors %}
+                <div class="text-danger small mt-1">{{ form.descripcion.errors.0 }}</div>
+              {% endif %}
+            </div>
+
+            <!-- Profesor responsable -->
+            <div class="row mb-4">
+              <div class="col-md-6">
+                <label class="form-label fw-bold">
+                  <i class="fas fa-chalkboard-teacher me-1 text-success"></i>Profesor Responsable
+                </label>
+                <div class="input-group">
+                  <span class="input-group-text bg-light border">
+                    <i class="fas fa-user-tie text-success"></i>
+                  </span>
+                  {{ form.profesor_responsable|add_class:"form-select" }}
+                </div>
+                <small class="text-muted">
+                  Solo se muestran profesores sin otras asignaturas asignadas. Puedes dejarlo vacío.
+                </small>
+                {% if form.profesor_responsable.errors %}
+                  <div class="text-danger small mt-1">{{ form.profesor_responsable.errors.0 }}</div>
+                {% endif %}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-bold">
+                  <i class="fas fa-users me-1 text-info"></i>Cursos Asignados
+                </label>
+                <div class="input-group">
+                  <span class="input-group-text bg-light border">
+                    <i class="fas fa-school text-info"></i>
+                  </span>
+                  {{ form.cursos|add_class:"form-select" }}
+                </div>
+                <small class="text-muted">
+                  Mantén presionada Ctrl (o Cmd en Mac) para seleccionar varios cursos.
+                </small>
+                {% if form.cursos.errors %}
+                  <div class="text-danger small mt-1">{{ form.cursos.errors.0 }}</div>
+                {% endif %}
+              </div>
+            </div>
+
+            <!-- Días de la semana -->
+            <div class="mb-4">
+              <label class="form-label fw-bold">
+                <i class="fas fa-calendar-week me-1 text-warning"></i>Días de Clases (Opcional)
+              </label>
+              <div class="card bg-light border">
+                <div class="card-body">
+                  <div class="row">
+                    {% for choice in form.dias %}
+                      <div class="col-md-3 col-6 mb-2">
+                        <div class="form-check">
+                          {{ choice.tag }}
+                          <label class="form-check-label fw-medium" for="{{ choice.id_for_label }}">
+                            {{ choice.choice_label }}
+                          </label>
+                        </div>
+                      </div>
+                    {% endfor %}
+                  </div>
+                  <small class="text-muted">
+                    Selecciona los días para poder configurar horarios específicos por día.
+                  </small>
+                </div>
+              </div>
+            </div>
+
+            <!-- Horarios por día (generado dinámicamente) -->
+            <div id="horas-por-dia" class="mb-4"></div>
+
+            <!-- Botones de acción -->
+            <div class="d-flex gap-2 justify-content-end">
+              <a href="{% url 'listar_asignaturas' %}" class="btn btn-light border">
+                <i class="fas fa-times me-1"></i>Cancelar
+              </a>
+              <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save me-1"></i>Crear Asignatura
+              </button>
+            </div>
+          </form>
+
+          <!-- Horarios actuales de cursos seleccionados -->
+          <div id="horarios-cursos" class="mt-4"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    <!-- Estilos personalizados -->
+    <style>
+      .card {
+        border-radius: 8px;
+      }
+      
+      /* Estilos para checkboxes de días */
+      input[type="checkbox"] {
+        margin-right: 0.5rem;
+      }
+      
+      .form-check-input {
+        width: 1.2em;
+        height: 1.2em;
+        margin-top: 0.125em;
+        vertical-align: top;
+        background-color: #fff;
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: contain;
+        border: 1px solid rgba(0, 0, 0, 0.25);
+        appearance: none;
+        border-radius: 0.25em;
+      }
+      
+      .form-check-input:checked {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3e%3cpath fill='none' stroke='%23fff' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='m6 10 3 3 6-6'/%3e%3c/svg%3e");
+      }
+      
+      .form-check-input:focus {
+        border-color: #86b7fe;
+        outline: 0;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+      }
+      
+      .badge {
+        font-weight: 500;
+      }
+      
+      .input-group-text {
+        background-color: #f8f9fa;
+        border-color: #dee2e6;
+      }
+      
+      .table-hover tbody tr:hover {
+        background-color: rgba(0,0,0,0.03);
+      }
+      
+      .btn-primary {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+      }
+      
+      .btn-primary:hover {
+        background-color: #0b5ed7;
+        border-color: #0a58ca;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+      
+      .btn-light {
+        background-color: #f8f9fa;
+        border-color: #dee2e6;
+      }
+      
+      .btn-light:hover {
+        background-color: #e9ecef;
+        border-color: #adb5bd;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+      
+      .alert {
+        border-radius: 8px;
+      }
+      
+      .bg-light {
+        background-color: #f8f9fa !important;
+      }
+      
+      .text-dark {
+        color: #212529 !important;
+      }
+      
+      .border {
+        border: 1px solid #dee2e6 !important;
+      }
+      
+      @media (max-width: 768px) {
+        .d-flex.gap-2 {
+          flex-direction: column;
+        }
+        
+        .btn {
+          width: 100%;
+          margin-bottom: 0.5rem;
+        }
+      }
+    </style>
+
+    <script>
+    const horasPorDiaDiv = document.getElementById("horas-por-dia");
+    const cursosSelect = document.getElementById("id_cursos");
+    const DIAS = {
+      'LU': 'Lunes',
+      'MA': 'Martes',
+      'MI': 'Miércoles',
+      'JU': 'Jueves',
+      'VI': 'Viernes',
+      'SA': 'Sábado',
+      'DO': 'Domingo'
+    };
+
+    function renderHorasPorDia() {
+      horasPorDiaDiv.innerHTML = "";
+      const diasSeleccionados = document.querySelectorAll('input[name="dias"]:checked');
+      
+      if (diasSeleccionados.length > 0) {
+        let html = `
+          <div class="card border">
+            <div class="card-header bg-light">
+              <h6 class="mb-0 fw-bold">
+                <i class="fas fa-clock me-2 text-warning"></i>Configurar Horarios por Día
+              </h6>
+            </div>
+            <div class="card-body">
+        `;
+        
+        diasSeleccionados.forEach(cb => {
+          const dia = cb.value;
+          const label = DIAS[dia] || dia;
+          html += `
+            <div class="row align-items-center mb-3 p-3 bg-light border rounded">
+              <div class="col-md-3">
+                <span class="fw-bold text-primary">
+                  <i class="fas fa-calendar-day me-1"></i>${label}
+                </span>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label fw-bold">Hora inicio:</label>
+                <input type="time" name="hora_inicio_${dia}" class="form-control" required>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label fw-bold">Hora fin:</label>
+                <input type="time" name="hora_fin_${dia}" class="form-control" required>
+              </div>
+            </div>
+          `;
+        });
+        
+        html += `
+            </div>
+          </div>
+        `;
+        
+        horasPorDiaDiv.innerHTML = html;
+      }
+    }
+
+    function fetchHorariosCursos() {
+      const cursos = Array.from(cursosSelect.selectedOptions).map(opt => opt.value);
+      const horariosDiv = document.getElementById("horarios-cursos");
+      
+      if (cursos.length === 0) {
+        horariosDiv.innerHTML = "";
+        return;
+      }
+      
+      // Mostrar indicador de carga
+      horariosDiv.innerHTML = `
+        <div class="card border">
+          <div class="card-body text-center">
+            <i class="fas fa-spinner fa-spin me-2"></i>Cargando horarios...
+          </div>
+        </div>
+      `;
+      
+      fetch(`/api/horarios_cursos/?cursos=${cursos.join(",")}`)
+        .then(resp => {
+          if (!resp.ok) throw new Error('Error al cargar horarios');
+          return resp.json();
+        })
+        .then data => {
+          let html = `
+            <div class="card border">
+              <div class="card-header bg-light">
+                <h5 class="mb-0 fw-bold">
+                  <i class="fas fa-calendar-alt me-2 text-info"></i>Horarios Actuales de los Cursos Seleccionados
+                </h5>
+              </div>
+              <div class="card-body">
+          `;
+          
+          if(data.length > 0){
+            html += `
+              <div class="table-responsive">
+                <table class="table table-hover table-sm">
+                  <thead class="table-light">
+                    <tr>
+                      <th><i class="fas fa-school me-1"></i>Curso</th>
+                      <th><i class="fas fa-calendar-day me-1"></i>Día</th>
+                      <th><i class="fas fa-clock me-1"></i>Hora inicio</th>
+                      <th><i class="fas fa-clock me-1"></i>Hora fin</th>
+                      <th><i class="fas fa-book me-1"></i>Asignatura</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+            `;
+            data.forEach(h => {
+              html += `
+                <tr>
+                  <td><span class="badge bg-light text-dark border">${h.curso}</span></td>
+                  <td><span class="badge bg-primary">${h.dia}</span></td>
+                  <td><span class="fw-bold">${h.hora_inicio}</span></td>
+                  <td><span class="fw-bold">${h.hora_fin}</span></td>
+                  <td><span class="badge bg-info text-dark">${h.asignatura}</span></td>
+                </tr>
+              `;
+            });
+            html += `
+                  </tbody>
+                </table>
+              </div>
+            `;
+          } else {
+            html += `
+              <div class="text-center text-muted py-4">
+                <i class="fas fa-calendar-times fa-3x mb-3"></i>
+                <h6>Sin horarios registrados</h6>
+                <p>Los cursos seleccionados no tienen horarios configurados.</p>
+              </div>
+            `;
+          }
+          html += `
+              </div>
+            </div>
+          `;
+          horariosDiv.innerHTML = html;
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          horariosDiv.innerHTML = `
+            <div class="card border">
+              <div class="card-body">
+                <div class="alert alert-warning">
+                  <i class="fas fa-exclamation-triangle me-2"></i>
+                  Error al cargar los horarios de los cursos seleccionados.
+                </div>
+              </div>
+            </div>
+          `;
+        });
+    }
+
+    // Event listeners
+    if (cursosSelect) {
+      cursosSelect.addEventListener("change", fetchHorariosCursos);
+    }
+
+    document.querySelectorAll('input[name="dias"]').forEach(cb => {
+      cb.addEventListener("change", renderHorasPorDia);
+    });
+
+    // Inicializar al cargar la página
+    document.addEventListener("DOMContentLoaded", () => {
+      renderHorasPorDia();
+      if (cursosSelect && cursosSelect.selectedOptions.length > 0) {
+        fetchHorariosCursos();
+      }
+    });
+    </script>
+  </div>
+</div>
+{% endblock %}

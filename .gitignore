@@ -1,0 +1,141 @@
+# Archivos de Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+
+# Django
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+media/
+
+# Archivos de entorno
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Sistema operativo
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Archivos de prueba y debug (específicos del proyecto)
+test_*.py
+debug_*.py
+*_backup.py
+*_backup.html
+*_old.html
+*_old.py
+*_fixed.py
+*_clean.py
+*_new.html
+*_nuevo.html
+*_completo.html
+*_corrupted.html
+*_wide.html
+*_simplificado.html
+*_funcional.html
+verificar_*.py
+validar_*.py
+validacion_*.py
+verificacion_*.py
+diagnosticar_*.py
+diagnostico_*.py
+arreglar_*.py
+corregir_*.py
+configurar_*.py
+setup_*.py
+crear_*.py
+demo_*.py
+probar_*.py
+pruebas_*.py
+test_*.html
+generar_*.py
+mostrar_*.py
+encontrar_*.py
+limpiar_*.py
+analizar_*.py
+analyze_*.py
+solucion_*.py
+
+# Archivos de documentación temporal
+*.md
+!README.md
+!INSTALLATION.md
+!USAGE.md
+
+# Archivos batch y scripts de desarrollo
+*.bat
+*.ps1
+
+# Carpetas de backup
+templates_backup_*/
+*_backup/
+
+# Archivos de configuración específicos
+CREDENCIALES_*.py
+fix_*.ps1
+iniciar_*.bat
+
+# Archivos HTML de debug
+debug_*.html
+prueba_*.html
+test_*.html
+
+# Archivos específicos del proyecto (innecesarios)
+agregar_evento_view.py
+editar_eliminar_evento_views.py

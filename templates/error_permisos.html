@@ -1,0 +1,186 @@
+{% extends "index_master.html" %}
+
+{% block content %}
+<div class="right_col" role="main">
+  <div class="container-fluid">
+    <div class="row justify-content-center">
+      <div class="col-lg-8">
+        <div class="card border-0 shadow-lg">
+          <div class="card-header bg-gradient-danger text-white text-center">
+            <div class="py-3">
+              <i class="fas fa-exclamation-triangle fa-4x mb-3 opacity-75"></i>
+              <h2 class="mb-0">Acceso Denegado</h2>
+            </div>
+          </div>
+          
+          <div class="card-body p-5 text-center">
+            <div class="alert alert-danger border-0 mb-4">
+              <div class="d-flex align-items-center justify-content-center">
+                <i class="fas fa-shield-alt fa-2x text-danger me-3"></i>
+                <div>
+                  <h5 class="alert-heading mb-1">Permisos Insuficientes</h5>
+                  <p class="mb-0">{{ error_message|default:"No tienes permisos para acceder a esta sección." }}</p>
+                </div>
+              </div>
+            </div>
+
+            {% if user_type %}
+              <div class="row mb-4">
+                <div class="col-md-6">
+                  <div class="info-card">
+                    <h6 class="text-muted mb-2">Tu tipo de usuario actual:</h6>
+                    <span class="badge 
+                      {% if user_type == 'administrador' %}bg-danger
+                      {% elif user_type == 'profesor' %}bg-warning
+                      {% elif user_type == 'estudiante' %}bg-info
+                      {% else %}bg-success{% endif %} 
+                      p-2 fs-6">
+                      <i class="fas 
+                        {% if user_type == 'administrador' %}fa-user-shield
+                        {% elif user_type == 'profesor' %}fa-chalkboard-teacher
+                        {% elif user_type == 'estudiante' %}fa-graduation-cap
+                        {% else %}fa-crown{% endif %} me-1"></i>
+                      {{ user_type|title }}
+                    </span>
+                  </div>
+                </div>
+                
+                {% if required_types %}
+                <div class="col-md-6">
+                  <div class="info-card">
+                    <h6 class="text-muted mb-2">Permisos requeridos:</h6>
+                    {% for req_type in required_types %}
+                      <span class="badge bg-secondary me-1 mb-1">{{ req_type|title }}</span>
+                    {% endfor %}
+                  </div>
+                </div>
+                {% endif %}
+              </div>
+            {% endif %}
+
+            <div class="row mb-4">
+              <div class="col-12">
+                <h5 class="mb-3">¿Qué puedes hacer?</h5>
+                
+                {% if user_type == 'estudiante' %}
+                  <div class="alert alert-info border-0">
+                    <h6 class="mb-2"><i class="fas fa-graduation-cap me-1"></i> Como estudiante puedes:</h6>
+                    <ul class="list-unstyled mb-0 text-start">
+                      <li><i class="fas fa-check text-success me-2"></i> Ver tus materias y horarios</li>
+                      <li><i class="fas fa-check text-success me-2"></i> Consultar tus calificaciones</li>
+                      <li><i class="fas fa-check text-success me-2"></i> Revisar tu asistencia</li>
+                      <li><i class="fas fa-check text-success me-2"></i> Ver el calendario académico</li>
+                    </ul>
+                  </div>
+                {% elif user_type == 'profesor' %}
+                  <div class="alert alert-warning border-0">
+                    <h6 class="mb-2"><i class="fas fa-chalkboard-teacher me-1"></i> Como profesor puedes:</h6>
+                    <ul class="list-unstyled mb-0 text-start">
+                      <li><i class="fas fa-check text-success me-2"></i> Gestionar tus cursos y asignaturas</li>
+                      <li><i class="fas fa-check text-success me-2"></i> Ingresar y modificar calificaciones</li>
+                      <li><i class="fas fa-check text-success me-2"></i> Tomar asistencia de estudiantes</li>
+                      <li><i class="fas fa-check text-success me-2"></i> Crear eventos en el calendario</li>
+                    </ul>
+                  </div>
+                {% elif user_type == 'administrador' %}
+                  <div class="alert alert-danger border-0">
+                    <h6 class="mb-2"><i class="fas fa-user-shield me-1"></i> Como administrador tienes:</h6>
+                    <p class="mb-0">Acceso completo a todas las funcionalidades del sistema. Este error puede deberse a un problema temporal.</p>
+                  </div>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="d-flex justify-content-center gap-3">
+              <a href="{% url 'inicio' %}" class="btn btn-primary">
+                <i class="fas fa-home me-1"></i> Ir al Inicio
+              </a>
+              
+              <button class="btn btn-secondary" onclick="history.back()">
+                <i class="fas fa-arrow-left me-1"></i> Regresar
+              </button>
+              
+              {% if user_type != 'administrador' %}
+                <a href="#" class="btn btn-outline-info" onclick="mostrarContacto()">
+                  <i class="fas fa-envelope me-1"></i> Contactar Soporte
+                </a>
+              {% endif %}
+            </div>
+
+            <!-- Información de contacto (inicialmente oculta) -->
+            <div id="contactoInfo" class="mt-4" style="display: none;">
+              <div class="alert alert-light border">
+                <h6><i class="fas fa-info-circle me-1"></i> Información de Contacto</h6>
+                <p class="mb-2">Si necesitas acceso a esta funcionalidad, contacta a:</p>
+                <ul class="list-unstyled mb-0">
+                  <li><i class="fas fa-envelope text-primary me-2"></i> <strong>Email:</strong> admin@sistema-academico.edu</li>
+                  <li><i class="fas fa-phone text-success me-2"></i> <strong>Teléfono:</strong> +56 9 1234 5678</li>
+                  <li><i class="fas fa-clock text-warning me-2"></i> <strong>Horario:</strong> Lunes a Viernes, 8:00 - 18:00</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.bg-gradient-danger {
+  background: linear-gradient(135deg, #dc3545, #c82333) !important;
+}
+
+.info-card {
+  background: rgba(0,0,0,0.02);
+  border-radius: 8px;
+  padding: 1rem;
+  border-left: 3px solid var(--bs-primary);
+}
+
+.card {
+  border-radius: 15px;
+  overflow: hidden;
+}
+
+.btn {
+  border-radius: 8px;
+  font-weight: 500;
+}
+
+.alert {
+  border-radius: 10px;
+}
+
+@media (max-width: 768px) {
+  .d-flex.gap-3 {
+    flex-direction: column;
+  }
+  
+  .d-flex.gap-3 .btn {
+    margin-bottom: 0.5rem;
+  }
+}
+</style>
+
+<script>
+function mostrarContacto() {
+  const contactoDiv = document.getElementById('contactoInfo');
+  if (contactoDiv.style.display === 'none') {
+    contactoDiv.style.display = 'block';
+    contactoDiv.scrollIntoView({ behavior: 'smooth' });
+  } else {
+    contactoDiv.style.display = 'none';
+  }
+}
+
+// Auto-hide después de 10 segundos
+setTimeout(() => {
+  const alertElement = document.querySelector('.alert-danger');
+  if (alertElement) {
+    alertElement.style.transition = 'opacity 0.5s ease';
+    alertElement.style.opacity = '0.8';
+  }
+}, 10000);
+</script>
+{% endblock %}

@@ -1,0 +1,787 @@
+{% extends "index_master.html" %}
+{% load widget_tweaks %}
+{% block content %}
+<div class="right_col" role="main">
+  <div class="">
+    <div class="page-title">
+      <div class="title_left">
+        <h3>Editar Asignatura</h3>
+      </div>
+      <div class="title_right">
+        <div class="col-md-5 col-sm-5 col-xs-12 form-group pull-right top_search">
+          <a href="{% url 'listar_asignaturas' %}" class="btn btn-primary">
+            <i class="fa fa-arrow-left"></i> Volver a Lista
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="clearfix"></div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="x_panel">
+          <div class="x_title">
+            <h2><i class="fa fa-edit"></i> Información de la Asignatura</h2>
+            <div class="clearfix"></div>
+          </div>
+          <div class="x_content">
+            <br />
+            <!-- Mensajes de estado -->
+            {% if messages %}
+              {% for message in messages %}
+                <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade in" role="alert">
+                  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                  {% if message.tags == 'success' %}
+                    <i class="fa fa-check-circle"></i>
+                  {% elif message.tags == 'error' %}
+                    <i class="fa fa-exclamation-triangle"></i>
+                  {% elif message.tags == 'warning' %}
+                    <i class="fa fa-exclamation-circle"></i>
+                  {% else %}
+                    <i class="fa fa-info-circle"></i>
+                  {% endif %}
+                  {{ message }}
+                </div>
+              {% endfor %}
+            {% endif %}
+
+            <!-- Formulario principal -->
+            <form method="post" id="demo-form2" data-parsley-validate class="form-horizontal form-label-left">
+              {% csrf_token %}
+              
+              <!-- Información básica -->
+              <div class="form-group">
+                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="first-name">
+                  <i class="fa fa-tag text-primary"></i> Nombre de la Asignatura <span class="required">*</span>
+                </label>
+                <div class="col-md-6 col-sm-6 col-xs-12">
+                  {{ form.nombre|add_class:"form-control" }}
+                  {% if form.nombre.errors %}
+                    <div class="text-danger">
+                      {% for error in form.nombre.errors %}
+                        <small><i class="fa fa-exclamation-circle"></i> {{ error }}</small>
+                      {% endfor %}
+                    </div>
+                  {% endif %}
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="last-name">
+                  <i class="fa fa-barcode text-primary"></i> Código de Asignatura <span class="required">*</span>
+                </label>
+                <div class="col-md-6 col-sm-6 col-xs-12">
+                  {{ form.codigo_asignatura|add_class:"form-control" }}
+                  {% if form.codigo_asignatura.errors %}
+                    <div class="text-danger">
+                      {% for error in form.codigo_asignatura.errors %}
+                        <small><i class="fa fa-exclamation-circle"></i> {{ error }}</small>
+                      {% endfor %}
+                    </div>
+                  {% endif %}
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="control-label col-md-3 col-sm-3 col-xs-12">
+                  <i class="fa fa-align-left text-primary"></i> Descripción
+                </label>
+                <div class="col-md-6 col-sm-6 col-xs-12">
+                  {{ form.descripcion|add_class:"form-control" }}
+                  {% if form.descripcion.errors %}
+                    <div class="text-danger">
+                      {% for error in form.descripcion.errors %}
+                        <small><i class="fa fa-exclamation-circle"></i> {{ error }}</small>
+                      {% endfor %}
+                    </div>
+                  {% endif %}
+                  <small class="text-muted">Proporciona una descripción detallada de la asignatura.</small>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="control-label col-md-3 col-sm-3 col-xs-12">
+                  <i class="fa fa-users text-success"></i> Profesores Responsables
+                </label>
+                <div class="col-md-6 col-sm-6 col-xs-12">
+                  <div class="input-group">
+                    <span class="input-group-addon">
+                      <i class="fa fa-user-tie text-success"></i>
+                    </span>
+                    <select name="profesor_responsable" class="form-control">
+                      <option value="">Seleccionar profesor...</option>
+                      {% for profesor in profesores %}
+                        <option value="{{ profesor.id }}" {% if asignatura.profesor_responsable == profesor %}selected{% endif %}>
+                          {{ profesor.primer_nombre }} {{ profesor.apellido_paterno }}
+                        </option>
+                      {% endfor %}
+                    </select>
+                  </div>
+                  <small class="text-muted">
+                    <i class="fa fa-info-circle"></i> Mantén presionada Ctrl para seleccionar múltiples profesores.
+                  </small>
+                  
+                  <!-- Mostrar profesor responsable actual -->
+                  {% if asignatura and asignatura.profesor_responsable %}
+                    <div style="margin-top: 10px;">
+                      <strong>Profesor actual:</strong><br>
+                      <span class="label label-success" style="margin: 2px; display: inline-block;">
+                        <i class="fa fa-user"></i> {{ asignatura.profesor_responsable.get_nombre_completo|default:asignatura.profesor_responsable.codigo_profesor }}
+                      </span>
+                    </div>
+                  {% endif %}
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="control-label col-md-3 col-sm-3 col-xs-12">
+                  <i class="fa fa-graduation-cap text-info"></i> Cursos Asignados
+                </label>
+                <div class="col-md-6 col-sm-6 col-xs-12">
+                  <div class="input-group">
+                    <span class="input-group-addon">
+                      <i class="fa fa-school text-info"></i>
+                    </span>
+                    {{ form.cursos|add_class:"form-control chosen-select" }}
+                  </div>
+                  {% if form.cursos.errors %}
+                    <div class="text-danger">
+                      {% for error in form.cursos.errors %}
+                        <small><i class="fa fa-exclamation-circle"></i> {{ error }}</small>
+                      {% endfor %}
+                    </div>
+                  {% endif %}
+                  <small class="text-muted">
+                    <i class="fa fa-info-circle"></i> Mantén presionada Ctrl para seleccionar múltiples cursos.
+                  </small>
+                  
+                  <!-- Mostrar cursos seleccionados actualmente -->
+                  {% if asignatura and asignatura.cursos.exists %}
+                    <div style="margin-top: 10px;">
+                      <strong>Actualmente asignados:</strong><br>
+                      {% for curso in asignatura.cursos.all %}
+                        <span class="label label-info" style="margin: 2px; display: inline-block;">
+                          <i class="fa fa-users"></i> {{ curso.get_nivel_display }}{{ curso.paralelo }}
+                        </span>
+                      {% endfor %}
+                    </div>
+                  {% endif %}
+                </div>
+              </div>
+
+              <div class="ln_solid"></div>
+              
+              <!-- Botones de acción -->
+              <div class="form-group">
+                <div class="col-md-6 col-sm-6 col-xs-12 col-md-offset-3">
+                  <button type="submit" class="btn btn-success btn-lg">
+                    <i class="fa fa-save"></i> Guardar Cambios
+                  </button>
+                  <a href="{% url 'listar_asignaturas' %}" class="btn btn-default btn-lg">
+                    <i class="fa fa-times"></i> Cancelar
+                  </a>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Panel de información adicional -->
+    {% if asignatura %}
+    <div class="row">
+      <div class="col-md-12">
+        <div class="x_panel">
+          <div class="x_title">
+            <h2><i class="fa fa-info-circle"></i> Información Adicional de la Asignatura</h2>
+            <div class="clearfix"></div>
+          </div>
+          <div class="x_content">
+            <div class="row">
+              <!-- Cursos asociados -->
+              <div class="col-md-6 col-sm-6 col-xs-12">
+                <div class="well">
+                  <h4><i class="fa fa-graduation-cap text-primary"></i> Cursos Asociados ({{ asignatura.cursos.count }})</h4>
+                  {% if asignatura.cursos.exists %}
+                    <ul class="list-unstyled">
+                      {% for curso in asignatura.cursos.all %}
+                      <li>
+                        <span class="label label-primary">
+                          <i class="fa fa-users"></i> {{ curso.get_nivel_display }}{{ curso.paralelo }}
+                        </span>
+                      </li>
+                      {% endfor %}
+                    </ul>
+                  {% else %}
+                    <p class="text-muted">
+                      <i class="fa fa-exclamation-triangle"></i> Sin cursos asociados
+                    </p>
+                  {% endif %}
+                </div>
+              </div>
+              
+              <!-- Profesor responsable -->
+              <div class="col-md-6 col-sm-6 col-xs-12">
+                <div class="well">
+                  <h4><i class="fa fa-user text-success"></i> Profesor Responsable</h4>
+                  {% if asignatura.profesor_responsable %}
+                    <ul class="list-unstyled">
+                      <li>
+                        <span class="label label-success">
+                          <i class="fa fa-user"></i> {{ asignatura.profesor_responsable.get_nombre_completo|default:asignatura.profesor_responsable.codigo_profesor }}
+                        </span>
+                      </li>
+                    </ul>
+                  {% else %}
+                    <p class="text-muted">
+                      <i class="fa fa-exclamation-triangle"></i> Sin profesor asignado
+                    </p>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+  </div>
+</div>
+
+<!-- Estilos personalizados para Gentella -->
+<style>
+.x_panel {
+    border: none;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+    border-radius: 3px;
+    margin-bottom: 20px;
+}
+
+.x_title {
+    border-bottom: 2px solid #E6ECEF;
+    padding: 15px 15px 7px;
+}
+
+.x_title h2 {
+    color: #2A3F54;
+    font-size: 18px;
+    font-weight: 400;
+    margin: 0;
+}
+
+.form-group {
+    margin-bottom: 25px;
+}
+
+.control-label {
+    font-weight: 600;
+    color: #2A3F54;
+    margin-bottom: 8px;
+}
+
+.control-label .fa {
+    margin-right: 8px;
+}
+
+.form-control {
+    border-radius: 0;
+    border: 1px solid #E6ECEF;
+    transition: border-color 0.3s;
+    padding: 10px 12px;
+    font-size: 14px;
+}
+
+.form-control:focus {
+    border-color: #26B99A;
+    box-shadow: 0 0 0 0.2rem rgba(38, 185, 154, 0.25);
+}
+
+.required {
+    color: #E74C3C;
+}
+
+.btn {
+    border-radius: 3px;
+    font-weight: 500;
+    padding: 8px 16px;
+    margin-right: 5px;
+    transition: all 0.3s;
+}
+
+.btn-success {
+    background-color: #26B99A;
+    border-color: #26B99A;
+}
+
+.btn-success:hover {
+    background-color: #1ABB9C;
+    border-color: #1ABB9C;
+    transform: translateY(-1px);
+}
+
+.btn-default {
+    background-color: #95A5A6;
+    border-color: #95A5A6;
+    color: white;
+}
+
+.btn-default:hover {
+    background-color: #7F8C8D;
+    border-color: #7F8C8D;
+    color: white;
+    transform: translateY(-1px);
+}
+
+.btn-primary {
+    background-color: #337AB7;
+    border-color: #337AB7;
+}
+
+.btn-primary:hover {
+    background-color: #286090;
+    border-color: #286090;
+    transform: translateY(-1px);
+}
+
+.text-danger {
+    color: #E74C3C !important;
+}
+
+.text-muted {
+    color: #95A5A6 !important;
+}
+
+.text-primary {
+    color: #337AB7 !important;
+}
+
+.text-success {
+    color: #26B99A !important;
+}
+
+.text-info {
+    color: #3498DB !important;
+}
+
+.ln_solid {
+    border-top: 1px solid #E6ECEF;
+    color: #A8B5B5;
+    margin: 20px 0;
+}
+
+.well {
+    background-color: #F8F9FA;
+    border: 1px solid #E9ECEF;
+    border-radius: 4px;
+    padding: 19px;
+    margin-bottom: 20px;
+}
+
+.well h4 {
+    color: #2A3F54;
+    font-size: 16px;
+    margin-bottom: 15px;
+}
+
+.label {
+    display: inline-block;
+    padding: 4px 8px;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1;
+    color: #fff;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
+    border-radius: 3px;
+    margin: 2px 4px 2px 0;
+}
+
+.label-primary {
+    background-color: #337AB7;
+}
+
+.label-success {
+    background-color: #26B99A;
+}
+
+.alert {
+    border-radius: 4px;
+    margin-bottom: 20px;
+}
+
+.alert .fa {
+    margin-right: 8px;
+}
+
+.page-title {
+    background: white;
+    margin-bottom: 25px;
+    padding: 25px 30px;
+    border-bottom: 1px solid #E6ECEF;
+}
+
+.page-title h3 {
+    color: #2A3F54;
+    font-size: 22px;
+    font-weight: 400;
+    margin: 0;
+}
+
+/* Efectos de animación */
+.x_panel {
+    animation: fadeInUp 0.5s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Validación visual */
+.has-error .form-control {
+    border-color: #E74C3C;
+}
+
+.has-success .form-control {
+    border-color: #26B99A;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .page-title {
+        padding: 15px 20px;
+    }
+    
+    .x_content {
+        padding: 15px;
+    }
+    
+    .control-label {
+        text-align: left !important;
+        margin-bottom: 5px;
+    }
+    
+    .form-group .col-md-6,
+    .form-group .col-md-3 {
+        margin-bottom: 10px;
+    }
+}
+
+/* Estilos específicos para campos select múltiple */
+select[multiple].form-control {
+    min-height: 120px;
+    padding: 8px;
+    background-color: #fff;
+    border: 1px solid #E6ECEF;
+    border-radius: 4px;
+}
+
+select[multiple].form-control option {
+    padding: 6px 10px;
+    margin: 2px 0;
+    border-radius: 3px;
+    font-size: 14px;
+}
+
+select[multiple].form-control option:checked {
+    background-color: #26B99A;
+    color: white;
+    font-weight: 500;
+}
+
+select[multiple].form-control option:hover {
+    background-color: #f8f9fa;
+}
+
+.input-group-addon {
+    background-color: #f8f9fa;
+    border: 1px solid #E6ECEF;
+    color: #2A3F54;
+    padding: 8px 12px;
+    border-radius: 4px 0 0 4px;
+    border-right: none;
+}
+
+.input-group .form-control {
+    border-radius: 0 4px 4px 0;
+    border-left: none;
+}
+
+.input-group .form-control:focus {
+    border-color: #26B99A;
+    box-shadow: none;
+}
+
+.input-group-addon + .form-control:focus {
+    border-left-color: #26B99A;
+}
+
+/* Mejoras para las etiquetas de información */
+.label {
+    font-size: 11px;
+    padding: 4px 8px;
+    border-radius: 3px;
+    font-weight: 500;
+    margin: 2px;
+}
+
+.label-success {
+    background-color: #26B99A;
+    color: white;
+}
+
+.label-info {
+    background-color: #3498DB;
+    color: white;
+}
+
+.label-primary {
+    background-color: #337AB7;
+    color: white;
+}
+
+/* Estilos para la información actual */
+.current-assignments {
+    background-color: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 4px;
+    padding: 10px;
+    margin-top: 10px;
+}
+
+.current-assignments strong {
+    color: #2A3F54;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Animaciones para las etiquetas */
+.label {
+    transition: all 0.3s ease;
+}
+
+.label:hover {
+    transform: scale(1.05);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('demo-form2');
+    
+    // Inicializar mejoras para campos select múltiple
+    initializeMultiSelectFields();
+    
+    // Mejorar accesibilidad
+    improveAccessibility();
+    
+    // Validación en tiempo real
+    const requiredFields = form.querySelectorAll('input[required], select[required]');
+    
+    requiredFields.forEach(field => {
+        field.addEventListener('blur', function() {
+            validateField(this);
+        });
+        
+        field.addEventListener('input', function() {
+            if (this.closest('.form-group').classList.contains('has-error')) {
+                validateField(this);
+            }
+        });
+    });
+
+    // Validación del formulario al enviar
+    form.addEventListener('submit', function(e) {
+        let isValid = true;
+        
+        requiredFields.forEach(field => {
+            if (!validateField(field)) {
+                isValid = false;
+            }
+        });
+        
+        if (!isValid) {
+            e.preventDefault();
+            
+            // Scroll al primer error
+            const firstError = form.querySelector('.has-error');
+            if (firstError) {
+                firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                const input = firstError.querySelector('input, select, textarea');
+                if (input) input.focus();
+            }
+            
+            // Mostrar notificación
+            new PNotify({
+                title: 'Error de validación',
+                text: 'Por favor, corrija los errores antes de continuar.',
+                type: 'error',
+                delay: 4000
+            });
+        } else {
+            // Mostrar loading en el botón
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Guardando...';
+            submitBtn.disabled = true;
+        }
+    });
+});
+
+function validateField(field) {
+    const formGroup = field.closest('.form-group');
+    const value = field.value.trim();
+    
+    // Limpiar clases previas
+    formGroup.classList.remove('has-error', 'has-success');
+    
+    // Validar campos requeridos
+    if (field.hasAttribute('required') && !value) {
+        formGroup.classList.add('has-error');
+        return false;
+    }
+    
+    // Validaciones específicas
+    if (field.name === 'nombre' && value) {
+        if (value.length < 3) {
+            formGroup.classList.add('has-error');
+            return false;
+        }
+    }
+    
+    if (field.name === 'codigo_asignatura' && value) {
+        if (value.length < 2) {
+            formGroup.classList.add('has-error');
+            return false;
+        }
+    }
+    
+    // Campo válido
+    if (value) {
+        formGroup.classList.add('has-success');
+    }
+    return true;
+}
+
+// Efectos visuales mejorados
+document.querySelectorAll('.btn').forEach(btn => {
+    btn.addEventListener('mouseenter', function() {
+        this.style.transform = 'translateY(-2px)';
+    });
+    
+    btn.addEventListener('mouseleave', function() {
+        this.style.transform = 'translateY(0)';
+    });
+});
+
+// Funciones específicas para mejorar los campos select múltiple
+function initializeMultiSelectFields() {
+    const multiSelects = document.querySelectorAll('select[multiple]');
+    
+    multiSelects.forEach(select => {
+        // Añadir tooltips informativos
+        select.setAttribute('title', 'Usa Ctrl+Click para seleccionar múltiples opciones');
+        
+        // Mejorar la visualización de opciones seleccionadas
+        select.addEventListener('change', function() {
+            updateSelectedDisplay(this);
+        });
+        
+        // Resaltar opciones al hacer hover
+        select.addEventListener('mouseover', function(e) {
+            if (e.target.tagName === 'OPTION') {
+                e.target.style.backgroundColor = '#f0f0f0';
+            }
+        });
+        
+        select.addEventListener('mouseout', function(e) {
+            if (e.target.tagName === 'OPTION' && !e.target.selected) {
+                e.target.style.backgroundColor = '';
+            }
+        });
+        
+        // Inicializar display
+        updateSelectedDisplay(select);
+    });
+}
+
+function updateSelectedDisplay(selectElement) {
+    const selectedOptions = Array.from(selectElement.selectedOptions);
+    const formGroup = selectElement.closest('.form-group');
+    
+    // Encontrar o crear el contenedor de display
+    let displayContainer = formGroup.querySelector('.selected-items-display');
+    if (!displayContainer) {
+        displayContainer = document.createElement('div');
+        displayContainer.className = 'selected-items-display';
+        displayContainer.style.marginTop = '8px';
+        selectElement.parentNode.appendChild(displayContainer);
+    }
+    
+    if (selectedOptions.length > 0) {
+        displayContainer.innerHTML = `
+            <small class="text-muted">
+                <i class="fa fa-check-circle text-success"></i> 
+                ${selectedOptions.length} elemento(s) seleccionado(s)
+            </small>
+        `;
+    } else {
+        displayContainer.innerHTML = `
+            <small class="text-muted">
+                <i class="fa fa-info-circle"></i> 
+                Ningún elemento seleccionado
+            </small>
+        `;
+    }
+}
+
+// Función para mejorar la accesibilidad
+function improveAccessibility() {
+    const selects = document.querySelectorAll('select[multiple]');
+    
+    selects.forEach(select => {
+        // Añadir atributos ARIA
+        select.setAttribute('aria-multiselectable', 'true');
+        select.setAttribute('aria-expanded', 'false');
+        
+        // Mejorar navegación por teclado
+        select.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const focusedOption = this.options[this.selectedIndex];
+                if (focusedOption) {
+                    focusedOption.selected = !focusedOption.selected;
+                    updateSelectedDisplay(this);
+                }
+            }
+        });
+        
+        select.addEventListener('focus', function() {
+            this.setAttribute('aria-expanded', 'true');
+        });
+        
+        select.addEventListener('blur', function() {
+            this.setAttribute('aria-expanded', 'false');
+        });
+    });
+}
+
+// Inicializar mejoras para selects múltiples
+initializeMultiSelectFields();
+improveAccessibility();
+</script>
+{% endblock %}

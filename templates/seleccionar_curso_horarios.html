@@ -1,0 +1,187 @@
+{% extends "index_master.html" %}
+{% block content %}
+<div class="right_col" role="main">
+  <div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="bg-white p-4 rounded shadow-sm border">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <h2 class="h3 text-dark mb-2">
+                <i class="fas fa-calendar-alt text-primary me-2"></i>Gestión de Horarios
+              </h2>
+              <p class="text-muted mb-0">Selecciona un curso para gestionar sus horarios</p>
+            </div>
+            <div>
+              <a href="{% url 'seleccionar_curso_horarios' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-refresh me-1"></i>Actualizar Lista
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Estadísticas generales -->
+    <div class="row mb-4">
+      <div class="col-md-3">
+        <div class="card border shadow-sm bg-white">
+          <div class="card-body text-center">
+            <i class="fas fa-graduation-cap fa-2x text-primary mb-2"></i>
+            <h3 class="mb-0 text-dark">{{ cursos_info|length }}</h3>
+            <p class="mb-0 text-muted">Cursos Disponibles</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card border shadow-sm bg-white">
+          <div class="card-body text-center">
+            <i class="fas fa-calendar-alt fa-2x text-info mb-2"></i>
+            <h3 class="mb-0 text-dark">{{ anio_actual }}</h3>
+            <p class="mb-0 text-muted">Año Académico</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card border shadow-sm bg-white">
+          <div class="card-body text-center">
+            <i class="fas fa-clock fa-2x text-success mb-2"></i>
+            <h3 class="mb-0 text-dark">{{ total_horarios }}</h3>
+            <p class="mb-0 text-muted">Horarios Totales</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card border shadow-sm bg-white">
+          <div class="card-body text-center">
+            <i class="fas fa-book fa-2x text-warning mb-2"></i>
+            <h3 class="mb-0 text-dark">{{ total_asignaturas }}</h3>
+            <p class="mb-0 text-muted">Asignaturas Totales</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lista de cursos -->
+    <div class="card border shadow-sm">
+      <div class="card-header bg-light border-bottom">
+        <h5 class="mb-0 text-dark">
+          <i class="fas fa-list me-2"></i>Seleccionar Curso para Gestión de Horarios
+        </h5>
+      </div>
+      <div class="card-body">
+        {% if cursos_info %}
+          <div class="row">
+            {% for info in cursos_info %}
+            <div class="col-md-6 col-lg-4 mb-3">
+              <div class="card h-100 border shadow-sm">
+                <div class="card-body">
+                  <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                      <h5 class="card-title text-dark mb-1">
+                        {{ info.curso.get_nivel_display }}{{ info.curso.paralelo }}
+                      </h5>
+                      <p class="text-muted mb-0 small">
+                        <i class="fas fa-calendar me-1"></i>{{ info.curso.anio }}
+                      </p>
+                    </div>
+                    <span class="badge bg-primary">
+                      {{ info.curso.get_total_estudiantes }} estudiantes
+                    </span>
+                  </div>
+                  
+                  <!-- Estadísticas del curso -->
+                  <div class="row text-center mb-3">
+                    <div class="col-4">
+                      <div class="border-end">
+                        <div class="fw-bold text-primary">{{ info.horarios_count }}</div>
+                        <small class="text-muted">Horarios</small>
+                      </div>
+                    </div>
+                    <div class="col-4">
+                      <div class="border-end">
+                        <div class="fw-bold text-info">{{ info.asignaturas_count }}</div>
+                        <small class="text-muted">Asignaturas</small>
+                      </div>
+                    </div>
+                    <div class="col-4">
+                      <div class="fw-bold text-success">{{ info.estudiantes_count }}</div>
+                      <small class="text-muted">Estudiantes</small>
+                    </div>
+                  </div>
+                  
+                  <!-- Información adicional -->
+                  <div class="mb-3">
+                    {% if info.curso.profesor_jefe %}
+                      <p class="mb-1 small">
+                        <i class="fas fa-user-tie me-1 text-warning"></i>
+                        <strong>Profesor Jefe:</strong> {{ info.curso.profesor_jefe.get_nombre_completo }}
+                      </p>
+                    {% else %}
+                      <p class="mb-1 small text-muted">
+                        <i class="fas fa-user-times me-1"></i>
+                        Sin profesor jefe asignado
+                      </p>
+                    {% endif %}
+                  </div>
+                  
+                  <!-- Estado del horario -->
+                  <div class="mb-3">
+                    {% if info.horarios_count > 0 %}
+                      <span class="badge bg-success small">
+                        <i class="fas fa-check me-1"></i>Con horarios configurados
+                      </span>
+                    {% else %}
+                      <span class="badge bg-warning small">
+                        <i class="fas fa-exclamation-triangle me-1"></i>Sin horarios
+                      </span>
+                    {% endif %}
+                  </div>
+                </div>
+                
+                <div class="card-footer bg-light">
+                  <a href="{% url 'gestionar_horarios' info.curso.id %}" class="btn btn-primary w-100">
+                    <i class="fas fa-calendar-alt me-1"></i>
+                    {% if info.horarios_count > 0 %}
+                      Gestionar Horarios
+                    {% else %}
+                      Crear Horarios
+                    {% endif %}
+                  </a>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="text-center py-5">
+            <i class="fas fa-graduation-cap fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted mb-2">No hay cursos disponibles</h5>
+            <p class="text-muted mb-3">Crea algunos cursos antes de gestionar horarios</p>
+            <a href="{% url 'agregar_curso' %}" class="btn btn-primary">
+              <i class="fas fa-plus me-1"></i>Crear Primer Curso
+            </a>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important;
+  transition: all 0.3s ease;
+}
+
+.border-end {
+  border-right: 1px solid #dee2e6;
+}
+
+.fw-bold {
+  font-weight: 600;
+}
+</style>
+{% endblock %}

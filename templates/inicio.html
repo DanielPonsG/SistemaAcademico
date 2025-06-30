@@ -1,0 +1,544 @@
+{% extends "index_master.html" %}
+
+{% block content %}
+<div class="right_col" role="main">
+  <div class="container-fluid">
+    <!-- Header de bienvenida -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="bg-white p-4 rounded shadow-sm border">
+          <div class="row align-items-center">
+            <div class="col-md-8">
+              <div class="d-flex align-items-center">
+                <div class="me-3">
+                  <i class="fas fa-user-circle fa-3x text-primary"></i>
+                </div>
+                <div>
+                  <h1 class="h3 mb-1 text-dark">¡Bienvenido, {{ user.first_name|default:user.username }}!</h1>
+                  <p class="mb-0 text-muted">
+                    <i class="fas fa-id-badge me-2"></i>
+                    Tipo de usuario: <span class="badge bg-primary text-white px-2 py-1">{{ user.perfil.get_tipo_usuario_display }}</span>
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4 text-end d-none d-md-block">
+              <div class="text-center">
+                <i class="fas fa-calendar-alt fa-2x text-muted mb-2"></i>
+                <p class="mb-0 small text-muted" id="currentDateTime"></p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Panel de estadísticas rápidas -->
+    <div class="row mb-4">
+      <div class="col-xl-3 col-md-6 mb-3">
+        <div class="card border h-100">
+          <div class="card-body text-center bg-white">
+            <div class="mb-3">
+              <i class="fas fa-graduation-cap fa-3x text-primary"></i>
+            </div>
+            <h5 class="text-muted mb-1">Estado del Sistema</h5>
+            <h4 class="text-success mb-0">
+              <i class="fas fa-check-circle me-1"></i>Activo
+            </h4>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-xl-3 col-md-6 mb-3">
+        <div class="card border h-100">
+          <div class="card-body text-center bg-white">
+            <div class="mb-3">
+              <i class="fas fa-clock fa-3x text-success"></i>
+            </div>
+            <h5 class="text-muted mb-1">Última Conexión</h5>
+            <h6 class="text-dark mb-0" id="lastConnection">Ahora</h6>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-xl-3 col-md-6 mb-3">
+        <div class="card border h-100">
+          <div class="card-body text-center bg-white">
+            <div class="mb-3">
+              <i class="fas fa-user-shield fa-3x text-info"></i>
+            </div>
+            <h5 class="text-muted mb-1">Permisos</h5>
+            <h6 class="text-dark mb-0">
+              {% if user.perfil.tipo_usuario == 'administrador' %}
+                <span class="badge bg-danger">Administrador Total</span>
+              {% elif user.perfil.tipo_usuario == 'profesor' %}
+                <span class="badge bg-warning">Gestión Académica</span>
+              {% elif user.perfil.tipo_usuario == 'estudiante' %}
+                <span class="badge bg-info">Solo Lectura</span>
+              {% else %}
+                <span class="badge bg-success">Director</span>
+              {% endif %}
+            </h6>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-xl-3 col-md-6 mb-3">
+        <div class="card border h-100">
+          <div class="card-body text-center bg-white">
+            <div class="mb-3">
+              <i class="fas fa-school fa-3x text-warning"></i>
+            </div>
+            <h5 class="text-muted mb-1">Sistema</h5>
+            <h6 class="text-dark mb-0">SGA v2.0</h6>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Panel de accesos rápidos -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="card border">
+          <div class="card-header bg-light border-bottom">
+            <h4 class="mb-0 text-dark">
+              <i class="fas fa-rocket text-primary me-2"></i>Accesos Rápidos
+            </h4>
+          </div>
+          <div class="card-body bg-white">
+            <div class="row g-3">
+              {% if user.perfil.tipo_usuario == 'administrador' %}
+                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
+                  <a href="{% url 'listar_estudiantes' %}" class="quick-access-link text-decoration-none">
+                    <div class="quick-access-card text-center p-3 rounded-3 h-100">
+                      <i class="fas fa-users fa-2x text-primary mb-2"></i>
+                      <h6 class="mb-0">Gestionar Estudiantes</h6>
+                    </div>
+                  </a>
+                </div>
+                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
+                  <a href="{% url 'listar_estudiantes' %}?tipo=profesor" class="quick-access-link text-decoration-none">
+                    <div class="quick-access-card text-center p-3 rounded-3 h-100">
+                      <i class="fas fa-chalkboard-teacher fa-2x text-success mb-2"></i>
+                      <h6 class="mb-0">Gestionar Profesores</h6>
+                    </div>
+                  </a>
+                </div>
+                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
+                  <a href="{% url 'listar_cursos' %}" class="quick-access-link text-decoration-none">
+                    <div class="quick-access-card text-center p-3 rounded-3 h-100">
+                      <i class="fas fa-school fa-2x text-warning mb-2"></i>
+                      <h6 class="mb-0">Gestionar Cursos</h6>
+                    </div>
+                  </a>
+                </div>
+                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
+                  <a href="{% url 'listar_asignaturas' %}" class="quick-access-link text-decoration-none">
+                    <div class="quick-access-card text-center p-3 rounded-3 h-100">
+                      <i class="fas fa-book fa-2x text-info mb-2"></i>
+                      <h6 class="mb-0">Gestionar Asignaturas</h6>
+                    </div>
+                  </a>
+                </div>
+                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
+                  <a href="{% url 'agregar' %}" class="quick-access-link text-decoration-none">
+                    <div class="quick-access-card text-center p-3 rounded-3 h-100">
+                      <i class="fas fa-user-plus fa-2x text-danger mb-2"></i>
+                      <h6 class="mb-0">Agregar Usuario</h6>
+                    </div>
+                  </a>
+                </div>
+                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
+                  <a href="{% url 'calendario' %}" class="quick-access-link text-decoration-none">
+                    <div class="quick-access-card text-center p-3 rounded-3 h-100">
+                      <i class="fas fa-calendar-check fa-2x text-secondary mb-2"></i>
+                      <h6 class="mb-0">Calendario</h6>
+                    </div>
+                  </a>
+                </div>
+              {% elif user.perfil.tipo_usuario == 'profesor' %}
+                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
+                  <a href="{% url 'mis_horarios' %}" class="quick-access-link text-decoration-none">
+                    <div class="quick-access-card text-center p-3 rounded-3 h-100">
+                      <i class="fas fa-clock fa-2x text-primary mb-2"></i>
+                      <h6 class="mb-0">Mis Horarios</h6>
+                    </div>
+                  </a>
+                </div>
+                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
+                  <a href="{% url 'ingresar_notas' %}" class="quick-access-link text-decoration-none">
+                    <div class="quick-access-card text-center p-3 rounded-3 h-100">
+                      <i class="fas fa-edit fa-2x text-success mb-2"></i>
+                      <h6 class="mb-0">Ingresar Notas</h6>
+                    </div>
+                  </a>
+                </div>
+                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
+                  <a href="{% url 'registrar_asistencia_alumno' %}" class="quick-access-link text-decoration-none">
+                    <div class="quick-access-card text-center p-3 rounded-3 h-100">
+                      <i class="fas fa-user-check fa-2x text-warning mb-2"></i>
+                      <h6 class="mb-0">Registrar Asistencia</h6>
+                    </div>
+                  </a>
+                </div>
+                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
+                  <a href="{% url 'listar_asignaturas' %}" class="quick-access-link text-decoration-none">
+                    <div class="quick-access-card text-center p-3 rounded-3 h-100">
+                      <i class="fas fa-book-open fa-2x text-info mb-2"></i>
+                      <h6 class="mb-0">Mis Asignaturas</h6>
+                    </div>
+                  </a>
+                </div>
+                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
+                  <a href="{% url 'ver_notas_curso' %}" class="quick-access-link text-decoration-none">
+                    <div class="quick-access-card text-center p-3 rounded-3 h-100">
+                      <i class="fas fa-chart-bar fa-2x text-danger mb-2"></i>
+                      <h6 class="mb-0">Ver Calificaciones</h6>
+                    </div>
+                  </a>
+                </div>
+                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
+                  <a href="{% url 'calendario' %}" class="quick-access-link text-decoration-none">
+                    <div class="quick-access-card text-center p-3 rounded-3 h-100">
+                      <i class="fas fa-calendar-alt fa-2x text-secondary mb-2"></i>
+                      <h6 class="mb-0">Calendario</h6>
+                    </div>
+                  </a>
+                </div>
+              {% else %}
+                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
+                  <a href="{% url 'listar_asignaturas' %}" class="quick-access-link text-decoration-none">
+                    <div class="quick-access-card text-center p-3 rounded-3 h-100">
+                      <i class="fas fa-book-reader fa-2x text-primary mb-2"></i>
+                      <h6 class="mb-0">Mis Materias</h6>
+                    </div>
+                  </a>
+                </div>
+                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
+                  <a href="{% url 'ver_notas_curso' %}" class="quick-access-link text-decoration-none">
+                    <div class="quick-access-card text-center p-3 rounded-3 h-100">
+                      <i class="fas fa-chart-line fa-2x text-success mb-2"></i>
+                      <h6 class="mb-0">Mis Notas</h6>
+                    </div>
+                  </a>
+                </div>
+                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
+                  <a href="{% url 'ver_asistencia_alumno' %}" class="quick-access-link text-decoration-none">
+                    <div class="quick-access-card text-center p-3 rounded-3 h-100">
+                      <i class="fas fa-calendar-check fa-2x text-warning mb-2"></i>
+                      <h6 class="mb-0">Mi Asistencia</h6>
+                    </div>
+                  </a>
+                </div>
+                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
+                  <a href="{% url 'mis_horarios' %}" class="quick-access-link text-decoration-none">
+                    <div class="quick-access-card text-center p-3 rounded-3 h-100">
+                      <i class="fas fa-clock fa-2x text-info mb-2"></i>
+                      <h6 class="mb-0">Mi Horario</h6>
+                    </div>
+                  </a>
+                </div>
+                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
+                  <a href="{% url 'mi_curso' %}" class="quick-access-link text-decoration-none">
+                    <div class="quick-access-card text-center p-3 rounded-3 h-100">
+                      <i class="fas fa-user-friends fa-2x text-danger mb-2"></i>
+                      <h6 class="mb-0">Mi Curso</h6>
+                    </div>
+                  </a>
+                </div>
+                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
+                  <a href="{% url 'calendario' %}" class="quick-access-link text-decoration-none">
+                    <div class="quick-access-card text-center p-3 rounded-3 h-100">
+                      <i class="fas fa-calendar-alt fa-2x text-secondary mb-2"></i>
+                      <h6 class="mb-0">Calendario</h6>
+                    </div>
+                  </a>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Panel de información del sistema -->
+    <div class="row">
+      <div class="col-lg-8 mb-4">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-header bg-light border-0">
+            <h5 class="mb-0">
+              <i class="fas fa-info-circle text-primary me-2"></i>Información del Sistema
+            </h5>
+          </div>
+          <div class="card-body">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <div class="info-item">
+                  <h6 class="text-muted mb-1">
+                    <i class="fas fa-user me-1"></i>Usuario Activo
+                  </h6>
+                  <p class="mb-0 fw-semibold">{{ user.username }}</p>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="info-item">
+                  <h6 class="text-muted mb-1">
+                    <i class="fas fa-envelope me-1"></i>Email
+                  </h6>
+                  <p class="mb-0 fw-semibold">{{ user.email|default:"No registrado" }}</p>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="info-item">
+                  <h6 class="text-muted mb-1">
+                    <i class="fas fa-calendar me-1"></i>Miembro desde
+                  </h6>
+                  <p class="mb-0 fw-semibold">{{ user.date_joined|date:"d/m/Y" }}</p>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="info-item">
+                  <h6 class="text-muted mb-1">
+                    <i class="fas fa-clock me-1"></i>Último acceso
+                  </h6>
+                  <p class="mb-0 fw-semibold">{{ user.last_login|date:"d/m/Y H:i"|default:"Primer acceso" }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-lg-4 mb-4">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-header bg-light border-0">
+            <h5 class="mb-0">
+              <i class="fas fa-bullhorn text-warning me-2"></i>Anuncios
+            </h5>
+          </div>
+          <div class="card-body">
+            <div class="alert alert-info border-0 mb-3">
+              <div class="d-flex">
+                <i class="fas fa-info-circle me-2 mt-1"></i>
+                <div>
+                  <h6 class="alert-heading mb-1">Sistema Actualizado</h6>
+                  <p class="mb-0 small">Nueva versión del sistema con mejoras de rendimiento.</p>
+                </div>
+              </div>
+            </div>
+            
+            <div class="alert alert-success border-0 mb-0">
+              <div class="d-flex">
+                <i class="fas fa-check-circle me-2 mt-1"></i>
+                <div>
+                  <h6 class="alert-heading mb-1">Sistema Operativo</h6>
+                  <p class="mb-0 small">Todos los servicios funcionando correctamente.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Panel de permisos y funcionalidades -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="card border-0 shadow-sm">
+          <div class="card-header bg-light border-0">
+            <h5 class="mb-0">
+              <i class="fas fa-shield-alt text-primary me-2"></i>Permisos y Funcionalidades
+            </h5>
+          </div>
+          <div class="card-body">
+            {% if user.perfil.tipo_usuario == 'administrador' %}
+              <div class="alert alert-danger border-0 mb-3">
+                <div class="d-flex align-items-center">
+                  <i class="fas fa-crown fa-2x text-danger me-3"></i>
+                  <div>
+                    <h6 class="alert-heading mb-1">Acceso de Administrador</h6>
+                    <p class="mb-0">Tienes acceso completo a todas las funcionalidades del sistema.</p>
+                  </div>
+                </div>
+              </div>
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <h6 class="text-success"><i class="fas fa-check me-1"></i> Gestión de Usuarios</h6>
+                  <ul class="list-unstyled ms-3">
+                    <li><i class="fas fa-user-plus text-primary me-1"></i> Crear estudiantes y profesores</li>
+                    <li><i class="fas fa-user-edit text-warning me-1"></i> Modificar información de usuarios</li>
+                    <li><i class="fas fa-user-times text-danger me-1"></i> Eliminar usuarios del sistema</li>
+                  </ul>
+                </div>
+                <div class="col-md-6">
+                  <h6 class="text-success"><i class="fas fa-check me-1"></i> Gestión Académica</h6>
+                  <ul class="list-unstyled ms-3">
+                    <li><i class="fas fa-chalkboard text-info me-1"></i> Crear y gestionar cursos</li>
+                    <li><i class="fas fa-book text-success me-1"></i> Administrar asignaturas</li>
+                    <li><i class="fas fa-calendar-alt text-warning me-1"></i> Gestionar horarios y eventos</li>
+                  </ul>
+                </div>
+                <div class="col-md-6">
+                  <h6 class="text-success"><i class="fas fa-check me-1"></i> Control de Notas</h6>
+                  <ul class="list-unstyled ms-3">
+                    <li><i class="fas fa-edit text-primary me-1"></i> Ingresar y modificar calificaciones</li>
+                    <li><i class="fas fa-chart-bar text-info me-1"></i> Generar reportes académicos</li>
+                  </ul>
+                </div>
+                <div class="col-md-6">
+                  <h6 class="text-success"><i class="fas fa-check me-1"></i> Control de Asistencia</h6>
+                  <ul class="list-unstyled ms-3">
+                    <li><i class="fas fa-clipboard-check text-success me-1"></i> Registrar asistencia de estudiantes</li>
+                    <li><i class="fas fa-user-check text-warning me-1"></i> Controlar asistencia de profesores</li>
+                  </ul>
+                </div>
+              </div>
+            {% elif user.perfil.tipo_usuario == 'profesor' %}
+              <div class="alert alert-warning border-0 mb-3">
+                <div class="d-flex align-items-center">
+                  <i class="fas fa-chalkboard-teacher fa-2x text-warning me-3"></i>
+                  <div>
+                    <h6 class="alert-heading mb-1">Acceso de Profesor</h6>
+                    <p class="mb-0">Puedes gestionar las actividades académicas de tus cursos asignados.</p>
+                  </div>
+                </div>
+              </div>
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <h6 class="text-success"><i class="fas fa-check me-1"></i> Gestión de Clases</h6>
+                  <ul class="list-unstyled ms-3">
+                    <li><i class="fas fa-clock text-primary me-1"></i> Ver horarios de clases</li>
+                    <li><i class="fas fa-book-open text-info me-1"></i> Gestionar asignaturas asignadas</li>
+                    <li><i class="fas fa-calendar-plus text-success me-1"></i> Crear eventos académicos</li>
+                  </ul>
+                </div>
+                <div class="col-md-6">
+                  <h6 class="text-success"><i class="fas fa-check me-1"></i> Evaluaciones</h6>
+                  <ul class="list-unstyled ms-3">
+                    <li><i class="fas fa-edit text-warning me-1"></i> Ingresar calificaciones</li>
+                    <li><i class="fas fa-chart-line text-info me-1"></i> Ver reportes de notas</li>
+                    <li><i class="fas fa-clipboard-check text-success me-1"></i> Tomar asistencia</li>
+                  </ul>
+                </div>
+                <div class="col-md-12">
+                  <h6 class="text-danger"><i class="fas fa-times me-1"></i> Restricciones</h6>
+                  <ul class="list-unstyled ms-3">
+                    <li><i class="fas fa-ban text-danger me-1"></i> No puede crear o eliminar usuarios</li>
+                    <li><i class="fas fa-ban text-danger me-1"></i> No puede modificar cursos o asignaturas de otros profesores</li>
+                  </ul>
+                </div>
+              </div>
+            {% else %}
+              <div class="alert alert-info border-0 mb-3">
+                <div class="d-flex align-items-center">
+                  <i class="fas fa-graduation-cap fa-2x text-info me-3"></i>
+                  <div>
+                    <h6 class="alert-heading mb-1">Acceso de Estudiante</h6>
+                    <p class="mb-0">Puedes consultar tu información académica y seguir tu progreso.</p>
+                  </div>
+                </div>
+              </div>
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <h6 class="text-success"><i class="fas fa-check me-1"></i> Consulta Académica</h6>
+                  <ul class="list-unstyled ms-3">
+                    <li><i class="fas fa-book-reader text-primary me-1"></i> Ver mis materias</li>
+                    <li><i class="fas fa-clock text-info me-1"></i> Consultar horarios de clases</li>
+                    <li><i class="fas fa-calendar-check text-success me-1"></i> Ver calendario académico</li>
+                  </ul>
+                </div>
+                <div class="col-md-6">
+                  <h6 class="text-success"><i class="fas fa-check me-1"></i> Seguimiento Personal</h6>
+                  <ul class="list-unstyled ms-3">
+                    <li><i class="fas fa-star text-warning me-1"></i> Ver mis calificaciones</li>
+                    <li><i class="fas fa-chart-line text-info me-1"></i> Consultar mi asistencia</li>
+                    <li><i class="fas fa-user-friends text-success me-1"></i> Ver compañeros de curso</li>
+                  </ul>
+                </div>
+                <div class="col-md-12">
+                  <h6 class="text-danger"><i class="fas fa-times me-1"></i> Restricciones</h6>
+                  <ul class="list-unstyled ms-3">
+                    <li><i class="fas fa-ban text-danger me-1"></i> Solo acceso de lectura - no puede modificar información</li>
+                    <li><i class="fas fa-ban text-danger me-1"></i> No puede acceder a información de otros estudiantes</li>
+                  </ul>
+                </div>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.card {
+  border: 1px solid #dee2e6;
+}
+
+.badge {
+  font-size: 0.875rem;
+}
+
+.form-label {
+  margin-bottom: 0.5rem;
+}
+
+.text-dark {
+  color: #212529 !important;
+}
+
+@media (max-width: 768px) {
+  .welcome-header .col-md-4 {
+    margin-top: 1rem;
+  }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Actualizar fecha y hora actual
+  function updateDateTime() {
+    const now = new Date();
+    const options = { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    };
+    document.getElementById('currentDateTime').textContent = now.toLocaleDateString('es-ES', options);
+  }
+  
+  updateDateTime();
+  setInterval(updateDateTime, 60000); // Actualizar cada minuto
+  
+  // Animación de entrada para las tarjetas de estadísticas
+  const statsCards = document.querySelectorAll('.stats-card');
+  statsCards.forEach((card, index) => {
+    card.style.opacity = '0';
+    card.style.transform = 'translateY(20px)';
+    
+    setTimeout(() => {
+      card.style.transition = 'all 0.6s ease';
+      card.style.opacity = '1';
+      card.style.transform = 'translateY(0)';
+    }, index * 150);
+  });
+  
+  // Animación de entrada para accesos rápidos
+  const quickAccessCards = document.querySelectorAll('.quick-access-card');
+  quickAccessCards.forEach((card, index) => {
+    card.style.opacity = '0';
+    card.style.transform = 'scale(0.9)';
+    
+    setTimeout(() => {
+      card.style.transition = 'all 0.4s ease';
+      card.style.opacity = '1';
+      card.style.transform = 'scale(1)';
+    }, 600 + (index * 100));
+  });
+});
+</script>
+{% endblock %}

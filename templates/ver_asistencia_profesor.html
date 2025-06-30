@@ -1,0 +1,334 @@
+{% extends "index_master.html" %}
+{% block content %}
+<div class="right_col" role="main">
+  <div class="container-fluid">
+    <h3><i class="fa fa-chart-column"></i> Reportes de Asistencia - Profesores</h3>
+    
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
+
+    <!-- Estadísticas -->
+    <div class="row mb-4">
+      <div class="col-md-3">
+        <div class="card text-center">
+          <div class="card-body">
+            <h5 class="card-title text-primary">{{ estadisticas.total }}</h5>
+            <p class="card-text">Total Registros</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card text-center">
+          <div class="card-body">
+            <h5 class="card-title text-success">{{ estadisticas.presentes }}</h5>
+            <p class="card-text">Presentes</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card text-center">
+          <div class="card-body">
+            <h5 class="card-title text-danger">{{ estadisticas.ausentes }}</h5>
+            <p class="card-text">Ausentes</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card text-center">
+          <div class="card-body">
+            <h5 class="card-title text-info">{{ estadisticas.porcentaje_asistencia }}%</h5>
+            <p class="card-text">% Asistencia</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="card mb-4">
+      <div class="card-header">
+        <h5><i class="fa fa-filter"></i> Filtros de Búsqueda</h5>
+      </div>
+      <div class="card-body">
+        <form method="get" class="row g-3">
+          <div class="col-md-2">
+            <label class="form-label">Profesor</label>
+            <select name="profesor" class="form-select">
+              <option value="">Todos</option>
+              {% for profesor in profesores_disponibles %}
+                <option value="{{ profesor.id }}" {% if profesor.id|stringformat:"s" == filtros.profesor %}selected{% endif %}>
+                  {{ profesor.get_nombre_completo }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+          
+          <div class="col-md-2">
+            <label class="form-label">Asignatura</label>
+            <select name="asignatura" class="form-select">
+              <option value="">Todas</option>
+              {% for asignatura in asignaturas_disponibles %}
+                <option value="{{ asignatura.id }}" {% if asignatura.id|stringformat:"s" == filtros.asignatura %}selected{% endif %}>
+                  {{ asignatura.nombre }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+          
+          <div class="col-md-2">
+            <label class="form-label">Curso</label>
+            <select name="curso" class="form-select">
+              <option value="">Todos</option>
+              {% for curso in cursos_disponibles %}
+                <option value="{{ curso.id }}" {% if curso.id|stringformat:"s" == filtros.curso %}selected{% endif %}>
+                  {{ curso }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+          
+          <div class="col-md-2">
+            <label class="form-label">Estado</label>
+            <select name="presente" class="form-select">
+              <option value="">Todos</option>
+              <option value="true" {% if filtros.presente == 'true' %}selected{% endif %}>Presentes</option>
+              <option value="false" {% if filtros.presente == 'false' %}selected{% endif %}>Ausentes</option>
+            </select>
+          </div>
+          
+          <div class="col-md-2">
+            <label class="form-label">Desde</label>
+            <input type="date" name="fecha_desde" class="form-control" value="{{ filtros.fecha_desde }}">
+          </div>
+          
+          <div class="col-md-2">
+            <label class="form-label">Hasta</label>
+            <input type="date" name="fecha_hasta" class="form-control" value="{{ filtros.fecha_hasta }}">
+          </div>
+          
+          <div class="col-md-2">
+            <label class="form-label">Semana</label>
+            <input type="week" name="semana" class="form-control" value="{{ filtros.semana }}">
+          </div>
+          
+          <div class="col-md-2">
+            <label class="form-label">Año</label>
+            <input type="number" name="year" class="form-control" min="2000" max="2100" value="{{ year }}">
+          </div>
+          
+          <div class="col-md-12 text-center">
+            <button type="submit" class="btn btn-primary">
+              <i class="fa fa-search"></i> Filtrar
+            </button>
+            <a href="{% url 'ver_asistencia_profesor' %}" class="btn btn-secondary">
+              <i class="fa fa-refresh"></i> Limpiar
+            </a>
+            <a href="{% url 'registrar_asistencia_profesor' %}" class="btn btn-success">
+              <i class="fa fa-plus"></i> Registrar Asistencia
+            </a>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Tabla de asistencias -->
+    <div class="card">
+      <div class="card-header">
+        <h5><i class="fa fa-table"></i> Registros de Asistencia ({{ asistencias.count }} registros)</h5>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-striped table-hover">
+            <thead class="table-dark">
+              <tr>
+                <th>Fecha</th>
+                <th>Hora</th>
+                <th>Profesor</th>
+                <th>Asignatura</th>
+                <th>Curso</th>
+                <th>Estado</th>
+                <th>Observación</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for asistencia in asistencias %}
+              <tr class="{% if not asistencia.presente %}table-warning{% endif %}">
+                <td>
+                  <strong>{{ asistencia.fecha|date:"d/m/Y" }}</strong>
+                  <br><small class="text-muted">{{ asistencia.fecha|date:"l" }}</small>
+                </td>
+                <td>
+                  <span class="badge bg-info">{{ asistencia.hora_registro|time:"H:i" }}</span>
+                </td>
+                <td>
+                  <strong>{{ asistencia.profesor.get_nombre_completo }}</strong>
+                  <br><small class="text-muted">{{ asistencia.profesor.especialidad|default:"Sin especialidad" }}</small>
+                </td>
+                <td>
+                  {% if asistencia.asignatura %}
+                    <span class="badge bg-primary">{{ asistencia.asignatura.nombre }}</span>
+                  {% else %}
+                    <span class="badge bg-secondary">General</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if asistencia.curso %}
+                    <span class="badge bg-info">{{ asistencia.curso }}</span>
+                  {% else %}
+                    <span class="text-muted">-</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if asistencia.presente %}
+                    <span class="badge bg-success"><i class="fa fa-check"></i> Presente</span>
+                  {% else %}
+                    <span class="badge bg-danger"><i class="fa fa-times"></i> Ausente</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {{ asistencia.observacion|default:"-" }}
+                  {% if asistencia.justificacion %}
+                    <br><small class="text-muted"><strong>Justif:</strong> {{ asistencia.justificacion|truncatechars:50 }}</small>
+                  {% endif %}
+                </td>
+                <td>
+                  <div class="btn-group" role="group">
+                    <a href="{% url 'editar_asistencia_profesor' asistencia.id %}" 
+                       class="btn btn-sm btn-outline-primary" 
+                       title="Editar">
+                      <i class="fa fa-edit"></i>
+                    </a>
+                    {% if asistencia.justificacion %}
+                    <button type="button" 
+                            class="btn btn-sm btn-outline-info" 
+                            data-bs-toggle="modal" 
+                            data-bs-target="#justificacionModalProf{{ asistencia.id }}"
+                            title="Ver justificación">
+                      <i class="fa fa-info-circle"></i>
+                    </button>
+                    {% endif %}
+                  </div>
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="8" class="text-center">
+                  <div class="py-4">
+                    <i class="fa fa-info-circle fa-3x text-muted mb-3"></i>
+                    <h5>No hay registros de asistencia</h5>
+                    <p class="text-muted">Ajusta los filtros o registra nueva asistencia</p>
+                    <a href="{% url 'registrar_asistencia_profesor' %}" class="btn btn-primary">
+                      <i class="fa fa-plus"></i> Registrar Asistencia
+                    </a>
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modales para justificaciones -->
+{% for asistencia in asistencias %}
+  {% if asistencia.justificacion %}
+  <div class="modal fade" id="justificacionModalProf{{ asistencia.id }}" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Justificación de Ausencia - Profesor</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <p><strong>Profesor:</strong> {{ asistencia.profesor.get_nombre_completo }}</p>
+          <p><strong>Fecha:</strong> {{ asistencia.fecha|date:"d/m/Y" }}</p>
+          {% if asistencia.asignatura %}
+            <p><strong>Asignatura:</strong> {{ asistencia.asignatura.nombre }}</p>
+          {% endif %}
+          {% if asistencia.curso %}
+            <p><strong>Curso:</strong> {{ asistencia.curso }}</p>
+          {% endif %}
+          <hr>
+          <p><strong>Justificación:</strong></p>
+          <p>{{ asistencia.justificacion }}</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+{% endfor %}
+
+<script>
+// Autocompletar fechas al cargar la página
+document.addEventListener('DOMContentLoaded', function() {
+    const fechaDesde = document.querySelector('input[name="fecha_desde"]');
+    const fechaHasta = document.querySelector('input[name="fecha_hasta"]');
+    
+    if (!fechaDesde.value && !fechaHasta.value) {
+        // Si no hay filtros de fecha, mostrar la última semana
+        const hoy = new Date();
+        const hace7dias = new Date();
+        hace7dias.setDate(hoy.getDate() - 7);
+        
+        fechaDesde.value = hace7dias.toISOString().split('T')[0];
+        fechaHasta.value = hoy.toISOString().split('T')[0];
+    }
+    
+    // Configurar semana actual si no hay filtro
+    const semanaInput = document.querySelector('input[name="semana"]');
+    if (!semanaInput.value) {
+        const ahora = new Date();
+        const año = ahora.getFullYear();
+        const semana = getWeekNumber(ahora);
+        semanaInput.value = `${año}-W${semana.toString().padStart(2, '0')}`;
+    }
+});
+
+function getWeekNumber(date) {
+    const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
+    const pastDaysOfYear = (date - firstDayOfYear) / 86400000;
+    return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
+}
+</script>
+
+<style>
+.table-responsive {
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+.card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+.card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+.badge {
+    font-size: 0.75em;
+}
+
+.table-warning {
+    background-color: #fff3cd !important;
+}
+
+.btn-group .btn {
+    margin-right: 2px;
+}
+</style>
+{% endblock %}

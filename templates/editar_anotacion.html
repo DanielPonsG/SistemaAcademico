@@ -1,0 +1,314 @@
+{% extends "index_master.html" %}
+{% block content %}
+<div class="right_col" role="main">
+  <div class="container-fluid">
+    <h3><i class="fa fa-edit"></i> {{ titulo }}</h3>
+    
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
+
+    <div class="row">
+      <div class="col-md-8">
+        <div class="card">
+          <div class="card-header">
+            <h5><i class="fa fa-edit"></i> Editar Anotación</h5>
+          </div>
+          <div class="card-body">
+            <form method="post" id="anotacionForm">
+              {% csrf_token %}
+              
+              <!-- Información del estudiante y curso (solo lectura) -->
+              <div class="alert alert-info">
+                <div class="row">
+                  <div class="col-md-6">
+                    <h6><i class="fa fa-user-graduate"></i> Estudiante</h6>
+                    <p class="mb-0"><strong>{{ anotacion.estudiante.get_nombre_completo }}</strong></p>
+                    <small class="text-muted">RUT: {{ anotacion.estudiante.numero_documento }}</small>
+                  </div>
+                  <div class="col-md-6">
+                    <h6><i class="fa fa-school"></i> Curso</h6>
+                    <p class="mb-0"><strong>{{ anotacion.curso }}</strong></p>
+                    <small class="text-muted">Año: {{ anotacion.curso.anio }}</small>
+                  </div>
+                </div>
+                <hr class="my-2">
+                <small class="text-muted">
+                  <i class="fa fa-info-circle"></i> 
+                  No se puede cambiar el estudiante ni el curso al editar una anotación. 
+                  Solo puedes modificar el contenido de la anotación.
+                </small>
+              </div>
+              
+              <!-- Campos ocultos para preservar estudiante y curso -->
+              <input type="hidden" name="estudiante" value="{{ anotacion.estudiante.id }}">
+              <input type="hidden" name="curso" value="{{ anotacion.curso.id }}">
+
+              <!-- Fila 1: Tipo y Categoría -->
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">{{ form.tipo.label }}</label>
+                  {{ form.tipo }}
+                  {% for error in form.tipo.errors %}
+                    <div class="text-danger small">{{ error }}</div>
+                  {% endfor %}
+                  <div class="form-text">Selecciona el tipo de anotación</div>
+                </div>
+                
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">{{ form.categoria.label }}</label>
+                  {{ form.categoria }}
+                  {% for error in form.categoria.errors %}
+                    <div class="text-danger small">{{ error }}</div>
+                  {% endfor %}
+                </div>
+              </div>
+
+              <!-- Fila 2: Asignatura y Puntos -->
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">{{ form.asignatura.label }}</label>
+                  {{ form.asignatura }}
+                  {% for error in form.asignatura.errors %}
+                    <div class="text-danger small">{{ error }}</div>
+                  {% endfor %}
+                  <div class="form-text">{{ form.asignatura.help_text }}</div>
+                </div>
+                
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">{{ form.puntos.label }}</label>
+                  {{ form.puntos }}
+                  {% for error in form.puntos.errors %}
+                    <div class="text-danger small">{{ error }}</div>
+                  {% endfor %}
+                  <div class="form-text">{{ form.puntos.help_text }}</div>
+                </div>
+              </div>
+
+              <!-- Fila 3: Título -->
+              <div class="row mb-3">
+                <div class="col-md-12">
+                  <label class="form-label fw-bold">{{ form.titulo.label }}</label>
+                  {{ form.titulo }}
+                  {% for error in form.titulo.errors %}
+                    <div class="text-danger small">{{ error }}</div>
+                  {% endfor %}
+                </div>
+              </div>
+
+              <!-- Fila 4: Descripción -->
+              <div class="row mb-3">
+                <div class="col-md-12">
+                  <label class="form-label fw-bold">{{ form.descripcion.label }}</label>
+                  {{ form.descripcion }}
+                  {% for error in form.descripcion.errors %}
+                    <div class="text-danger small">{{ error }}</div>
+                  {% endfor %}
+                </div>
+              </div>
+
+              <!-- Fila 5: Opciones adicionales -->
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <div class="form-check">
+                    {{ form.es_grave }}
+                    <label class="form-check-label" for="{{ form.es_grave.id_for_label }}">
+                      {{ form.es_grave.label }}
+                    </label>
+                  </div>
+                  <div class="form-text">{{ form.es_grave.help_text }}</div>
+                </div>
+                
+                <div class="col-md-6">
+                  <div class="form-check">
+                    {{ form.requiere_atencion_apoderado }}
+                    <label class="form-check-label" for="{{ form.requiere_atencion_apoderado.id_for_label }}">
+                      {{ form.requiere_atencion_apoderado.label }}
+                    </label>
+                  </div>
+                  <div class="form-text">{{ form.requiere_atencion_apoderado.help_text }}</div>
+                </div>
+              </div>
+
+              <!-- Botones -->
+              <div class="text-center mt-4">
+                <button type="submit" class="btn btn-success btn-lg">
+                  <i class="fa fa-save"></i> Actualizar Anotación
+                </button>
+                <a href="{% url 'libro_anotaciones' %}" class="btn btn-secondary btn-lg ms-2">
+                  <i class="fa fa-arrow-left"></i> Cancelar
+                </a>
+                <a href="{% url 'eliminar_anotacion' anotacion.id %}" 
+                   class="btn btn-danger btn-lg ms-2"
+                   onclick="return confirm('¿Estás seguro de eliminar esta anotación?')">
+                  <i class="fa fa-trash"></i> Eliminar
+                </a>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-md-4">
+        <!-- Información de la anotación existente -->
+        <div class="card">
+          <div class="card-header">
+            <h6><i class="fa fa-clock"></i> Información del Registro</h6>
+          </div>
+          <div class="card-body">
+            <p><strong>Creado:</strong><br>{{ anotacion.fecha_creacion|date:"d/m/Y H:i" }}</p>
+            {% if anotacion.fecha_modificacion != anotacion.fecha_creacion %}
+            <p><strong>Última modificación:</strong><br>{{ anotacion.fecha_modificacion|date:"d/m/Y H:i" }}</p>
+            {% endif %}
+            <p><strong>Autor:</strong><br>{{ anotacion.profesor_autor.get_nombre_completo }}</p>
+            <p><strong>Puntos actuales:</strong><br>
+              <span class="badge" style="background-color: {{ anotacion.color_tipo }};">
+                {% if anotacion.puntos > 0 %}+{% endif %}{{ anotacion.puntos }} pts
+              </span>
+            </p>
+          </div>
+        </div>
+        
+        <!-- Panel de ayuda -->
+        <div class="card mt-3">
+          <div class="card-header">
+            <h6><i class="fa fa-info-circle"></i> Guía de Edición</h6>
+          </div>
+          <div class="card-body">
+            <div class="alert alert-warning small">
+              <i class="fa fa-exclamation-triangle"></i>
+              <strong>Importante:</strong> Al editar una anotación, no puedes cambiar 
+              el estudiante ni el curso. Solo puedes modificar el contenido, tipo y 
+              configuración de la anotación.
+            </div>
+            
+            <h6 class="text-success">Anotaciones Positivas (+5 pts)</h6>
+            <ul class="small text-muted">
+              <li>Excelente comportamiento</li>
+              <li>Colaboración destacada</li>
+              <li>Responsabilidad ejemplar</li>
+            </ul>
+            
+            <h6 class="text-danger">Anotaciones Negativas (-3 pts)</h6>
+            <ul class="small text-muted">
+              <li>Comportamiento disruptivo</li>
+              <li>Falta de responsabilidad</li>
+              <li>Incumplimiento de normas</li>
+            </ul>
+            
+            <div class="alert alert-info small mt-3">
+              <i class="fa fa-info-circle"></i>
+              <strong>Nota:</strong> Las anotaciones graves duplican los puntos negativos.
+            </div>
+          </div>
+        </div>
+
+        <!-- Historial de comportamiento del estudiante -->
+        <div class="card mt-3">
+          <div class="card-header">
+            <h6><i class="fa fa-chart-bar"></i> Comportamiento del Estudiante</h6>
+          </div>
+          <div class="card-body">
+            <div class="text-center">
+              <a href="{% url 'detalle_comportamiento_estudiante' anotacion.estudiante.id %}" 
+                 class="btn btn-outline-primary btn-sm">
+                <i class="fa fa-eye"></i> Ver Historial Completo
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const tipoSelect = document.querySelector('select[name="tipo"]');
+    const puntosInput = document.querySelector('input[name="puntos"]');
+    const esGraveCheck = document.querySelector('input[name="es_grave"]');
+    
+    // Actualizar puntos automáticamente según el tipo
+    function actualizarPuntos() {
+        const tipo = tipoSelect.value;
+        const esGrave = esGraveCheck.checked;
+        
+        if (puntosInput.dataset.autoSet !== 'false') {
+            let puntos = 0;
+            
+            if (tipo === 'positiva') {
+                puntos = 5;
+            } else if (tipo === 'negativa') {
+                puntos = esGrave ? -6 : -3;
+            } else {
+                puntos = 0;
+            }
+            
+            puntosInput.value = puntos;
+        }
+    }
+    
+    if (tipoSelect && puntosInput && esGraveCheck) {
+        tipoSelect.addEventListener('change', actualizarPuntos);
+        esGraveCheck.addEventListener('change', actualizarPuntos);
+        
+        // Permitir edición manual de puntos
+        puntosInput.addEventListener('input', function() {
+            this.dataset.autoSet = 'false';
+        });
+    }
+    
+    // Validación del formulario
+    document.getElementById('anotacionForm').addEventListener('submit', function(e) {
+        const titulo = document.querySelector('input[name="titulo"]').value.trim();
+        const descripcion = document.querySelector('textarea[name="descripcion"]').value.trim();
+        
+        if (!titulo || !descripcion) {
+            e.preventDefault();
+            alert('Por favor completa el título y la descripción.');
+            return false;
+        }
+        
+        return true;
+    });
+});
+</script>
+
+<style>
+.card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+.card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+.form-check-input:checked {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.badge {
+    font-size: 0.75em;
+}
+
+.alert-info {
+    background-color: #d1ecf1;
+    border-color: #b8daff;
+    color: #0c5460;
+}
+
+.alert-warning {
+    background-color: #fff3cd;
+    border-color: #ffecb5;
+    color: #664d03;
+}
+</style>
+{% endblock %}

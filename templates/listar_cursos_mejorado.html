@@ -1,0 +1,665 @@
+{% extends "index_master.html" %}
+{% block content %}
+<div class="right_col" role="main">
+  <div class="container-fluid">
+    {% csrf_token %}
+    <!-- Mensajes -->
+    {% if messages %}
+      <div class="row mb-3">
+        <div class="col-12">
+          {% for message in messages %}
+            <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+              <i class="fas fa-{{ message.tags|default:'info'|yesno:'check-circle,exclamation-triangle,info-circle' }} me-2"></i>
+              {{ message }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+
+    <!-- Header -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="card shadow-sm border-0">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <h2 class="mb-1 text-primary">
+                  <i class="fas fa-school me-2"></i>Gestión de Cursos
+                </h2>
+                <p class="text-muted mb-0">Administra cursos, estudiantes y asignaturas del año académico</p>
+              </div>
+              <div>
+                {% if puede_editar %}
+                  <a href="{% url 'agregar_curso' %}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-plus me-2"></i>Nuevo Curso
+                  </a>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Estadísticas -->
+    <div class="row mb-4">
+      <div class="col-md-3">
+        <div class="stats-card bg-primary">
+          <div class="stats-icon">
+            <i class="fas fa-school"></i>
+          </div>
+          <div class="stats-info">
+            <h3>{{ total_cursos }}</h3>
+            <p>Total Cursos</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="stats-card bg-success">
+          <div class="stats-icon">
+            <i class="fas fa-users"></i>
+          </div>
+          <div class="stats-info">
+            <h3>{{ total_estudiantes_asignados }}</h3>
+            <p>Estudiantes Asignados</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="stats-card bg-info">
+          <div class="stats-icon">
+            <i class="fas fa-user-tie"></i>
+          </div>
+          <div class="stats-info">
+            <h3>{{ profesores_jefe_asignados }}</h3>
+            <p>Profesores Jefe</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="stats-card bg-warning">
+          <div class="stats-icon">
+            <i class="fas fa-book"></i>
+          </div>
+          <div class="stats-info">
+            <h3>{{ total_asignaturas_asignadas }}</h3>
+            <p>Asignaturas Asignadas</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabla de cursos -->
+    <div class="card shadow-sm border-0">
+      <div class="card-header bg-light">
+        <h5 class="mb-0 text-dark">
+          <i class="fas fa-list me-2"></i>Cursos Registrados ({{ cursos|length }})
+        </h5>
+      </div>
+      <div class="card-body p-0">
+        {% if cursos %}
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th class="fw-semibold">Curso</th>
+                  <th class="fw-semibold">Profesor Jefe</th>
+                  <th class="fw-semibold text-center">Estudiantes</th>
+                  <th class="fw-semibold text-center">Asignaturas</th>
+                  <th class="fw-semibold text-center">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for curso in cursos %}
+                  <tr class="curso-row">
+                    <td>
+                      <div class="d-flex align-items-center">
+                        <div class="course-icon">
+                          {% if curso.nivel|slice:"-1" == "B" %}
+                            <i class="fas fa-graduation-cap text-primary"></i>
+                          {% else %}
+                            <i class="fas fa-university text-info"></i>
+                          {% endif %}
+                        </div>
+                        <div class="ms-3">
+                          <h6 class="mb-0 fw-semibold">{{ curso.get_nivel_display }}{{ curso.paralelo }}</h6>
+                          <small class="text-muted">Año {{ curso.anio }}</small>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      {% if curso.profesor_jefe %}
+                        <div class="d-flex align-items-center">
+                          <div class="teacher-avatar">
+                            <i class="fas fa-user-tie"></i>
+                          </div>
+                          <div class="ms-2">
+                            <span class="fw-medium">{{ curso.profesor_jefe.primer_nombre }} {{ curso.profesor_jefe.apellido_paterno }}</span>
+                          </div>
+                        </div>
+                      {% else %}
+                        <span class="badge bg-warning text-dark">
+                          <i class="fas fa-exclamation-triangle me-1"></i>Sin Asignar
+                        </span>
+                      {% endif %}
+                    </td>
+                    <td class="text-center">
+                      <span class="badge bg-primary rounded-pill fs-6">
+                        {{ curso.estudiantes.count }}
+                      </span>
+                    </td>
+                    <td class="text-center">
+                      <span class="badge bg-success rounded-pill fs-6">
+                        {{ curso.asignaturas.count }}
+                      </span>
+                    </td>
+                    <td class="text-center">
+                      <div class="btn-group btn-group-sm" role="group">
+                        <button type="button" 
+                                class="btn btn-outline-info" 
+                                onclick="toggleDetalles('{{ curso.id }}')"
+                                title="Ver detalles">
+                          <i class="fas fa-eye"></i>
+                        </button>
+                        {% if puede_editar %}
+                          <button type="button" 
+                                  class="btn btn-outline-primary" 
+                                  onclick="gestionarAsignaturas({{ curso.id }}, '{{ curso.get_nivel_display }}{{ curso.paralelo }}')"
+                                  title="Gestionar asignaturas">
+                            <i class="fas fa-book"></i>
+                          </button>
+                          <a href="{% url 'editar_curso' curso.id %}" 
+                             class="btn btn-outline-warning"
+                             title="Editar curso">
+                            <i class="fas fa-edit"></i>
+                          </a>
+                          <button type="button" 
+                                  class="btn btn-outline-danger" 
+                                  onclick="confirmarEliminacion('{{ curso.get_nivel_display }}{{ curso.paralelo }}', {{ curso.id }})"
+                                  title="Eliminar curso">
+                            <i class="fas fa-trash"></i>
+                          </button>
+                        {% endif %}
+                      </div>
+                    </td>
+                  </tr>
+                  
+                  <!-- Fila de detalles (oculta por defecto) -->
+                  <tr id="detalles-{{ curso.id }}" class="detalles-row" style="display: none;">
+                    <td colspan="5" class="bg-light">
+                      <div class="row p-3">
+                        <!-- Estudiantes -->
+                        <div class="col-md-6">
+                          <h6 class="text-primary mb-3">
+                            <i class="fas fa-users me-2"></i>Estudiantes ({{ curso.estudiantes.count }})
+                          </h6>
+                          {% if curso.estudiantes.all %}
+                            <div class="estudiantes-grid">
+                              {% for estudiante in curso.estudiantes.all|slice:":8" %}
+                                <div class="estudiante-item">
+                                  <i class="fas fa-user-graduate text-muted me-1"></i>
+                                  <small>{{ estudiante.primer_nombre }} {{ estudiante.apellido_paterno }}</small>
+                                </div>
+                              {% endfor %}
+                              {% if curso.estudiantes.count > 8 %}
+                                <div class="estudiante-item">
+                                  <small class="text-muted">
+                                    <i class="fas fa-ellipsis-h me-1"></i>
+                                    y {{ curso.estudiantes.count|add:"-8" }} más...
+                                  </small>
+                                </div>
+                              {% endif %}
+                            </div>
+                          {% else %}
+                            <p class="text-muted fst-italic">No hay estudiantes asignados</p>
+                          {% endif %}
+                        </div>
+                        
+                        <!-- Asignaturas -->
+                        <div class="col-md-6">
+                          <h6 class="text-success mb-3">
+                            <i class="fas fa-book me-2"></i>Asignaturas ({{ curso.asignaturas.count }})
+                          </h6>
+                          {% if curso.asignaturas.all %}
+                            <div class="asignaturas-grid">
+                              {% for asignatura in curso.asignaturas.all %}
+                                <div class="asignatura-item">
+                                  <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                      <span class="fw-medium">{{ asignatura.nombre }}</span>
+                                      {% if asignatura.profesor_responsable %}
+                                        <br><small class="text-muted">{{ asignatura.profesor_responsable.primer_nombre }} {{ asignatura.profesor_responsable.apellido_paterno }}</small>
+                                      {% else %}
+                                        <br><small class="text-warning">Sin profesor</small>
+                                      {% endif %}
+                                    </div>
+                                  </div>
+                                </div>
+                              {% endfor %}
+                            </div>
+                          {% else %}
+                            <p class="text-muted fst-italic">No hay asignaturas asignadas</p>
+                          {% endif %}
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="text-center py-5">
+            <div class="empty-state">
+              <i class="fas fa-school fa-4x text-muted mb-3"></i>
+              <h5 class="text-muted">No hay cursos registrados</h5>
+              <p class="text-muted">Comienza agregando tu primer curso</p>
+              {% if puede_editar %}
+                <a href="{% url 'agregar_curso' %}" class="btn btn-primary">
+                  <i class="fas fa-plus me-2"></i>Agregar Curso
+                </a>
+              {% endif %}
+            </div>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Modal para gestionar asignaturas -->
+    <div class="modal fade" id="modalGestionarAsignaturas" tabindex="-1">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header bg-primary text-white">
+            <h5 class="modal-title">
+              <i class="fas fa-book me-2"></i>Gestionar Asignaturas
+            </h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div class="row">
+              <div class="col-md-6">
+                <h6 class="text-success mb-3">Asignaturas Asignadas</h6>
+                <div id="asignaturasAsignadas" class="asignaturas-container">
+                  <!-- Se carga dinámicamente -->
+                </div>
+              </div>
+              <div class="col-md-6">
+                <h6 class="text-primary mb-3">Asignaturas Disponibles</h6>
+                <div id="asignaturasDisponibles" class="asignaturas-container">
+                  <!-- Se carga dinámicamente -->
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- JavaScript -->
+<script>
+function toggleDetalles(cursoId) {
+  const detalles = document.getElementById(`detalles-${cursoId}`);
+  const isVisible = detalles.style.display !== 'none';
+  
+  if (isVisible) {
+    detalles.style.display = 'none';
+  } else {
+    detalles.style.display = '';
+  }
+}
+
+function gestionarAsignaturas(cursoId, cursoNombre) {
+  document.getElementById('modalCursoId').value = cursoId;
+  document.getElementById('modalCursoNombre').textContent = cursoNombre;
+  
+  // Cargar asignaturas via AJAX
+  cargarAsignaturasCurso(cursoId);
+  
+  const modal = new bootstrap.Modal(document.getElementById('modalGestionarAsignaturas'));
+  modal.show();
+}
+
+function cargarAsignaturasCurso(cursoId) {
+  const disponiblesContainer = document.getElementById('asignaturasDisponibles');
+  const asignadasContainer = document.getElementById('asignaturasAsignadas');
+  
+  // Mostrar indicador de carga
+  disponiblesContainer.innerHTML = '<div class="text-center p-3"><i class="fas fa-spinner fa-spin"></i> Cargando...</div>';
+  asignadasContainer.innerHTML = '<div class="text-center p-3"><i class="fas fa-spinner fa-spin"></i> Cargando...</div>';
+  
+  // Obtener token CSRF
+  const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+  
+  fetch(`/ajax/obtener-asignaturas-curso/${cursoId}/`, {
+    method: 'GET',
+    headers: {
+      'X-CSRFToken': csrftoken,
+      'Content-Type': 'application/json',
+    },
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      mostrarAsignaturas(data.data, cursoId);
+    } else {
+      disponiblesContainer.innerHTML = '<div class="text-center text-danger p-3">Error al cargar asignaturas</div>';
+      asignadasContainer.innerHTML = '<div class="text-center text-danger p-3">Error al cargar asignaturas</div>';
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    disponiblesContainer.innerHTML = '<div class="text-center text-danger p-3">Error de conexión</div>';
+    asignadasContainer.innerHTML = '<div class="text-center text-danger p-3">Error de conexión</div>';
+  });
+}
+
+function mostrarAsignaturas(data, cursoId) {
+  const disponiblesContainer = document.getElementById('asignaturasDisponibles');
+  const asignadasContainer = document.getElementById('asignaturasAsignadas');
+  
+  // Mostrar asignaturas disponibles
+  disponiblesContainer.innerHTML = '';
+  if (data.asignaturas_disponibles.length > 0) {
+    data.asignaturas_disponibles.forEach(asignatura => {
+      const div = document.createElement('div');
+      div.className = 'asignatura-item mb-2 p-2 border rounded';
+      div.innerHTML = `
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <span class="fw-medium">${asignatura.nombre}</span>
+            ${asignatura.profesor ? `<br><small class="text-muted">${asignatura.profesor}</small>` : '<br><small class="text-warning">Sin profesor</small>'}
+          </div>
+          <button type="button" 
+                  class="btn btn-sm btn-outline-success" 
+                  onclick="asignarAsignatura(${asignatura.id}, '${asignatura.nombre}', ${cursoId})">
+            <i class="fas fa-plus"></i>
+          </button>
+        </div>
+      `;
+      disponiblesContainer.appendChild(div);
+    });
+  } else {
+    disponiblesContainer.innerHTML = '<div class="text-center text-muted p-3">Todas las asignaturas están asignadas</div>';
+  }
+  
+  // Mostrar asignaturas asignadas
+  asignadasContainer.innerHTML = '';
+  if (data.asignaturas_asignadas.length > 0) {
+    data.asignaturas_asignadas.forEach(asignatura => {
+      const div = document.createElement('div');
+      div.className = 'asignatura-item mb-2 p-2 border rounded bg-success bg-opacity-10';
+      div.innerHTML = `
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <span class="fw-medium">${asignatura.nombre}</span>
+            ${asignatura.profesor ? `<br><small class="text-muted">${asignatura.profesor}</small>` : '<br><small class="text-warning">Sin profesor</small>'}
+          </div>
+          <button type="button" 
+                  class="btn btn-sm btn-outline-danger" 
+                  onclick="desasignarAsignatura(${asignatura.id}, '${asignatura.nombre}', ${cursoId})">
+            <i class="fas fa-minus"></i>
+          </button>
+        </div>
+      `;
+      asignadasContainer.appendChild(div);
+    });
+  } else {
+    asignadasContainer.innerHTML = '<div class="text-center text-muted p-3">No hay asignaturas asignadas</div>';
+  }
+}
+
+function asignarAsignatura(asignaturaId, asignaturaNombre, cursoId) {
+  if (!confirm(`¿Asignar ${asignaturaNombre} al curso?`)) return;
+  
+  const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+  
+  fetch('/ajax/gestionar-asignaturas-curso/', {
+    method: 'POST',
+    headers: {
+      'X-CSRFToken': csrftoken,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      curso_id: cursoId,
+      asignatura_id: asignaturaId,
+      accion: 'asignar'
+    })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      mostrarMensaje(data.mensaje, 'success');
+      cargarAsignaturasCurso(cursoId);
+      actualizarEstadisticas();
+      location.reload(); // Recargar para actualizar la tabla principal
+    } else {
+      mostrarMensaje(data.error, 'error');
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    mostrarMensaje('Error de conexión', 'error');
+  });
+}
+
+function desasignarAsignatura(asignaturaId, asignaturaNombre, cursoId) {
+  if (!confirm(`¿Desasignar ${asignaturaNombre} del curso?`)) return;
+  
+  const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+  
+  fetch('/ajax/gestionar-asignaturas-curso/', {
+    method: 'POST',
+    headers: {
+      'X-CSRFToken': csrftoken,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      curso_id: cursoId,
+      asignatura_id: asignaturaId,
+      accion: 'desasignar'
+    })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      mostrarMensaje(data.mensaje, 'success');
+      cargarAsignaturasCurso(cursoId);
+      actualizarEstadisticas();
+      location.reload(); // Recargar para actualizar la tabla principal
+    } else {
+      mostrarMensaje(data.error, 'error');
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    mostrarMensaje('Error de conexión', 'error');
+  });
+}
+
+function confirmarEliminacion(nombreCurso, cursoId) {
+  if (confirm(`¿Estás seguro de que deseas eliminar el curso "${nombreCurso}"?\n\nEsta acción no se puede deshacer.`)) {
+    window.location.href = `/cursos/eliminar/${cursoId}/`;
+  }
+}
+
+function mostrarMensaje(mensaje, tipo) {
+  const alertDiv = document.createElement('div');
+  alertDiv.className = `alert alert-${tipo === 'success' ? 'success' : 'danger'} alert-dismissible fade show`;
+  alertDiv.innerHTML = `
+    <i class="fas fa-${tipo === 'success' ? 'check-circle' : 'exclamation-triangle'} me-2"></i>
+    ${mensaje}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  `;
+  
+  const container = document.querySelector('.container-fluid');
+  container.insertBefore(alertDiv, container.firstChild);
+  
+  setTimeout(() => {
+    if (alertDiv.parentNode) {
+      alertDiv.remove();
+    }
+  }, 5000);
+}
+
+function actualizarEstadisticas() {
+  // Podrías hacer una llamada AJAX para actualizar las estadísticas sin recargar
+  // Por simplicidad, aquí solo recargamos la página
+}
+</script>
+
+<!-- CSS Mejorado -->
+<style>
+.stats-card {
+  border-radius: 12px;
+  padding: 24px;
+  color: white;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s;
+}
+
+.stats-card:hover {
+  transform: translateY(-2px);
+}
+
+.stats-icon {
+  font-size: 2.5rem;
+  margin-right: 20px;
+  opacity: 0.8;
+}
+
+.stats-info h3 {
+  font-size: 2rem;
+  font-weight: bold;
+  margin: 0;
+}
+
+.stats-info p {
+  margin: 0;
+  opacity: 0.9;
+  font-size: 0.9rem;
+}
+
+.course-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background: rgba(0, 123, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+}
+
+.teacher-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(108, 117, 125, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  color: #6c757d;
+}
+
+.curso-row {
+  transition: background-color 0.2s;
+}
+
+.curso-row:hover {
+  background-color: #f8f9fa;
+}
+
+.detalles-row td {
+  border-top: none !important;
+}
+
+.estudiantes-grid, .asignaturas-grid {
+  display: grid;
+  gap: 8px;
+}
+
+.estudiante-item, .asignatura-item {
+  padding: 8px 12px;
+  background: white;
+  border: 1px solid #e9ecef;
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+.asignaturas-container {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.empty-state i {
+  opacity: 0.3;
+}
+
+.badge.fs-6 {
+  font-size: 0.9rem !important;
+  padding: 0.5em 0.75em;
+}
+
+.btn-group-sm > .btn {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+}
+
+.card {
+  border: none;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.table-hover tbody tr:hover {
+  background-color: rgba(0, 0, 0, 0.025);
+}
+
+.fw-semibold {
+  font-weight: 600;
+}
+
+/* Colores de estadísticas */
+.bg-primary { background-color: #007bff !important; }
+.bg-success { background-color: #28a745 !important; }
+.bg-info { background-color: #17a2b8 !important; }
+.bg-warning { background-color: #ffc107 !important; color: #212529 !important; }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .stats-card {
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+  
+  .stats-icon {
+    font-size: 2rem;
+    margin-right: 16px;
+  }
+  
+  .stats-info h3 {
+    font-size: 1.5rem;
+  }
+  
+  .btn-group-sm > .btn {
+    padding: 0.125rem 0.25rem;
+    font-size: 0.75rem;
+  }
+}
+</style>
+
+<!-- Hidden fields for modal -->
+<input type="hidden" id="modalCursoId">
+<span id="modalCursoNombre" style="display: none;"></span>
+
+{% endblock %}

@@ -1,0 +1,463 @@
+{% extends "index_master.html" %}
+{% block content %}
+<div class="right_col" role="main">
+  <div class="container-fluid">
+    <!-- Mensajes de éxito y error -->
+    {% if messages %}
+      <div class="row mb-3">
+        <div class="col-12">
+          {% for message in messages %}
+            <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+              {{ message }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+
+    <!-- Header -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="bg-white p-4 rounded shadow-sm border">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <h2 class="mb-1 text-dark">
+                <i class="fas fa-calendar-alt me-2 text-primary"></i>
+                Gestión de Horarios - {{ curso.get_nivel_display }}{{ curso.paralelo }}
+              </h2>
+              <p class="mb-0 text-muted">
+                <i class="fas fa-info-circle me-1"></i>
+                Gestiona los horarios del curso {{ curso.get_nivel_display }}{{ curso.paralelo }} ({{ curso.anio }})
+              </p>
+            </div>
+            <div class="d-flex gap-2">
+              <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalCrearHorario">
+                <i class="fas fa-plus me-1"></i>Agregar Horario
+              </button>
+              <a href="{% url 'seleccionar_curso_horarios' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i>Volver a Selección
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Estadísticas y resumen -->
+    <div class="row mb-4">
+      <div class="col-md-3">
+        <div class="card border shadow-sm bg-white">
+          <div class="card-body text-center">
+            <i class="fas fa-clock fa-2x text-primary mb-2"></i>
+            <h3 class="mb-0 text-dark">{{ horarios.count }}</h3>
+            <p class="mb-0 text-muted">Horarios Totales</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card border shadow-sm bg-white">
+          <div class="card-body text-center">
+            <i class="fas fa-book fa-2x text-info mb-2"></i>
+            <h3 class="mb-0 text-dark">{{ asignaturas.count }}</h3>
+            <p class="mb-0 text-muted">Asignaturas Disponibles</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card border shadow-sm bg-white">
+          <div class="card-body text-center">
+            <i class="fas fa-chalkboard-teacher fa-2x text-success mb-2"></i>
+            <h3 class="mb-0 text-dark">{{ profesores.count }}</h3>
+            <p class="mb-0 text-muted">Profesores Disponibles</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card border shadow-sm bg-white">
+          <div class="card-body text-center">
+            <i class="fas fa-users fa-2x text-warning mb-2"></i>
+            <h3 class="mb-0 text-dark">{{ curso.estudiantes.count }}</h3>
+            <p class="mb-0 text-muted">Estudiantes del Curso</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lista de horarios -->
+    <div class="card border shadow-sm">
+      <div class="card-header bg-light border-bottom">
+        <h5 class="mb-0 text-dark">
+          <i class="fas fa-list me-2"></i>Horarios del Curso
+        </h5>
+      </div>
+      <div class="card-body">
+        {% if horarios %}
+          <div class="table-responsive">
+            <table class="table table-striped table-hover">
+              <thead class="table-light">
+                <tr>
+                  <th>Día</th>
+                  <th>Hora</th>
+                  <th>Asignatura</th>
+                  <th>Profesor</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for horario in horarios %}
+                <tr>
+                  <td><strong>{{ horario.get_dia_display }}</strong></td>
+                  <td>{{ horario.hora_inicio|time:"H:i" }} - {{ horario.hora_fin|time:"H:i" }}</td>
+                  <td>
+                    {% if horario.asignatura %}
+                      <span class="badge bg-primary">{{ horario.asignatura.nombre }}</span>
+                    {% else %}
+                      <em class="text-muted">Sin asignatura</em>
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if horario.profesor %}
+                      {{ horario.profesor.get_nombre_completo }}
+                    {% else %}
+                      <em class="text-muted">Sin asignar</em>
+                    {% endif %}
+                  </td>
+                  <td>
+                    <div class="btn-group btn-group-sm">
+                      <button type="button" class="btn btn-outline-warning btn-editar" 
+                              data-horario-id="{{ horario.id }}" title="Editar">
+                        <i class="fas fa-edit"></i>
+                      </button>
+                      <button type="button" class="btn btn-outline-danger btn-eliminar" 
+                              data-horario-id="{{ horario.id }}" title="Eliminar">
+                        <i class="fas fa-trash"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="text-center py-5">
+            <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted mb-2">No hay horarios programados</h5>
+            <p class="text-muted mb-3">Comienza agregando horarios para este curso</p>
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalCrearHorario">
+              <i class="fas fa-plus me-1"></i>Agregar Primer Horario
+            </button>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para crear/editar horario -->
+<div class="modal fade" id="modalCrearHorario" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-clock me-2"></i>
+          <span id="tituloModal">Crear Horario</span>
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="formHorario">
+          {% csrf_token %}
+          <input type="hidden" id="horarioId" name="horario_id">
+          <input type="hidden" id="cursoId" name="curso_id" value="{{ curso.id }}">
+          
+          <div class="row">
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="asignaturaSelect" class="form-label">Asignatura <span class="text-danger">*</span></label>
+                <select class="form-select" id="asignaturaSelect" name="asignatura_id" required>
+                  <option value="">Seleccionar asignatura...</option>
+                  {% for asignatura in asignaturas %}
+                    <option value="{{ asignatura.id }}">{{ asignatura.nombre }} ({{ asignatura.codigo_asignatura }})</option>
+                  {% endfor %}
+                </select>
+                <div class="form-text">Selecciona la asignatura para el horario</div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="profesorSelect" class="form-label">Profesor</label>
+                <select class="form-select" id="profesorSelect" name="profesor_id">
+                  <option value="">Seleccionar profesor...</option>
+                  {% for profesor in profesores %}
+                    <option value="{{ profesor.id }}">{{ profesor.get_nombre_completo }}</option>
+                  {% endfor %}
+                </select>
+                <div class="form-text">Los profesores se filtrarán según la asignatura seleccionada</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="row">
+            <div class="col-md-4">
+              <div class="mb-3">
+                <label for="diaSelect" class="form-label">Día <span class="text-danger">*</span></label>
+                <select class="form-select" id="diaSelect" name="dia" required>
+                  <option value="">Seleccionar día...</option>
+                  {% for dia_value, dia_label in dias_semana %}
+                    <option value="{{ dia_value }}">{{ dia_label }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="mb-3">
+                <label for="horaInicio" class="form-label">Hora Inicio <span class="text-danger">*</span></label>
+                <input type="time" class="form-control" id="horaInicio" name="hora_inicio" required 
+                       min="07:00" max="18:00" step="300">
+                <div class="form-text">Entre 07:00 y 18:00</div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="mb-3">
+                <label for="horaFin" class="form-label">Hora Fin <span class="text-danger">*</span></label>
+                <input type="time" class="form-control" id="horaFin" name="hora_fin" required 
+                       min="07:00" max="18:00" step="300">
+                <div class="form-text">Entre 07:00 y 18:00</div>
+              </div>
+            </div>
+          </div>
+          
+          <div id="alertasValidacion" class="alert alert-warning" style="display: none;">
+            <h6><i class="fas fa-exclamation-triangle me-2"></i>Problemas Detectados:</h6>
+            <ul id="listaProblemas"></ul>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-primary" id="btnGuardarHorario">
+          <i class="fas fa-save me-1"></i>Guardar Horario
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- JavaScript -->
+<script>
+// Variables globales
+let currentHorarioId = null;
+let cursoId = {{ curso.id }};
+
+// Inicialización cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', function() {
+    // Event listeners para botones de editar
+    document.querySelectorAll('.btn-editar').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const horarioId = this.dataset.horarioId;
+            editarHorario(horarioId);
+        });
+    });
+    
+    // Event listeners para botones de eliminar
+    document.querySelectorAll('.btn-eliminar').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const horarioId = this.dataset.horarioId;
+            eliminarHorario(horarioId);
+        });
+    });
+    
+    // Event listener para guardar horario
+    document.getElementById('btnGuardarHorario').addEventListener('click', guardarHorario);
+    
+    // Event listener para cambio de asignatura (filtrar profesores)
+    document.getElementById('asignaturaSelect').addEventListener('change', filtrarProfesores);
+    
+    // Validación en tiempo real de horas
+    document.getElementById('horaInicio').addEventListener('change', validarHoras);
+    document.getElementById('horaFin').addEventListener('change', validarHoras);
+    
+    // Limpiar formulario al cerrar modal
+    document.getElementById('modalCrearHorario').addEventListener('hidden.bs.modal', function() {
+        limpiarFormulario();
+    });
+});
+
+// Función para limpiar formulario
+function limpiarFormulario() {
+    document.getElementById('formHorario').reset();
+    document.getElementById('horarioId').value = '';
+    document.getElementById('tituloModal').textContent = 'Crear Horario';
+    document.getElementById('btnGuardarHorario').innerHTML = '<i class="fas fa-save me-1"></i>Guardar Horario';
+    document.getElementById('alertasValidacion').style.display = 'none';
+    currentHorarioId = null;
+}
+
+// Función para validar horas
+function validarHoras() {
+    const horaInicio = document.getElementById('horaInicio').value;
+    const horaFin = document.getElementById('horaFin').value;
+    const alertContainer = document.getElementById('alertasValidacion');
+    const listaProblemas = document.getElementById('listaProblemas');
+    
+    listaProblemas.innerHTML = '';
+    let problemas = [];
+    
+    if (horaInicio && horaFin) {
+        // Convertir a minutos para comparar
+        const inicioMinutos = timeToMinutes(horaInicio);
+        const finMinutos = timeToMinutes(horaFin);
+        
+        if (inicioMinutos >= finMinutos) {
+            problemas.push('La hora de inicio debe ser anterior a la hora de fin');
+        }
+        
+        // Validar duración mínima (al menos 30 minutos)
+        if (finMinutos - inicioMinutos < 30) {
+            problemas.push('La duración mínima debe ser de 30 minutos');
+        }
+        
+        // Validar duración máxima (máximo 3 horas)
+        if (finMinutos - inicioMinutos > 180) {
+            problemas.push('La duración máxima debe ser de 3 horas');
+        }
+    }
+    
+    if (problemas.length > 0) {
+        problemas.forEach(problema => {
+            const li = document.createElement('li');
+            li.textContent = problema;
+            listaProblemas.appendChild(li);
+        });
+        alertContainer.style.display = 'block';
+        return false;
+    } else {
+        alertContainer.style.display = 'none';
+        return true;
+    }
+}
+
+// Función auxiliar para convertir tiempo a minutos
+function timeToMinutes(time) {
+    const [hours, minutes] = time.split(':').map(Number);
+    return hours * 60 + minutes;
+}
+
+// Función para filtrar profesores según asignatura
+function filtrarProfesores() {
+    const asignaturaId = document.getElementById('asignaturaSelect').value;
+    const profesorSelect = document.getElementById('profesorSelect');
+    
+    if (!asignaturaId) {
+        // Mostrar todos los profesores
+        Array.from(profesorSelect.options).forEach(option => {
+            if (option.value !== '') option.style.display = 'block';
+        });
+        return;
+    }
+    
+    // Aquí puedes implementar filtrado por AJAX si es necesario
+    // Por ahora mostramos todos los profesores
+    Array.from(profesorSelect.options).forEach(option => {
+        if (option.value !== '') option.style.display = 'block';
+    });
+}
+
+// Función para guardar horario
+function guardarHorario() {
+    // Validar formulario
+    const asignatura = document.getElementById('asignaturaSelect').value;
+    const dia = document.getElementById('diaSelect').value;
+    const horaInicio = document.getElementById('horaInicio').value;
+    const horaFin = document.getElementById('horaFin').value;
+    
+    if (!asignatura || !dia || !horaInicio || !horaFin) {
+        mostrarError('Por favor, complete todos los campos obligatorios.');
+        return;
+    }
+    
+    // Validar horas
+    if (!validarHoras()) {
+        mostrarError('Por favor, corrija los problemas de horarios.');
+        return;
+    }
+    
+    // Deshabilitar botón para evitar doble envío
+    const btnGuardar = document.getElementById('btnGuardarHorario');
+    const textoOriginal = btnGuardar.innerHTML;
+    btnGuardar.disabled = true;
+    btnGuardar.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Guardando...';
+    
+    // Simular guardado (aquí deberías hacer la petición AJAX real)
+    setTimeout(() => {
+        mostrarExito('Horario guardado correctamente');
+        const modal = bootstrap.Modal.getInstance(document.getElementById('modalCrearHorario'));
+        modal.hide();
+        
+        // Recargar página después de un momento
+        setTimeout(() => location.reload(), 1500);
+    }, 1000);
+}
+
+// Función para editar horario
+function editarHorario(horarioId) {
+    currentHorarioId = horarioId;
+    
+    // Aquí deberías cargar los datos del horario via AJAX
+    // Por ahora solo configuramos el modal
+    document.getElementById('tituloModal').textContent = 'Editar Horario';
+    document.getElementById('btnGuardarHorario').innerHTML = '<i class="fas fa-save me-1"></i>Actualizar Horario';
+    
+    const modal = new bootstrap.Modal(document.getElementById('modalCrearHorario'));
+    modal.show();
+}
+
+// Función para eliminar horario
+function eliminarHorario(horarioId) {
+    if (confirm('¿Estás seguro de que deseas eliminar este horario?')) {
+        // Aquí deberías hacer la petición AJAX para eliminar
+        mostrarExito('Horario eliminado correctamente');
+        setTimeout(() => location.reload(), 1500);
+    }
+}
+
+// Funciones para mostrar mensajes
+function mostrarError(mensaje) {
+    mostrarMensaje(mensaje, 'danger', 'fas fa-exclamation-triangle');
+}
+
+function mostrarExito(mensaje) {
+    mostrarMensaje(mensaje, 'success', 'fas fa-check-circle');
+}
+
+function mostrarMensaje(mensaje, tipo, icono) {
+    let alertContainer = document.getElementById('alert-container');
+    if (!alertContainer) {
+        alertContainer = document.createElement('div');
+        alertContainer.id = 'alert-container';
+        alertContainer.className = 'position-fixed top-0 end-0 p-3';
+        alertContainer.style.zIndex = '9999';
+        document.body.appendChild(alertContainer);
+    }
+    
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${tipo} alert-dismissible fade show`;
+    alertDiv.innerHTML = `
+        <i class="${icono} me-1"></i>
+        ${mensaje}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    alertContainer.appendChild(alertDiv);
+    
+    // Auto-remover después de 5 segundos
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.remove();
+        }
+    }, 5000);
+}
+</script>
+{% endblock %}

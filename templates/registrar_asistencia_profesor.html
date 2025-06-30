@@ -1,0 +1,283 @@
+{% extends "index_master.html" %}
+{% block content %}
+<div class="right_col" role="main">
+  <div class="container-fluid">
+    <h3><i class="fa fa-chalkboard-teacher"></i> Registrar Asistencia de Profesores</h3>
+    
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
+
+    <div class="row">
+      <!-- Registro Individual -->
+      <div class="col-md-6">
+        <div class="card">
+          <div class="card-header">
+            <h5><i class="fa fa-user"></i> Registro Individual</h5>
+          </div>
+          <div class="card-body">
+            <div class="alert alert-info mb-3">
+              <i class="fa fa-info-circle"></i> <strong>Nota:</strong> 
+              La asistencia se registrará con la fecha y hora actual del momento en que se guarde.
+            </div>
+            
+            <form method="post">
+              {% csrf_token %}
+              {% for field in form %}
+                <div class="mb-3">
+                  <label class="form-label fw-bold">{{ field.label }}</label>
+                  {{ field }}
+                  {% for error in field.errors %}
+                    <div class="text-danger small">{{ error }}</div>
+                  {% endfor %}
+                  {% if field.help_text %}
+                    <div class="form-text">{{ field.help_text }}</div>
+                  {% endif %}
+                </div>
+              {% endfor %}
+              
+              <div class="text-center">
+                <button type="submit" class="btn btn-primary">
+                  <i class="fa fa-save"></i> Registrar
+                </button>
+                <a href="{% url 'ver_asistencia_profesor' %}" class="btn btn-secondary">
+                  <i class="fa fa-list"></i> Ver Asistencias
+                </a>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Registro Masivo -->
+      <div class="col-md-6">
+        <div class="card">
+          <div class="card-header">
+            <h5><i class="fa fa-users"></i> Registro Masivo</h5>
+          </div>
+          <div class="card-body">
+            <form method="post" id="form-masivo">
+              {% csrf_token %}
+              <input type="hidden" name="registro_masivo" value="1">
+              
+              <div class="alert alert-info mb-3">
+                <i class="fa fa-info-circle"></i> <strong>Nota:</strong> 
+                La asistencia se registrará con la fecha y hora actual del momento en que se guarde.
+              </div>
+
+              <!-- Controles de selección masiva -->
+              <div class="row mb-3">
+                <div class="col-md-12">
+                  <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-success btn-sm" onclick="marcarTodosPresentes()">
+                      <i class="fa fa-check-circle"></i> Todos Presentes
+                    </button>
+                    <button type="button" class="btn btn-danger btn-sm" onclick="marcarTodosAusentes()">
+                      <i class="fa fa-times-circle"></i> Todos Ausentes
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div style="max-height: 400px; overflow-y: auto;">
+                <table class="table table-sm table-striped">
+                  <thead class="table-dark sticky-top">
+                    <tr>
+                      <th width="25%">Profesor</th>
+                      <th width="15%">Estado</th>
+                      <th width="20%">Asignatura</th>
+                      <th width="40%">Observación</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for profesor in profesores %}
+                    <tr class="profesor-row">
+                      <td>
+                        <strong>{{ profesor.get_nombre_completo }}</strong>
+                        <br><small class="text-muted">{{ profesor.especialidad|default:"Sin especialidad" }}</small>
+                      </td>
+                      <td>
+                        <div class="form-check form-switch">
+                          <input class="form-check-input presente-checkbox" 
+                                 type="checkbox" 
+                                 name="presente_{{ profesor.id }}" 
+                                 id="presente_prof_{{ profesor.id }}"
+                                 {% if profesor.id in asistencias_hoy %}
+                                   {% for key, asistencia in asistencias_hoy.items %}
+                                     {% if key.0 == profesor.id and asistencia.presente %}checked{% endif %}
+                                   {% endfor %}
+                                 {% else %}
+                                   checked
+                                 {% endif %}>
+                          <label class="form-check-label" for="presente_prof_{{ profesor.id }}">
+                            <span class="presente-texto">Presente</span>
+                          </label>
+                        </div>
+                      </td>
+                      <td>
+                        <select name="asignatura_{{ profesor.id }}" class="form-select form-select-sm">
+                          <option value="">Sin asignatura específica</option>
+                          {% for asignatura in profesor.asignaturas_responsable.all %}
+                            <option value="{{ asignatura.id }}">{{ asignatura.nombre }}</option>
+                          {% endfor %}
+                          {% if profesor.profesor_responsable.exists %}
+                            {% for asignatura in profesor.profesor_responsable.all %}
+                              <option value="{{ asignatura.id }}">{{ asignatura.nombre }}</option>
+                            {% endfor %}
+                          {% endif %}
+                        </select>
+                      </td>
+                      <td>
+                        <input type="text" 
+                               name="observacion_{{ profesor.id }}" 
+                               class="form-control form-control-sm" 
+                               placeholder="Observaciones..."
+                               value="{% if profesor.id in asistencias_hoy %}{% for key, asistencia in asistencias_hoy.items %}{% if key.0 == profesor.id %}{{ asistencia.observacion|default:'' }}{% endif %}{% endfor %}{% endif %}">
+                        <textarea name="justificacion_{{ profesor.id }}" 
+                                  class="form-control form-control-sm mt-1 justificacion-textarea" 
+                                  rows="1" 
+                                  placeholder="Justificación (solo ausencias)..."
+                                  style="display: none;"></textarea>
+                      </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                      <td colspan="4" class="text-center">No hay profesores registrados.</td>
+                    </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="text-center mt-3">
+                <button type="submit" class="btn btn-success btn-lg">
+                  <i class="fa fa-save"></i> Guardar Asistencia Masiva
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function marcarTodosPresentes() {
+    const checkboxes = document.querySelectorAll('.presente-checkbox');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = true;
+        actualizarEstadoProfesor(checkbox);
+    });
+}
+
+function marcarTodosAusentes() {
+    const checkboxes = document.querySelectorAll('.presente-checkbox');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = false;
+        actualizarEstadoProfesor(checkbox);
+    });
+}
+
+function actualizarEstadoProfesor(checkbox) {
+    const row = checkbox.closest('.profesor-row');
+    const texto = row.querySelector('.presente-texto');
+    const justificacionTextarea = row.querySelector('.justificacion-textarea');
+    
+    if (checkbox.checked) {
+        texto.textContent = 'Presente';
+        texto.className = 'presente-texto text-success fw-bold';
+        row.classList.remove('table-warning');
+        row.classList.add('table-success');
+        justificacionTextarea.style.display = 'none';
+        justificacionTextarea.value = '';
+    } else {
+        texto.textContent = 'Ausente';
+        texto.className = 'presente-texto text-danger fw-bold';
+        row.classList.remove('table-success');
+        row.classList.add('table-warning');
+        justificacionTextarea.style.display = 'block';
+    }
+}
+
+// Inicializar estado de las filas al cargar
+document.addEventListener('DOMContentLoaded', function() {
+    const checkboxes = document.querySelectorAll('.presente-checkbox');
+    checkboxes.forEach(checkbox => {
+        actualizarEstadoProfesor(checkbox);
+        checkbox.addEventListener('change', function() {
+            actualizarEstadoProfesor(this);
+        });
+    });
+
+    // Configurar hora actual por defecto
+    const horaInput = document.querySelector('input[name="hora_registro"]');
+    if (horaInput && !horaInput.value) {
+        const ahora = new Date();
+        const horaString = ahora.getHours().toString().padStart(2, '0') + ':' + 
+                          ahora.getMinutes().toString().padStart(2, '0');
+        horaInput.value = horaString;
+    }
+});
+
+// Confirmar antes de enviar registro masivo
+document.getElementById('form-masivo').addEventListener('submit', function(e) {
+    const presentes = document.querySelectorAll('.presente-checkbox:checked').length;
+    const ausentes = document.querySelectorAll('.presente-checkbox:not(:checked)').length;
+    
+    if (!confirm(`¿Confirmar registro de asistencia?\n\nPresentes: ${presentes}\nAusentes: ${ausentes}`)) {
+        e.preventDefault();
+    }
+});
+</script>
+
+<style>
+.table-success {
+    background-color: #d1edff !important;
+}
+
+.table-warning {
+    background-color: #fff3cd !important;
+}
+
+.form-switch .form-check-input:checked {
+    background-color: #198754;
+    border-color: #198754;
+}
+
+.justificacion-textarea:disabled {
+    background-color: #e9ecef;
+    opacity: 0.6;
+}
+
+.card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+.card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+.sticky-top {
+    position: sticky;
+    top: 0;
+    z-index: 1020;
+}
+
+.profesor-row {
+    transition: background-color 0.3s ease;
+}
+
+.presente-texto {
+    font-weight: bold;
+    font-size: 0.9em;
+}
+</style>
+{% endblock %}

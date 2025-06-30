@@ -1,0 +1,220 @@
+{% extends "index_master.html" %}
+{% load custom_filters %}
+{% block content %}
+<div class="right_col" role="main">
+  <div class="container-fluid">
+    <!-- Mensajes -->
+    {% if messages %}
+      <div class="row mb-3">
+        <div class="col-12">
+          {% for message in messages %}
+            <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+              {{ message }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+
+    <!-- Filtros -->
+    <div class="card mb-4">
+      <div class="card-header">
+        <h5 class="mb-0"><i class="fas fa-filter me-2"></i>Filtros</h5>
+      </div>
+      <div class="card-body">
+        <form method="get" class="row g-3">
+          <div class="col-md-5">
+            <label for="curso_id" class="form-label">Curso:</label>
+            <select name="curso_id" id="curso_id" class="form-select" onchange="this.form.submit()">
+              <option value="">-- Selecciona un curso --</option>
+              {% for curso in cursos_disponibles %}
+                <option value="{{ curso.id }}" {% if curso_seleccionado and curso.id == curso_seleccionado.id %}selected{% endif %}>
+                  {{ curso.get_nivel_display }}{{ curso.paralelo }} - {{ curso.anio }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-5">
+            <label for="asignatura_id" class="form-label">Asignatura:</label>
+            <select name="asignatura_id" id="asignatura_id" class="form-select" onchange="this.form.submit()">
+              <option value="">-- Todas las asignaturas --</option>
+              {% for asignatura in asignaturas_curso %}
+                <option value="{{ asignatura.id }}" {% if asignatura_seleccionada and asignatura.id == asignatura_seleccionada.id %}selected{% endif %}>
+                  {{ asignatura.nombre }}
+                </option>
+              {% endfor %}
+            </select>
+            {% if curso_seleccionado %}
+              <input type="hidden" name="curso_id" value="{{ curso_seleccionado.id }}">
+            {% endif %}
+          </div>
+          {% if promedio_asignatura %}
+          <div class="col-md-2">
+            <label class="form-label">Promedio General:</label>
+            <div class="badge fs-6 {% if promedio_asignatura >= 6.0 %}bg-success{% elif promedio_asignatura >= 4.0 %}bg-warning{% else %}bg-danger{% endif %}">
+              {{ promedio_asignatura }}
+            </div>
+          </div>
+          {% endif %}
+        </form>
+      </div>
+    </div>
+
+    <!-- Tabla de Notas -->
+    <div class="card">
+      <div class="card-header">
+        <h5 class="mb-0">
+          <i class="fas fa-list me-2"></i>
+          {% if asignatura_seleccionada %}
+            Notas de {{ asignatura_seleccionada.nombre }}
+          {% elif curso_seleccionado %}
+            Notas del Curso {{ curso_seleccionado.get_nivel_display }}{{ curso_seleccionado.paralelo }} - Todas las Asignaturas
+          {% else %}
+            Notas por Estudiante
+          {% endif %}
+        </h5>
+        {% if curso_seleccionado and not asignatura_seleccionada %}
+          <small class="text-muted">Vista consolidada de todas las asignaturas del curso</small>
+        {% endif %}
+      </div>
+      <div class="card-body p-0">
+        {% if estudiantes_tabla and evaluaciones %}
+        <div class="table-responsive">
+          <table class="table table-hover mb-0 notas-table">
+            <thead class="table-light">
+              <tr>
+                <th>Estudiante</th>
+                {% for ev in evaluaciones %}
+                  <th class="text-center">{{ ev.nombre }}</th>
+                {% endfor %}
+                <th class="text-center">Promedio</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for estudiante in estudiantes_tabla %}
+                <tr>
+                  <td class="fw-bold">{{ estudiante.get_nombre_completo }}</td>
+                  {% with notas_estudiante=notas_por_estudiante|get_item:estudiante %}
+                    {% for ev in evaluaciones %}
+                      <td class="text-center nota-celda">
+                        {% with nota=notas_estudiante|get_list_item:forloop.counter0 %}
+                          {% if nota %}
+                            <a href="{% url 'editar_nota' nota.id %}" class="nota-btn" title="Editar">
+                              {{ nota.puntaje }}
+                            </a>
+                            <a href="{% url 'eliminar_nota' nota.id %}" class="eliminar-btn" title="Eliminar" onclick="return confirm('¿Eliminar esta nota?');">
+                              ×
+                            </a>
+                          {% else %}
+                            {% if asignatura_seleccionada %}
+                              <a href="{% url 'agregar_nota_individual' estudiante.id asignatura_seleccionada.id ev.nombre %}" class="agregar-btn" title="Agregar nota">
+                                +
+                              </a>
+                            {% else %}
+                              <span class="text-muted">-</span>
+                            {% endif %}
+                          {% endif %}
+                        {% endwith %}
+                      </td>
+                    {% endfor %}
+                  {% endwith %}
+                  <td class="text-center">
+                    {% with datos=promedios_estudiantes|get_item:estudiante.id %}
+                      <strong>{{ datos.promedio }}</strong>
+                    {% endwith %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+          <div class="text-center py-5">
+            <p class="text-muted">No hay notas registradas para este curso/asignatura.</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.notas-table th, .notas-table td {
+  padding: 0.6rem 0.4rem;
+  vertical-align: middle;
+}
+.nota-celda {
+  position: relative;
+}
+.nota-btn {
+  display: inline-block;
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  padding: 0.25rem 0.5rem;
+  text-decoration: none;
+  color: #212529;
+  font-weight: 500;
+  min-width: 45px;
+  text-align: center;
+  transition: all 0.2s;
+}
+.nota-btn:hover {
+  background: #e9ecef;
+  border-color: #0d6efd;
+  color: #0d6efd;
+}
+.agregar-btn {
+  display: inline-block;
+  background: #f8f9fa;
+  border: 1px dashed #28a745;
+  border-radius: 4px;
+  padding: 0.25rem 0.5rem;
+  text-decoration: none;
+  color: #28a745;
+  font-weight: 500;
+  min-width: 45px;
+  text-align: center;
+  transition: all 0.2s;
+  font-size: 18px;
+  line-height: 1;
+}
+.agregar-btn:hover {
+  background: #d4edda;
+  border-color: #28a745;
+  border-style: solid;
+  color: #155724;
+}
+.eliminar-btn {
+  display: none;
+  position: absolute;
+  right: 5px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  text-align: center;
+  line-height: 18px;
+  font-size: 12px;
+  text-decoration: none;
+  cursor: pointer;
+}
+.nota-celda:hover .eliminar-btn {
+  display: block;
+}
+.eliminar-btn:hover {
+  background: #c82333;
+  color: white;
+}
+.table thead th {
+  background-color: #f8f9fa;
+  border-bottom: 2px solid #dee2e6;
+  font-weight: 600;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,306 @@
+{% extends "index_master.html" %}
+{% block content %}
+<div class="right_col" role="main">
+  <div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="bg-white p-4 rounded shadow-sm border">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <h2 class="h3 text-dark mb-2">
+                <i class="fas fa-chalkboard-teacher text-primary me-2"></i>Gestión de Profesores
+              </h2>
+              <p class="text-muted mb-0">Administra los profesores del sistema escolar</p>
+            </div>
+            <div>
+              <a href="{% url 'agregar' %}?tipo=profesor" class="btn btn-primary">
+                <i class="fas fa-plus me-1"></i>Nuevo Profesor
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Estadísticas -->
+    <div class="row mb-4">
+      <div class="col-md-3">
+        <div class="card border shadow-sm bg-white">
+          <div class="card-body text-center">
+            <i class="fas fa-users fa-2x text-primary mb-2"></i>
+            <h3 class="mb-0 text-dark">{{ total_profesores }}</h3>
+            <p class="mb-0 text-muted">Total Profesores</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card border shadow-sm bg-white">
+          <div class="card-body text-center">
+            <i class="fas fa-user-check fa-2x text-success mb-2"></i>
+            <h3 class="mb-0 text-dark">{{ profesores_activos }}</h3>
+            <p class="mb-0 text-muted">Profesores Activos</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card border shadow-sm bg-white">
+          <div class="card-body text-center">
+            <i class="fas fa-book fa-2x text-info mb-2"></i>
+            <h3 class="mb-0 text-dark">{{ profesores_con_asignaturas }}</h3>
+            <p class="mb-0 text-muted">Con Asignaturas</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card border shadow-sm bg-white">
+          <div class="card-body text-center">
+            <i class="fas fa-list fa-2x text-warning mb-2"></i>
+            <h3 class="mb-0 text-dark">{{ asignaturas.count }}</h3>
+            <p class="mb-0 text-muted">Asignaturas Total</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Búsqueda -->
+    <div class="card border shadow-sm mb-4">
+      <div class="card-body">
+        <h6 class="fw-bold mb-3">
+          <i class="fas fa-search me-2 text-primary"></i>Buscar Profesores
+        </h6>
+        <form method="get" class="row g-3">
+          <div class="col-md-8">
+            <input type="text" name="filtro_profesor" class="form-control" 
+                   placeholder="Buscar por nombre, apellido, código o email..." 
+                   value="{{ filtro_profesor }}">
+          </div>
+          <div class="col-md-2">
+            <button type="submit" class="btn btn-primary w-100">
+              <i class="fas fa-search me-1"></i>Buscar
+            </button>
+          </div>
+          <div class="col-md-2">
+            {% if filtro_profesor %}
+              <a href="{% url 'listar_profesores' %}" class="btn btn-outline-secondary w-100">
+                <i class="fas fa-times me-1"></i>Limpiar
+              </a>
+            {% endif %}
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Tabla de profesores -->
+    <div class="card border shadow-sm">
+      <div class="card-header bg-light border-bottom">
+        <h5 class="mb-0 text-dark">
+          <i class="fas fa-list me-2"></i>Lista de Profesores
+          {% if filtro_profesor %}
+            <small class="text-muted">(Filtrado por: "{{ filtro_profesor }}")</small>
+          {% endif %}
+        </h5>
+      </div>
+      <div class="card-body p-0">
+        {% if profesores %}
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th width="15%">Código</th>
+                  <th width="25%">Nombre Completo</th>
+                  <th width="20%">Contacto</th>
+                  <th width="10%">Estado</th>
+                  <th width="15%">Curso Asignado</th>
+                  <th width="15%">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for profesor in profesores %}
+                <tr>
+                  <td>
+                    <div class="d-flex align-items-center">
+                      <div class="me-3">
+                        <div class="bg-light text-dark border rounded-circle d-flex align-items-center justify-content-center" 
+                             style="width: 40px; height: 40px;">
+                          <i class="fas fa-chalkboard-teacher"></i>
+                        </div>
+                      </div>
+                      <div>
+                        <div class="fw-bold text-dark">{{ profesor.codigo_profesor }}</div>
+                        <small class="text-muted">Profesor</small>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <div>
+                      <div class="fw-bold text-dark">
+                        {{ profesor.primer_nombre }} {{ profesor.segundo_nombre|default:"" }}
+                      </div>
+                      <div class="text-muted">
+                        {{ profesor.apellido_paterno }} {{ profesor.apellido_materno|default:"" }}
+                      </div>
+                      {% if profesor.user %}
+                        <small class="badge bg-light text-dark border">Usuario: {{ profesor.user.username }}</small>
+                      {% endif %}
+                      <small class="text-muted d-block">
+                        <i class="fas fa-calendar me-1"></i>Ingresó: {{ profesor.fecha_contratacion|date:"d/m/Y" }}
+                      </small>
+                    </div>
+                  </td>
+                  <td>
+                    <div>
+                      <div class="mb-1">
+                        <i class="fas fa-envelope text-muted me-1"></i>
+                        <small>{{ profesor.email|default:"No especificado" }}</small>
+                      </div>
+                      <div>
+                        <i class="fas fa-phone text-muted me-1"></i>
+                        <small>{{ profesor.telefono|default:"No especificado" }}</small>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    {% if profesor.user and profesor.user.is_active %}
+                      <span class="badge bg-light text-success border">
+                        <i class="fas fa-check me-1"></i>Activo
+                      </span>
+                    {% else %}
+                      <span class="badge bg-light text-muted border">
+                        <i class="fas fa-times me-1"></i>Inactivo
+                      </span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if profesor.cursos_jefatura.exists %}
+                      {% for curso in profesor.cursos_jefatura.all %}
+                        <div class="mb-1">
+                          <span class="badge bg-light text-success border">
+                            <i class="fas fa-user-tie me-1"></i>{{ curso.get_nivel_display }}{{ curso.paralelo }}
+                          </span>
+                          <small class="text-muted d-block">Profesor Jefe</small>
+                        </div>
+                      {% endfor %}
+                    {% else %}
+                      <span class="badge bg-light text-muted border">
+                        <i class="fas fa-minus me-1"></i>Sin asignar
+                      </span>
+                      <small class="text-muted d-block">Especialidad: {{ profesor.especialidad|truncatechars:15 }}</small>
+                    {% endif %}
+                  </td>
+                  <td>
+                    <div class="btn-group btn-group-sm" role="group">
+                      <a href="{% url 'modificar' %}?tipo=profesor&id={{ profesor.id }}" 
+                         class="btn btn-light border" title="Editar profesor">
+                        <i class="fas fa-edit text-primary"></i>
+                      </a>
+                      <button type="button" 
+                              class="btn btn-light border" 
+                              onclick="confirmarEliminacion('{{ profesor.primer_nombre }} {{ profesor.apellido_paterno }}', {{ profesor.id }})"
+                              title="Eliminar profesor">
+                        <i class="fas fa-trash text-danger"></i>
+                      </button>
+                      {% if profesor.user %}
+                        <button type="button" 
+                                class="btn btn-light border" 
+                                onclick="resetPassword({{ profesor.id }})"
+                                title="Resetear contraseña">
+                          <i class="fas fa-key text-warning"></i>
+                        </button>
+                      {% endif %}
+                    </div>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="text-center py-5">
+            <i class="fas fa-chalkboard-teacher fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted mb-2">No se encontraron profesores</h5>
+            {% if filtro_profesor %}
+              <p class="text-muted mb-3">No hay profesores que coincidan con el filtro "{{ filtro_profesor }}"</p>
+              <a href="{% url 'listar_profesores' %}" class="btn btn-primary">Ver todos los profesores</a>
+            {% else %}
+              <p class="text-muted mb-3">Aún no hay profesores registrados en el sistema</p>
+              <a href="{% url 'agregar' %}?tipo=profesor" class="btn btn-primary">
+                <i class="fas fa-plus me-1"></i>Agregar primer profesor
+              </a>
+            {% endif %}
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- JavaScript -->
+<script>
+function confirmarEliminacion(nombreProfesor, profesorId) {
+  if (confirm(`¿Está seguro de que desea eliminar al profesor "${nombreProfesor}"?\n\nEsta acción no se puede deshacer.`)) {
+    // Aquí puedes agregar la lógica para eliminar el profesor
+    window.location.href = `/profesores/eliminar/${profesorId}/`;
+  }
+}
+
+function resetPassword(profesorId) {
+    if (confirm('¿Está seguro de que desea resetear la contraseña de este profesor?')) {
+        fetch(`/reset-password-profesor/${profesorId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(`Contraseña reseteada. Nueva contraseña: ${data.new_password}`);
+            } else {
+                alert('Error al resetear la contraseña');
+            }
+        })
+        .catch(error => {
+            alert('Error al resetear la contraseña');
+            console.error('Error:', error);
+        });
+    }
+}
+</script>
+
+<!-- Estilos simples -->
+<style>
+.table-hover tbody tr:hover {
+  background-color: #f8f9fa;
+}
+
+.btn-group-sm > .btn {
+  border-radius: 4px;
+  margin: 0 1px;
+}
+
+.card {
+  border: 1px solid #dee2e6;
+}
+
+.border {
+  border: 1px solid #dee2e6 !important;
+}
+
+.fw-medium {
+  font-weight: 500;
+}
+
+.text-dark {
+  color: #212529 !important;
+}
+
+.badge {
+  font-weight: 500;
+}
+
+.bg-light {
+  background-color: #f8f9fa !important;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,537 @@
+{% extends 'index_master.html' %}
+
+{% block content %}
+<div class="main-content container-fluid py-4">
+  <!-- top tiles -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-4 col-lg-2">
+      <div class="card shadow-sm border-0 text-center p-3">
+        <span class="count_top"><i class="fa fa-user"></i> Total Usuarios</span>
+        <div class="count display-6">2500</div>
+        <span class="count_bottom text-success"><i class="fa fa-arrow-up me-1"></i>4% <small>desde la semana pasada</small></span>
+      </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+      <div class="card shadow-sm border-0 text-center p-3">
+        <span class="count_top"><i class="fa fa-clock-o"></i> Tiempo Promedio</span>
+        <div class="count display-6">123.50</div>
+        <span class="count_bottom text-success"><i class="fa fa-arrow-up me-1"></i>3% <small>desde la semana pasada</small></span>
+      </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+      <div class="card shadow-sm border-0 text-center p-3">
+        <span class="count_top"><i class="fa fa-user"></i> Total Hombres</span>
+        <div class="count display-6 text-success">2,500</div>
+        <span class="count_bottom text-success"><i class="fa fa-arrow-up me-1"></i>34% <small>desde la semana pasada</small></span>
+      </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+      <div class="card shadow-sm border-0 text-center p-3">
+        <span class="count_top"><i class="fa fa-user"></i> Total Mujeres</span>
+        <div class="count display-6">4,567</div>
+        <span class="count_bottom text-danger"><i class="fa fa-arrow-down me-1"></i>12% <small>desde la semana pasada</small></span>
+      </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+      <div class="card shadow-sm border-0 text-center p-3">
+        <span class="count_top"><i class="fa fa-user"></i> Total Colecciones</span>
+        <div class="count display-6">2,315</div>
+        <span class="count_bottom text-success"><i class="fa fa-arrow-up me-1"></i>34% <small>desde la semana pasada</small></span>
+      </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+      <div class="card shadow-sm border-0 text-center p-3">
+        <span class="count_top"><i class="fa fa-user"></i> Total Conexiones</span>
+        <div class="count display-6">7,325</div>
+        <span class="count_bottom text-success"><i class="fa fa-arrow-up me-1"></i>34% <small>desde la semana pasada</small></span>
+      </div>
+    </div>
+  </div>
+  <!-- /top tiles -->
+
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card shadow-sm border-0 p-4">
+        <div class="row align-items-center mb-3">
+          <div class="col-md-6">
+            <h3 class="mb-0">Network Activities <small class="text-muted">Graph title sub-title</small></h3>
+          </div>
+          <div class="col-md-6 text-end">
+            <div id="reportrange" class="d-inline-block bg-white border rounded px-3 py-2" style="cursor:pointer;">
+              <i class="fa fa-calendar me-1"></i>
+              <span>December 30, 2014 - January 28, 2015</span>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-lg-9 mb-3 mb-lg-0">
+            <div id="chart_plot_01" class="demo-placeholder" style="height:260px;"></div>
+          </div>
+          <div class="col-lg-3">
+            <div class="mb-4">
+              <h5 class="fw-bold">Top Campaign Performance</h5>
+              <div class="mb-2">
+                <p class="mb-1">Facebook Campaign</p>
+                <div class="progress" style="height:8px;"><div class="progress-bar bg-success" style="width:80%"></div></div>
+              </div>
+              <div class="mb-2">
+                <p class="mb-1">Twitter Campaign</p>
+                <div class="progress" style="height:8px;"><div class="progress-bar bg-success" style="width:60%"></div></div>
+              </div>
+              <div class="mb-2">
+                <p class="mb-1">Conventional Media</p>
+                <div class="progress" style="height:8px;"><div class="progress-bar bg-success" style="width:40%"></div></div>
+              </div>
+              <div class="mb-2">
+                <p class="mb-1">Bill boards</p>
+                <div class="progress" style="height:8px;"><div class="progress-bar bg-success" style="width:50%"></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-lg-4">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-header bg-white border-bottom"><h5 class="mb-0">App Versions</h5></div>
+        <div class="card-body">
+          <h4>App Usage across versions</h4>
+          <div class="widget_summary">
+            <div class="w_left w_25">
+              <span>0.1.5.2</span>
+            </div>
+            <div class="w_center w_55">
+              <div class="progress">
+                <div class="progress-bar bg-green" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: 66%;">
+                  <span class="sr-only">60% Complete</span>
+                </div>
+              </div>
+            </div>
+            <div class="w_right w_20">
+              <span>123k</span>
+            </div>
+            <div class="clearfix"></div>
+          </div>
+
+          <div class="widget_summary">
+            <div class="w_left w_25">
+              <span>0.1.5.3</span>
+            </div>
+            <div class="w_center w_55">
+              <div class="progress">
+                <div class="progress-bar bg-green" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: 45%;">
+                  <span class="sr-only">60% Complete</span>
+                </div>
+              </div>
+            </div>
+            <div class="w_right w_20">
+              <span>53k</span>
+            </div>
+            <div class="clearfix"></div>
+          </div>
+          <div class="widget_summary">
+            <div class="w_left w_25">
+              <span>0.1.5.4</span>
+            </div>
+            <div class="w_center w_55">
+              <div class="progress">
+                <div class="progress-bar bg-green" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: 25%;">
+                  <span class="sr-only">60% Complete</span>
+                </div>
+              </div>
+            </div>
+            <div class="w_right w_20">
+              <span>23k</span>
+            </div>
+            <div class="clearfix"></div>
+          </div>
+          <div class="widget_summary">
+            <div class="w_left w_25">
+              <span>0.1.5.5</span>
+            </div>
+            <div class="w_center w_55">
+              <div class="progress">
+                <div class="progress-bar bg-green" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: 5%;">
+                  <span class="sr-only">60% Complete</span>
+                </div>
+              </div>
+            </div>
+            <div class="w_right w_20">
+              <span>3k</span>
+            </div>
+            <div class="clearfix"></div>
+          </div>
+          <div class="widget_summary">
+            <div class="w_left w_25">
+              <span>0.1.5.6</span>
+            </div>
+            <div class="w_center w_55">
+              <div class="progress">
+                <div class="progress-bar bg-green" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: 2%;">
+                  <span class="sr-only">60% Complete</span>
+                </div>
+              </div>
+            </div>
+            <div class="w_right w_20">
+              <span>1k</span>
+            </div>
+            <div class="clearfix"></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-4">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-header bg-white border-bottom"><h5 class="mb-0">Device Usage</h5></div>
+        <div class="card-body">
+          <table class="" style="width:100%">
+            <tr>
+              <th style="width:37%;">
+                <p>Top 5</p>
+              </th>
+              <th>
+                <div class="col-lg-7 col-md-7 col-sm-7 ">
+                  <p class="">Device</p>
+                </div>
+                <div class="col-lg-5 col-md-5 col-sm-5 ">
+                  <p class="">Progress</p>
+                </div>
+              </th>
+            </tr>
+            <tr>
+              <td>
+                <canvas class="canvasDoughnut" height="140" width="140" style="margin: 15px 10px 10px 0"></canvas>
+              </td>
+              <td>
+                <table class="tile_info">
+                  <tr>
+                    <td>
+                      <p><i class="fa fa-square blue"></i>IOS </p>
+                    </td>
+                    <td>30%</td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <p><i class="fa fa-square green"></i>Android </p>
+                    </td>
+                    <td>10%</td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <p><i class="fa fa-square purple"></i>Blackberry </p>
+                    </td>
+                    <td>20%</td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <p><i class="fa fa-square aero"></i>Symbian </p>
+                    </td>
+                    <td>15%</td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <p><i class="fa fa-square red"></i>Others </p>
+                    </td>
+                    <td>30%</td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </div>
+
+
+    <div class="col-lg-4">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-header bg-white border-bottom"><h5 class="mb-0">Quick Settings</h5></div>
+        <div class="card-body">
+          <div class="dashboard-widget-content">
+            <ul class="quick-list">
+              <li><i class="fa fa-calendar-o"></i><a href="#">Settings</a>
+              </li>
+              <li><i class="fa fa-bars"></i><a href="#">Subscription</a>
+              </li>
+              <li><i class="fa fa-bar-chart"></i><a href="#">Auto Renewal</a> </li>
+              <li><i class="fa fa-line-chart"></i><a href="#">Achievements</a>
+              </li>
+              <li><i class="fa fa-bar-chart"></i><a href="#">Auto Renewal</a> </li>
+              <li><i class="fa fa-line-chart"></i><a href="#">Achievements</a>
+              </li>
+              <li><i class="fa fa-area-chart"></i><a href="#">Logout</a>
+              </li>
+            </ul>
+
+            <div class="sidebar-widget">
+                <h4>Profile Completion</h4>
+                <canvas width="150" height="80" id="chart_gauge_01" class="" style="width: 160px; height: 100px;"></canvas>
+                <div class="goal-wrapper">
+                  <span id="gauge-text" class="gauge-value pull-left">0</span>
+                  <span class="gauge-value pull-left">%</span>
+                  <span id="goal-text" class="goal-value pull-right">100%</span>
+                </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="row g-4 mt-4">
+    <div class="col-lg-4">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-header bg-white border-bottom"><h5 class="mb-0">Recent Activities <small class="text-muted">Sessions</small></h5></div>
+        <div class="card-body">
+          <div class="dashboard-widget-content">
+
+            <ul class="list-unstyled timeline widget">
+              <li>
+                <div class="block">
+                  <div class="block_content">
+                    <h2 class="title">
+                                          <a>Who Needs Sundance When You’ve Got&nbsp;Crowdfunding?</a>
+                                      </h2>
+                    <div class="byline">
+                      <span>13 hours ago</span> by <a>Jane Smith</a>
+                    </div>
+                    <p class="excerpt">Film festivals used to be do-or-die moments for movie makers. They were where you met the producers that could fund your project, and if the buyers liked your flick, they’d pay to Fast-forward and… <a>Read&nbsp;More</a>
+                    </p>
+                  </div>
+                </div>
+              </li>
+              <li>
+                <div class="block">
+                  <div class="block_content">
+                    <h2 class="title">
+                                          <a>Who Needs Sundance When You’ve Got&nbsp;Crowdfunding?</a>
+                                      </h2>
+                    <div class="byline">
+                      <span>13 hours ago</span> by <a>Jane Smith</a>
+                    </div>
+                    <p class="excerpt">Film festivals used to be do-or-die moments for movie makers. They were where you met the producers that could fund your project, and if the buyers liked your flick, they’d pay to Fast-forward and… <a>Read&nbsp;More</a>
+                    </p>
+                  </div>
+                </div>
+              </li>
+              <li>
+                <div class="block">
+                  <div class="block_content">
+                    <h2 class="title">
+                                          <a>Who Needs Sundance When You’ve Got&nbsp;Crowdfunding?</a>
+                                      </h2>
+                    <div class="byline">
+                      <span>13 hours ago</span> by <a>Jane Smith</a>
+                    </div>
+                    <p class="excerpt">Film festivals used to be do-or-die moments for movie makers. They were where you met the producers that could fund your project, and if the buyers liked your flick, they’d pay to Fast-forward and… <a>Read&nbsp;More</a>
+                    </p>
+                  </div>
+                </div>
+              </li>
+              <li>
+                <div class="block">
+                  <div class="block_content">
+                    <h2 class="title">
+                                          <a>Who Needs Sundance When You’ve Got&nbsp;Crowdfunding?</a>
+                                      </h2>
+                    <div class="byline">
+                      <span>13 hours ago</span> by <a>Jane Smith</a>
+                    </div>
+                    <p class="excerpt">Film festivals used to be do-or-die moments for movie makers. They were where you met the producers that could fund your project, and if the buyers liked your flick, they’d pay to Fast-forward and… <a>Read&nbsp;More</a>
+                    </p>
+                  </div>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <div class="col-lg-8">
+      <div class="row g-4">
+        <div class="col-12">
+          <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white border-bottom"><h5 class="mb-0">Visitors location <small class="text-muted">geo-presentation</small></h5></div>
+            <div class="card-body">
+              <div class="dashboard-widget-content">
+                <div class="col-md-4 hidden-small">
+                  <h2 class="line_30">125.7k Views from 60 countries</h2>
+
+                  <table class="countries_list">
+                    <tbody>
+                      <tr>
+                        <td>United States</td>
+                        <td class="fs15 fw700 text-right">33%</td>
+                      </tr>
+                      <tr>
+                        <td>France</td>
+                        <td class="fs15 fw700 text-right">27%</td>
+                      </tr>
+                      <tr>
+                        <td>Germany</td>
+                        <td class="fs15 fw700 text-right">16%</td>
+                      </tr>
+                      <tr>
+                        <td>Spain</td>
+                        <td class="fs15 fw700 text-right">11%</td>
+                      </tr>
+                      <tr>
+                        <td>Britain</td>
+                        <td class="fs15 fw700 text-right">10%</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div id="world-map-gdp" class="col-md-8 col-sm-12 " style="height:230px;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white border-bottom"><h5 class="mb-0">To Do List <small class="text-muted">Sample tasks</small></h5></div>
+            <div class="card-body">
+
+              <div class="">
+                <ul class="to_do">
+                  <li>
+                    <p>
+                      <input type="checkbox" class="flat"> Schedule meeting with new client </p>
+                  </li>
+                  <li>
+                    <p>
+                      <input type="checkbox" class="flat"> Create email address for new intern</p>
+                  </li>
+                  <li>
+                    <p>
+                      <input type="checkbox" class="flat"> Have IT fix the network printer</p>
+                  </li>
+                  <li>
+                    <p>
+                      <input type="checkbox" class="flat"> Copy backups to offsite location</p>
+                  </li>
+                  <li>
+                    <p>
+                      <input type="checkbox" class="flat"> Food truck fixie locavors mcsweeney</p>
+                  </li>
+                  <li>
+                    <p>
+                      <input type="checkbox" class="flat"> Food truck fixie locavors mcsweeney</p>
+                  </li>
+                  <li>
+                    <p>
+                      <input type="checkbox" class="flat"> Create email address for new intern</p>
+                  </li>
+                  <li>
+                    <p>
+                      <input type="checkbox" class="flat"> Have IT fix the network printer</p>
+                  </li>
+                  <li>
+                    <p>
+                      <input type="checkbox" class="flat"> Copy backups to offsite location</p>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white border-bottom"><h5 class="mb-0">Daily active users <small class="text-muted">Sessions</small></h5></div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-sm-12">
+                  <div class="temperature"><b>Monday</b>, 07:30 AM
+                    <span>F</span>
+                    <span><b>C</b></span>
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-sm-4">
+                  <div class="weather-icon">
+                    <canvas height="84" width="84" id="partly-cloudy-day"></canvas>
+                  </div>
+                </div>
+                <div class="col-sm-8">
+                  <div class="weather-text">
+                    <h2>Texas <br><i>Partly Cloudy Day</i></h2>
+                  </div>
+                </div>
+              </div>
+              <div class="col-sm-12">
+                <div class="weather-text pull-right">
+                  <h3 class="degrees">23</h3>
+                </div>
+              </div>
+
+              <div class="clearfix"></div>
+
+              <div class="row weather-days">
+                <div class="col-sm-2">
+                  <div class="daily-weather">
+                    <h2 class="day">Mon</h2>
+                    <h3 class="degrees">25</h3>
+                    <canvas id="clear-day" width="32" height="32"></canvas>
+                    <h5>15 <i>km/h</i></h5>
+                  </div>
+                </div>
+                <div class="col-sm-2">
+                  <div class="daily-weather">
+                    <h2 class="day">Tue</h2>
+                    <h3 class="degrees">25</h3>
+                    <canvas height="32" width="32" id="rain"></canvas>
+                    <h5>12 <i>km/h</i></h5>
+                  </div>
+                </div>
+                <div class="col-sm-2">
+                  <div class="daily-weather">
+                    <h2 class="day">Wed</h2>
+                    <h3 class="degrees">27</h3>
+                    <canvas height="32" width="32" id="snow"></canvas>
+                    <h5>14 <i>km/h</i></h5>
+                  </div>
+                </div>
+                <div class="col-sm-2">
+                  <div class="daily-weather">
+                    <h2 class="day">Thu</h2>
+                    <h3 class="degrees">28</h3>
+                    <canvas height="32" width="32" id="sleet"></canvas>
+                    <h5>15 <i>km/h</i></h5>
+                  </div>
+                </div>
+                <div class="col-sm-2">
+                  <div class="daily-weather">
+                    <h2 class="day">Fri</h2>
+                    <h3 class="degrees">28</h3>
+                    <canvas height="32" width="32" id="wind"></canvas>
+                    <h5>11 <i>km/h</i></h5>
+                  </div>
+                </div>
+                <div class="col-sm-2">
+                  <div class="daily-weather">
+                    <h2 class="day">Sat</h2>
+                    <h3 class="degrees">26</h3>
+                    <canvas height="32" width="32" id="cloudy"></canvas>
+                    <h5>10 <i>km/h</i></h5>
+                  </div>
+                </div>
+                <div class="clearfix"></div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

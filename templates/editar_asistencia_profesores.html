@@ -1,0 +1,206 @@
+{% extends "index_master.html" %}
+{% block content %}
+<div class="right_col" role="main">
+  <div class="container-fluid">
+    <h3><i class="fa fa-edit"></i> {{ titulo }}</h3>
+    
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
+
+    <div class="row">
+      <div class="col-md-8">
+        <div class="card">
+          <div class="card-header">
+            <h5><i class="fa fa-chalkboard-teacher"></i> Datos de Asistencia</h5>
+          </div>
+          <div class="card-body">
+            <form method="post">
+              {% csrf_token %}
+              
+              <div class="row">
+                <div class="col-md-6">
+                  {% for field in form %}
+                    {% if field.name in 'profesor,asignatura,curso' %}
+                    <div class="mb-3">
+                      <label class="form-label fw-bold">{{ field.label }}</label>
+                      {{ field }}
+                      {% for error in field.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                      {% endfor %}
+                      {% if field.help_text %}
+                        <div class="form-text">{{ field.help_text }}</div>
+                      {% endif %}
+                    </div>
+                    {% endif %}
+                  {% endfor %}
+                </div>
+                
+                <div class="col-md-6">
+                  {% for field in form %}
+                    {% if field.name in 'fecha,hora_registro' %}
+                    <div class="mb-3">
+                      <label class="form-label fw-bold">{{ field.label }}</label>
+                      {{ field }}
+                      {% for error in field.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                      {% endfor %}
+                    </div>
+                    {% endif %}
+                  {% endfor %}
+                  
+                  {% for field in form %}
+                    {% if field.name == 'presente' %}
+                    <div class="mb-3">
+                      <div class="form-check form-switch">
+                        {{ field }}
+                        <label class="form-check-label fw-bold" for="{{ field.id_for_label }}">
+                          {{ field.label }}
+                        </label>
+                      </div>
+                      {% for error in field.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                      {% endfor %}
+                    </div>
+                    {% endif %}
+                  {% endfor %}
+                </div>
+              </div>
+              
+              <div class="row">
+                <div class="col-md-12">
+                  {% for field in form %}
+                    {% if field.name == 'observacion' %}
+                    <div class="mb-3">
+                      <label class="form-label fw-bold">{{ field.label }}</label>
+                      {{ field }}
+                      {% for error in field.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                      {% endfor %}
+                    </div>
+                    {% endif %}
+                  {% endfor %}
+                </div>
+              </div>
+              
+              <div class="row">
+                <div class="col-md-12">
+                  {% for field in form %}
+                    {% if field.name == 'justificacion' %}
+                    <div class="mb-3" id="justificacion-container">
+                      <label class="form-label fw-bold">{{ field.label }}</label>
+                      {{ field }}
+                      {% for error in field.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                      {% endfor %}
+                      <div class="form-text">Solo se requiere para ausencias</div>
+                    </div>
+                    {% endif %}
+                  {% endfor %}
+                </div>
+              </div>
+
+              <div class="text-center mt-4">
+                <button type="submit" class="btn btn-success btn-lg">
+                  <i class="fa fa-save"></i> Guardar Cambios
+                </button>
+                <a href="{% url 'ver_asistencia_profesor' %}" class="btn btn-secondary btn-lg ms-2">
+                  <i class="fa fa-arrow-left"></i> Cancelar
+                </a>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-md-4">
+        <div class="card">
+          <div class="card-header">
+            <h5><i class="fa fa-info-circle"></i> Información</h5>
+          </div>
+          <div class="card-body">
+            <p><strong>Profesor:</strong><br>{{ profesor.get_nombre_completo }}</p>
+            <p><strong>Especialidad:</strong><br>{{ profesor.especialidad|default:"Sin especialidad" }}</p>
+            {% if asignatura %}
+              <p><strong>Asignatura:</strong><br>{{ asignatura.nombre }}</p>
+            {% else %}
+              <p><strong>Asignatura:</strong><br><em>General</em></p>
+            {% endif %}
+            {% if curso %}
+              <p><strong>Curso:</strong><br>{{ curso }}</p>
+            {% endif %}
+            <p><strong>Fecha:</strong><br>{{ fecha|date:"d/m/Y l" }}</p>
+          </div>
+        </div>
+        
+        {% if asistencia.fecha_modificacion %}
+        <div class="card mt-3">
+          <div class="card-header">
+            <h6><i class="fa fa-clock"></i> Historial</h6>
+          </div>
+          <div class="card-body">
+            <small class="text-muted">
+              <p><strong>Creado:</strong><br>{{ asistencia.fecha_creacion|date:"d/m/Y H:i" }}</p>
+              <p><strong>Última modificación:</strong><br>{{ asistencia.fecha_modificacion|date:"d/m/Y H:i" }}</p>
+              {% if asistencia.registrado_por_usuario %}
+                <p><strong>Modificado por:</strong><br>{{ asistencia.registrado_por_usuario.get_full_name|default:asistencia.registrado_por_usuario.username }}</p>
+              {% endif %}
+            </small>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const presenteCheckbox = document.querySelector('input[name="presente"]');
+    const justificacionContainer = document.getElementById('justificacion-container');
+    const justificacionField = document.querySelector('textarea[name="justificacion"]');
+    
+    function toggleJustificacion() {
+        if (presenteCheckbox.checked) {
+            justificacionContainer.style.display = 'none';
+            justificacionField.value = '';
+        } else {
+            justificacionContainer.style.display = 'block';
+        }
+    }
+    
+    // Configurar estado inicial
+    toggleJustificacion();
+    
+    // Escuchar cambios
+    presenteCheckbox.addEventListener('change', toggleJustificacion);
+});
+</script>
+
+<style>
+.card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+.card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+.form-switch .form-check-input {
+    width: 2em;
+    height: 1em;
+}
+
+.form-switch .form-check-input:checked {
+    background-color: #198754;
+    border-color: #198754;
+}
+</style>
+{% endblock %}

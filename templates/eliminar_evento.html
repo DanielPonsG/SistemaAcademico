@@ -1,0 +1,162 @@
+{% extends "index_master.html" %}
+
+{% block content %}
+<div class="right_col" role="main">
+  <div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="d-flex align-items-center">
+          <a href="{% url 'calendario' %}" class="btn btn-outline-secondary me-3" title="Volver al calendario">
+            <i class="fas fa-arrow-left"></i>
+          </a>
+          <div>
+            <h1 class="mb-1">
+              <i class="fas fa-trash-alt text-danger me-2"></i>Eliminar Evento
+            </h1>
+            <p class="text-muted mb-0">Confirma la eliminación del evento seleccionado</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row justify-content-center">
+      <div class="col-lg-6">
+        <div class="card border-0 shadow-lg">
+          <div class="card-header bg-gradient-danger text-white">
+            <div class="d-flex align-items-center">
+              <i class="fas fa-exclamation-triangle fa-lg me-2"></i>
+              <h4 class="mb-0">Confirmar Eliminación</h4>
+            </div>
+          </div>
+          
+          <div class="card-body p-4 text-center">
+            <!-- Icono de advertencia -->
+            <div class="mb-4">
+              <i class="fas fa-trash-alt fa-4x text-danger opacity-75"></i>
+            </div>
+            
+            <!-- Información del evento -->
+            <h5 class="mb-3">¿Estás seguro de que deseas eliminar este evento?</h5>
+            
+            <div class="alert alert-warning border-0 shadow-sm mb-4">
+              <div class="d-flex align-items-start">
+                <i class="fas fa-calendar-alt fa-lg text-warning me-3 mt-1"></i>
+                <div class="text-start">
+                  <h6 class="mb-1 fw-bold">{{ evento.titulo }}</h6>
+                  <p class="mb-1">
+                    <i class="fas fa-clock me-1"></i>
+                    {{ evento.fecha|date:"l, d F Y" }}
+                  </p>
+                  {% if evento.descripcion %}
+                    <p class="mb-0 text-muted small">{{ evento.descripcion|truncatewords:15 }}</p>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+            
+            <div class="alert alert-danger border-0 mb-4">
+              <i class="fas fa-exclamation-triangle me-2"></i>
+              <strong>¡Atención!</strong> Esta acción no se puede deshacer.
+            </div>
+            
+            <form method="post" id="eliminarEventoForm">
+              {% csrf_token %}
+              <div class="d-flex gap-3 justify-content-center">
+                <a href="{% url 'calendario' %}" class="btn btn-light border px-4">
+                  <i class="fas fa-times me-1"></i>Cancelar
+                </a>
+                <button type="submit" class="btn btn-danger px-4" id="btnEliminar">
+                  <i class="fas fa-trash me-1"></i>Eliminar Evento
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.bg-gradient-danger {
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%) !important;
+}
+
+.card {
+  transition: all 0.3s ease;
+}
+
+.btn-danger {
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+  border: none;
+  transition: all 0.3s ease;
+}
+
+.btn-danger:hover {
+  background: linear-gradient(135deg, #c82333 0%, #bd2130 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+}
+
+.alert-warning {
+  background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+  border-left: 4px solid #ffc107;
+}
+
+.alert-danger {
+  background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+  border-left: 4px solid #dc3545;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+.shake {
+  animation: shake 0.5s;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Animación de entrada
+  const card = document.querySelector('.card');
+  card.style.opacity = '0';
+  card.style.transform = 'translateY(20px)';
+  
+  setTimeout(() => {
+    card.style.transition = 'all 0.6s ease';
+    card.style.opacity = '1';
+    card.style.transform = 'translateY(0)';
+  }, 100);
+  
+  // Confirmación adicional y animación
+  document.getElementById('eliminarEventoForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const confirmar = confirm('⚠️ ¿Estás COMPLETAMENTE seguro?\n\nEsta acción eliminará permanentemente el evento "{{ evento.titulo }}" y no se podrá deshacer.');
+    
+    if (confirmar) {
+      // Animación de carga en el botón
+      const btnEliminar = document.getElementById('btnEliminar');
+      btnEliminar.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Eliminando...';
+      btnEliminar.disabled = true;
+      
+      // Enviar formulario después de un breve delay
+      setTimeout(() => {
+        this.submit();
+      }, 1000);
+    } else {
+      // Animación de shake si cancela
+      card.classList.add('shake');
+      setTimeout(() => {
+        card.classList.remove('shake');
+      }, 500);
+    }
+  });
+});
+</script>
+{% endblock %}

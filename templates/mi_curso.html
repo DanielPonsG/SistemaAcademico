@@ -1,0 +1,23 @@
+<!-- filepath: c:\Users\Danie\Desktop\Proyecto_Titulo\sma\templates\mi_curso.html -->
+{% extends "index_master.html" %}
+{% block content %}
+<div class="right_col" role="main">
+  <div class="container-fluid">
+    <h2>Mi Curso</h2>
+    {% if curso %}
+      <div class="card">
+        <div class="card-header bg-primary text-white">
+          <strong>Curso Asignado</strong>
+        </div>
+        <div class="card-body">
+          <p><strong>Nombre:</strong> {{ curso.nombre }}</p>
+          <p><strong>Código:</strong> {{ curso.codigo_curso }}</p>
+          <p><strong>Profesor Responsable:</strong> {{ curso.profesor_responsable }}</p>
+        </div>
+      </div>
+    {% else %}
+      <div class="alert alert-warning">No tienes un curso asignado.</div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

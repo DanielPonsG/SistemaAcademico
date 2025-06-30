@@ -1,0 +1,188 @@
+{% extends "index_master.html" %}
+{% block content %}
+<div class="right_col" role="main">
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-md-12">
+        <div class="page-title">
+          <div class="title_left">
+            <h3>{{ titulo|default:"Agregar Asignatura" }}</h3>
+          </div>
+          <div class="title_right">
+            <div class="col-md-5 col-sm-5 col-xs-12 form-group pull-right top_search">
+              <a href="{% url 'listar_asignaturas' %}" class="btn btn-default">
+                <i class="fa fa-arrow-left"></i> Volver a Lista
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mostrar errores si existen -->
+    {% if errores %}
+    <div class="row">
+      <div class="col-md-12">
+        <div class="alert alert-danger">
+          <h4><i class="fa fa-exclamation-triangle"></i> Errores encontrados:</h4>
+          <ul>
+            {% for error in errores %}
+            <li>{{ error }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Mostrar mensaje de éxito -->
+    {% if mensaje %}
+    <div class="row">
+      <div class="col-md-12">
+        <div class="alert alert-success">
+          <i class="fa fa-check"></i> {{ mensaje }}
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Formulario principal -->
+    <div class="row">
+      <div class="col-md-12">
+        <div class="x_panel">
+          <div class="x_title">
+            <h2>Información de la Asignatura</h2>
+            <div class="clearfix"></div>
+          </div>
+          <div class="x_content">
+            <form method="post" class="form-horizontal form-label-left">
+              {% csrf_token %}
+              
+              <div class="form-group">
+                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="nombre">
+                  Nombre de la Asignatura <span class="required">*</span>
+                </label>
+                <div class="col-md-6 col-sm-6 col-xs-12">
+                  <input type="text" id="nombre" name="nombre" class="form-control" 
+                         placeholder="Ej: Matemáticas Aplicadas" required>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="codigo_asignatura">
+                  Código de Asignatura <span class="required">*</span>
+                </label>
+                <div class="col-md-6 col-sm-6 col-xs-12">
+                  <input type="text" id="codigo_asignatura" name="codigo_asignatura" class="form-control" 
+                         placeholder="Ej: MAT-01" required>
+                  <small class="form-text text-muted">Código único para identificar la asignatura (ej: MAT-01, HIS-02)</small>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="descripcion">
+                  Descripción
+                </label>
+                <div class="col-md-6 col-sm-6 col-xs-12">
+                  <textarea id="descripcion" name="descripcion" class="form-control" rows="3"
+                            placeholder="Descripción de la asignatura..."></textarea>
+                  <small class="form-text text-muted">Descripción opcional de la asignatura y sus objetivos</small>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="profesor_responsable">
+                  Profesor Responsable
+                </label>
+                <div class="col-md-6 col-sm-6 col-xs-12">
+                  <select id="profesor_responsable" name="profesor_responsable" class="form-control">
+                    <option value="">Seleccionar profesor...</option>
+                    {% for profesor in profesores %}
+                      <option value="{{ profesor.id }}">
+                        {{ profesor.primer_nombre }} {{ profesor.apellido_paterno }} {{ profesor.apellido_materno }}
+                      </option>
+                    {% endfor %}
+                  </select>
+                  <small class="form-text text-muted">Selecciona el profesor responsable de esta asignatura.</small>
+                </div>
+              </div>
+
+              <div class="ln_solid"></div>
+              
+              <div class="form-group">
+                <div class="col-md-6 col-sm-6 col-xs-12 col-md-offset-3">
+                  <button type="button" class="btn btn-default" onclick="window.history.back();">
+                    <i class="fa fa-times"></i> Cancelar
+                  </button>
+                  <button type="submit" class="btn btn-success">
+                    <i class="fa fa-save"></i> {{ accion|default:"Crear" }}
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.required {
+    color: #e74c3c;
+}
+
+.form-control {
+    border-radius: 4px;
+    border: 1px solid #ddd;
+}
+
+.form-control:focus {
+    border-color: #3498db;
+    box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
+}
+
+.text-danger {
+    color: #e74c3c;
+    font-size: 12px;
+    margin-top: 5px;
+}
+
+.form-text {
+    font-size: 12px;
+    color: #7f8c8d;
+    margin-top: 5px;
+}
+</style>
+
+<script>
+$(document).ready(function() {
+    // Agregar clases de Bootstrap a los campos del formulario
+    $('#id_nombre').addClass('form-control').attr('placeholder', 'Ej: Matemáticas Aplicadas');
+    $('#id_codigo_asignatura').addClass('form-control').attr('placeholder', 'Ej: MAT-01');
+    $('#id_descripcion').addClass('form-control').attr('placeholder', 'Descripción de la asignatura...');
+    $('#profesor_responsable').addClass('form-control');
+    
+    // Validación del formulario en el cliente
+    $('form').on('submit', function(e) {
+        let errores = [];
+        
+        // Validar nombre
+        if (!$('#id_nombre').val().trim()) {
+            errores.push('El nombre de la asignatura es obligatorio');
+        }
+        
+        // Validar código
+        if (!$('#id_codigo_asignatura').val().trim()) {
+            errores.push('El código de la asignatura es obligatorio');
+        }
+        
+        if (errores.length > 0) {
+            e.preventDefault();
+            alert('Errores encontrados:\n- ' + errores.join('\n- '));
+            return false;
+        }
+    });
+});
+</script>
+{% endblock %}

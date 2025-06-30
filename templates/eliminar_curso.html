@@ -1,0 +1,17 @@
+<!-- filepath: c:\Users\Danie\Desktop\Proyecto_Titulo\sma\templates\eliminar_curso.html -->
+{% extends "index_master.html" %}
+{% block content %}
+<div class="main-content container-fluid py-4">
+  <div class="container-fluid">
+    <h2>Eliminar Curso</h2>
+    <div class="alert alert-danger">
+      ¿Estás seguro que deseas eliminar el curso <strong>{{ curso.nombre }}</strong>?
+    </div>
+    <form method="post">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-danger">Eliminar</button>
+      <a href="{% url 'listar_cursos' %}" class="btn btn-secondary">Cancelar</a>
+    </form>
+  </div>
+</div>
+{% endblock %}

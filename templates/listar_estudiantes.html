@@ -1,0 +1,494 @@
+{% extends "index_master.html" %}
+{% block content %}
+<div class="right_col" role="main">
+  <div class="container-fluid">
+    <!-- Header simple y elegante -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <h2 class="fw-bold text-dark mb-1">
+              <i class="fas fa-users text-primary me-2"></i>Gestión de Usuarios
+            </h2>
+            <p class="text-muted mb-0">Administra estudiantes y profesores del sistema</p>
+          </div>
+          <div class="d-flex gap-2">
+            <span class="badge bg-light text-dark border px-3 py-2">
+              <i class="fas fa-graduation-cap me-1"></i>{{ total_estudiantes }} Estudiantes
+            </span>
+            <span class="badge bg-light text-dark border px-3 py-2">
+              <i class="fas fa-chalkboard-teacher me-1"></i>{{ total_profesores }} Profesores
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tarjeta principal simple -->
+    <div class="card border shadow-sm">
+      <!-- Header con pestañas simples -->
+      <div class="card-header bg-white border-bottom">
+        <ul class="nav nav-tabs card-header-tabs" id="userTabs" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="estudiantes-tab" data-bs-toggle="tab" 
+                    data-bs-target="#estudiantes" type="button" role="tab">
+              <i class="fas fa-graduation-cap me-2"></i>Estudiantes
+              <span class="badge bg-light text-dark border ms-2">{{ total_estudiantes }}</span>
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="profesores-tab" data-bs-toggle="tab" 
+                    data-bs-target="#profesores" type="button" role="tab">
+              <i class="fas fa-chalkboard-teacher me-2"></i>Profesores
+              <span class="badge bg-light text-dark border ms-2">{{ total_profesores }}</span>
+            </button>
+          </li>
+        </ul>
+      </div>
+
+      <div class="card-body p-0">
+        <div class="tab-content" id="userTabsContent">
+          <!-- Tab de Estudiantes -->
+          <div class="tab-pane fade show active" id="estudiantes" role="tabpanel">
+            <div class="p-4">
+              <!-- Filtros simples para estudiantes -->
+              <div class="card mb-4 border-0 bg-light">
+                <div class="card-body">
+                  <h6 class="fw-bold mb-3">
+                    <i class="fas fa-filter me-2 text-primary"></i>Filtros de Búsqueda
+                  </h6>
+                  <form method="get" class="row g-3" id="filtro-estudiantes">
+                    <input type="hidden" name="tab" value="estudiantes">
+                    
+                    <div class="col-md-4">
+                      <label class="form-label fw-bold">Buscar Estudiante</label>
+                      <input type="text" name="q_estudiante" class="form-control" 
+                             placeholder="Nombre, apellido o código..." 
+                             value="{{ request.GET.q_estudiante }}">
+                    </div>
+                    
+                    <div class="col-md-2">
+                      <label class="form-label fw-bold">Género</label>
+                      <select name="genero_estudiante" class="form-select">
+                        <option value="">Todos</option>
+                        <option value="M" {% if request.GET.genero_estudiante == 'M' %}selected{% endif %}>Masculino</option>
+                        <option value="F" {% if request.GET.genero_estudiante == 'F' %}selected{% endif %}>Femenino</option>
+                      </select>
+                    </div>
+                    
+                    <div class="col-md-3">
+                      <label class="form-label fw-bold">Tipo de Documento</label>
+                      <select name="tipo_doc_estudiante" class="form-select">
+                        <option value="">Todos los tipos</option>
+                        <option value="CC" {% if request.GET.tipo_doc_estudiante == 'CC' %}selected{% endif %}>Cédula de Ciudadanía</option>
+                        <option value="TI" {% if request.GET.tipo_doc_estudiante == 'TI' %}selected{% endif %}>Tarjeta de Identidad</option>
+                        <option value="PA" {% if request.GET.tipo_doc_estudiante == 'PA' %}selected{% endif %}>Pasaporte</option>
+                        <option value="CE" {% if request.GET.tipo_doc_estudiante == 'CE' %}selected{% endif %}>Cédula de Extranjería</option>
+                      </select>
+                    </div>
+                    
+                    <div class="col-md-2">
+                      <label class="form-label fw-bold">Fecha Ingreso</label>
+                      <input type="date" name="fecha_ingreso" class="form-control" 
+                             value="{{ request.GET.fecha_ingreso }}">
+                    </div>
+                    
+                    <div class="col-md-1">
+                      <label class="form-label">&nbsp;</label>
+                      <div class="d-grid">
+                        <button type="submit" class="btn btn-light border">
+                          <i class="fas fa-search"></i>
+                        </button>
+                      </div>
+                    </div>
+                  </form>
+                  
+                  <!-- Búsqueda rápida simple -->
+                  <div class="mt-3">
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                      <span class="text-muted fw-bold">Búsqueda rápida:</span>
+                      <a href="?tab=estudiantes" class="btn btn-light border btn-sm">Ver todos</a>
+                      {% for letra in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' %}
+                        <a href="?tab=estudiantes&q_estudiante={{ letra }}" 
+                           class="btn btn-light border btn-sm">{{ letra }}</a>
+                      {% endfor %}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Tabla de estudiantes simple -->
+              <div class="card border">
+                <div class="card-header bg-white">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0 fw-bold">
+                      <i class="fas fa-graduation-cap me-2 text-primary"></i>Lista de Estudiantes
+                      {% if estudiantes %}
+                        <span class="badge bg-light text-dark border ms-2">{{ estudiantes|length }} resultados</span>
+                      {% endif %}
+                    </h6>
+                    <div class="btn-group">
+                      <button class="btn btn-light border btn-sm" onclick="window.print()">
+                        <i class="fas fa-print me-1"></i>Imprimir
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div class="card-body p-0">
+                  <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                      <thead class="table-light">
+                        <tr>
+                          <th class="fw-bold">ID</th>
+                          <th class="fw-bold">Código</th>
+                          <th class="fw-bold">Nombre Completo</th>
+                          <th class="fw-bold">Documento</th>
+                          <th class="fw-bold">Género</th>
+                          <th class="fw-bold">Email</th>
+                          <th class="fw-bold text-center">Acciones</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {% for estudiante in estudiantes %}
+                          <tr>
+                            <td>
+                              <span class="badge bg-light text-dark border">{{ estudiante.id }}</span>
+                            </td>
+                            <td>
+                              <div class="d-flex align-items-center">
+                                <div class="me-3">
+                                  <div class="bg-light text-dark border rounded-circle d-flex align-items-center justify-content-center" 
+                                       style="width: 40px; height: 40px;">
+                                    <i class="fas fa-graduation-cap"></i>
+                                  </div>
+                                </div>
+                                <div>
+                                  <div class="fw-bold text-dark">{{ estudiante.codigo_estudiante }}</div>
+                                  <small class="text-muted">Estudiante</small>
+                                </div>
+                              </div>
+                            </td>
+                            <td>
+                              <div>
+                                <div class="fw-bold">
+                                  {{ estudiante.primer_nombre }} {{ estudiante.segundo_nombre|default:"" }}
+                                </div>
+                                <div class="text-muted">
+                                  {{ estudiante.apellido_paterno }} {{ estudiante.apellido_materno|default:"" }}
+                                </div>
+                              </div>
+                            </td>
+                            <td>
+                              <div>
+                                <span class="badge bg-light text-dark border">{{ estudiante.get_tipo_documento_display }}</span>
+                                <div class="text-muted small">{{ estudiante.numero_documento }}</div>
+                              </div>
+                            </td>
+                            <td>
+                              <span class="badge bg-light text-dark border">
+                                {% if estudiante.genero == 'M' %}
+                                  <i class="fas fa-mars me-1"></i>Masculino
+                                {% else %}
+                                  <i class="fas fa-venus me-1"></i>Femenino
+                                {% endif %}
+                              </span>
+                            </td>
+                            <td>
+                              <a href="mailto:{{ estudiante.email }}" class="text-decoration-none">
+                                {{ estudiante.email|truncatechars:25 }}
+                              </a>
+                            </td>
+                            <td class="text-center">
+                              <div class="btn-group btn-group-sm">
+                                <a href="{% url 'modificar' %}?tipo=estudiante&id={{ estudiante.id }}" 
+                                   class="btn btn-light border" title="Editar">
+                                  <i class="fas fa-edit text-primary"></i>
+                                </a>
+                                <a href="{% url 'eliminar' %}?tipo=estudiante&id={{ estudiante.id }}" 
+                                   class="btn btn-light border" title="Eliminar"
+                                   onclick="return confirm('¿Estás seguro de eliminar este estudiante?')">
+                                  <i class="fas fa-trash text-danger"></i>
+                                </a>
+                              </div>
+                            </td>
+                          </tr>
+                        {% empty %}
+                          <tr>
+                            <td colspan="7" class="text-center py-5">
+                              <div>
+                                <i class="fas fa-users text-muted mb-3" style="font-size: 3rem;"></i>
+                                <h5 class="text-muted">No hay estudiantes registrados</h5>
+                                <p class="text-muted">No se encontraron estudiantes que coincidan con los criterios de búsqueda.</p>
+                                <a href="{% url 'agregar' %}" class="btn btn-light border">
+                                  <i class="fas fa-plus me-1"></i>Agregar estudiante
+                                </a>
+                              </div>
+                            </td>
+                          </tr>
+                        {% endfor %}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tab de Profesores -->
+          <div class="tab-pane fade" id="profesores" role="tabpanel">
+            <div class="p-4">
+              <!-- Filtros simples para profesores -->
+              <div class="card mb-4 border-0 bg-light">
+                <div class="card-body">
+                  <h6 class="fw-bold mb-3">
+                    <i class="fas fa-filter me-2 text-primary"></i>Filtros de Búsqueda
+                  </h6>
+                  <form method="get" class="row g-3" id="filtro-profesores">
+                    <input type="hidden" name="tab" value="profesores">
+                    
+                    <div class="col-md-4">
+                      <label class="form-label fw-bold">Buscar Profesor</label>
+                      <input type="text" name="q_profesor" class="form-control" 
+                             placeholder="Nombre, apellido o código..." 
+                             value="{{ request.GET.q_profesor }}">
+                    </div>
+                    
+                    <div class="col-md-3">
+                      <label class="form-label fw-bold">Especialidad</label>
+                      <input type="text" name="especialidad_profesor" class="form-control" 
+                             placeholder="Especialidad..." 
+                             value="{{ request.GET.especialidad_profesor }}">
+                    </div>
+                    
+                    <div class="col-md-2">
+                      <label class="form-label fw-bold">Género</label>
+                      <select name="genero_profesor" class="form-select">
+                        <option value="">Todos</option>
+                        <option value="M" {% if request.GET.genero_profesor == 'M' %}selected{% endif %}>Masculino</option>
+                        <option value="F" {% if request.GET.genero_profesor == 'F' %}selected{% endif %}>Femenino</option>
+                      </select>
+                    </div>
+                    
+                    <div class="col-md-2">
+                      <label class="form-label fw-bold">Documento</label>
+                      <select name="tipo_doc_profesor" class="form-select">
+                        <option value="">Todos</option>
+                        <option value="CC" {% if request.GET.tipo_doc_profesor == 'CC' %}selected{% endif %}>Cédula de Ciudadanía</option>
+                        <option value="TI" {% if request.GET.tipo_doc_profesor == 'TI' %}selected{% endif %}>Tarjeta de Identidad</option>
+                        <option value="PA" {% if request.GET.tipo_doc_profesor == 'PA' %}selected{% endif %}>Pasaporte</option>
+                        <option value="CE" {% if request.GET.tipo_doc_profesor == 'CE' %}selected{% endif %}>Cédula de Extranjería</option>
+                      </select>
+                    </div>
+                    
+                    <div class="col-md-1">
+                      <label class="form-label">&nbsp;</label>
+                      <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">
+                          <i class="fas fa-search"></i>
+                        </button>
+                      </div>
+                    </div>
+                  </form>
+                </div>
+              </div>
+
+              <!-- Tabla de profesores simple -->
+              <div class="card border">
+                <div class="card-header bg-white">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0 fw-bold">
+                      <i class="fas fa-chalkboard-teacher me-2 text-primary"></i>Lista de Profesores
+                      {% if profesores %}
+                        <span class="badge bg-light text-dark border ms-2">{{ profesores|length }} resultados</span>
+                      {% endif %}
+                    </h6>
+                    <div class="btn-group">
+                      <button class="btn btn-light border btn-sm" onclick="window.print()">
+                        <i class="fas fa-print me-1"></i>Imprimir
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div class="card-body p-0">
+                  <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                      <thead class="table-light">
+                        <tr>
+                          <th class="fw-bold">ID</th>
+                          <th class="fw-bold">Código</th>
+                          <th class="fw-bold">Nombre Completo</th>
+                          <th class="fw-bold">Documento</th>
+                          <th class="fw-bold">Especialidad</th>
+                          <th class="fw-bold">Curso Asignado</th>
+                          <th class="fw-bold text-center">Acciones</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {% for profesor in profesores %}
+                          <tr>
+                            <td>
+                              <span class="badge bg-light text-dark border">{{ profesor.id }}</span>
+                            </td>
+                            <td>
+                              <div class="d-flex align-items-center">
+                                <div class="me-3">
+                                  <div class="bg-light text-dark border rounded-circle d-flex align-items-center justify-content-center" 
+                                       style="width: 40px; height: 40px;">
+                                    <i class="fas fa-chalkboard-teacher"></i>
+                                  </div>
+                                </div>
+                                <div>
+                                  <div class="fw-bold text-dark">{{ profesor.codigo_profesor }}</div>
+                                  <small class="text-muted">Profesor</small>
+                                </div>
+                              </div>
+                            </td>
+                            <td>
+                              <div>
+                                <div class="fw-bold text-dark">
+                                  {{ profesor.primer_nombre }} {{ profesor.segundo_nombre|default:"" }}
+                                </div>
+                                <div class="text-muted">
+                                  {{ profesor.apellido_paterno }} {{ profesor.apellido_materno|default:"" }}
+                                </div>
+                                <small class="text-muted">
+                                  <i class="fas fa-calendar me-1"></i>Ingresó: {{ profesor.fecha_contratacion|date:"d/m/Y" }}
+                                </small>
+                              </div>
+                            </td>
+                            <td>
+                              <div>
+                                <span class="badge bg-light text-dark border">{{ profesor.get_tipo_documento_display }}</span>
+                                <div class="text-muted small">{{ profesor.numero_documento }}</div>
+                              </div>
+                            </td>
+                            <td>
+                              <span class="badge bg-light text-dark border">
+                                {{ profesor.especialidad|truncatechars:20 }}
+                              </span>
+                            </td>
+                            <td>
+                              {% if profesor.cursos_jefatura.exists %}
+                                {% for curso in profesor.cursos_jefatura.all %}
+                                  <div class="mb-1">
+                                    <span class="badge bg-success text-white">
+                                      <i class="fas fa-user-tie me-1"></i>{{ curso.get_nivel_display }}{{ curso.paralelo }}
+                                    </span>
+                                    <small class="text-muted d-block">Profesor Jefe</small>
+                                  </div>
+                                {% endfor %}
+                              {% else %}
+                                <span class="badge bg-light text-muted border">
+                                  <i class="fas fa-minus me-1"></i>Sin asignar
+                                </span>
+                              {% endif %}
+                            </td>
+                            <td class="text-center">
+                              <div class="btn-group btn-group-sm">
+                                <a href="{% url 'modificar' %}?tipo=profesor&id={{ profesor.id }}" 
+                                   class="btn btn-light border" title="Editar">
+                                  <i class="fas fa-edit text-primary"></i>
+                                </a>
+                                <a href="{% url 'eliminar' %}?tipo=profesor&id={{ profesor.id }}" 
+                                   class="btn btn-light border" title="Eliminar"
+                                   onclick="return confirm('¿Estás seguro de eliminar este profesor?')">
+                                  <i class="fas fa-trash text-danger"></i>
+                                </a>
+                              </div>
+                            </td>
+                          </tr>
+                        {% empty %}
+                          <tr>
+                            <td colspan="7" class="text-center py-5">
+                              <div>
+                                <i class="fas fa-chalkboard-teacher text-muted mb-3" style="font-size: 3rem;"></i>
+                                <h5 class="text-muted">No hay profesores registrados</h5>
+                                <p class="text-muted">No se encontraron profesores que coincidan con los criterios de búsqueda.</p>
+                                <a href="{% url 'agregar' %}" class="btn btn-light border">
+                                  <i class="fas fa-plus me-1"></i>Agregar profesor
+                                </a>
+                              </div>
+                            </td>
+                          </tr>
+                        {% endfor %}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Estilos simples y limpios -->
+<style>
+  .nav-tabs .nav-link {
+    color: #6c757d;
+    border: none;
+    border-bottom: 3px solid transparent;
+    font-weight: 500;
+  }
+  
+  .nav-tabs .nav-link:hover {
+    color: #495057;
+    border-bottom-color: #dee2e6;
+  }
+  
+  .nav-tabs .nav-link.active {
+    color: #495057;
+    border-bottom-color: #0d6efd;
+    font-weight: 600;
+  }
+  
+  .table-hover tbody tr:hover {
+    background-color: rgba(0,0,0,0.03);
+  }
+  
+  .btn-outline-primary:hover,
+  .btn-outline-success:hover,
+  .btn-outline-warning:hover,
+  .btn-outline-danger:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  
+  .card {
+    border-radius: 8px;
+  }
+  
+  .badge {
+    font-weight: 500;
+  }
+  
+  @media (max-width: 768px) {
+    .btn-group {
+      flex-direction: column;
+      gap: 2px;
+    }
+    
+    .d-flex.gap-2 {
+      flex-wrap: wrap;
+    }
+  }
+</style>
+
+<script>
+// Mantener la pestaña activa después de filtrar
+document.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const activeTab = urlParams.get('tab');
+    
+    if (activeTab === 'profesores') {
+        // Cambiar pestaña activa
+        document.getElementById('estudiantes-tab').classList.remove('active');
+        document.getElementById('profesores-tab').classList.add('active');
+        document.getElementById('estudiantes').classList.remove('show', 'active');
+        document.getElementById('profesores').classList.add('show', 'active');
+    }
+});
+</script>
+{% endblock %}

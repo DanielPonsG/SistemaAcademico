@@ -1,0 +1,425 @@
+{% extends "index_master.html" %}
+
+{% block content %}
+<div class="right_col" role="main">
+  <div class="container-fluid">
+    
+    <!-- Header -->
+    <div class="page-title">
+      <div class="title_left">
+        <h3>Calendario de Eventos</h3>
+      </div>
+      <div class="title_right">
+        {% if puede_crear_eventos %}
+        <div class="pull-right">
+          <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modalAgregarEvento">
+            <i class="fa fa-plus"></i> Nuevo Evento
+          </button>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="clearfix"></div>
+
+    <!-- Estadísticas -->
+    <div class="row">
+      <div class="col-md-3 col-sm-6">
+        <div class="x_panel tile fixed_height_320">
+          <div class="x_title">
+            <h2>Eventos Totales</h2>
+            <div class="clearfix"></div>
+          </div>
+          <div class="x_content">
+            <h4>{{ eventos.count }}</h4>
+            <span class="small">eventos registrados</span>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3 col-sm-6">
+        <div class="x_panel tile fixed_height_320">
+          <div class="x_title">
+            <h2>Eventos Hoy</h2>
+            <div class="clearfix"></div>
+          </div>
+          <div class="x_content">
+            <h4>{{ eventos_count.hoy|default:0 }}</h4>
+            <span class="small">eventos para hoy</span>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3 col-sm-6">
+        <div class="x_panel tile fixed_height_320">
+          <div class="x_title">
+            <h2>Esta Semana</h2>
+            <div class="clearfix"></div>
+          </div>
+          <div class="x_content">
+            <h4>{{ eventos_count.semana|default:0 }}</h4>
+            <span class="small">eventos esta semana</span>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3 col-sm-6">
+        <div class="x_panel tile fixed_height_320">
+          <div class="x_title">
+            <h2>Usuario</h2>
+            <div class="clearfix"></div>
+          </div>
+          <div class="x_content">
+            <h6>{{ request.user.first_name|default:request.user.username }}</h6>
+            <span class="small">{{ user_type|capfirst }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Calendario y eventos -->
+    <div class="row">
+      <div class="col-md-8">
+        <div class="x_panel">
+          <div class="x_title">
+            <h2><i class="fa fa-calendar"></i> Calendario</h2>
+            <div class="clearfix"></div>
+          </div>
+          <div class="x_content">
+            <div id="calendar" style="height: 600px;"></div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-md-4">
+        <div class="x_panel">
+          <div class="x_title">
+            <h2><i class="fa fa-list"></i> Próximos Eventos</h2>
+            <div class="clearfix"></div>
+          </div>
+          <div class="x_content">
+            {% if eventos %}
+              {% for evento in eventos %}
+                <div class="media event">
+                  <div class="media-left">
+                    <div class="event-icon text-center" style="background-color: {{ evento.color_por_tipo }}; color: white; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                      <strong>{{ evento.fecha.day }}</strong>
+                    </div>
+                  </div>
+                  <div class="media-body">
+                    <h6 class="media-heading">{{ evento.titulo }}</h6>
+                    <p>
+                      <small class="text-muted">
+                        <i class="fa fa-calendar"></i> {{ evento.fecha|date:"d/m/Y" }}
+                        {% if evento.hora_inicio %}
+                          <br><i class="fa fa-clock-o"></i> 
+                          {{ evento.hora_inicio|time:"H:i" }}
+                          {% if evento.hora_fin %} - {{ evento.hora_fin|time:"H:i" }}{% endif %}
+                        {% endif %}
+                        <br><i class="fa fa-user"></i> 
+                        <strong>
+                          {% if evento.creado_por %}
+                            {{ evento.creado_por.first_name|default:evento.creado_por.username }}
+                          {% else %}
+                            Sistema
+                          {% endif %}
+                        </strong>
+                      </small>
+                    </p>
+                    {% if evento.descripcion %}
+                      <p class="small">{{ evento.descripcion|truncatewords:15 }}</p>
+                    {% endif %}
+                    {% if puede_crear_eventos %}
+                    <div class="btn-group btn-group-xs">
+                      <a href="{% url 'editar_evento' evento.id %}" class="btn btn-info">
+                        <i class="fa fa-edit"></i> Editar
+                      </a>
+                      <button onclick="eliminarEvento({{ evento.id }}, '{{ evento.titulo }}')" class="btn btn-danger">
+                        <i class="fa fa-trash"></i> Eliminar
+                      </button>
+                    </div>
+                    {% endif %}
+                  </div>
+                </div>
+                <hr>
+              {% endfor %}
+            {% else %}
+              <div class="text-center">
+                <i class="fa fa-calendar-o fa-3x text-muted"></i>
+                <p>No hay eventos programados</p>
+                {% if puede_crear_eventos %}
+                  <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#modalAgregarEvento">
+                    <i class="fa fa-plus"></i> Crear Primer Evento
+                  </button>
+                {% endif %}
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if puede_crear_eventos %}
+<!-- Modal para agregar evento -->
+<div class="modal fade" id="modalAgregarEvento" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+        <h4 class="modal-title">
+          <i class="fa fa-calendar-plus-o"></i> Agregar Nuevo Evento
+        </h4>
+      </div>
+      <form id="formAgregarEvento" method="post">
+        {% csrf_token %}
+        <div class="modal-body">
+          <div class="row">
+            <div class="col-md-8">
+              <div class="form-group">
+                <label>Título del evento *</label>
+                <input type="text" name="titulo" class="form-control" placeholder="Ej: Reunión de profesores" required>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="form-group">
+                <label>Fecha *</label>
+                <input type="date" name="fecha" class="form-control" required>
+              </div>
+            </div>
+          </div>
+          
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label>Hora inicio</label>
+                <input type="time" name="hora_inicio" class="form-control">
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <label>Hora fin</label>
+                <input type="time" name="hora_fin" class="form-control">
+              </div>
+            </div>
+          </div>
+          
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label>Tipo de evento</label>
+                <select name="tipo_evento" class="form-control">
+                  <option value="general">General</option>
+                  <option value="evaluacion">Evaluación</option>
+                  <option value="reunion">Reunión</option>
+                  <option value="actividad">Actividad</option>
+                  <option value="administrativo">Administrativo</option>
+                  <option value="otro">Otro</option>
+                </select>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <label>Prioridad</label>
+                <select name="prioridad" class="form-control">
+                  <option value="baja">Baja</option>
+                  <option value="media" selected>Media</option>
+                  <option value="alta">Alta</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label>Descripción</label>
+            <textarea name="descripcion" class="form-control" rows="3"></textarea>
+          </div>
+          
+          <div class="form-group">
+            <label>Dirigido a</label>
+            <div class="radio">
+              <label>
+                <input type="radio" name="dirigido_a" value="todos" checked> Todos los cursos
+              </label>
+            </div>
+            <div class="radio">
+              <label>
+                <input type="radio" name="dirigido_a" value="solo_profesores"> Solo profesores
+              </label>
+            </div>
+            {% if cursos %}
+            <div class="radio">
+              <label>
+                <input type="radio" name="dirigido_a" value="cursos_especificos"> Cursos específicos
+              </label>
+            </div>
+            <div id="cursosEspecificos" style="display: none; margin-top: 10px; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+              <div class="row">
+                {% for curso in cursos %}
+                <div class="col-md-6">
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="cursos_especificos" value="{{ curso.id }}">
+                      {{ curso.paralelo }} - {{ curso.get_nivel_display }}
+                    </label>
+                  </div>
+                </div>
+                {% endfor %}
+              </div>
+            </div>
+            {% endif %}
+          </div>
+          
+          <div class="alert alert-info">
+            <i class="fa fa-info-circle"></i>
+            <strong>Responsable:</strong> {{ request.user.first_name|default:request.user.username }}
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary">
+            <i class="fa fa-save"></i> Crear Evento
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- FullCalendar CSS y JS -->
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/main.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/main.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/locales/es.min.js"></script>
+
+<script>
+$(document).ready(function() {
+    console.log('Inicializando calendario...');
+    
+    // Datos de eventos desde Django
+    var eventosData = {{ eventos_json|safe|default:"[]" }};
+    console.log('Eventos cargados:', eventosData);
+    
+    // Inicializar FullCalendar
+    var calendarEl = document.getElementById('calendar');
+    
+    if (calendarEl) {
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+            locale: 'es',
+            initialView: 'dayGridMonth',
+            height: 600,
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,listWeek'
+            },
+            buttonText: {
+                today: 'Hoy',
+                month: 'Mes',
+                week: 'Semana',
+                list: 'Lista'
+            },
+            events: eventosData,
+            eventClick: function(info) {
+                alert('Evento: ' + info.event.title + '\nFecha: ' + info.event.start.toDateString());
+            },
+            dateClick: function(info) {
+                {% if puede_crear_eventos %}
+                $('input[name="fecha"]').val(info.dateStr);
+                $('#modalAgregarEvento').modal('show');
+                {% endif %}
+            }
+        });
+        
+        calendar.render();
+        console.log('Calendario renderizado');
+    } else {
+        console.error('Elemento calendar no encontrado');
+    }
+    
+    {% if puede_crear_eventos %}
+    // Manejar formulario de agregar evento
+    $('#formAgregarEvento').on('submit', function(e) {
+        e.preventDefault();
+        
+        var formData = new FormData(this);
+        var submitBtn = $(this).find('button[type="submit"]');
+        var originalText = submitBtn.html();
+        
+        submitBtn.html('<i class="fa fa-spinner fa-spin"></i> Creando...').prop('disabled', true);
+        
+        $.ajax({
+            url: window.location.href,
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            success: function(response) {
+                if (response.success) {
+                    alert('Evento creado exitosamente');
+                    $('#modalAgregarEvento').modal('hide');
+                    location.reload();
+                } else {
+                    alert('Error: ' + (response.error || 'Error desconocido'));
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('Error AJAX:', error);
+                alert('Error de conexión. Inténtalo de nuevo.');
+            },
+            complete: function() {
+                submitBtn.html(originalText).prop('disabled', false);
+            }
+        });
+    });
+    
+    // Mostrar/ocultar cursos específicos
+    $('input[name="dirigido_a"]').on('change', function() {
+        if ($(this).val() === 'cursos_especificos') {
+            $('#cursosEspecificos').show();
+        } else {
+            $('#cursosEspecificos').hide();
+            $('#cursosEspecificos input[type="checkbox"]').prop('checked', false);
+        }
+    });
+    
+    // Limpiar formulario al cerrar modal
+    $('#modalAgregarEvento').on('hidden.bs.modal', function() {
+        $('#formAgregarEvento')[0].reset();
+        $('input[name="dirigido_a"][value="todos"]').prop('checked', true);
+        $('#cursosEspecificos').hide();
+    });
+    {% endif %}
+});
+
+{% if puede_crear_eventos %}
+function eliminarEvento(eventoId, titulo) {
+    if (confirm('¿Estás seguro de que deseas eliminar el evento "' + titulo + '"?')) {
+        $.ajax({
+            url: '/eventos/eliminar/' + eventoId + '/',
+            type: 'POST',
+            headers: {
+                'X-CSRFToken': $('[name=csrfmiddlewaretoken]').val(),
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            success: function(response) {
+                if (response.success) {
+                    alert('Evento eliminado correctamente');
+                    location.reload();
+                } else {
+                    alert('Error: ' + (response.error || 'Error al eliminar'));
+                }
+            },
+            error: function() {
+                alert('Error de conexión');
+            }
+        });
+    }
+}
+{% endif %}
+</script>
+
+{% endblock %}

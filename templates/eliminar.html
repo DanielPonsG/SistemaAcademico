@@ -1,0 +1,379 @@
+{% extends "index_master.html" %}
+
+{% block content %}
+<div class="right_col" role="main">
+  <div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="page-title">
+          <div class="title_left">
+            <h1><i class="fa fa-user-times text-danger"></i> Eliminar Usuario</h1>
+            <p class="text-muted">Busca y elimina usuarios del sistema de forma segura</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row justify-content-center">
+      <div class="col-xl-10">
+        <div class="card border-0 shadow-lg">
+          <!-- Encabezado -->
+          <div class="card-header bg-gradient-danger text-white">
+            <div class="row align-items-center">
+              <div class="col">
+                <h3 class="mb-0">
+                  <i class="fa fa-search me-2"></i>Buscar y Eliminar {{ tipo|title }}
+                </h3>
+              </div>
+              <div class="col-auto">
+                <!-- Botones de selección -->
+                <div class="btn-group" role="group">
+                  <a href="?tipo=estudiante" class="btn btn-{% if tipo == 'estudiante' %}light{% else %}outline-light{% endif %} btn-sm">
+                    <i class="fa fa-graduation-cap"></i> Estudiante
+                  </a>
+                  <a href="?tipo=profesor" class="btn btn-{% if tipo == 'profesor' %}light{% else %}outline-light{% endif %} btn-sm">
+                    <i class="fa fa-chalkboard-teacher"></i> Profesor
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card-body p-4">
+            <!-- Advertencia de seguridad -->
+            <div class="alert alert-warning border-0 mb-4">
+              <div class="d-flex align-items-center">
+                <i class="fa fa-exclamation-triangle fa-2x text-warning me-3"></i>
+                <div>
+                  <h5 class="alert-heading mb-1">¡Atención! Operación Irreversible</h5>
+                  <p class="mb-0">La eliminación de usuarios es permanente y no se puede deshacer. Asegúrese de que realmente desea eliminar el usuario antes de confirmar.</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Formulario de búsqueda -->
+            <div class="card mb-4 border-0 bg-light">
+              <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="fa fa-search me-2"></i>Buscar {{ tipo|title }} a Eliminar</h5>
+              </div>
+              <div class="card-body">
+                <form method="get" class="row g-3">
+                  <input type="hidden" name="tipo" value="{{ tipo }}">
+                  
+                  <div class="col-lg-6">
+                    <label class="form-label fw-bold">
+                      <i class="fa fa-user text-muted me-1"></i>Buscar por nombre, apellido o código
+                    </label>
+                    <div class="input-group">
+                      <span class="input-group-text bg-white">
+                        <i class="fa fa-search text-muted"></i>
+                      </span>
+                      <input type="text" name="q" class="form-control" 
+                             placeholder="{% if tipo == 'estudiante' %}Nombre, apellido o código de estudiante...{% else %}Nombre, apellido o código de profesor...{% endif %}" 
+                             value="{{ query }}">
+                    </div>
+                  </div>
+                  
+                  <div class="col-lg-3">
+                    <label class="form-label fw-bold">
+                      <i class="fa fa-hashtag text-muted me-1"></i>Buscar por ID
+                    </label>
+                    <div class="input-group">
+                      <span class="input-group-text bg-white">
+                        <i class="fa fa-hashtag text-muted"></i>
+                      </span>
+                      <input type="number" name="id" class="form-control" 
+                             placeholder="ID del {{ tipo }}" 
+                             value="{{ request.GET.id }}">
+                    </div>
+                  </div>
+                  
+                  <div class="col-lg-3">
+                    <label class="form-label">&nbsp;</label>
+                    <button type="submit" class="btn btn-primary w-100 d-block">
+                      <i class="fa fa-search me-1"></i> Buscar
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+
+            <!-- Resultados de búsqueda -->
+            {% if resultados %}
+              <div class="card mb-4 border-0">
+                <div class="card-header bg-gradient-info text-white">
+                  <div class="row align-items-center">
+                    <div class="col">
+                      <h5 class="mb-0">
+                        <i class="fa fa-list me-2"></i>Resultados de Búsqueda 
+                        <span class="badge bg-light text-dark ms-2">{{ resultados|length }}</span>
+                      </h5>
+                    </div>
+                    <div class="col-auto">
+                      <small class="text-light opacity-75">
+                        <i class="fa fa-info-circle me-1"></i>Seleccione el usuario a eliminar
+                      </small>
+                    </div>
+                  </div>
+                </div>
+                <div class="card-body p-0">
+                  <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                      <thead class="table-dark">
+                        <tr>
+                          <th style="width: 8%;">ID</th>
+                          <th style="width: 20%;">Código</th>
+                          <th style="width: 30%;">Nombre Completo</th>
+                          <th style="width: 20%;">Documento</th>
+                          <th style="width: 22%;">Email</th>
+                          <th style="width: 10%;" class="text-center">Acción</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {% for obj in resultados %}
+                          <tr>
+                            <td>
+                              <span class="badge bg-{% if tipo == 'estudiante' %}primary{% else %}success{% endif %} rounded-pill">
+                                {{ obj.id }}
+                            </span>
+                            </td>
+                            <td>
+                              <div class="d-flex align-items-center">
+                                <div class="avatar-sm bg-{% if tipo == 'estudiante' %}primary{% else %}success{% endif %} bg-gradient rounded-circle me-2 d-flex align-items-center justify-content-center">
+                                  <i class="fa fa-{% if tipo == 'estudiante' %}graduation-cap{% else %}chalkboard-teacher{% endif %} text-white"></i>
+                                </div>
+                                {% if tipo == 'estudiante' %}
+                                  <span class="fw-bold text-primary">{{ obj.codigo_estudiante }}</span>
+                                {% else %}
+                                  <span class="fw-bold text-success">{{ obj.codigo_profesor }}</span>
+                                {% endif %}
+                              </div>
+                            </td>
+                            <td>
+                              <div>
+                                <div class="fw-bold">{{ obj.primer_nombre }} {{ obj.segundo_nombre|default:"" }}</div>
+                                <div class="text-muted small">{{ obj.apellido_paterno }} {{ obj.apellido_materno|default:"" }}</div>
+                              </div>
+                            </td>
+                            <td>
+                              <div>
+                                <span class="badge bg-light text-dark">{{ obj.get_tipo_documento_display }}</span>
+                                <div class="small text-muted mt-1">{{ obj.numero_documento }}</div>
+                              </div>
+                            </td>
+                            <td>
+                              <div class="small">
+                                <i class="fa fa-envelope text-muted me-1"></i>
+                                {{ obj.email|truncatechars:25 }}
+                              </div>
+                            </td>
+                            <td class="text-center">
+                              <a href="?tipo={{ tipo }}&q={{ query }}&id={{ obj.id }}" 
+                                 class="btn btn-sm btn-outline-danger">
+                                <i class="fa fa-trash"></i> Eliminar
+                              </a>
+                            </td>
+                          </tr>
+                        {% endfor %}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            {% elif query %}
+              <div class="alert alert-warning">
+                <i class="fa fa-search me-2"></i>No se encontraron resultados para tu búsqueda.
+              </div>
+            {% endif %}
+
+            <!-- Confirmación de eliminación -->
+            {% if objeto %}
+              <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                  <h5 class="mb-0">
+                    <i class="fa fa-exclamation-triangle me-2"></i>Confirmar Eliminación
+                  </h5>
+                </div>
+                <div class="card-body">
+                  <div class="alert alert-danger">
+                    ¿Estás seguro que deseas eliminar este {{ tipo }}?<br>
+                    <strong>
+                      {% if tipo == 'estudiante' %}
+                        {{ objeto.codigo_estudiante }} - {{ objeto.primer_nombre }} {{ objeto.apellido_paterno }}
+                      {% else %}
+                        {{ objeto.codigo_profesor }} - {{ objeto.primer_nombre }} {{ objeto.apellido_paterno }}
+                      {% endif %}
+                    </strong>
+                  </div>
+                  <form method="post">
+                    {% csrf_token %}
+                    <div class="text-center">
+                      <button type="submit" class="btn btn-danger px-4" onclick="return confirmarEliminacion()">
+                        <i class="fa fa-trash me-1"></i> Eliminar
+                      </button>
+                      <a href="?tipo={{ tipo }}&q={{ query }}" class="btn btn-secondary px-4">
+                        <i class="fa fa-arrow-left me-1"></i> Cancelar
+                      </a>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            {% endif %}
+
+            <!-- Eliminación directa por ID -->
+            <div class="card border-0 bg-light mt-4">
+              <div class="card-header bg-dark text-white">
+                <h6 class="mb-0"><i class="fa fa-bolt me-2"></i>Eliminación Directa por ID</h6>
+              </div>
+              <div class="card-body">
+                <form method="post" class="row g-3" onsubmit="return confirmarEliminacionDirecta()">
+                  {% csrf_token %}
+                  <input type="hidden" name="eliminar_por_id" value="1">
+                  <input type="hidden" name="tipo" value="{{ tipo }}">
+                  
+                  <div class="col-lg-8">
+                    <label class="form-label fw-bold">ID del {{ tipo }} a eliminar</label>
+                    <div class="input-group">
+                      <span class="input-group-text bg-white">
+                        <i class="fa fa-hashtag text-muted"></i>
+                      </span>
+                      <input type="number" name="id_a_eliminar" class="form-control" 
+                             placeholder="Ingrese el ID del {{ tipo }}" required>
+                    </div>
+                    <small class="text-muted">
+                      <i class="fa fa-info-circle me-1"></i>
+                      Esta opción elimina directamente sin mostrar información previa
+                    </small>
+                  </div>
+                  
+                  <div class="col-lg-4">
+                    <label class="form-label">&nbsp;</label>
+                    <button type="submit" class="btn btn-danger w-100 d-block">
+                      <i class="fa fa-trash me-1"></i> Eliminar por ID
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+
+            <!-- Mensajes de resultado -->
+            {% if mensaje %}
+              <div class="alert alert-success mt-4">
+                <i class="fa fa-check-circle me-2"></i>{{ mensaje }}
+              </div>
+            {% endif %}
+
+            <!-- Estado inicial -->
+            {% if not resultados and not objeto and not mensaje %}
+              <div class="text-center py-5">
+                <i class="fa fa-search fa-4x text-muted mb-3"></i>
+                <h4 class="text-muted">Buscar {{ tipo|title }} a Eliminar</h4>
+                <p class="text-muted">Utiliza los filtros de arriba para encontrar el {{ tipo }} que deseas eliminar del sistema.</p>
+                <div class="alert alert-warning d-inline-block">
+                  <i class="fa fa-exclamation-triangle me-2"></i>
+                  Recuerda que esta operación es irreversible
+                </div>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Estilos adicionales -->
+<style>
+  .bg-gradient-danger {
+    background: linear-gradient(135deg, #dc3545, #c82333) !important;
+  }
+  
+  .bg-gradient-info {
+    background: linear-gradient(135deg, #17a2b8, #117a8b) !important;
+  }
+  
+  .avatar-sm {
+    width: 35px;
+    height: 35px;
+    font-size: 14px;
+  }
+  
+  .card {
+    border-radius: 15px;
+    transition: transform 0.2s ease;
+  }
+  
+  .card:hover {
+    transform: translateY(-1px);
+  }
+  
+  .btn {
+    border-radius: 8px;
+    font-weight: 500;
+  }
+  
+  .alert {
+    border-radius: 10px;
+  }
+  
+  .badge {
+    font-size: 0.75rem;
+  }
+  
+  .opacity-75 {
+    opacity: 0.75;
+  }
+  
+  .me-1 {
+    margin-right: 0.25rem;
+  }
+  
+  .me-2 {
+    margin-right: 0.5rem;
+  }
+  
+  .me-3 {
+    margin-right: 1rem;
+  }
+  
+  .ms-2 {
+    margin-left: 0.5rem;
+  }
+  
+  .d-flex {
+    display: flex;
+  }
+  
+  .align-items-center {
+    align-items: center;
+  }
+  
+  .justify-content-center {
+    justify-content: center;
+  }
+  
+  .justify-content-between {
+    justify-content: space-between;
+  }
+</style>
+
+<!-- JavaScript -->
+<script>
+function confirmarEliminacion() {
+  return confirm('¿Está ABSOLUTAMENTE SEGURO de que desea eliminar este usuario? Esta acción NO SE PUEDE DESHACER.');
+}
+
+function confirmarEliminacionDirecta() {
+  const idAEliminar = document.querySelector('input[name="id_a_eliminar"]').value;
+  const tipo = '{{ tipo }}';
+  
+  if (!idAEliminar) {
+    alert('Por favor, ingrese un ID válido.');
+    return false;
+  }
+  
+  return confirm(`¿Está seguro de que desea eliminar al ${tipo} con ID ${idAEliminar}? Esta acción NO SE PUEDE DESHACER.`);
+}
+</script>
+{% endblock %}

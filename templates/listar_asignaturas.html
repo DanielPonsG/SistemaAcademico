@@ -1,0 +1,731 @@
+{% extends "index_master.html" %}
+{% block content %}
+<div class="right_col" role="main">
+  <div class="container-fluid">
+    <!-- Mensajes de éxito y error -->
+    {% if messages %}
+      <div class="row mb-3">
+        <div class="col-12">
+          {% for message in messages %}
+            <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+              {% if message.tags == 'success' %}
+                <i class="fas fa-check-circle me-2"></i>
+              {% elif message.tags == 'error' %}
+                <i class="fas fa-exclamation-triangle me-2"></i>
+              {% elif message.tags == 'warning' %}
+                <i class="fas fa-exclamation-circle me-2"></i>
+              {% else %}
+                <i class="fas fa-info-circle me-2"></i>
+              {% endif %}
+              {{ message }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+
+    <!-- Header -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="bg-white p-4 rounded shadow-sm border">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <h2 class="h3 text-dark mb-2">
+                <i class="fas fa-book me-2"></i>Gestión de Asignaturas
+              </h2>
+              <p class="text-muted mb-0">Administra las asignaturas del sistema escolar</p>
+            </div>
+            <div>
+              {% if puede_editar %}
+                <a href="{% url 'agregar_asignatura' %}" class="btn btn-primary">
+                  <i class="fas fa-plus me-1"></i>Nueva Asignatura
+                </a>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Estadísticas -->
+    <div class="row mb-4">
+      <div class="col-md-3">
+        <div class="card border shadow-sm bg-white">
+          <div class="card-body text-center">
+            <i class="fas fa-book fa-2x text-primary mb-2"></i>
+            <h3 class="mb-0 text-dark">{{ total_asignaturas }}</h3>
+            <p class="mb-0 text-muted">Total Asignaturas</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card border shadow-sm bg-white">
+          <div class="card-body text-center">
+            <i class="fas fa-user-check fa-2x text-success mb-2"></i>
+            <h3 class="mb-0 text-dark">{{ asignaturas_con_profesor }}</h3>
+            <p class="mb-0 text-muted">Con Profesor</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card border shadow-sm bg-white">
+          <div class="card-body text-center">
+            <i class="fas fa-school fa-2x text-info mb-2"></i>
+            <h3 class="mb-0 text-dark">{{ asignaturas_con_cursos }}</h3>
+            <p class="mb-0 text-muted">Asignadas a Cursos</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card border shadow-sm bg-white">
+          <div class="card-body text-center">
+            <i class="fas fa-exclamation-triangle fa-2x text-warning mb-2"></i>
+            <h3 class="mb-0 text-dark">{{ asignaturas_sin_cursos }}</h3>
+            <p class="mb-0 text-muted">Sin Cursos</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filtros -->
+    {% if puede_editar %}
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="card border shadow-sm">
+          <div class="card-header bg-light border-bottom">
+            <h5 class="mb-0 text-dark">
+              <i class="fas fa-filter me-2"></i>Filtros de Búsqueda
+            </h5>
+          </div>
+          <div class="card-body">
+            <form method="get" class="row g-3">
+              <div class="col-md-3">
+                <label for="filtro_nombre" class="form-label">Nombre</label>
+                <input type="text" class="form-control" id="filtro_nombre" name="filtro_nombre" 
+                       value="{{ filtro_nombre }}" placeholder="Buscar por nombre...">
+              </div>
+              <div class="col-md-3">
+                <label for="filtro_codigo" class="form-label">Código</label>
+                <input type="text" class="form-control" id="filtro_codigo" name="filtro_codigo" 
+                       value="{{ filtro_codigo }}" placeholder="Buscar por código...">
+              </div>
+              <div class="col-md-3">
+                <label for="filtro_profesor" class="form-label">Profesor</label>
+                <input type="text" class="form-control" id="filtro_profesor" name="filtro_profesor" 
+                       value="{{ filtro_profesor }}" placeholder="Buscar por profesor...">
+              </div>
+              <div class="col-md-3">
+                <label for="filtro_sin_profesor" class="form-label">Sin Profesor</label>
+                <select class="form-control" id="filtro_sin_profesor" name="filtro_sin_profesor">
+                  <option value="">Todas</option>
+                  <option value="1" {% if filtro_sin_profesor %}selected{% endif %}>Solo sin profesor</option>
+                </select>
+              </div>
+              <div class="col-12">
+                <button type="submit" class="btn btn-primary">
+                  <i class="fas fa-search me-1"></i>Filtrar
+                </button>
+                <a href="{% url 'listar_asignaturas' %}" class="btn btn-secondary">
+                  <i class="fas fa-times me-1"></i>Limpiar
+                </a>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Tabla de asignaturas -->
+    <div class="card border shadow-sm">
+      <div class="card-header bg-light border-bottom">
+        <h5 class="mb-0 text-dark">
+          <i class="fas fa-list me-2"></i>Asignaturas Registradas
+        </h5>
+      </div>
+      <div class="card-body p-0">
+        {% if asignaturas %}
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>Código</th>
+                  <th>Nombre</th>
+                  <th>Profesores</th>
+                  <th>Cursos Asignados</th>
+                  <th>Descripción</th>
+                  {% if puede_editar %}
+                  <th>Acciones</th>
+                  {% endif %}
+                </tr>
+              </thead>
+              <tbody>
+                {% for asignatura in asignaturas %}
+                <tr>
+                  <td class="fw-medium">{{ asignatura.codigo_asignatura }}</td>
+                  <td class="fw-bold text-dark">{{ asignatura.nombre }}</td>
+                  <td>
+                    {% with profesores=asignatura.get_profesores_display %}
+                      {% if profesores %}
+                        {% for profesor in profesores %}
+                          <span class="badge bg-success me-1 mb-1" data-professor-id="{{ profesor.id }}">
+                            {{ profesor.primer_nombre }} {{ profesor.apellido_paterno }}
+                          </span>
+                        {% endfor %}
+                      {% else %}
+                        <span class="badge bg-warning text-dark">Sin profesor</span>
+                      {% endif %}
+                    {% endwith %}
+                  </td>
+                  <td>
+                    {% with cursos=asignatura.get_cursos_asignados %}
+                      {% if cursos %}
+                        {% for curso in cursos %}
+                          <span class="badge bg-info me-1 mb-1" title="{{ curso.get_nivel_display }}{{ curso.paralelo }} ({{ curso.anio }})">
+                            {{ curso.get_nivel_display }}{{ curso.paralelo }}
+                          </span>
+                        {% endfor %}
+                        <br><small class="text-muted">{{ cursos.count }} curso{{ cursos.count|pluralize }}</small>
+                      {% else %}
+                        <span class="badge bg-secondary">Sin cursos</span>
+                        <br><small class="text-warning">⚠️ No asignada</small>
+                      {% endif %}
+                    {% endwith %}
+                  </td>
+                  <td>
+                    {% if asignatura.descripcion %}
+                      {{ asignatura.descripcion|truncatechars:60 }}
+                    {% else %}
+                      <em class="text-muted">Sin descripción</em>
+                    {% endif %}
+                  </td>
+                  {% if puede_editar %}
+                  <td>
+                    <div class="btn-group btn-group-sm" role="group">
+                      <a href="{% url 'editar_asignatura' asignatura.id %}" class="btn btn-outline-primary" title="Editar">
+                        <i class="fas fa-edit"></i>
+                      </a>
+                      <button type="button" class="btn btn-outline-success" title="Gestionar Profesores"
+                              onclick="gestionarProfesores({{ asignatura.id }}, '{{ asignatura.nombre }}')">
+                        <i class="fas fa-users"></i>
+                      </button>
+                      <button type="button" class="btn btn-outline-info" title="Gestionar Cursos"
+                              onclick="gestionarCursos({{ asignatura.id }}, '{{ asignatura.nombre }}')">
+                        <i class="fas fa-school"></i>
+                      </button>
+                      <button type="button" class="btn btn-outline-danger" title="Eliminar"
+                              onclick="confirmarEliminacion('{{ asignatura.nombre }}', {{ asignatura.id }})">
+                        <i class="fas fa-trash"></i>
+                      </button>
+                    </div>
+                  </td>
+                  {% endif %}
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="text-center py-5">
+            <i class="fas fa-book fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted mb-2">No hay asignaturas registradas</h5>
+            <p class="text-muted mb-3">Comienza creando tu primera asignatura en el sistema</p>
+            {% if puede_editar %}
+              <a href="{% url 'agregar_asignatura' %}" class="btn btn-primary">
+                <i class="fas fa-plus me-1"></i>Nueva Asignatura
+              </a>
+            {% endif %}
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Sección de asignaturas sin profesor -->
+    {% if asignaturas_sin_profesor and puede_editar %}
+    <div class="card border shadow-sm mt-4">
+      <div class="card-header bg-warning bg-opacity-10 border-bottom">
+        <div class="d-flex justify-content-between align-items-center">
+          <h5 class="mb-0 text-dark">
+            <i class="fas fa-user-times me-2 text-warning"></i>Asignaturas Sin Profesor Asignado ({{ asignaturas_sin_profesor_count }})
+          </h5>
+          <button class="btn btn-sm btn-outline-warning" type="button" data-bs-toggle="collapse" 
+                  data-bs-target="#seccionSinProfesor" aria-expanded="false">
+            <i class="fas fa-chevron-down me-1"></i>Ver/Ocultar
+          </button>
+        </div>
+      </div>
+      <div class="collapse" id="seccionSinProfesor">
+        <div class="card-body">
+          <div class="row">
+            <!-- Listado de asignaturas sin profesor -->
+            <div class="col-md-8">
+              <h6 class="fw-bold mb-3">
+                <i class="fas fa-list me-2"></i>Asignaturas pendientes de asignación:
+              </h6>
+              {% if asignaturas_sin_profesor %}
+                <div class="row">
+                  {% for asignatura in asignaturas_sin_profesor %}
+                  <div class="col-md-6 mb-2">
+                    <div class="card border-warning">
+                      <div class="card-body p-2">
+                        <h6 class="card-title mb-1">{{ asignatura.nombre }}</h6>
+                        <p class="card-text small mb-1">
+                          <strong>Código:</strong> {{ asignatura.codigo_asignatura }}<br>
+                          <strong>Cursos:</strong> {{ asignatura.cursos.count }}
+                        </p>
+                        <button class="btn btn-sm btn-warning" 
+                                onclick="gestionarProfesores({{ asignatura.id }}, '{{ asignatura.nombre }}')">
+                          <i class="fas fa-user-plus me-1"></i>Gestionar Profesores
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  {% endfor %}
+                </div>
+              {% else %}
+                <p class="text-muted">¡Excelente! Todas las asignaturas tienen profesor asignado.</p>
+              {% endif %}
+            </div>
+            
+            <!-- Formulario de asignación rápida -->
+            <div class="col-md-4">
+              <h6 class="fw-bold mb-3">
+                <i class="fas fa-user-plus me-2"></i>Asignación Rápida:
+              </h6>
+              <form method="post" class="border p-3 rounded bg-light">
+                {% csrf_token %}
+                <input type="hidden" name="asignar_profesor" value="1">
+                
+                <div class="mb-3">
+                  <label for="asignatura_select" class="form-label">Asignatura:</label>
+                  <select class="form-control" id="asignatura_select" name="asignatura_id" required>
+                    <option value="">Seleccionar asignatura...</option>
+                    {% for asignatura in asignaturas_sin_profesor %}
+                    <option value="{{ asignatura.id }}">{{ asignatura.nombre }} ({{ asignatura.codigo_asignatura }})</option>
+                    {% endfor %}
+                  </select>
+                </div>
+                
+                <div class="mb-3">
+                  <label for="profesor_select" class="form-label">Profesor:</label>
+                  <select class="form-control" id="profesor_select" name="profesor_id" required>
+                    <option value="">Seleccionar profesor...</option>
+                    {% for profesor in profesores %}
+                    <option value="{{ profesor.id }}">{{ profesor.primer_nombre }} {{ profesor.apellido_paterno }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+                
+                <button type="submit" class="btn btn-warning w-100">
+                  <i class="fas fa-save me-1"></i>Asignar Profesor
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Modal para gestionar profesores -->
+<div class="modal fade" id="modalGestionarProfesores" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title">
+          <i class="fas fa-users me-2"></i>Gestionar Profesores
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row">
+          <!-- Profesores actuales -->
+          <div class="col-md-6">
+            <h6 class="fw-bold mb-3">Profesores Asignados:</h6>
+            <div id="profesoresAsignados">
+              <!-- Se llena dinámicamente with JavaScript -->
+            </div>
+          </div>
+          
+          <!-- Agregar nuevo profesor -->
+          <div class="col-md-6">
+            <h6 class="fw-bold mb-3">Agregar Profesor:</h6>
+            <form method="post" id="formAgregarProfesor">
+              {% csrf_token %}
+              <input type="hidden" name="asignar_profesor" value="1">
+              <input type="hidden" name="asignatura_id" id="modalAsignaturaId">
+              
+              <div class="mb-3">
+                <label class="form-label">Asignatura:</label>
+                <p class="fw-bold" id="modalAsignaturaNombre"></p>
+              </div>
+              
+              <div class="mb-3">
+                <label for="modalProfesorSelect" class="form-label">Seleccionar Profesor:</label>
+                <select class="form-control" id="modalProfesorSelect" name="profesor_id" required>
+                  <option value="">Seleccionar profesor...</option>
+                  {% for profesor in profesores %}
+                  <option value="{{ profesor.id }}">{{ profesor.primer_nombre }} {{ profesor.apellido_paterno }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              
+              <button type="submit" class="btn btn-success w-100">
+                <i class="fas fa-plus me-1"></i>Agregar Profesor
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para gestionar cursos -->
+<div class="modal fade" id="modalGestionarCursos" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header bg-info text-white">
+        <h5 class="modal-title">
+          <i class="fas fa-school me-2"></i>Gestionar Cursos
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row">
+          <!-- Cursos actuales -->
+          <div class="col-md-6">
+            <h6 class="fw-bold mb-3">Cursos Asignados:</h6>
+            <div id="cursosAsignados">
+              <!-- Se llena dinámicamente con JavaScript -->
+            </div>
+          </div>
+          
+          <!-- Agregar nuevo curso -->
+          <div class="col-md-6">
+            <h6 class="fw-bold mb-3">Asignar a Curso:</h6>
+            <form method="post" id="formAgregarCurso">
+              {% csrf_token %}
+              <input type="hidden" name="asignar_curso" value="1">
+              <input type="hidden" name="asignatura_id" id="modalCursoAsignaturaId">
+              
+              <div class="mb-3">
+                <label class="form-label">Asignatura:</label>
+                <p class="fw-bold" id="modalCursoAsignaturaNombre"></p>
+              </div>
+              
+              <div class="mb-3">
+                <label for="modalCursoSelect" class="form-label">Seleccionar Curso:</label>
+                <select class="form-control" id="modalCursoSelect" name="curso_id" required>
+                  <option value="">Seleccionar curso...</option>
+                  {% for curso in cursos_disponibles %}
+                  <option value="{{ curso.id }}">{{ curso.get_nivel_display }}{{ curso.paralelo }} ({{ curso.anio }})</option>
+                  {% endfor %}
+                </select>
+              </div>
+              
+              <button type="submit" class="btn btn-info w-100">
+                <i class="fas fa-plus me-1"></i>Asignar a Curso
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- JavaScript -->
+<script>
+function gestionarProfesores(asignaturaId, asignaturaNombre) {
+  document.getElementById('modalAsignaturaId').value = asignaturaId;
+  document.getElementById('modalAsignaturaNombre').textContent = asignaturaNombre;
+  
+  // Cargar profesores asignados
+  cargarProfesoresAsignados(asignaturaId);
+  
+  var modal = new bootstrap.Modal(document.getElementById('modalGestionarProfesores'));
+  modal.show();
+}
+
+function cargarProfesoresAsignados(asignaturaId) {
+  // Buscar la fila de la asignatura para obtener los profesores
+  const filaAsignatura = document.querySelector(`button[onclick*="gestionarProfesores(${asignaturaId}"]`).closest('tr');
+  const profesoresCell = filaAsignatura.querySelector('td:nth-child(3)');
+  const profesoresBadges = profesoresCell.querySelectorAll('.badge.bg-success');
+  
+  const container = document.getElementById('profesoresAsignados');
+  container.innerHTML = '';
+  
+  if (profesoresBadges.length === 0) {
+    container.innerHTML = '<p class="text-muted">No hay profesores asignados</p>';
+  } else {
+    profesoresBadges.forEach((badge, index) => {
+      const profesorNombre = badge.textContent.trim();
+      const profesorId = badge.getAttribute('data-professor-id');
+      const profesorDiv = document.createElement('div');
+      profesorDiv.className = 'mb-2 p-2 border rounded bg-light';
+      profesorDiv.innerHTML = `
+        <div class="d-flex justify-content-between align-items-center">
+          <span class="fw-medium">${profesorNombre}</span>
+          <button type="button" class="btn btn-sm btn-outline-danger" 
+                  onclick="removerProfesor(${asignaturaId}, ${profesorId}, '${profesorNombre}')">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+      `;
+      container.appendChild(profesorDiv);
+    });
+  }
+}
+
+function removerProfesor(asignaturaId, profesorId, profesorNombre) {
+  if (confirm(`¿Estás seguro de que deseas remover al profesor ${profesorNombre} de esta asignatura?`)) {
+    // Crear formulario temporal para enviar la petición
+    const form = document.createElement('form');
+    form.method = 'post';
+    form.style.display = 'none';
+    
+    // CSRF token
+    const csrfInput = document.createElement('input');
+    csrfInput.type = 'hidden';
+    csrfInput.name = 'csrfmiddlewaretoken';
+    csrfInput.value = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    form.appendChild(csrfInput);
+    
+    // Acción
+    const actionInput = document.createElement('input');
+    actionInput.type = 'hidden';
+    actionInput.name = 'remover_profesor';
+    actionInput.value = '1';
+    form.appendChild(actionInput);
+    
+    // Asignatura ID
+    const asignaturaInput = document.createElement('input');
+    asignaturaInput.type = 'hidden';
+    asignaturaInput.name = 'asignatura_id';
+    asignaturaInput.value = asignaturaId;
+    form.appendChild(asignaturaInput);
+    
+    // Profesor ID
+    const profesorInput = document.createElement('input');
+    profesorInput.type = 'hidden';
+    profesorInput.name = 'profesor_id';
+    profesorInput.value = profesorId;
+    form.appendChild(profesorInput);
+    
+    document.body.appendChild(form);
+    form.submit();
+  }
+}
+
+function asignarProfesor(asignaturaId, asignaturaNombre, profesorId) {
+  // Redirigir a la nueva función
+  gestionarProfesores(asignaturaId, asignaturaNombre);
+}
+
+function confirmarEliminacion(nombreAsignatura, asignaturaId) {
+  if (confirm(`¿Estás seguro de que deseas eliminar la asignatura "${nombreAsignatura}"?\n\nEsta acción no se puede deshacer y eliminará:\n- Todos los horarios asociados\n- Todas las asignaciones a cursos\n\n¿Continuar?`)) {
+    window.location.href = `/asignaturas/eliminar/${asignaturaId}/`;
+  }
+}
+
+function gestionarCursos(asignaturaId, asignaturaNombre) {
+  document.getElementById('modalCursoAsignaturaId').value = asignaturaId;
+  document.getElementById('modalCursoAsignaturaNombre').textContent = asignaturaNombre;
+  
+  // Cargar cursos asignados
+  cargarCursosAsignados(asignaturaId);
+  
+  var modal = new bootstrap.Modal(document.getElementById('modalGestionarCursos'));
+  modal.show();
+}
+
+function cargarCursosAsignados(asignaturaId) {
+  // Buscar la fila de la asignatura para obtener los cursos
+  const filaAsignatura = document.querySelector(`button[onclick*="gestionarCursos(${asignaturaId}"]`).closest('tr');
+  const cursosCell = filaAsignatura.querySelector('td:nth-child(4)'); // Columna de cursos
+  const cursosBadges = cursosCell.querySelectorAll('.badge.bg-info');
+  
+  const container = document.getElementById('cursosAsignados');
+  container.innerHTML = '';
+  
+  if (cursosBadges.length === 0) {
+    container.innerHTML = '<p class="text-muted">No hay cursos asignados</p>';
+  } else {
+    cursosBadges.forEach((badge, index) => {
+      const cursoNombre = badge.textContent.trim();
+      const cursoTitle = badge.getAttribute('title') || cursoNombre;
+      const cursoDiv = document.createElement('div');
+      cursoDiv.className = 'mb-2 p-2 border rounded bg-light';
+      cursoDiv.innerHTML = `
+        <div class="d-flex justify-content-between align-items-center">
+          <span class="fw-medium">${cursoTitle}</span>
+          <button type="button" class="btn btn-sm btn-outline-danger" 
+                  onclick="removerCurso(${asignaturaId}, '${cursoNombre}', '${cursoTitle}')">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+      `;
+      container.appendChild(cursoDiv);
+    });
+  }
+}
+
+function removerCurso(asignaturaId, cursoNombre, cursoTitle) {
+  if (confirm(`¿Estás seguro de que deseas desasignar esta asignatura del curso ${cursoTitle}?`)) {
+    // Crear formulario temporal para enviar la petición
+    const form = document.createElement('form');
+    form.method = 'post';
+    form.style.display = 'none';
+    
+    // CSRF token
+    const csrfInput = document.createElement('input');
+    csrfInput.type = 'hidden';
+    csrfInput.name = 'csrfmiddlewaretoken';
+    csrfInput.value = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    form.appendChild(csrfInput);
+    
+    // Acción
+    const actionInput = document.createElement('input');
+    actionInput.type = 'hidden';
+    actionInput.name = 'remover_curso';
+    actionInput.value = '1';
+    form.appendChild(actionInput);
+    
+    // Asignatura ID
+    const asignaturaInput = document.createElement('input');
+    asignaturaInput.type = 'hidden';
+    asignaturaInput.name = 'asignatura_id';
+    asignaturaInput.value = asignaturaId;
+    form.appendChild(asignaturaInput);
+    
+    // Curso nombre (para identificarlo)
+    const cursoInput = document.createElement('input');
+    cursoInput.type = 'hidden';
+    cursoInput.name = 'curso_nombre';
+    cursoInput.value = cursoNombre;
+    form.appendChild(cursoInput);
+    
+    document.body.appendChild(form);
+    form.submit();
+  }
+}
+
+// Bootstrap 5 compatibility
+if (typeof bootstrap === 'undefined') {
+  // Fallback para versiones anteriores de Bootstrap
+  window.bootstrap = {
+    Modal: function(element) {
+      return {
+        show: function() {
+          $(element).modal('show');
+        }
+      };
+    }
+  };
+}
+</script>
+
+<!-- Estilos mejorados para mejor legibilidad -->
+<style>
+.table-hover tbody tr:hover {
+  background-color: #f8f9fa;
+}
+
+.btn-group-sm > .btn {
+  border-radius: 4px;
+  margin: 0 2px;
+  font-size: 0.875rem;
+}
+
+.card {
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+}
+
+.border {
+  border: 1px solid #e9ecef !important;
+}
+
+.fw-medium {
+  font-weight: 500;
+}
+
+.text-dark {
+  color: #212529 !important;
+}
+
+.badge {
+  font-size: 0.8em;
+  padding: 0.5em 0.8em;
+  border-radius: 6px;
+}
+
+.badge.bg-success {
+  background-color: #28a745 !important;
+  color: white !important;
+}
+
+.badge.bg-warning {
+  background-color: #ffc107 !important;
+  color: #212529 !important;
+}
+
+.table th {
+  border-bottom: 2px solid #dee2e6;
+  background-color: #f8f9fa;
+  font-weight: 600;
+  color: #495057;
+}
+
+.table td {
+  border-bottom: 1px solid #dee2e6;
+  vertical-align: middle;
+  padding: 1rem 0.75rem;
+}
+
+.btn-outline-primary:hover {
+  background-color: #007bff;
+  border-color: #007bff;
+  color: white;
+}
+
+.btn-outline-success:hover {
+  background-color: #28a745;
+  border-color: #28a745;
+  color: white;
+}
+
+.btn-outline-danger:hover {
+  background-color: #dc3545;
+  border-color: #dc3545;
+  color: white;
+}
+
+.card-header {
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #dee2e6;
+  font-weight: 600;
+}
+
+.form-control {
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+}
+
+.form-control:focus {
+  border-color: #80bdff;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+</style>
+{% endblock %}

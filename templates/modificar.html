@@ -1,0 +1,373 @@
+{% extends "index_master.html" %}
+{% block content %}
+<div class="right_col" role="main">
+  <div class="container-fluid">
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="bg-white p-4 rounded shadow-sm border">
+          <div class="title_left">
+            <h1 class="h3 text-dark">
+              <i class="fa fa-edit text-warning me-2"></i>Modificar Usuario
+            </h1>
+            <p class="text-muted mb-0">Busca y edita la información de estudiantes y profesores</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="row justify-content-center">
+      <div class="col-xl-12">
+        <div class="card border shadow-sm">
+          <!-- Encabezado -->
+          <div class="card-header bg-light border-bottom">
+            <div class="row align-items-center">
+              <div class="col">
+                <h3 class="mb-0 text-dark">
+                  <i class="fa fa-search me-2"></i>Buscar y Modificar {{ tipo|title }}
+                </h3>
+              </div>
+              <div class="col-auto">
+                <!-- Botones de selección -->
+                <div class="btn-group" role="group">
+                  <a href="?tipo=estudiante" class="btn btn-{% if tipo == 'estudiante' %}primary{% else %}light{% endif %} btn-sm border">
+                    <i class="fa fa-graduation-cap"></i> Estudiante
+                  </a>
+                  <a href="?tipo=profesor" class="btn btn-{% if tipo == 'profesor' %}primary{% else %}light{% endif %} btn-sm border">
+                    <i class="fa fa-chalkboard-teacher"></i> Profesor
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card-body p-4">
+            <!-- Formulario de búsqueda mejorado -->
+            <div class="card mb-4 border bg-light">
+              <div class="card-header bg-white border-bottom">
+                <h5 class="mb-0 text-dark"><i class="fa fa-search me-2"></i>Buscar {{ tipo|title }}</h5>
+              </div>
+              <div class="card-body bg-white">
+                <form method="get" class="row g-3">
+                  <input type="hidden" name="tipo" value="{{ tipo }}">
+                  
+                  <!-- Búsqueda por texto -->
+                  <div class="col-lg-4">
+                    <label class="form-label text-dark fw-medium">
+                      <i class="fa fa-user text-muted me-1"></i>Buscar por nombre o apellido
+                    </label>
+                    <div class="input-group">
+                      <span class="input-group-text bg-white border">
+                        <i class="fa fa-search text-muted"></i>
+                      </span>
+                      <input type="text" name="q" class="form-control border" 
+                             placeholder="{% if tipo == 'estudiante' %}Nombre o apellido del estudiante...{% else %}Nombre o apellido del profesor...{% endif %}" 
+                             value="{{ query }}">
+                    </div>
+                  </div>
+                  
+                  <!-- Búsqueda por código -->
+                  <div class="col-lg-3">
+                    <label class="form-label text-dark fw-medium">
+                      <i class="fa fa-barcode text-muted me-1"></i>Buscar por código
+                    </label>
+                    <div class="input-group">
+                      <span class="input-group-text bg-white border">
+                        <i class="fa fa-{% if tipo == 'estudiante' %}graduation-cap{% else %}chalkboard-teacher{% endif %} text-muted"></i>
+                      </span>
+                      <input type="text" name="codigo" class="form-control border" 
+                             placeholder="Código del {{ tipo }}" 
+                             value="{{ request.GET.codigo }}">
+                    </div>
+                  </div>
+                  
+                  <!-- Búsqueda por ID -->
+                  <div class="col-lg-3">
+                    <label class="form-label text-dark fw-medium">
+                      <i class="fa fa-hashtag text-muted me-1"></i>Buscar por ID
+                    </label>
+                    <div class="input-group">
+                      <span class="input-group-text bg-white border">
+                        <i class="fa fa-hashtag text-muted"></i>
+                      </span>
+                      <input type="number" name="id" class="form-control border" 
+                             placeholder="ID del {{ tipo }}" 
+                             value="{{ seleccionado_id }}">
+                    </div>
+                  </div>
+                  
+                  <!-- Botón de búsqueda -->
+                  <div class="col-lg-2">
+                    <label class="form-label">&nbsp;</label>
+                    <button type="submit" class="btn btn-primary w-100 d-block">
+                      <i class="fa fa-search me-1"></i> Buscar
+                    </button>
+                  </div>
+                </form>
+                
+                <!-- Búsqueda rápida -->
+                <div class="row mt-3">
+                  <div class="col-12">
+                    <div class="d-flex gap-2 flex-wrap">
+                      <small class="text-muted me-2">Búsqueda rápida:</small>
+                      <a href="?tipo={{ tipo }}&q=" class="badge bg-secondary text-decoration-none">
+                        <i class="fa fa-list me-1"></i>Ver todos
+                      </a>
+                      <a href="?tipo={{ tipo }}&q=A" class="badge bg-info text-decoration-none">A</a>
+                      <a href="?tipo={{ tipo }}&q=B" class="badge bg-info text-decoration-none">B</a>
+                      <a href="?tipo={{ tipo }}&q=C" class="badge bg-info text-decoration-none">C</a>
+                      <a href="?tipo={{ tipo }}&q=D" class="badge bg-info text-decoration-none">D</a>
+                      <a href="?tipo={{ tipo }}&q=E" class="badge bg-info text-decoration-none">E</a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Resultados de búsqueda -->
+            {% if resultados %}
+              <div class="card mb-4 border-0">
+                <div class="card-header bg-gradient-info text-white">
+                  <div class="row align-items-center">
+                    <div class="col">
+                      <h5 class="mb-0">
+                        <i class="fa fa-list me-2"></i>Resultados de Búsqueda 
+                        <span class="badge bg-light text-dark ms-2">{{ resultados|length }}</span>
+                      </h5>
+                    </div>
+                    <div class="col-auto">
+                      <button class="btn btn-light btn-sm" onclick="exportarResultados()">
+                        <i class="fa fa-download"></i> Exportar
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div class="card-body p-0">
+                  <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                      <thead class="table-dark">
+                        <tr>
+                          <th style="width: 8%;">ID</th>
+                          <th style="width: 15%;">Código</th>
+                          <th style="width: 30%;">Nombre Completo</th>
+                          <th style="width: 15%;">Documento</th>
+                          <th style="width: 17%;">Email</th>
+                          {% if tipo == 'profesor' %}
+                            <th style="width: 15%;">Especialidad</th>
+                          {% else %}
+                            <th style="width: 15%;">F. Ingreso</th>
+                          {% endif %}
+                          <th style="width: 10%;" class="text-center">Acción</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {% for obj in resultados %}
+                          <tr {% if obj.id|stringformat:"s" == seleccionado_id %}class="table-warning"{% endif %}>
+                            <td>
+                              <span class="badge bg-{% if tipo == 'estudiante' %}primary{% else %}success{% endif %} rounded-pill">
+                                {{ obj.id }}
+                              </span>
+                            </td>
+                            <td>
+                              <div class="d-flex align-items-center">
+                                <div class="avatar-sm bg-{% if tipo == 'estudiante' %}primary{% else %}success{% endif %} bg-gradient rounded-circle me-2 d-flex align-items-center justify-content-center">
+                                  <i class="fa fa-{% if tipo == 'estudiante' %}graduation-cap{% else %}chalkboard-teacher{% endif %} text-white"></i>
+                                </div>
+                                {% if tipo == 'estudiante' %}
+                                  <span class="fw-bold text-primary">{{ obj.codigo_estudiante }}</span>
+                                {% else %}
+                                  <span class="fw-bold text-success">{{ obj.codigo_profesor }}</span>
+                                {% endif %}
+                              </div>
+                            </td>
+                            <td>
+                              <div>
+                                <div class="fw-bold">{{ obj.primer_nombre }} {{ obj.segundo_nombre|default:"" }}</div>
+                                <div class="text-muted small">{{ obj.apellido_paterno }} {{ obj.apellido_materno|default:"" }}</div>
+                              </div>
+                            </td>
+                            <td>
+                              <div>
+                                <span class="badge bg-light text-dark">{{ obj.get_tipo_documento_display }}</span>
+                                <div class="small text-muted mt-1">{{ obj.numero_documento }}</div>
+                              </div>
+                            </td>
+                            <td>
+                              <a href="mailto:{{ obj.email }}" class="text-decoration-none">
+                                <i class="fa fa-envelope text-muted me-1"></i>
+                                <span class="small">{{ obj.email|truncatechars:25 }}</span>
+                              </a>
+                            </td>
+                            {% if tipo == 'profesor' %}
+                              <td>
+                                <span class="badge bg-info text-dark">{{ obj.especialidad|truncatechars:15 }}</span>
+                              </td>
+                            {% else %}
+                              <td>
+                                <span class="small text-muted">{{ obj.fecha_ingreso|date:"d/m/Y" }}</span>
+                              </td>
+                            {% endif %}
+                            <td class="text-center">
+                              <a href="?tipo={{ tipo }}&id={{ obj.id }}" 
+                                 class="btn btn-sm btn-warning">
+                                <i class="fa fa-edit"></i> Editar
+                              </a>
+                            </td>
+                          </tr>
+                        {% endfor %}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            {% else %}
+              <div class="alert alert-info text-center">
+                <i class="fa fa-info-circle fa-2x mb-2"></i>
+                <h5>No se encontraron resultados</h5>
+                <p class="mb-0">
+                  {% if query %}
+                    No hay {{ tipo }}s que coincidan con "{{ query }}".
+                  {% else %}
+                    Utiliza el formulario de búsqueda para encontrar {{ tipo }}s.
+                  {% endif %}
+                </p>
+                <br><small>Intenta con otros términos de búsqueda.</small>
+              </div>
+            {% endif %}
+
+            <!-- Formulario de modificación -->
+            {% if form %}
+              <div class="card">
+                <div class="card-header bg-success text-white">
+                  <h5 class="mb-0"><i class="fa fa-edit"></i> Modificar Datos del {{ tipo|title }}</h5>
+                </div>
+                <div class="card-body">
+                  {% if mensaje %}
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                      <i class="fa fa-check-circle"></i> {{ mensaje }}
+                      <button type="button" class="close" data-dismiss="alert">
+                        <span>&times;</span>
+                      </button>
+                    </div>
+                  {% endif %}
+
+                  <form method="post" novalidate id="modificar-form">
+                    {% csrf_token %}
+                    <div class="row">
+                      <!-- Columna izquierda -->
+                      <div class="col-md-6">
+                        {% for field in form %}
+                          {% if forloop.counter0 < 6 %}
+                            <div class="form-group mb-3">
+                              <label class="form-label font-weight-bold">
+                                {% if field.name == 'primer_nombre' %}<i class="fa fa-user"></i>
+                                {% elif field.name == 'segundo_nombre' %}<i class="fa fa-user"></i>
+                                {% elif field.name == 'apellido_paterno' %}<i class="fa fa-user"></i>
+                                {% elif field.name == 'apellido_materno' %}<i class="fa fa-user"></i>
+                                {% elif field.name == 'tipo_documento' %}<i class="fa fa-id-card"></i>
+                                {% elif field.name == 'numero_documento' %}<i class="fa fa-id-card-alt"></i>
+                                {% elif field.name == 'fecha_nacimiento' %}<i class="fa fa-calendar"></i>
+                                {% elif field.name == 'genero' %}<i class="fa fa-venus-mars"></i>
+                                {% elif field.name == 'username' %}<i class="fa fa-user-circle"></i>
+                                {% elif field.name == 'password' %}<i class="fa fa-lock"></i>
+                                {% else %}<i class="fa fa-info-circle"></i>{% endif %}
+                                {{ field.label }}
+                                {% if field.field.required %} <span class="text-danger">*</span>{% endif %}
+                              </label>
+                              {{ field }}
+                              {% if field.help_text %}
+                                <small class="form-text text-muted">{{ field.help_text }}</small>
+                              {% endif %}
+                              {% for error in field.errors %}
+                                <div class="text-danger small">
+                                  <i class="fa fa-exclamation-circle"></i> {{ error }}
+                                </div>
+                              {% endfor %}
+                            </div>
+                          {% endif %}
+                        {% endfor %}
+                      </div>
+
+                      <!-- Columna derecha -->
+                      <div class="col-md-6">
+                        {% for field in form %}
+                          {% if forloop.counter0 >= 6 %}
+                            <div class="form-group mb-3">
+                              <label class="form-label font-weight-bold">
+                                {% if field.name == 'direccion' %}<i class="fa fa-map-marker-alt"></i>
+                                {% elif field.name == 'telefono' %}<i class="fa fa-phone"></i>
+                                {% elif field.name == 'email' %}<i class="fa fa-envelope"></i>
+                                {% elif field.name == 'codigo_estudiante' %}<i class="fa fa-barcode"></i>
+                                {% elif field.name == 'codigo_profesor' %}<i class="fa fa-barcode"></i>
+                                {% elif field.name == 'especialidad' %}<i class="fa fa-graduation-cap"></i>
+                                {% else %}<i class="fa fa-info-circle"></i>{% endif %}
+                                {{ field.label }}
+                                {% if field.field.required %} <span class="text-danger">*</span>{% endif %}
+                              </label>
+                              {{ field }}
+                              {% if field.help_text %}
+                                <small class="form-text text-muted">{{ field.help_text }}</small>
+                              {% endif %}
+                              {% for error in field.errors %}
+                                <div class="text-danger small">
+                                  <i class="fa fa-exclamation-circle"></i> {{ error }}
+                                </div>
+                              {% endfor %}
+                            </div>
+                          {% endif %}
+                        {% endfor %}
+                      </div>
+                    </div>
+
+                    <!-- Botones de acción -->
+                    <div class="row mt-4">
+                      <div class="col-md-12 text-center">
+                        <button type="submit" class="btn btn-success btn-lg">
+                          <i class="fa fa-save"></i> Guardar Cambios
+                        </button>
+                        <a href="{% url 'listar_estudiantes' %}" class="btn btn-secondary btn-lg ml-2">
+                          <i class="fa fa-times"></i> Cancelar
+                        </a>
+                      </div>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Validación del formulario
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('modificar-form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            let hasError = false;
+            
+            // Validar campos requeridos
+            form.querySelectorAll('input[required], select[required]').forEach(function(field) {
+                if (!field.value.trim()) {
+                    field.classList.add('is-invalid');
+                    hasError = true;
+                } else {
+                    field.classList.remove('is-invalid');
+                }
+            });
+            
+            if (hasError) {
+                e.preventDefault();
+                alert('Por favor complete todos los campos obligatorios marcados con *');
+            }
+        });
+    }
+});
+
+// Función para exportar resultados
+function exportarResultados() {
+    alert('Función de exportación en desarrollo');
+}
+</script>
+{% endblock %}

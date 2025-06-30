@@ -1,0 +1,701 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <!-- Meta, title, CSS, favicons, etc. -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="icon" href="images/favicon.ico" type="image/ico" />
+
+    <title>SMA</title>
+
+    <!-- Bootstrap -->
+    <link href="{% static '/FrWork/admin_lte/vendors/bootstrap/dist/css/bootstrap.min.css' %}" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="{% static '/FrWork/admin_lte/vendors/font-awesome/css/font-awesome.min.css' %}" rel="stylesheet">
+    <!-- Font Awesome 6 (CDN para iconos más modernos) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- NProgress -->
+    <link href="{% static '/FrWork/admin_lte/vendors/nprogress/nprogress.css' %}" rel="stylesheet">
+    <!-- iCheck -->
+    <link href="{% static '/FrWork/admin_lte/vendors/iCheck/skins/flat/green.css' %}" rel="stylesheet">
+	
+    <!-- bootstrap-progressbar -->
+    <link href="{% static '/FrWork/admin_lte/vendors/bootstrap-progressbar/css/bootstrap-progressbar-3.3.4.min.css' %}" rel="stylesheet">
+    <!-- JQVMap -->
+    <link href="{% static '/FrWork/admin_lte/vendors/jqvmap/dist/jqvmap.min.css' %}" rel="stylesheet"/>
+    <!-- bootstrap-daterangepicker -->
+    <link href="{% static '/FrWork/admin_lte/vendors/bootstrap-daterangepicker/daterangepicker.css' %}" rel="stylesheet">
+
+    <!-- Custom Theme Style -->
+    <link href="{% static '/FrWork/admin_lte/build/css/custom.min.css' %}" rel="stylesheet">
+    
+    <!-- Custom Sidebar Styles -->
+    <style>
+      .left_col {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+        box-shadow: 4px 0 20px rgba(0,0,0,0.15);
+        position: relative;
+        overflow: hidden;
+      }
+      
+      .left_col::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(45deg, rgba(255,255,255,0.1) 0%, transparent 100%);
+        pointer-events: none;
+      }
+      
+      .site_title {
+        background: rgba(255,255,255,0.15) !important;
+        border-radius: 15px;
+        margin: 15px;
+        padding: 15px !important;
+        backdrop-filter: blur(15px);
+        border: 1px solid rgba(255,255,255,0.2);
+        box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+      }
+      
+      .site_title:hover {
+        background: rgba(255,255,255,0.2) !important;
+        transform: translateY(-2px);
+        box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+      }
+      
+      .site_title span {
+        color: #fff !important;
+        font-weight: 700;
+        font-size: 26px;
+        text-shadow: 2px 2px 8px rgba(0,0,0,0.3);
+        letter-spacing: 1px;
+      }
+      
+      .profile {
+        background: rgba(255,255,255,0.12);
+        border-radius: 20px;
+        margin: 15px;
+        padding: 20px;
+        backdrop-filter: blur(15px);
+        border: 1px solid rgba(255,255,255,0.15);
+        box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+      }
+      
+      .profile:hover {
+        background: rgba(255,255,255,0.18);
+        transform: translateY(-1px);
+        box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+      }
+      
+      .profile_pic {
+        position: relative;
+        margin-bottom: 15px;
+      }
+      
+      .profile_pic img {
+        border: 3px solid rgba(255,255,255,0.3);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        transition: all 0.3s ease;
+      }
+      
+      .profile_pic:hover img {
+        border-color: rgba(255,255,255,0.6);
+        transform: scale(1.05);
+      }
+      
+      .profile_info h2 {
+        color: #fff !important;
+        font-weight: 700;
+        margin-bottom: 8px;
+        font-size: 18px;
+        text-shadow: 1px 1px 4px rgba(0,0,0,0.3);
+      }
+      
+      .profile_info span {
+        color: rgba(255,255,255,0.9) !important;
+        font-size: 14px;
+        font-weight: 500;
+      }
+      
+      .profile_info p {
+        color: rgba(255,255,255,0.9) !important;
+        background: rgba(255,255,255,0.15);
+        padding: 6px 12px;
+        border-radius: 15px;
+        display: inline-block;
+        font-size: 12px;
+        margin-top: 8px;
+        font-weight: 600;
+        border: 1px solid rgba(255,255,255,0.1);
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      }
+      
+      .main_menu_side h3 {
+        color: rgba(255,255,255,0.95) !important;
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        margin: 25px 15px 15px 15px;
+        padding: 10px 0;
+        border-bottom: 2px solid rgba(255,255,255,0.25);
+        position: relative;
+      }
+      
+      .main_menu_side h3::after {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        width: 40px;
+        height: 2px;
+        background: #fff;
+        border-radius: 1px;
+      }
+      
+      .main_menu_side .nav > li > a {
+        color: rgba(255,255,255,0.9) !important;
+        background: transparent !important;
+        border-radius: 12px;
+        margin: 4px 12px;
+        padding: 14px 18px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border-left: 4px solid transparent;
+        font-weight: 500;
+        position: relative;
+        overflow: hidden;
+      }
+      
+      .main_menu_side .nav > li > a::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(255,255,255,0.1);
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+      }
+      
+      .main_menu_side .nav > li > a:hover::before {
+        transform: translateX(0);
+      }
+      
+      .main_menu_side .nav > li > a:hover {
+        background: rgba(255,255,255,0.2) !important;
+        color: #fff !important;
+        border-left: 4px solid #fff;
+        transform: translateX(6px);
+        box-shadow: 0 6px 25px rgba(0,0,0,0.15);
+      }
+      
+      .main_menu_side .nav > li > a i {
+        font-size: 17px;
+        margin-right: 12px;
+        width: 22px;
+        text-align: center;
+        position: relative;
+        z-index: 1;
+      }
+      
+      .sidebar-footer {
+        background: rgba(255,255,255,0.12) !important;
+        border-radius: 15px;
+        margin: 15px;
+        padding: 15px;
+        backdrop-filter: blur(15px);
+        border: 1px solid rgba(255,255,255,0.15);
+        box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+      }
+      
+      .sidebar-footer a {
+        color: rgba(255,255,255,0.8) !important;
+        background: rgba(255,255,255,0.15);
+        border-radius: 50%;
+        width: 45px;
+        height: 45px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin: 3px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 1px solid rgba(255,255,255,0.1);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      }
+      
+      .sidebar-footer a:hover {
+        background: rgba(255,255,255,0.25) !important;
+        color: #fff !important;
+        transform: scale(1.15) translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+      }
+      
+      /* Animaciones adicionales */
+      @keyframes slideInLeft {
+        0% {
+          transform: translateX(-20px);
+          opacity: 0;
+        }
+        100% {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+      
+      .main_menu_side .nav > li {
+        animation: slideInLeft 0.5s ease;
+        animation-delay: calc(var(--delay) * 0.1s);
+        animation-fill-mode: both;
+      }
+      
+      /* Estados activos */
+      .main_menu_side .nav > li.active > a {
+        background: rgba(255,255,255,0.25) !important;
+        color: #fff !important;
+        border-left: 4px solid #fff;
+        box-shadow: 0 6px 25px rgba(0,0,0,0.2);
+      }
+    </style>
+  </head>
+
+  <body class="nav-md">
+    <div class="container body">
+      <div class="main_container">
+        <div class="col-md-3 left_col 
+        {% if user.is_authenticated and user.perfil.tipo_usuario == 'estudiante' %}menu-alumno
+        {% elif user.is_authenticated and user.perfil.tipo_usuario == 'profesor' %}menu-profesor  
+        {% else %}menu-director{% endif %}">
+          <div class="left_col scroll-view">
+            <div class="navbar nav_title" style="border: 0;">
+              <a href="{% url 'inicio' %}" class="site_title">
+                <i class="fas fa-graduation-cap"></i> 
+                <span>SMA</span>
+              </a>
+            </div>
+
+            <div class="clearfix"></div>
+
+            <!-- Perfil del usuario -->
+            <div class="profile clearfix">
+              <div class="profile_pic">
+                {% if user.is_authenticated %}
+                <img src="{% static '/FrWork/admin_lte/production/images/img.jpg' %}" alt="..." class="img-circle profile_img">
+                {% endif %}
+              </div>
+              <div class="profile_info">
+                {% if user.is_authenticated %}
+                <span>Bienvenido,</span>
+                <h2>{{ user.first_name|default:user.username }}</h2>
+                {% if user.perfil %}
+                <p>{{ user.perfil.get_tipo_usuario_display }}</p>
+                {% endif %}
+                {% else %}
+                <span>Usuario no autenticado</span>
+                {% endif %}
+              </div>
+            </div>
+
+            <br />
+
+            <!-- sidebar menu -->
+            <div id="sidebar-menu" class="main_menu_side hidden-print main_menu">
+              {% if user.is_authenticated and user.perfil.tipo_usuario == 'estudiante' %}
+                <!-- MENÚ PARA ESTUDIANTES -->
+                <div class="menu_section">
+                  <h3><i class="fas fa-tachometer-alt"></i> PANEL PRINCIPAL</h3>
+                  <ul class="nav side-menu">
+                    <li style="--delay: 1">
+                      <a href="{% url 'inicio' %}"><i class="fas fa-home"></i> Panel de Inicio</a>
+                    </li>
+                  </ul>
+                </div>
+                <div class="menu_section">
+                  <h3><i class="fas fa-calendar-alt"></i> CALENDARIO ACADÉMICO</h3>
+                  <ul class="nav side-menu">
+                    <li style="--delay: 2">
+                      <a href="{% url 'calendario' %}"><i class="fas fa-calendar-check"></i> Ver Calendario</a>
+                    </li>
+                  </ul>
+                </div>
+                <div class="menu_section">
+                  <h3><i class="fas fa-book-open"></i> MIS ASIGNATURAS</h3>
+                  <ul class="nav side-menu">
+                    <li style="--delay: 3">
+                      <a href="{% url 'listar_asignaturas' %}"><i class="fas fa-book-reader"></i> Mis Materias</a>
+                    </li>
+                  </ul>
+                </div>
+                <div class="menu_section">
+                  <h3><i class="fas fa-clock"></i> HORARIOS</h3>
+                  <ul class="nav side-menu">
+                    <li style="--delay: 4">
+                      <a href="{% url 'mis_horarios' %}"><i class="fas fa-calendar-week"></i> Mi Horario de Clases</a>
+                    </li>
+                  </ul>
+                </div>
+                <div class="menu_section">
+                  <h3><i class="fas fa-chart-line"></i> MIS NOTAS</h3>
+                  <ul class="nav side-menu">
+                    <li style="--delay: 5">
+                      <a href="{% url 'ver_notas_curso' %}"><i class="fas fa-star"></i> Ver mis Calificaciones</a>
+                    </li>
+                  </ul>
+                </div>
+                <div class="menu_section">
+                  <h3><i class="fas fa-user-check"></i> MI ASISTENCIA</h3>
+                  <ul class="nav side-menu">
+                    <li style="--delay: 6">
+                      <a href="{% url 'ver_asistencia_alumno' %}"><i class="fas fa-clipboard-list"></i> Ver mi Asistencia</a>
+                    </li>
+                  </ul>
+                </div>
+                <div class="menu_section">
+                  <h3><i class="fas fa-users"></i> MI CURSO</h3>
+                  <ul class="nav side-menu">
+                    <li style="--delay: 7">
+                      <a href="{% url 'mi_curso' %}"><i class="fas fa-user-friends"></i> Compañeros de Clase</a>
+                    </li>
+                  </ul>
+                </div>
+                <div class="menu_section">
+                  <h3><i class="fas fa-book"></i> MIS ANOTACIONES</h3>
+                  <ul class="nav side-menu">
+                    <li style="--delay: 8">
+                      <a href="{% url 'libro_anotaciones' %}"><i class="fas fa-book-open"></i> Ver Mis Anotaciones</a>
+                    </li>
+                  </ul>
+                </div>
+              {% elif user.is_authenticated and user.perfil.tipo_usuario == 'profesor' %}
+                <!-- MENÚ PARA PROFESORES -->
+                <div class="menu_section">
+                  <h3><i class="fas fa-tachometer-alt"></i> PANEL DE CONTROL</h3>
+                  <ul class="nav side-menu">
+                    <li style="--delay: 1">
+                      <a href="{% url 'inicio' %}"><i class="fas fa-dashboard"></i> Panel Principal</a>
+                    </li>
+                  </ul>
+                </div>
+                <div class="menu_section">
+                  <h3><i class="fas fa-calendar-alt"></i> GESTIÓN DE CALENDARIO</h3>
+                  <ul class="nav side-menu">
+                    <li style="--delay: 2">
+                      <a href="{% url 'calendario' %}"><i class="fas fa-calendar-check"></i> Ver Calendario</a>
+                    </li>
+                    <li style="--delay: 3">
+                      <a href="{% url 'agregar_evento' %}"><i class="fas fa-calendar-plus"></i> Agregar Evento</a>
+                    </li>
+                  </ul>
+                </div>
+                <div class="menu_section">
+                  <h3><i class="fas fa-chalkboard"></i> MIS CURSOS</h3>
+                  <ul class="nav side-menu">
+                    <li style="--delay: 3">
+                      <a href="{% url 'listar_cursos' %}"><i class="fas fa-chalkboard-teacher"></i> Cursos Asignados</a>
+                    </li>
+                  </ul>
+                </div>
+                <div class="menu_section">
+                  <h3><i class="fas fa-book-open"></i> ASIGNATURAS</h3>
+                  <ul class="nav side-menu">
+                    <li style="--delay: 4">
+                      <a href="{% url 'listar_asignaturas' %}"><i class="fas fa-books"></i> Mis Materias</a>
+                    </li>
+                  </ul>
+                </div>
+                <div class="menu_section">
+                  <h3><i class="fas fa-calendar-week"></i> HORARIOS</h3>
+                  <ul class="nav side-menu">
+                    <li style="--delay: 5">
+                      <a href="{% url 'mis_horarios' %}"><i class="fas fa-clock"></i> Mi Horario</a>
+                    </li>
+                  </ul>
+                </div>
+                <div class="menu_section">
+                  <h3><i class="fas fa-star"></i> CALIFICACIONES</h3>
+                  <ul class="nav side-menu">
+                    <li style="--delay: 6">
+                      <a href="{% url 'ingresar_notas' %}"><i class="fas fa-edit"></i> Ingresar Notas</a>
+                    </li>
+                    <li style="--delay: 7">
+                      <a href="{% url 'ver_notas_curso' %}"><i class="fas fa-chart-bar"></i> Ver Calificaciones</a>
+                    </li>
+                  </ul>
+                </div>
+                <div class="menu_section">
+                  <h3><i class="fas fa-user-check"></i> ASISTENCIA</h3>
+                  <ul class="nav side-menu">
+                    <li style="--delay: 8">
+                      <a href="{% url 'registrar_asistencia_alumno' %}"><i class="fas fa-clipboard-check"></i> Tomar Asistencia</a>
+                    </li>
+                    <li style="--delay: 9">
+                      <a href="{% url 'ver_asistencia_alumno' %}"><i class="fas fa-chart-line"></i> Reportes de Asistencia</a>
+                    </li>
+                  </ul>
+                </div>
+                <div class="menu_section">
+                  <h3><i class="fas fa-book"></i> LIBRO DE ANOTACIONES</h3>
+                  <ul class="nav side-menu">
+                    <li style="--delay: 10">
+                      <a href="{% url 'libro_anotaciones' %}"><i class="fas fa-book-open"></i> Ver Anotaciones</a>
+                    </li>
+                    <li style="--delay: 11">
+                      <a href="{% url 'crear_anotacion' %}"><i class="fas fa-pen"></i> Nueva Anotación</a>
+                    </li>
+                  </ul>
+                </div>
+              {% else %}
+                <!-- MENÚ PARA ADMINISTRADORES/DIRECTORES -->
+                <div class="menu_section">
+                  <h3><i class="fas fa-tachometer-alt"></i> ADMINISTRACIÓN</h3>
+                  <ul class="nav side-menu">
+                    <li style="--delay: 1">
+                      <a href="{% url 'inicio' %}"><i class="fas fa-home"></i> Panel Administrativo</a>
+                    </li>
+                  </ul>
+                </div>
+                <div class="menu_section">
+                  <h3><i class="fas fa-users-cog"></i> GESTIÓN DE USUARIOS</h3>
+                  <ul class="nav side-menu">
+                    <li style="--delay: 2">
+                      <a href="{% url 'agregar' %}"><i class="fas fa-user-plus"></i> Agregar Usuario</a>
+                    </li>
+                    <li style="--delay: 3">
+                      <a href="{% url 'modificar' %}"><i class="fas fa-user-edit"></i> Modificar Usuario</a>
+                    </li>
+                    <li style="--delay: 4">
+                      <a href="{% url 'eliminar' %}"><i class="fas fa-user-times"></i> Eliminar Usuario</a>
+                    </li>
+                    <li style="--delay: 5">
+                      <a href="{% url 'listar_estudiantes' %}"><i class="fas fa-list-alt"></i> Listar Usuarios</a>
+                    </li>
+                    <li style="--delay: 6">
+                      <a href="{% url 'listar_profesores' %}"><i class="fas fa-chalkboard-teacher"></i> Gestionar Profesores</a>
+                    </li>
+                  </ul>
+                </div>
+                <div class="menu_section">
+                  <h3><i class="fas fa-calendar-plus"></i> GESTIÓN DE EVENTOS</h3>
+                  <ul class="nav side-menu">
+                    <li style="--delay: 7">
+                      <a href="{% url 'calendario' %}"><i class="fas fa-calendar-check"></i> Ver Calendario</a>
+                    </li>
+                    <li style="--delay: 8">
+                      <a href="{% url 'agregar_evento' %}"><i class="fas fa-calendar-plus"></i> Agregar Evento</a>
+                    </li>
+                  </ul>
+                </div>
+                 <div class="menu_section">
+                  <h3><i class="fas fa-graduation-cap"></i> GESTIÓN ACADÉMICA</h3>
+                  <ul class="nav side-menu">
+                    <li style="--delay: 8">
+                      <a href="{% url 'listar_cursos' %}"><i class="fas fa-chalkboard"></i> Gestionar Cursos</a>
+                    </li>
+                    <li style="--delay: 9">
+                      <a href="{% url 'listar_asignaturas' %}"><i class="fas fa-book-open"></i> Gestionar Asignaturas</a>
+                    </li>
+                    <li style="--delay: 10">
+                      <a href="{% url 'agregar_curso' %}"><i class="fas fa-plus-square"></i> Nuevo Curso</a>
+                    </li>
+                     <li style="--delay: 11">
+                      <a href="{% url 'agregar_asignatura_completa' %}"><i class="fas fa-plus-circle"></i> Nueva Asignatura</a>
+                    </li>
+                    <li style="--delay: 12">
+                      <a href="{% url 'seleccionar_curso_horarios' %}"><i class="fas fa-clock"></i> Gestionar Horarios</a>
+                    </li>
+                  </ul>
+                </div>
+                <div class="menu_section">
+                  <h3><i class="fas fa-chart-bar"></i> CALIFICACIONES</h3>
+                  <ul class="nav side-menu">
+                    <li style="--delay: 13">
+                      <a href="{% url 'ingresar_notas' %}"><i class="fas fa-pencil-alt"></i> Gestionar Notas</a>
+                    </li>
+                    <li style="--delay: 14">
+                      <a href="{% url 'ver_notas_curso' %}"><i class="fas fa-chart-pie"></i> Reportes de Notas</a>
+                    </li>
+                  </ul>
+                </div>
+                <div class="menu_section">
+                  <h3><i class="fas fa-clipboard-check"></i> CONTROL DE ASISTENCIA</h3>
+                  <ul class="nav side-menu">
+                    <li style="--delay: 15">
+                      <a href="{% url 'registrar_asistencia_alumno' %}"><i class="fas fa-user-check"></i> Asistencia Estudiantes</a>
+                    </li>
+                    <li style="--delay: 16">
+                      <a href="{% url 'ver_asistencia_alumno' %}"><i class="fas fa-chart-area"></i> Reportes Estudiantes</a>
+                    </li>
+                    <li style="--delay: 17">
+                      <a href="{% url 'registrar_asistencia_profesor' %}"><i class="fas fa-chalkboard-teacher"></i> Asistencia Profesores</a>
+                    </li>
+                    <li style="--delay: 18">
+                      <a href="{% url 'ver_asistencia_profesor' %}"><i class="fas fa-chart-column"></i> Reportes Profesores</a>
+                    </li>
+                  </ul>
+                </div>
+                <div class="menu_section">
+                  <h3><i class="fas fa-book"></i> LIBRO DE ANOTACIONES</h3>
+                  <ul class="nav side-menu">
+                    <li style="--delay: 19">
+                      <a href="{% url 'libro_anotaciones' %}"><i class="fas fa-book-open"></i> Ver Anotaciones</a>
+                    </li>
+                    <li style="--delay: 20">
+                      <a href="{% url 'crear_anotacion' %}"><i class="fas fa-pen"></i> Nueva Anotación</a>
+                    </li>
+                  </ul>
+                </div>
+              {% endif %}
+            </div>
+            <!-- /sidebar menu -->
+
+            <!-- /menu footer buttons -->
+            <div class="sidebar-footer hidden-small">
+              <a data-toggle="tooltip" data-placement="top" title="Cerrar Sesión" href="{% url 'logout' %}">
+                <span class="fas fa-sign-out-alt" aria-hidden="true"></span>
+              </a>
+            </div>
+            <!-- /menu footer buttons -->
+            
+            <script>
+            function toggleFullscreen() {
+              if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+              } else {
+                if (document.exitFullscreen) {
+                  document.exitFullscreen();
+                }
+              }
+            }
+            </script>
+          </div>
+        </div>
+
+        <!-- Top Navigation -->
+        <div class="top_nav">
+          <div class="nav_menu">
+            <nav>
+              <div class="nav toggle">
+                <a id="menu_toggle"><i class="fa fa-bars"></i></a>
+              </div>
+
+              <ul class="nav navbar-nav navbar-right">
+                <li class="">
+                  {% if user.is_authenticated %}
+                  <a href="#" class="user-profile dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                    <img src="{% static '/FrWork/admin_lte/production/images/img.jpg' %}" alt="">{{ user.first_name|default:user.username }}
+                    <span class=" fa fa-angle-down"></span>
+                  </a>
+                  <ul class="dropdown-menu dropdown-usermenu pull-right">
+                    <li><a href="#" onclick="event.preventDefault();"> Perfil</a></li>
+                    <li>
+                      <a href="#" onclick="event.preventDefault();">
+                        <span class="badge bg-red pull-right">50%</span>
+                        <span>Configuración</span>
+                      </a>
+                    </li>
+                    <li><a href="#" onclick="event.preventDefault();">Ayuda</a></li>
+                    <li><a href="{% url 'logout' %}"><i class="fa fa-sign-out pull-right"></i> Cerrar Sesión</a></li>
+                  </ul>
+                  {% endif %}
+                </li>
+
+                <li role="presentation" class="dropdown">
+                  <a href="#" class="dropdown-toggle info-number" data-toggle="dropdown" aria-expanded="false">
+                    <i class="fa fa-envelope-o"></i>
+                    <span class="badge bg-green">6</span>
+                  </a>
+                  <ul id="menu1" class="dropdown-menu list-unstyled msg_list" role="menu">
+                    <li>
+                      <a>
+                        <span class="image"><img src="{% static '/FrWork/admin_lte/production/images/img.jpg' %}" alt="Profile Image" /></span>
+                        <span>
+                          <span>John Smith</span>
+                          <span class="time">3 mins ago</span>
+                        </span>
+                        <span class="message">
+                          Film festivals used to be do-or-die moments for movie makers. They were where...
+                        </span>
+                      </a>
+                    </li>
+                    <li>
+                      <div class="text-center">
+                        <a>
+                          <strong>Ver Todos los Mensajes</strong>
+                          <i class="fa fa-angle-right"></i>
+                        </a>
+                      </div>
+                    </li>
+                  </ul>
+                </li>
+              </ul>
+            </nav>
+          </div>
+        </div>
+        <!-- /top navigation -->
+
+        <!-- page content -->
+        {% block content %}
+        {% endblock %}
+        <!-- /page content -->
+
+        <!-- footer content -->
+        <footer>
+          <div class="pull-right">
+            Sistema de Gestión Académica (SMA) - Desarrollado con Django
+          </div>
+          <div class="clearfix"></div>
+        </footer>
+        <!-- /footer content -->
+      </div>
+    </div>
+
+    <!-- jQuery -->
+    <script src="{% static '/FrWork/admin_lte/vendors/jquery/dist/jquery.min.js' %}"></script>
+    <!-- Bootstrap -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- FastClick -->
+    <script src="{% static '/FrWork/admin_lte/vendors/fastclick/lib/fastclick.js' %}"></script>
+    <!-- NProgress -->
+    <script src="{% static '/FrWork/admin_lte/vendors/nprogress/nprogress.js' %}"></script>
+    <!-- Chart.js -->
+    <script src="{% static '/FrWork/admin_lte/vendors/Chart.js/dist/Chart.min.js' %}"></script>
+    <!-- gauge.js -->
+    <script src="{% static '/FrWork/admin_lte/vendors/gauge.js/dist/gauge.min.js' %}"></script>
+    <!-- bootstrap-progressbar -->
+    <script src="{% static '/FrWork/admin_lte/vendors/bootstrap-progressbar/bootstrap-progressbar.min.js' %}"></script>
+    <!-- iCheck -->
+    <script src="{% static '/FrWork/admin_lte/vendors/iCheck/icheck.min.js' %}"></script>
+    <!-- Skycons -->
+    <script src="{% static '/FrWork/admin_lte/vendors/skycons/skycons.js' %}"></script>
+    <!-- Flot -->
+    <script src="{% static '/FrWork/admin_lte/vendors/Flot/jquery.flot.js' %}"></script>
+    <script src="{% static '/FrWork/admin_lte/vendors/Flot/jquery.flot.pie.js' %}"></script>
+    <script src="{% static '/FrWork/admin_lte/vendors/Flot/jquery.flot.time.js' %}"></script>
+    <script src="{% static '/FrWork/admin_lte/vendors/Flot/jquery.flot.stack.js' %}"></script>
+    <script src="{% static '/FrWork/admin_lte/vendors/Flot/jquery.flot.resize.js' %}"></script>
+    <!-- Flot plugins -->
+    <script src="{% static '/FrWork/admin_lte/vendors/flot.orderbars/js/jquery.flot.orderBars.js' %}"></script>
+    <script src="{% static '/FrWork/admin_lte/vendors/flot-spline/js/jquery.flot.spline.min.js' %}"></script>
+    <script src="{% static '/FrWork/admin_lte/vendors/flot.curvedlines/curvedLines.js' %}"></script>
+    <!-- DateJS -->
+    <script src="{% static '/FrWork/admin_lte/vendors/DateJS/build/date.js' %}"></script>
+    <!-- JQVMap -->
+    <script src="{% static '/FrWork/admin_lte/vendors/jqvmap/dist/jquery.vmap.js' %}"></script>
+    <script src="{% static '/FrWork/admin_lte/vendors/jqvmap/dist/maps/jquery.vmap.world.js' %}"></script>
+    <script src="{% static '/FrWork/admin_lte/vendors/jqvmap/examples/js/jquery.vmap.sampledata.js' %}"></script>
+    <!-- bootstrap-daterangepicker -->
+    <script src="{% static '/FrWork/admin_lte/vendors/moment/min/moment.min.js' %}"></script>
+    <script src="{% static '/FrWork/admin_lte/vendors/bootstrap-daterangepicker/daterangepicker.js' %}"></script>
+
+    <!-- Custom Theme Scripts -->
+    <script src="{% static '/FrWork/admin_lte/build/js/custom.min.js' %}"></script>
+	
+  </body>
+</html>

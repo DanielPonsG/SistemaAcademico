@@ -1,0 +1,107 @@
+{% extends "index_master.html" %}
+{% block content %}
+<div class="right_col" role="main">
+  <div class="container-fluid">
+    <h3><i class="fa fa-trash"></i> {{ titulo }}</h3>
+    
+    <div class="row justify-content-center">
+      <div class="col-md-8">
+        <div class="card border-danger">
+          <div class="card-header bg-danger text-white">
+            <h5><i class="fa fa-exclamation-triangle"></i> Confirmar Eliminación</h5>
+          </div>
+          <div class="card-body">
+            <div class="alert alert-warning">
+              <i class="fa fa-exclamation-triangle"></i>
+              <strong>¡Atención!</strong> Esta acción no se puede deshacer. La anotación se eliminará permanentemente.
+            </div>
+            
+            <!-- Información de la anotación a eliminar -->
+            <div class="card border-left" style="border-left: 4px solid {{ anotacion.color_tipo }};">
+              <div class="card-body">
+                <div class="row">
+                  <div class="col-md-8">
+                    <h6>
+                      <i class="fa {{ anotacion.icono_tipo }}" style="color: {{ anotacion.color_tipo }};"></i>
+                      {{ anotacion.titulo }}
+                    </h6>
+                    <p class="mb-2">{{ anotacion.descripcion }}</p>
+                    
+                    <div class="row text-muted small">
+                      <div class="col-md-6">
+                        <div><i class="fa fa-user"></i> <strong>Estudiante:</strong> {{ anotacion.estudiante.get_nombre_completo }}</div>
+                        <div><i class="fa fa-school"></i> <strong>Curso:</strong> {{ anotacion.curso }}</div>
+                        <div><i class="fa fa-calendar"></i> <strong>Fecha:</strong> {{ anotacion.fecha_creacion|date:"d/m/Y H:i" }}</div>
+                      </div>
+                      <div class="col-md-6">
+                        <div><i class="fa fa-user-tie"></i> <strong>Autor:</strong> {{ anotacion.profesor_autor.get_nombre_completo }}</div>
+                        <div><i class="fa fa-tag"></i> <strong>Categoría:</strong> {{ anotacion.get_categoria_display }}</div>
+                        {% if anotacion.asignatura %}
+                        <div><i class="fa fa-book"></i> <strong>Asignatura:</strong> {{ anotacion.asignatura.nombre }}</div>
+                        {% endif %}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div class="col-md-4 text-end">
+                    <span class="badge" style="background-color: {{ anotacion.color_tipo }}; font-size: 1em;">
+                      {% if anotacion.puntos > 0 %}+{% endif %}{{ anotacion.puntos }} pts
+                    </span>
+                    <div class="mt-2">
+                      <span class="badge bg-secondary">{{ anotacion.get_tipo_display }}</span>
+                      {% if anotacion.es_grave %}
+                      <br><span class="badge bg-warning mt-1">
+                        <i class="fa fa-exclamation-triangle"></i> Grave
+                      </span>
+                      {% endif %}
+                      {% if anotacion.requiere_atencion_apoderado %}
+                      <br><span class="badge bg-info mt-1">
+                        <i class="fa fa-phone"></i> Apoderado
+                      </span>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Formulario de confirmación -->
+            <form method="post" class="mt-4">
+              {% csrf_token %}
+              <div class="text-center">
+                <button type="submit" class="btn btn-danger btn-lg">
+                  <i class="fa fa-trash"></i> Sí, Eliminar Anotación
+                </button>
+                <a href="{% url 'libro_anotaciones' %}" class="btn btn-secondary btn-lg ms-3">
+                  <i class="fa fa-arrow-left"></i> Cancelar
+                </a>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+.border-left {
+    border-left-width: 4px !important;
+}
+
+.badge {
+    font-size: 0.75em;
+}
+
+.alert-warning {
+    background-color: #fff3cd;
+    border-color: #ffecb5;
+    color: #664d03;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,681 @@
+{% extends "index_master.html" %}
+{% load widget_tweaks %}
+
+{% block content %}
+<div class="right_col" role="main">
+  <div class="container-fluid">
+    <div class="row justify-content-center">
+      <div class="col-lg-7 col-md-9">
+        <div class="card border-0 shadow-sm p-4">
+          <div class="card-header bg-light border-0 mb-3 px-4 py-4 bg-gradient-header text-white" style="border-radius: 18px 18px 0 0; background: linear-gradient(90deg, #3a8dde 0%, #6a5af9 100%); box-shadow: 0 2px 8px rgba(58,141,222,0.08);">
+            <h4 class="mb-0 fw-bold d-flex align-items-center" style="font-size: 2rem;">
+              <i class="fas fa-user-plus me-3" style="font-size: 2.2rem; color: #fff;"></i>
+              <span style="color: #fff;">Agregar Usuario</span>
+            </h4>
+          </div>
+          <div class="card-body px-4 py-4">
+            <form id="tipoUsuarioForm" method="get" class="mb-4">
+              <div class="row align-items-center">
+                <div class="col-md-6">
+                  <label for="tipo" class="form-label fw-bold text-dark">Tipo de usuario:</label>
+                  <select name="tipo" id="tipo" class="form-select" onchange="this.form.submit()" style="border-radius: 8px;">
+                    <option value="estudiante" {% if tipo == 'estudiante' %}selected{% endif %}>Alumno</option>
+                    <option value="profesor" {% if tipo == 'profesor' %}selected{% endif %}>Profesor</option>
+                  </select>
+                </div>
+              </div>
+            </form>
+
+            <form id="registroForm" method="post" autocomplete="off">
+              {% csrf_token %}
+              {% if tipo == 'profesor' %}
+                <!-- Campos para profesor -->
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="{{ form.primer_nombre.id_for_label }}" class="form-label">
+                        <i class="fa fa-user"></i> {{ form.primer_nombre.label }} <span class="text-danger">*</span>
+                      </label>
+                      {{ form.primer_nombre|add_class:"form-control" }}
+                      {% if form.primer_nombre.errors %}
+                        <div class="text-danger">{{ form.primer_nombre.errors }}</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="{{ form.segundo_nombre.id_for_label }}" class="form-label">
+                        <i class="fa fa-user"></i> {{ form.segundo_nombre.label }}
+                      </label>
+                      {{ form.segundo_nombre|add_class:"form-control" }}
+                      {% if form.segundo_nombre.errors %}
+                        <div class="text-danger">{{ form.segundo_nombre.errors }}</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="{{ form.apellido_paterno.id_for_label }}" class="form-label">
+                        <i class="fa fa-user"></i> {{ form.apellido_paterno.label }} <span class="text-danger">*</span>
+                      </label>
+                      {{ form.apellido_paterno|add_class:"form-control" }}
+                      {% if form.apellido_paterno.errors %}
+                        <div class="text-danger">{{ form.apellido_paterno.errors }}</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="{{ form.apellido_materno.id_for_label }}" class="form-label">
+                        <i class="fa fa-user"></i> {{ form.apellido_materno.label }}
+                      </label>
+                      {{ form.apellido_materno|add_class:"form-control" }}
+                      {% if form.apellido_materno.errors %}
+                        <div class="text-danger">{{ form.apellido_materno.errors }}</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-md-4">
+                    <div class="mb-3">
+                      <label for="{{ form.tipo_documento.id_for_label }}" class="form-label">
+                        <i class="fa fa-id-card"></i> {{ form.tipo_documento.label }} <span class="text-danger">*</span>
+                      </label>
+                      {{ form.tipo_documento|add_class:"form-control" }}
+                      {% if form.tipo_documento.errors %}
+                        <div class="text-danger">{{ form.tipo_documento.errors }}</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                  <div class="col-md-8">
+                    <div class="mb-3">
+                      <label for="{{ form.numero_documento.id_for_label }}" class="form-label">
+                        <i class="fa fa-id-card-alt"></i> {{ form.numero_documento.label }} <span class="text-danger">*</span>
+                      </label>
+                      <div class="input-group">
+                        {{ form.numero_documento|add_class:"form-control" }}
+                        <div class="input-group-append">
+                          <span class="input-group-text">
+                            <i class="fa fa-check-circle text-success d-none" id="rut-valid"></i>
+                            <i class="fa fa-times-circle text-danger d-none" id="rut-invalid"></i>
+                          </span>
+                        </div>
+                      </div>
+                      <small class="form-text text-muted">Formato: 12345678-9</small>
+                      {% if form.numero_documento.errors %}
+                        <div class="text-danger">{{ form.numero_documento.errors }}</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="{{ form.fecha_nacimiento.id_for_label }}" class="form-label">
+                        <i class="fa fa-calendar"></i> {{ form.fecha_nacimiento.label }} <span class="text-danger">*</span>
+                      </label>
+                      {{ form.fecha_nacimiento|add_class:"form-control" }}
+                      <small class="form-text text-muted">
+                        Edad calculada: <span id="edad-calculada" class="fw-bold"></span>
+                      </small>
+                      {% if form.fecha_nacimiento.errors %}
+                        <div class="text-danger">{{ form.fecha_nacimiento.errors }}</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="{{ form.genero.id_for_label }}" class="form-label">
+                        <i class="fa fa-venus-mars"></i> {{ form.genero.label }} <span class="text-danger">*</span>
+                      </label>
+                      {{ form.genero|add_class:"form-control" }}
+                      {% if form.genero.errors %}
+                        <div class="text-danger">{{ form.genero.errors }}</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="{{ form.email.id_for_label }}" class="form-label">
+                        <i class="fa fa-envelope"></i> {{ form.email.label }} <span class="text-danger">*</span>
+                      </label>
+                      {{ form.email|add_class:"form-control" }}
+                      {% if form.email.errors %}
+                        <div class="text-danger">{{ form.email.errors }}</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="{{ form.telefono.id_for_label }}" class="form-label">
+                        <i class="fa fa-phone"></i> {{ form.telefono.label }}
+                      </label>
+                      {{ form.telefono|add_class:"form-control" }}
+                      {% if form.telefono.errors %}
+                        <div class="text-danger">{{ form.telefono.errors }}</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-md-12">
+                    <div class="mb-3">
+                      <label for="{{ form.direccion.id_for_label }}" class="form-label">
+                        <i class="fa fa-map-marker-alt"></i> {{ form.direccion.label }}
+                      </label>
+                      {{ form.direccion|add_class:"form-control" }}
+                      {% if form.direccion.errors %}
+                        <div class="text-danger">{{ form.direccion.errors }}</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="{{ form.codigo_profesor.id_for_label }}" class="form-label">
+                        <i class="fa fa-id-badge"></i> {{ form.codigo_profesor.label }} <span class="text-danger">*</span>
+                      </label>
+                      {{ form.codigo_profesor|add_class:"form-control" }}
+                      {% if form.codigo_profesor.errors %}
+                        <div class="text-danger">{{ form.codigo_profesor.errors }}</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="{{ form.especialidad.id_for_label }}" class="form-label">
+                        <i class="fa fa-graduation-cap"></i> {{ form.especialidad.label }} <span class="text-danger">*</span>
+                      </label>
+                      {{ form.especialidad|add_class:"form-control" }}
+                      {% if form.especialidad.errors %}
+                        <div class="text-danger">{{ form.especialidad.errors }}</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="{{ form.username.id_for_label }}" class="form-label">
+                        <i class="fa fa-user-circle"></i> {{ form.username.label }} <span class="text-danger">*</span>
+                      </label>
+                      {{ form.username|add_class:"form-control" }}
+                      {% if form.username.errors %}
+                        <div class="text-danger">{{ form.username.errors }}</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="{{ form.password.id_for_label }}" class="form-label">
+                        <i class="fa fa-lock"></i> {{ form.password.label }} <span class="text-danger">*</span>
+                      </label>
+                      {{ form.password|add_class:"form-control" }}
+                      {% if form.password.errors %}
+                        <div class="text-danger">{{ form.password.errors }}</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+              {% else %}
+                <!-- Campos para alumno -->
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="{{ form.primer_nombre.id_for_label }}" class="form-label">
+                        <i class="fa fa-user"></i> {{ form.primer_nombre.label }} <span class="text-danger">*</span>
+                      </label>
+                      {{ form.primer_nombre|add_class:"form-control" }}
+                      {% if form.primer_nombre.errors %}
+                        <div class="text-danger">{{ form.primer_nombre.errors }}</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="{{ form.segundo_nombre.id_for_label }}" class="form-label">
+                        <i class="fa fa-user"></i> {{ form.segundo_nombre.label }}
+                      </label>
+                      {{ form.segundo_nombre|add_class:"form-control" }}
+                      {% if form.segundo_nombre.errors %}
+                        <div class="text-danger">{{ form.segundo_nombre.errors }}</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="{{ form.apellido_paterno.id_for_label }}" class="form-label">
+                        <i class="fa fa-user"></i> {{ form.apellido_paterno.label }} <span class="text-danger">*</span>
+                      </label>
+                      {{ form.apellido_paterno|add_class:"form-control" }}
+                      {% if form.apellido_paterno.errors %}
+                        <div class="text-danger">{{ form.apellido_paterno.errors }}</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="{{ form.apellido_materno.id_for_label }}" class="form-label">
+                        <i class="fa fa-user"></i> {{ form.apellido_materno.label }}
+                      </label>
+                      {{ form.apellido_materno|add_class:"form-control" }}
+                      {% if form.apellido_materno.errors %}
+                        <div class="text-danger">{{ form.apellido_materno.errors }}</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-md-4">
+                    <div class="mb-3">
+                      <label for="{{ form.tipo_documento.id_for_label }}" class="form-label">
+                        <i class="fa fa-id-card"></i> {{ form.tipo_documento.label }} <span class="text-danger">*</span>
+                      </label>
+                      {{ form.tipo_documento|add_class:"form-control" }}
+                      {% if form.tipo_documento.errors %}
+                        <div class="text-danger">{{ form.tipo_documento.errors }}</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                  <div class="col-md-8">
+                    <div class="mb-3">
+                      <label for="{{ form.numero_documento.id_for_label }}" class="form-label">
+                        <i class="fa fa-id-card-alt"></i> {{ form.numero_documento.label }} <span class="text-danger">*</span>
+                      </label>
+                      <div class="input-group">
+                        {{ form.numero_documento|add_class:"form-control" }}
+                        <div class="input-group-append">
+                          <span class="input-group-text">
+                            <i class="fa fa-check-circle text-success d-none" id="rut-valid"></i>
+                            <i class="fa fa-times-circle text-danger d-none" id="rut-invalid"></i>
+                          </span>
+                        </div>
+                      </div>
+                      <small class="form-text text-muted">Formato: 12345678-9</small>
+                      {% if form.numero_documento.errors %}
+                        <div class="text-danger">{{ form.numero_documento.errors }}</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="{{ form.fecha_nacimiento.id_for_label }}" class="form-label">
+                        <i class="fa fa-calendar"></i> {{ form.fecha_nacimiento.label }} <span class="text-danger">*</span>
+                      </label>
+                      {{ form.fecha_nacimiento|add_class:"form-control" }}
+                      <small class="form-text text-muted">
+                        Edad calculada: <span id="edad-calculada" class="fw-bold"></span>
+                      </small>
+                      {% if form.fecha_nacimiento.errors %}
+                        <div class="text-danger">{{ form.fecha_nacimiento.errors }}</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="{{ form.genero.id_for_label }}" class="form-label">
+                        <i class="fa fa-venus-mars"></i> {{ form.genero.label }} <span class="text-danger">*</span>
+                      </label>
+                      {{ form.genero|add_class:"form-control" }}
+                      {% if form.genero.errors %}
+                        <div class="text-danger">{{ form.genero.errors }}</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="{{ form.email.id_for_label }}" class="form-label">
+                        <i class="fa fa-envelope"></i> {{ form.email.label }} <span class="text-danger">*</span>
+                      </label>
+                      {{ form.email|add_class:"form-control" }}
+                      {% if form.email.errors %}
+                        <div class="text-danger">{{ form.email.errors }}</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="{{ form.telefono.id_for_label }}" class="form-label">
+                        <i class="fa fa-phone"></i> {{ form.telefono.label }}
+                      </label>
+                      {{ form.telefono|add_class:"form-control" }}
+                      {% if form.telefono.errors %}
+                        <div class="text-danger">{{ form.telefono.errors }}</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-md-12">
+                    <div class="mb-3">
+                      <label for="{{ form.direccion.id_for_label }}" class="form-label">
+                        <i class="fa fa-map-marker-alt"></i> {{ form.direccion.label }}
+                      </label>
+                      {{ form.direccion|add_class:"form-control" }}
+                      {% if form.direccion.errors %}
+                        <div class="text-danger">{{ form.direccion.errors }}</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="{{ form.codigo_estudiante.id_for_label }}" class="form-label">
+                        <i class="fa fa-graduation-cap"></i> {{ form.codigo_estudiante.label }} <span class="text-danger">*</span>
+                      </label>
+                      {{ form.codigo_estudiante|add_class:"form-control" }}
+                      {% if form.codigo_estudiante.errors %}
+                        <div class="text-danger">{{ form.codigo_estudiante.errors }}</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="{{ form.username.id_for_label }}" class="form-label">
+                        <i class="fa fa-user-circle"></i> {{ form.username.label }} <span class="text-danger">*</span>
+                      </label>
+                      {{ form.username|add_class:"form-control" }}
+                      {% if form.username.errors %}
+                        <div class="text-danger">{{ form.username.errors }}</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="{{ form.password.id_for_label }}" class="form-label">
+                        <i class="fa fa-lock"></i> {{ form.password.label }} <span class="text-danger">*</span>
+                      </label>
+                      {{ form.password|add_class:"form-control" }}
+                      {% if form.password.errors %}
+                        <div class="text-danger">{{ form.password.errors }}</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+              {% endif %}
+              <!-- Botones de acción -->
+              <div class="row mt-4">
+                <div class="col-md-12 text-center">
+                  <button type="submit" class="btn btn-gradient btn-lg px-5 shadow-sm">
+                    <i class="fas fa-save me-2"></i> Guardar
+                  </button>
+                  <button type="button" class="btn btn-outline-light btn-lg ml-2 px-5" style="background: #f5f7fa; color: #6a5af9; border: 2px solid #6a5af9;" onclick="limpiarFormulario()">
+                    <i class="fas fa-eraser me-2"></i> Limpiar
+                  </button>
+                  <a href="{% url 'listar_estudiantes' %}" class="btn btn-outline-secondary btn-lg ml-2 px-5">
+                    <i class="fas fa-arrow-left me-2"></i> Volver
+                  </a>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Estilos adicionales -->
+<style>
+  .bg-gradient-header {
+    background: linear-gradient(90deg, #3a8dde 0%, #6a5af9 100%) !important;
+    color: #fff !important;
+  }
+  .btn-gradient {
+    background: linear-gradient(90deg, #3a8dde 0%, #6a5af9 100%);
+    color: #fff;
+    border: none;
+    border-radius: 25px;
+    font-weight: 600;
+    transition: all 0.3s;
+    box-shadow: 0 2px 8px rgba(58,141,222,0.12);
+  }
+  .btn-gradient:hover {
+    background: linear-gradient(90deg, #6a5af9 0%, #3a8dde 100%);
+    color: #fff;
+    transform: translateY(-2px) scale(1.03);
+    box-shadow: 0 6px 18px rgba(106,90,249,0.15);
+  }
+  .card {
+    border-radius: 22px;
+    border: none;
+    box-shadow: 0 4px 24px rgba(58,141,222,0.10);
+    margin-bottom: 20px;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 32px rgba(106,90,249,0.10);
+  }
+  .form-label {
+    font-weight: 600;
+    color: #3a3a3a;
+    margin-bottom: 8px;
+    letter-spacing: 0.01em;
+  }
+  .form-control {
+    border-radius: 8px;
+    border: 2px solid #e1e5e9;
+    transition: all 0.3s;
+    font-size: 1.05rem;
+    background: #f8fafd;
+  }
+  .form-control:focus {
+    border-color: #6a5af9;
+    box-shadow: 0 0 0 0.2rem rgba(106,90,249,0.10);
+    background: #fff;
+  }
+  .input-group-text {
+    background-color: #f8f9fa;
+    border: 2px solid #e1e5e9;
+    border-left: none;
+  }
+  .text-danger {
+    font-size: 0.95rem;
+    margin-top: 0.25rem;
+  }
+  #edad-calculada {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    background-color: rgba(106,90,249,0.08);
+    color: #6a5af9;
+  }
+  @media (max-width: 768px) {
+    .col-md-6 {
+      margin-bottom: 20px;
+    }
+    .btn-group .btn {
+      margin-bottom: 10px;
+    }
+    .card-header {
+      padding: 1.2rem 1rem !important;
+    }
+  }
+</style>
+
+<!-- JavaScript mejorado -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const form = document.getElementById('registroForm');
+  const rutField = document.getElementById('{{ form.numero_documento.id_for_label }}');
+  const fechaField = document.getElementById('{{ form.fecha_nacimiento.id_for_label }}');
+  const edadSpan = document.getElementById('edad-calculada');
+  const tipoUsuario = '{{ tipo }}';
+
+  // Formatear RUT en tiempo real
+  if (rutField) {
+    rutField.addEventListener('input', function() {
+      let rut = this.value.replace(/[^0-9kK]/g, '');
+      if (rut.length > 1) {
+        let numero = rut.slice(0, -1);
+        let dv = rut.slice(-1);
+        
+        // Formatear con puntos
+        numero = numero.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        
+        this.value = numero + '-' + dv.toUpperCase();
+      }
+      validarRUT(this);
+    });
+  }
+
+  // Calcular edad en tiempo real
+  if (fechaField) {
+    fechaField.addEventListener('change', function() {
+      const fecha = new Date(this.value);
+      const hoy = new Date();
+      let edad = hoy.getFullYear() - fecha.getFullYear();
+      const mes = hoy.getMonth() - fecha.getMonth();
+      
+      if (mes < 0 || (mes === 0 && hoy.getDate() < fecha.getDate())) {
+        edad--;
+      }
+      
+      if (edad >= 0) {
+        edadSpan.textContent = edad + ' años';
+        edadSpan.className = 'fw-bold text-success';
+      } else {
+        edadSpan.textContent = 'Fecha inválida';
+        edadSpan.className = 'fw-bold text-danger';
+      }
+    });
+  }
+
+  // Validación en tiempo real para todos los campos
+  const requiredFields = form.querySelectorAll('input[required], select[required]');
+  requiredFields.forEach(field => {
+    field.addEventListener('blur', function() {
+      validateField(this);
+    });
+    
+    field.addEventListener('input', function() {
+      if (this.classList.contains('is-invalid')) {
+        validateField(this);
+      }
+    });
+  });
+
+  // Validación del formulario al enviar
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    let isValid = true;
+    requiredFields.forEach(field => {
+      if (!validateField(field)) {
+        isValid = false;
+      }
+    });
+    
+    if (isValid) {
+      // Mostrar loading
+      const submitBtn = form.querySelector('button[type="submit"]');
+      const originalText = submitBtn.innerHTML;
+      submitBtn.innerHTML = '<i class="fa fa-spinner fa-spin me-1"></i> Registrando...';
+      submitBtn.disabled = true;
+      
+      // Enviar formulario
+      setTimeout(() => {
+        form.submit();
+      }, 500);
+    } else {
+      // Scroll al primer error
+      const firstError = form.querySelector('.is-invalid');
+      if (firstError) {
+        firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+  });
+});
+
+function validateField(field) {
+  const value = field.value.trim();
+  
+  if (field.hasAttribute('required') && !value) {
+    field.classList.add('is-invalid');
+    field.classList.remove('is-valid');
+    return false;
+  }
+  
+  // Validaciones específicas
+  if (field.type === 'email' && value) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(value)) {
+      field.classList.add('is-invalid');
+      field.classList.remove('is-valid');
+      return false;
+    }
+  }
+  
+  field.classList.remove('is-invalid');
+  if (value) field.classList.add('is-valid');
+  return true;
+}
+
+function validarRUT(field) {
+  const rut = field.value.replace(/[^0-9kK]/g, '');
+  
+  if (rut.length < 2) {
+    field.classList.remove('is-valid', 'is-invalid');
+    return false;
+  }
+  
+  const num = rut.slice(0, -1);
+  const dv = rut.slice(-1).toUpperCase();
+  
+  if (!/^\d+$/.test(num)) {
+    field.classList.add('is-invalid');
+    field.classList.remove('is-valid');
+    return false;
+  }
+  
+  // Calcular dígito verificador
+  let suma = 0;
+  let multiplicador = 2;
+  
+  for (let i = num.length - 1; i >= 0; i--) {
+    suma += parseInt(num[i]) * multiplicador;
+    multiplicador = multiplicador === 7 ? 2 : multiplicador + 1;
+  }
+  
+  const resto = suma % 11;
+  const dvCalculado = resto === 1 ? 'K' : resto === 0 ? '0' : (11 - resto).toString();
+  
+  if (dv === dvCalculado) {
+    field.classList.add('is-valid');
+    field.classList.remove('is-invalid');
+    return true;
+  } else {
+    field.classList.add('is-invalid');
+    field.classList.remove('is-valid');
+    return false;
+  }
+}
+
+function limpiarFormulario() {
+  if (confirm('¿Está seguro de que desea limpiar todos los campos?')) {
+    document.getElementById('registroForm').reset();
+    // Remover clases de validación
+    document.querySelectorAll('.is-valid, .is-invalid').forEach(el => {
+      el.classList.remove('is-valid', 'is-invalid');
+    });
+    document.getElementById('edad-calculada').textContent = '';
+  }
+}
+</script>
+{% endblock %}

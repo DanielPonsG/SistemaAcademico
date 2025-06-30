@@ -1,0 +1,27 @@
+<!-- filepath: c:\Users\Danie\Desktop\Proyecto_Titulo\sma\templates\eliminar_horario.html -->
+{% extends "index_master.html" %}
+{% block content %}
+<div class="main-content container-fluid py-4">
+  <div class="row justify-content-center">
+    <div class="col-md-7">
+      <div class="card border-danger shadow-sm">
+        <div class="card-header bg-danger text-white">
+          <h4 class="mb-0">Eliminar Horario</h4>
+        </div>
+        <div class="card-body">
+          <div class="alert alert-danger mb-4">
+            ¿Estás seguro que deseas eliminar este horario de <strong>{{ horario.curso.nombre }}</strong> para la asignatura <strong>{{ horario.asignatura.nombre }}</strong> el día <strong>{{ horario.get_dia_display }}</strong> de <strong>{{ horario.hora_inicio|time:"H:i" }}</strong> a <strong>{{ horario.hora_fin|time:"H:i" }}</strong>?
+          </div>
+          <form method="post">
+            {% csrf_token %}
+            <div class="d-flex gap-2">
+              <button type="submit" class="btn btn-danger">Eliminar</button>
+              <a href="{% url 'ver_horario_curso' %}" class="btn btn-secondary">Cancelar</a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

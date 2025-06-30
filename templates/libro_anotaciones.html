@@ -1,0 +1,454 @@
+{% extends "index_master.html" %}
+{% block content %}
+<div class="right_col" role="main">
+  <div class="container-fluid">
+    <h3><i class="fa fa-book"></i> Libro de Anotaciones</h3>
+    
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
+
+    {% if error %}
+      <div class="alert alert-danger text-center">
+        <i class="fa fa-exclamation-triangle fa-2x mb-2"></i>
+        <h5>Error de Acceso</h5>
+        <p>No tienes permisos para acceder al libro de anotaciones o hay un problema con tu perfil.</p>
+        <a href="{% url 'inicio' %}" class="btn btn-primary">Volver al Inicio</a>
+      </div>
+    {% else %}
+
+    <!-- Estadísticas Generales -->
+    <div class="row mb-4">
+      <div class="col-md-3">
+        <div class="card text-center border-primary">
+          <div class="card-body">
+            <h5 class="card-title text-primary">{{ stats_generales.total }}</h5>
+            <p class="card-text">Total Anotaciones</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card text-center border-success">
+          <div class="card-body">
+            <h5 class="card-title text-success">{{ stats_generales.positivas }}</h5>
+            <p class="card-text">Positivas</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card text-center border-danger">
+          <div class="card-body">
+            <h5 class="card-title text-danger">{{ stats_generales.negativas }}</h5>
+            <p class="card-text">Negativas</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card text-center border-warning">
+          <div class="card-body">
+            <h5 class="card-title text-warning">{{ stats_generales.graves }}</h5>
+            <p class="card-text">Graves</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filtros y Acciones -->
+    <div class="card mb-4">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h5><i class="fa fa-filter"></i> Filtros</h5>
+        {% if puede_crear %}
+        <a href="{% url 'crear_anotacion' %}" class="btn btn-success">
+          <i class="fa fa-plus"></i> Nueva Anotación
+        </a>
+        {% endif %}
+      </div>
+      <div class="card-body">
+        <form method="get" class="row g-3">
+          <div class="col-md-3">
+            <label class="form-label fw-bold">{{ filtro_form.curso.label }}</label>
+            {{ filtro_form.curso }}
+          </div>
+          
+          {% if user_type != 'alumno' %}
+          <div class="col-md-3">
+            <label class="form-label fw-bold">{{ filtro_form.estudiante.label }}</label>
+            {{ filtro_form.estudiante }}
+          </div>
+          {% endif %}
+          
+          <div class="col-md-2">
+            <label class="form-label fw-bold">{{ filtro_form.tipo.label }}</label>
+            {{ filtro_form.tipo }}
+          </div>
+          
+          <div class="col-md-2">
+            <label class="form-label fw-bold">{{ filtro_form.categoria.label }}</label>
+            {{ filtro_form.categoria }}
+          </div>
+          
+          <div class="col-md-2">
+            <label class="form-label fw-bold">{{ filtro_form.fecha_desde.label }}</label>
+            {{ filtro_form.fecha_desde }}
+          </div>
+          
+          <div class="col-md-2">
+            <label class="form-label fw-bold">{{ filtro_form.fecha_hasta.label }}</label>
+            {{ filtro_form.fecha_hasta }}
+          </div>
+          
+          <div class="col-md-2 d-flex align-items-end">
+            <div class="form-check">
+              {{ filtro_form.solo_graves }}
+              <label class="form-check-label" for="{{ filtro_form.solo_graves.id_for_label }}">
+                {{ filtro_form.solo_graves.label }}
+              </label>
+            </div>
+          </div>
+          
+          <div class="col-md-12">
+            <button type="submit" class="btn btn-primary">
+              <i class="fa fa-search"></i> Filtrar
+            </button>
+            <a href="{% url 'libro_anotaciones' %}" class="btn btn-secondary ms-2">
+              <i class="fa fa-refresh"></i> Limpiar
+            </a>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Top Estudiantes por Comportamiento (solo para profesores/admin) -->
+    {% if stats_estudiantes and user_type != 'alumno' %}
+    <div class="card mb-4">
+      <div class="card-header">
+        <h5><i class="fa fa-trophy"></i> Ranking de Comportamiento</h5>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          {% for stat in stats_estudiantes|slice:":6" %}
+          <div class="col-md-4 mb-3">
+            <div class="card border-left" style="border-left: 4px solid {{ stat.color }};">
+              <div class="card-body">
+                <div class="d-flex justify-content-between">
+                  <div>
+                    <h6 class="mb-1">{{ stat.estudiante.get_nombre_completo }}</h6>
+                    <small class="text-muted">{{ stat.estudiante.get_curso_actual }}</small>
+                  </div>
+                  <div class="text-end">
+                    <span class="badge" style="background-color: {{ stat.color }};">
+                      {{ stat.puntaje_total }} pts
+                    </span>
+                    <div><small class="text-muted">{{ stat.nivel }}</small></div>
+                  </div>
+                </div>
+                <div class="mt-2">
+                  <small>
+                    <span class="text-success">+{{ stat.positivas }}</span> |
+                    <span class="text-danger">-{{ stat.negativas }}</span> |
+                    <span class="text-muted">{{ stat.total_anotaciones }} total</span>
+                  </small>
+                </div>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Lista de Anotaciones -->
+    <div class="card">
+      <div class="card-header">
+        <h5><i class="fa fa-list"></i> 
+          Anotaciones 
+          {% if user_type == 'alumno' %}
+            - {{ estudiante_actual.get_nombre_completo }}
+          {% endif %}
+          ({{ anotaciones.paginator.count }} registros)
+        </h5>
+      </div>
+      <div class="card-body">
+        {% if anotaciones %}
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead class="table-light">
+              <tr>
+                <th width="3%"><i class="fa fa-flag"></i></th>
+                <th width="20%">Estudiante/Curso</th>
+                <th width="35%">Anotación</th>
+                <th width="15%">Detalles</th>
+                <th width="12%">Fecha/Autor</th>
+                <th width="10%">Pts</th>
+                {% if puede_crear %}
+                <th width="5%">Acciones</th>
+                {% endif %}
+              </tr>
+            </thead>
+            <tbody>
+              {% for anotacion in anotaciones %}
+              <tr class="anotacion-row" data-tipo="{{ anotacion.tipo }}">
+                <td class="text-center">
+                  <i class="fa {{ anotacion.icono_tipo }} fa-lg" style="color: {{ anotacion.color_tipo }};"></i>
+                  {% if anotacion.es_grave %}
+                  <br><i class="fa fa-exclamation-triangle text-warning" title="Grave"></i>
+                  {% endif %}
+                </td>
+                
+                <td>
+                  {% if user_type != 'alumno' %}
+                  <div class="fw-bold">{{ anotacion.estudiante.get_nombre_completo }}</div>
+                  <small class="text-muted"><i class="fa fa-school"></i> {{ anotacion.curso }}</small>
+                  {% else %}
+                  <div class="fw-bold">{{ anotacion.curso }}</div>
+                  {% if anotacion.asignatura %}
+                  <small class="text-muted"><i class="fa fa-book"></i> {{ anotacion.asignatura.nombre }}</small>
+                  {% endif %}
+                  {% endif %}
+                </td>
+                
+                <td>
+                  <div class="fw-bold">{{ anotacion.titulo }}</div>
+                  <small class="text-muted">{{ anotacion.descripcion|truncatewords:15 }}</small>
+                </td>
+                
+                <td>
+                  <span class="badge bg-secondary">{{ anotacion.get_categoria_display }}</span>
+                  {% if anotacion.requiere_atencion_apoderado %}
+                  <br><small class="text-warning"><i class="fa fa-bell"></i> Comunicar apoderado</small>
+                  {% endif %}
+                </td>
+                
+                <td>
+                  <div class="small">{{ anotacion.fecha_para_humanos }}</div>
+                  <small class="text-muted">{{ anotacion.profesor_autor.get_nombre_completo|truncatewords:2 }}</small>
+                </td>
+                
+                <td class="text-center">
+                  <span class="badge fs-6" style="background-color: {{ anotacion.color_tipo }};">
+                    {% if anotacion.puntos > 0 %}+{% endif %}{{ anotacion.puntos }}
+                  </span>
+                </td>
+                
+                {% if puede_crear %}
+                <td class="text-center">
+                  <div class="btn-group btn-group-sm" role="group">
+                    <a href="{% url 'detalle_comportamiento_estudiante' anotacion.estudiante.id %}" 
+                       class="btn btn-outline-primary btn-sm" title="Ver comportamiento">
+                      <i class="fa fa-eye"></i>
+                    </a>
+                    
+                    {% if user_type in 'director,administrador' or anotacion.profesor_autor == profesor_actual %}
+                    <a href="{% url 'editar_anotacion' anotacion.id %}" 
+                       class="btn btn-outline-secondary btn-sm" title="Editar">
+                      <i class="fa fa-edit"></i>
+                    </a>
+                    <a href="{% url 'eliminar_anotacion' anotacion.id %}" 
+                       class="btn btn-outline-danger btn-sm" title="Eliminar"
+                       onclick="return confirm('¿Estás seguro de eliminar esta anotación?')">
+                      <i class="fa fa-trash"></i>
+                    </a>
+                    {% endif %}
+                  </div>
+                </td>
+                {% endif %}
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Paginación -->
+        {% if anotaciones.has_other_pages %}
+        <nav aria-label="Paginación de anotaciones">
+          <ul class="pagination justify-content-center">
+            {% if anotaciones.has_previous %}
+              <li class="page-item">
+                <a class="page-link" href="?page=1{% if request.GET.curso %}&curso={{ request.GET.curso }}{% endif %}{% if request.GET.estudiante %}&estudiante={{ request.GET.estudiante }}{% endif %}{% if request.GET.tipo %}&tipo={{ request.GET.tipo }}{% endif %}{% if request.GET.categoria %}&categoria={{ request.GET.categoria }}{% endif %}{% if request.GET.fecha_desde %}&fecha_desde={{ request.GET.fecha_desde }}{% endif %}{% if request.GET.fecha_hasta %}&fecha_hasta={{ request.GET.fecha_hasta }}{% endif %}{% if request.GET.solo_graves %}&solo_graves={{ request.GET.solo_graves }}{% endif %}">Primera</a>
+              </li>
+              <li class="page-item">
+                <a class="page-link" href="?page={{ anotaciones.previous_page_number }}{% if request.GET.curso %}&curso={{ request.GET.curso }}{% endif %}{% if request.GET.estudiante %}&estudiante={{ request.GET.estudiante }}{% endif %}{% if request.GET.tipo %}&tipo={{ request.GET.tipo }}{% endif %}{% if request.GET.categoria %}&categoria={{ request.GET.categoria }}{% endif %}{% if request.GET.fecha_desde %}&fecha_desde={{ request.GET.fecha_desde }}{% endif %}{% if request.GET.fecha_hasta %}&fecha_hasta={{ request.GET.fecha_hasta }}{% endif %}{% if request.GET.solo_graves %}&solo_graves={{ request.GET.solo_graves }}{% endif %}">Anterior</a>
+              </li>
+            {% endif %}
+
+            <li class="page-item active">
+              <span class="page-link">
+                Página {{ anotaciones.number }} de {{ anotaciones.paginator.num_pages }}
+              </span>
+            </li>
+
+            {% if anotaciones.has_next %}
+              <li class="page-item">
+                <a class="page-link" href="?page={{ anotaciones.next_page_number }}{% if request.GET.curso %}&curso={{ request.GET.curso }}{% endif %}{% if request.GET.estudiante %}&estudiante={{ request.GET.estudiante }}{% endif %}{% if request.GET.tipo %}&tipo={{ request.GET.tipo }}{% endif %}{% if request.GET.categoria %}&categoria={{ request.GET.categoria }}{% endif %}{% if request.GET.fecha_desde %}&fecha_desde={{ request.GET.fecha_desde }}{% endif %}{% if request.GET.fecha_hasta %}&fecha_hasta={{ request.GET.fecha_hasta }}{% endif %}{% if request.GET.solo_graves %}&solo_graves={{ request.GET.solo_graves }}{% endif %}">Siguiente</a>
+              </li>
+              <li class="page-item">
+                <a class="page-link" href="?page={{ anotaciones.paginator.num_pages }}{% if request.GET.curso %}&curso={{ request.GET.curso }}{% endif %}{% if request.GET.estudiante %}&estudiante={{ request.GET.estudiante }}{% endif %}{% if request.GET.tipo %}&tipo={{ request.GET.tipo }}{% endif %}{% if request.GET.categoria %}&categoria={{ request.GET.categoria }}{% endif %}{% if request.GET.fecha_desde %}&fecha_desde={{ request.GET.fecha_desde }}{% endif %}{% if request.GET.fecha_hasta %}&fecha_hasta={{ request.GET.fecha_hasta }}{% endif %}{% if request.GET.solo_graves %}&solo_graves={{ request.GET.solo_graves }}{% endif %}">Última</a>
+              </li>
+            {% endif %}
+          </ul>
+        </nav>
+        {% endif %}
+
+        {% else %}
+        <div class="text-center py-5">
+          <i class="fa fa-book fa-3x text-muted mb-3"></i>
+          <h5>No hay anotaciones</h5>
+          <p class="text-muted">
+            {% if user_type == 'alumno' %}
+              No tienes anotaciones registradas.
+            {% else %}
+              No hay anotaciones que coincidan con los filtros seleccionados.
+            {% endif %}
+          </p>
+          {% if puede_crear %}
+          <a href="{% url 'crear_anotacion' %}" class="btn btn-primary">
+            <i class="fa fa-plus"></i> Crear Primera Anotación
+          </a>
+          {% endif %}
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<style>
+.card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+.card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+.border-left {
+    border-left-width: 4px !important;
+}
+
+.badge {
+    font-size: 0.75em;
+}
+
+.border-primary { border-color: #0d6efd !important; }
+.border-success { border-color: #198754 !important; }
+.border-danger { border-color: #dc3545 !important; }
+.border-warning { border-color: #ffc107 !important; }
+
+.pagination .page-link {
+    color: #6c757d;
+    border-color: #dee2e6;
+}
+
+.pagination .page-item.active .page-link {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+/* Estilos para la tabla de anotaciones */
+.anotacion-row {
+    transition: background-color 0.2s ease;
+}
+
+.anotacion-row:hover {
+    background-color: rgba(0, 123, 255, 0.05);
+}
+
+.anotacion-row[data-tipo="positiva"] {
+    border-left: 3px solid #28a745;
+}
+
+.anotacion-row[data-tipo="negativa"] {
+    border-left: 3px solid #dc3545;
+}
+
+.anotacion-row[data-tipo="neutra"] {
+    border-left: 3px solid #6c757d;
+}
+
+.table th {
+    font-weight: 600;
+    color: #495057;
+    font-size: 0.9rem;
+}
+
+.table td {
+    vertical-align: middle;
+    font-size: 0.9rem;
+}
+
+.btn-group-sm .btn {
+    padding: 0.25rem 0.4rem;
+    font-size: 0.75rem;
+}
+
+@media (max-width: 768px) {
+    .table-responsive {
+        font-size: 0.8rem;
+    }
+    
+    .btn-group-sm .btn {
+        padding: 0.2rem 0.3rem;
+        font-size: 0.7rem;
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Filtro dinámico de estudiantes por curso
+    const cursoSelect = document.querySelector('select[name="curso"]');
+    const estudianteSelect = document.querySelector('select[name="estudiante"]');
+    
+    if (cursoSelect && estudianteSelect) {
+        cursoSelect.addEventListener('change', function() {
+            const cursoId = this.value;
+            
+            if (cursoId) {
+                // Deshabilitar select de estudiantes mientras carga
+                estudianteSelect.disabled = true;
+                estudianteSelect.innerHTML = '<option value="">Cargando estudiantes...</option>';
+                
+                // Hacer petición AJAX
+                fetch(`{% url 'ajax_obtener_estudiantes_filtro' %}?curso_id=${cursoId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        estudianteSelect.innerHTML = '<option value="">-- Todos los estudiantes --</option>';
+                        
+                        if (data.estudiantes && data.estudiantes.length > 0) {
+                            data.estudiantes.forEach(estudiante => {
+                                const option = document.createElement('option');
+                                option.value = estudiante.id;
+                                option.textContent = `${estudiante.nombre} (${estudiante.rut})`;
+                                estudianteSelect.appendChild(option);
+                            });
+                        } else {
+                            estudianteSelect.innerHTML += '<option value="" disabled>No hay estudiantes en este curso</option>';
+                        }
+                        
+                        estudianteSelect.disabled = false;
+                    })
+                    .catch(error => {
+                        console.error('Error al cargar estudiantes:', error);
+                        estudianteSelect.innerHTML = '<option value="">Error al cargar estudiantes</option>';
+                        estudianteSelect.disabled = false;
+                    });
+            } else {
+                // Si no hay curso seleccionado, mostrar opción por defecto
+                estudianteSelect.innerHTML = '<option value="">-- Selecciona un curso primero --</option>';
+                estudianteSelect.disabled = false;
+            }
+        });
+    }
+});
+</script>
+
+{% endblock %}

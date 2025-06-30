@@ -1,0 +1,343 @@
+{% extends "index_master.html" %}
+
+{% block content %}
+<div class="right_col" role="main">
+  <div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="d-flex align-items-center">
+          <a href="{% url 'calendario' %}" class="btn btn-outline-secondary me-3" title="Volver al calendario">
+            <i class="fas fa-arrow-left"></i>
+          </a>
+          <div>
+            <h1 class="mb-1">
+              <i class="fas fa-edit text-primary me-2"></i>Editar Evento
+            </h1>
+            <p class="text-muted mb-0">Modifica la información del evento: <strong>{{ evento.titulo }}</strong></p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mensajes -->
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+          <i class="fas fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}exclamation-triangle{% else %}info-circle{% endif %} me-2"></i>
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
+
+    <div class="row justify-content-center">
+      <div class="col-lg-8">
+        <div class="card shadow-sm">
+          <div class="card-header bg-warning text-dark">
+            <h5 class="mb-0">
+              <i class="fas fa-calendar-edit me-2"></i>Editando: {{ evento.titulo }}
+            </h5>
+          </div>
+          
+          <div class="card-body p-4">
+            <form method="post" id="editarEventoForm">
+              {% csrf_token %}
+              
+              <!-- Información básica -->
+              <div class="row mb-3">
+                <div class="col-md-8">
+                  <label class="form-label fw-bold">
+                    <i class="fas fa-heading me-1 text-primary"></i>Título del evento *
+                  </label>
+                  <input type="text" name="titulo" class="form-control" value="{{ evento.titulo }}" required>
+                </div>
+                
+                <div class="col-md-4">
+                  <label class="form-label fw-bold">
+                    <i class="fas fa-calendar me-1 text-primary"></i>Fecha *
+                  </label>
+                  <input type="date" name="fecha" class="form-control" value="{{ evento.fecha|date:'Y-m-d' }}" required>
+                </div>
+              </div>
+              
+              <!-- Horas -->
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">
+                    <i class="fas fa-clock me-1 text-primary"></i>Hora inicio
+                  </label>
+                  <input type="time" name="hora_inicio" id="hora_inicio" class="form-control" value="{{ evento.hora_inicio|time:'H:i' }}">
+                  <div class="invalid-feedback" id="error_hora_inicio"></div>
+                  <small class="form-text text-muted">Opcional</small>
+                </div>
+                
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">
+                    <i class="fas fa-clock me-1 text-primary"></i>Hora fin
+                  </label>
+                  <input type="time" name="hora_fin" id="hora_fin" class="form-control" value="{{ evento.hora_fin|time:'H:i' }}">
+                  <div class="invalid-feedback" id="error_hora_fin"></div>
+                  <small class="form-text text-muted">Debe ser mayor que hora inicio</small>
+                </div>
+              </div>
+              
+              <!-- Tipo y prioridad -->
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">
+                    <i class="fas fa-tag me-1 text-primary"></i>Tipo de evento
+                  </label>
+                  <select name="tipo_evento" class="form-select">
+                    <option value="general" {% if evento.tipo_evento == 'general' %}selected{% endif %}>Evento General</option>
+                    <option value="evaluacion" {% if evento.tipo_evento == 'evaluacion' %}selected{% endif %}>Evaluación/Prueba</option>
+                    <option value="reunion" {% if evento.tipo_evento == 'reunion' %}selected{% endif %}>Reunión</option>
+                    <option value="actividad" {% if evento.tipo_evento == 'actividad' %}selected{% endif %}>Actividad Escolar</option>
+                    <option value="administrativo" {% if evento.tipo_evento == 'administrativo' %}selected{% endif %}>Administrativo</option>
+                    <option value="otro" {% if evento.tipo_evento == 'otro' %}selected{% endif %}>Otro</option>
+                  </select>
+                </div>
+                
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">
+                    <i class="fas fa-flag me-1 text-warning"></i>Prioridad
+                  </label>
+                  <select name="prioridad" class="form-select">
+                    <option value="baja" {% if evento.prioridad == 'baja' %}selected{% endif %}>Baja</option>
+                    <option value="media" {% if evento.prioridad == 'media' %}selected{% endif %}>Media</option>
+                    <option value="alta" {% if evento.prioridad == 'alta' %}selected{% endif %}>Alta</option>
+                  </select>
+                </div>
+              </div>
+              
+              <!-- Descripción -->
+              <div class="mb-3">
+                <label class="form-label fw-bold">
+                  <i class="fas fa-align-left me-1 text-primary"></i>Descripción
+                </label>
+                <textarea name="descripcion" class="form-control" rows="3">{{ evento.descripcion }}</textarea>
+              </div>
+              
+              <!-- Dirigido a -->
+              <div class="mb-4">
+                <label class="form-label fw-bold">
+                  <i class="fas fa-users me-1 text-primary"></i>Dirigido a
+                </label>
+                <div class="form-check mb-2">
+                  <input class="form-check-input" type="radio" name="dirigido_a" id="dirigido_todos" value="todos" {% if dirigido_a_actual == 'todos' %}checked{% endif %}>
+                  <label class="form-check-label" for="dirigido_todos">
+                    <i class="fas fa-globe me-1 text-success"></i>Todos los cursos
+                  </label>
+                </div>
+                <div class="form-check mb-2">
+                  <input class="form-check-input" type="radio" name="dirigido_a" id="dirigido_profesores" value="solo_profesores" {% if dirigido_a_actual == 'solo_profesores' %}checked{% endif %}>
+                  <label class="form-check-label" for="dirigido_profesores">
+                    <i class="fas fa-chalkboard-teacher me-1 text-warning"></i>Solo profesores
+                  </label>
+                </div>
+                {% if cursos %}
+                <div class="form-check mb-2">
+                  <input class="form-check-input" type="radio" name="dirigido_a" id="dirigido_especificos" value="cursos_especificos" {% if dirigido_a_actual == 'cursos_especificos' %}checked{% endif %}>
+                  <label class="form-check-label" for="dirigido_especificos">
+                    <i class="fas fa-users-class me-1 text-primary"></i>Cursos específicos
+                  </label>
+                </div>
+                <div id="cursosEspecificos" class="mt-3 p-3 bg-light rounded border" {% if dirigido_a_actual != 'cursos_especificos' %}style="display: none;"{% endif %}>
+                  <label class="form-label fw-bold small text-primary">
+                    <i class="fas fa-check-square me-1"></i>Seleccionar cursos:
+                  </label>
+                  <div class="row">
+                    {% for curso in cursos %}
+                    <div class="col-md-6 mb-2">
+                      <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="cursos_especificos" value="{{ curso.id }}" id="curso_{{ curso.id }}" {% if curso in cursos_seleccionados %}checked{% endif %}>
+                        <label class="form-check-label" for="curso_{{ curso.id }}">
+                          <strong>{{ curso.get_nivel_display }}{{ curso.paralelo }}</strong>
+                          {% if curso.profesor_jefe %}
+                            <br><small class="text-muted">Prof. {{ curso.profesor_jefe.primer_nombre }} {{ curso.profesor_jefe.apellido_paterno }}</small>
+                          {% endif %}
+                        </label>
+                      </div>
+                    </div>
+                    {% endfor %}
+                  </div>
+                </div>
+                {% endif %}
+              </div>
+              
+              <!-- Información del responsable -->
+              <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>
+                <strong>Responsable original:</strong> 
+                {% if evento.creado_por %}
+                  {{ evento.creado_por.first_name|default:evento.creado_por.username }}
+                {% else %}
+                  Sistema
+                {% endif %}
+                <br><small>Creado el {{ evento.creado_en|date:"d/m/Y H:i" }}</small>
+              </div>
+              
+              <!-- Información del responsable original -->
+              <div class="mb-4">
+                <div class="alert alert-warning">
+                  <i class="fas fa-user me-2"></i>
+                  <strong>Responsable original:</strong> 
+                  {% if evento.creado_por %}
+                    {{ evento.creado_por.first_name|default:evento.creado_por.username }}
+                  {% else %}
+                    Sistema
+                  {% endif %}
+                  <small class="d-block">
+                    Creado el {{ evento.creado_en|date:"d/m/Y H:i" }}
+                  </small>
+                </div>
+              </div>
+
+              <!-- Botones de acción -->
+              <div class="d-flex gap-2 justify-content-end">
+                <a href="{% url 'calendario' %}" class="btn btn-light border">
+                  <i class="fas fa-times me-1"></i>Cancelar
+                </a>
+                <button type="submit" class="btn btn-success">
+                  <i class="fas fa-save me-1"></i>Guardar Cambios
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.form-control:focus,
+.form-select:focus {
+  border-color: #198754;
+  box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.15);
+}
+
+.btn-success {
+  background: #198754;
+  border-color: #198754;
+}
+
+.btn-success:hover {
+  background: #157347;
+  border-color: #146c43;
+  transform: translateY(-1px);
+}
+
+.form-check:hover .form-check-label {
+  color: #198754;
+}
+
+.card {
+  border: 1px solid #dee2e6;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Validación de horas
+  function validarHoras() {
+    const horaInicio = document.getElementById('hora_inicio');
+    const horaFin = document.getElementById('hora_fin');
+    const errorInicio = document.getElementById('error_hora_inicio');
+    const errorFin = document.getElementById('error_hora_fin');
+    
+    // Limpiar errores previos
+    horaInicio.classList.remove('is-invalid');
+    horaFin.classList.remove('is-invalid');
+    errorInicio.textContent = '';
+    errorFin.textContent = '';
+    
+    // Solo validar si ambas horas tienen valor
+    if (horaInicio.value && horaFin.value) {
+      if (horaInicio.value >= horaFin.value) {
+        horaInicio.classList.add('is-invalid');
+        horaFin.classList.add('is-invalid');
+        errorInicio.textContent = 'La hora de inicio debe ser menor que la hora de fin';
+        errorFin.textContent = 'La hora de fin debe ser mayor que la hora de inicio';
+        return false;
+      }
+    }
+    return true;
+  }
+  
+  // Agregar eventos de validación
+  document.getElementById('hora_inicio').addEventListener('change', validarHoras);
+  document.getElementById('hora_fin').addEventListener('change', validarHoras);
+  
+  // Mostrar/ocultar selector de cursos específicos
+  document.querySelectorAll('input[name="dirigido_a"]').forEach(radio => {
+    radio.addEventListener('change', function() {
+      const cursosDiv = document.getElementById('cursosEspecificos');
+      
+      if (cursosDiv) {
+        if (this.value === 'cursos_especificos') {
+          cursosDiv.style.display = 'block';
+        } else {
+          cursosDiv.style.display = 'none';
+          // No desmarcar checkboxes al cambiar, mantener selección
+        }
+      }
+    });
+  });
+  
+  // Validar cursos específicos
+  function validarCursosEspecificos() {
+    const dirigidoEspecificos = document.getElementById('dirigido_especificos');
+    const checkboxes = document.querySelectorAll('input[name="cursos_especificos"]:checked');
+    
+    if (dirigidoEspecificos && dirigidoEspecificos.checked && checkboxes.length === 0) {
+      alert('Debes seleccionar al menos un curso específico');
+      document.getElementById('cursosEspecificos').scrollIntoView({ behavior: 'smooth' });
+      return false;
+    }
+    return true;
+  }
+  
+  // Validación del formulario
+  document.getElementById('editarEventoForm').addEventListener('submit', function(e) {
+    const titulo = this.querySelector('[name="titulo"]').value.trim();
+    const fecha = this.querySelector('[name="fecha"]').value;
+    
+    if (!titulo || !fecha) {
+      e.preventDefault();
+      alert('Por favor, completa los campos obligatorios (título y fecha).');
+      return false;
+    }
+    
+    if (!validarHoras()) {
+      e.preventDefault();
+      return false;
+    }
+    
+    if (!validarCursosEspecificos()) {
+      e.preventDefault();
+      return false;
+    }
+    
+    // Confirmar cambios
+    if (!confirm('¿Estás seguro de que deseas guardar los cambios?')) {
+      e.preventDefault();
+      return false;
+    }
+    
+    // Mostrar indicador de carga
+    const submitBtn = this.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Guardando cambios...';
+    submitBtn.disabled = true;
+    
+    // Permitir que el formulario se envíe normalmente
+    setTimeout(() => {
+      submitBtn.innerHTML = originalText;
+      submitBtn.disabled = false;
+    }, 3000);
+  });
+});
+</script>
+{% endblock %}

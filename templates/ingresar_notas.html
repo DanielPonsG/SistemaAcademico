@@ -1,0 +1,575 @@
+{% extends "index_master.html" %}
+{% block content %}
+<div class="right_col" role="main">
+  <div class="container-fluid">
+    <!-- Mensajes -->
+    {% if messages %}
+      <div class="row mb-3">
+        <div class="col-12">
+          {% for message in messages %}
+            <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+              {% if message.tags == 'success' %}
+                <i class="fas fa-check-circle me-2"></i>
+              {% elif message.tags == 'error' %}
+                <i class="fas fa-exclamation-triangle me-2"></i>
+              {% elif message.tags == 'warning' %}
+                <i class="fas fa-exclamation-circle me-2"></i>
+              {% else %}
+                <i class="fas fa-info-circle me-2"></i>
+              {% endif %}
+              {{ message }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+
+    <!-- Header -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="bg-white p-4 rounded shadow-sm border">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <h2 class="h3 text-dark mb-2">
+                <i class="fas fa-pen-to-square text-primary me-2"></i>Ingresar Notas
+              </h2>
+              <p class="text-muted mb-0">
+                {% if user_type == 'director' %}
+                  Registra calificaciones para cualquier grupo de estudiantes
+                {% else %}
+                  Registra calificaciones para tus grupos de estudiantes
+                {% endif %}
+              </p>
+            </div>
+            <div>
+              <a href="{% url 'ver_notas_curso' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-eye me-1"></i>Ver Notas
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Selección de Curso y Asignatura -->
+    <div class="card shadow-sm mb-4">
+      <div class="card-header bg-light">
+        <h5 class="mb-0">
+          <i class="fas fa-filter me-2"></i>Seleccionar Curso y Asignatura
+        </h5>
+      </div>
+      <div class="card-body">
+        <form method="get" class="row g-3">
+          <!-- Selección de Curso -->
+          <div class="col-md-6">
+            <label for="curso_id" class="form-label fw-bold">
+              <i class="fas fa-school me-1"></i>Curso:
+            </label>
+            <select name="curso_id" id="curso_id" class="form-select" onchange="this.form.submit()">
+              <option value="">-- Selecciona un curso --</option>
+              {% for curso in cursos_disponibles %}
+                <option value="{{ curso.id }}" {% if curso_seleccionado and curso.id == curso_seleccionado.id %}selected{% endif %}>
+                  {{ curso.get_nivel_display }}{{ curso.paralelo }} - {{ curso.anio }}
+                  {% if curso.profesor_jefe %}
+                    (Prof. Jefe: {{ curso.profesor_jefe.primer_nombre }} {{ curso.profesor_jefe.apellido_paterno }})
+                  {% endif %}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+          
+          <!-- Selección de Asignatura -->
+          {% if curso_seleccionado and asignaturas_disponibles %}
+          <div class="col-md-6">
+            <label for="asignatura_id" class="form-label fw-bold">
+              <i class="fas fa-book me-1"></i>Asignatura:
+            </label>
+            <select name="asignatura_id" id="asignatura_id" class="form-select" onchange="this.form.submit()">
+              <option value="">-- Selecciona una asignatura --</option>
+              {% for asignatura in asignaturas_disponibles %}
+                <option value="{{ asignatura.id }}" {% if asignatura_seleccionada and asignatura.id == asignatura_seleccionada.id %}selected{% endif %}>
+                  {{ asignatura.nombre }}
+                  {% if asignatura.codigo_asignatura %}
+                    ({{ asignatura.codigo_asignatura }})
+                  {% endif %}
+                </option>
+              {% endfor %}
+            </select>
+            <input type="hidden" name="curso_id" value="{{ curso_seleccionado.id }}">
+          </div>
+          {% endif %}
+        </form>
+        
+        <!-- Información adicional -->
+        {% if curso_seleccionado and not asignaturas_disponibles %}
+        <div class="mt-3 p-3 bg-warning bg-opacity-10 border border-warning rounded">
+          <div class="d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center">
+              <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+              <div>
+                <strong>No hay asignaturas disponibles</strong>
+                <div class="small text-muted">
+                  {% if user_type == 'profesor' %}
+                    No tienes asignaturas asignadas en este curso.
+                  {% else %}
+                    Este curso no tiene asignaturas asignadas. Puedes asignar las asignaturas existentes al curso.
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+            {% if user_type == 'director' or user_type == 'administrador' %}
+            <div>
+              <button type="button" class="btn btn-sm btn-warning" onclick="mostrarAsignarAsignaturas()">
+                <i class="fas fa-plus me-1"></i>Asignar Asignaturas al Curso
+              </button>
+            </div>
+            {% endif %}
+          </div>
+          
+          <!-- Panel expandible para asignar asignaturas -->
+          {% if user_type == 'director' or user_type == 'administrador' %}
+          <div id="panelAsignarAsignaturas" style="display: none;" class="mt-3 pt-3 border-top">
+            <h6><i class="fas fa-book me-1"></i>Asignar Asignaturas Existentes al Curso</h6>
+            <form method="post" action="{% url 'asignar_asignaturas_curso' %}">
+              {% csrf_token %}
+              <input type="hidden" name="curso_id" value="{{ curso_seleccionado.id }}">
+              
+              <div class="row g-2">
+                <div class="col-md-8">
+                  <select name="asignaturas_ids" class="form-select" multiple size="4">
+                    {% load custom_filters %}
+                    {% get_asignaturas_no_asignadas_curso curso_seleccionado as asignaturas_disponibles_para_asignar %}
+                    {% for asignatura in asignaturas_disponibles_para_asignar %}
+                      <option value="{{ asignatura.id }}">
+                        {{ asignatura.nombre }} ({{ asignatura.codigo_asignatura }})
+                        {% if asignatura.get_profesores_display %}
+                          - Prof: {% for prof in asignatura.get_profesores_display %}{{ prof.primer_nombre }} {{ prof.apellido_paterno }}{% if not forloop.last %}, {% endif %}{% endfor %}
+                        {% endif %}
+                      </option>
+                    {% empty %}
+                      <option disabled>No hay asignaturas disponibles para asignar</option>
+                    {% endfor %}
+                  </select>
+                  <small class="form-text text-muted">Mantén Ctrl presionado para seleccionar múltiples asignaturas</small>
+                </div>
+                <div class="col-md-4">
+                  <button type="submit" class="btn btn-warning w-100 mb-2">
+                    <i class="fas fa-plus me-1"></i>Asignar Seleccionadas
+                  </button>
+                  <button type="button" class="btn btn-outline-warning w-100" onclick="asignarTodasLasAsignaturas()">
+                    <i class="fas fa-plus-circle me-1"></i>Asignar Todas
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+          {% endif %}
+        </div>
+        {% elif curso_seleccionado and asignatura_seleccionada %}
+        <div class="mt-3 p-3 bg-success bg-opacity-10 border border-success rounded">
+          <div class="d-flex align-items-center">
+            <i class="fas fa-check-circle text-success me-2"></i>
+            <div>
+              <strong>Listo para ingresar notas</strong>
+              <div class="small text-muted">
+                Curso: {{ curso_seleccionado.get_nivel_display }}{{ curso_seleccionado.paralelo }} | 
+                Asignatura: {{ asignatura_seleccionada.nombre }} | 
+                Estudiantes: {{ estudiantes_curso_asignatura.count }}
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Formulario de Notas -->
+    {% if curso_seleccionado and asignatura_seleccionada and estudiantes_curso_asignatura %}
+    <div class="card shadow-sm">
+      <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">
+          <i class="fas fa-clipboard-list me-2"></i>
+          Registrar Notas - {{ asignatura_seleccionada.nombre }}
+        </h5>
+        <small>
+          Curso: {{ curso_seleccionado.get_nivel_display }}{{ curso_seleccionado.paralelo }} | 
+          Estudiantes: {{ estudiantes_curso_asignatura.count }} |
+          Año: {{ curso_seleccionado.anio }}
+        </small>
+      </div>
+      <div class="card-body">
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="curso_id" value="{{ curso_seleccionado.id }}">
+          <input type="hidden" name="asignatura_id" value="{{ asignatura_seleccionada.id }}">
+          
+          <!-- Información de la evaluación (común para todos) -->
+          <div class="row mb-4 p-3 bg-light rounded">
+            <div class="col-md-6">
+              <label for="nombre_evaluacion_general" class="form-label fw-bold">Nombre de la Evaluación:</label>
+              <input type="text" id="nombre_evaluacion_general" class="form-control" 
+                     placeholder="Ej: Primer Parcial, Quiz 1, Tarea Final..."
+                     onchange="copyEvaluationName()">
+              <small class="form-text text-muted">Este nombre se copiará a todos los estudiantes</small>
+            </div>
+            <div class="col-md-6">
+              <label for="descripcion_general" class="form-label fw-bold">Descripción de la Evaluación:</label>
+              <textarea id="descripcion_general" class="form-control" rows="2" 
+                        placeholder="Descripción opcional de la evaluación..."
+                        onchange="copyDescription()"></textarea>
+              <small class="form-text text-muted">Descripción opcional que se copiará a todos</small>
+            </div>
+          </div>
+
+          <!-- Notas por estudiante -->
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead class="table-dark">
+                <tr>
+                  <th width="25%">
+                    <i class="fas fa-user-graduate me-1"></i>Estudiante
+                  </th>
+                  <th width="20%">
+                    <i class="fas fa-clipboard-check me-1"></i>Nombre Evaluación
+                  </th>
+                  <th width="10%">
+                    <i class="fas fa-star me-1"></i>Puntaje (1.0-7.0)
+                  </th>
+                  <th width="10%">
+                    <i class="fas fa-percentage me-1"></i>Porcentaje (0-100)
+                  </th>
+                  <th width="15%">
+                    <i class="fas fa-info-circle me-1"></i>Detalle
+                  </th>
+                  <th width="20%">
+                    <i class="fas fa-comment me-1"></i>Descripción
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for inscripcion in estudiantes_curso_asignatura %}
+                <tr>
+                  <td>
+                    <div class="d-flex align-items-center">
+                      <i class="fas fa-user-graduate text-primary me-2"></i>
+                      <div>
+                        <div class="fw-bold">{{ inscripcion.estudiante.primer_nombre }} {{ inscripcion.estudiante.apellido_paterno }}</div>
+                        <small class="text-muted">{{ inscripcion.estudiante.codigo_estudiante }}</small>
+                        <div class="badge bg-secondary">{{ inscripcion.grupo.asignatura.codigo_asignatura|default:"Grupo" }}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <input type="text" name="nombre_evaluacion_{{ inscripcion.id }}" 
+                           class="form-control nombre-evaluacion" 
+                           placeholder="Nombre de la evaluación" required>
+                  </td>
+                  <td>
+                    <input type="number" name="puntaje_{{ inscripcion.id }}" 
+                           class="form-control" step="0.1" min="1.0" max="7.0"
+                           placeholder="1.0-7.0" required>
+                  </td>
+                  <td>
+                    <input type="number" name="porcentaje_{{ inscripcion.id }}" 
+                           class="form-control" step="1" min="0" max="100"
+                           placeholder="0-100" value="0">
+                  </td>
+                  <td>
+                    <input type="text" name="detalle_{{ inscripcion.id }}" 
+                           class="form-control" 
+                           placeholder="Detalle opcional">
+                  </td>
+                  <td>
+                    <textarea name="descripcion_{{ inscripcion.id }}" 
+                              class="form-control descripcion-evaluacion" rows="1"
+                              placeholder="Descripción opcional"></textarea>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Botones de acción -->
+          <div class="d-flex justify-content-between mt-4">
+            <div>
+              <button type="button" class="btn btn-outline-info" onclick="fillAllFields()">
+                <i class="fas fa-fill me-1"></i>Llenar Todos los Campos
+              </button>
+              <button type="button" class="btn btn-outline-warning" onclick="clearAllFields()">
+                <i class="fas fa-eraser me-1"></i>Limpiar Todo
+              </button>
+              <button type="button" class="btn btn-outline-secondary" onclick="fillSampleGrades()">
+                <i class="fas fa-magic me-1"></i>Rellenar Ejemplo
+              </button>
+            </div>
+            <div>
+              <button type="submit" class="btn btn-success btn-lg">
+                <i class="fas fa-save me-1"></i>Guardar Todas las Notas
+              </button>
+            </div>
+          </div>
+          
+          <!-- Información adicional -->
+          <div class="mt-3 p-3 bg-info bg-opacity-10 border border-info rounded">
+            <div class="row">
+              <div class="col-md-6">
+                <small class="text-muted">
+                  <i class="fas fa-info-circle me-1"></i>
+                  <strong>Sistema de Calificación Chileno:</strong><br>
+                  • 1.0 - 3.9: Reprobado<br>
+                  • 4.0 - 5.9: Aprobado<br>
+                  • 6.0 - 7.0: Excelente
+                </small>
+              </div>
+              <div class="col-md-6">
+                <small class="text-muted">
+                  <i class="fas fa-lightbulb me-1"></i>
+                  <strong>Consejos:</strong><br>
+                  • Usa los campos generales para copiar datos comunes<br>
+                  • El porcentaje es opcional (0-100)<br>
+                  • Solo se guardarán filas con nombre y puntaje
+                </small>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+    {% elif curso_seleccionado and asignatura_seleccionada %}
+    <div class="card shadow-sm">
+      <div class="card-body text-center py-5">
+        <i class="fas fa-users-slash fa-3x text-muted mb-3"></i>
+        <h5 class="text-muted mb-2">No hay estudiantes en esta combinación</h5>
+        <p class="text-muted">
+          No se encontraron estudiantes del curso <strong>{{ curso_seleccionado.get_nivel_display }}{{ curso_seleccionado.paralelo }}</strong> 
+          inscritos en <strong>{{ asignatura_seleccionada.nombre }}</strong>.
+        </p>
+        {% if user_type == 'profesor' %}
+        <div class="alert alert-warning">
+          <i class="fas fa-exclamation-triangle me-1"></i>
+          Como profesor, solo puedes ver estudiantes de grupos donde tú eres el profesor responsable.
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    {% elif curso_seleccionado %}
+    <div class="card shadow-sm">
+      <div class="card-body text-center py-5">
+        <i class="fas fa-book fa-3x text-muted mb-3"></i>
+        <h5 class="text-muted mb-2">Selecciona una asignatura</h5>
+        <p class="text-muted">
+          Has seleccionado el curso <strong>{{ curso_seleccionado.get_nivel_display }}{{ curso_seleccionado.paralelo }}</strong>. 
+          Ahora elige una asignatura para mostrar los estudiantes.
+        </p>
+      </div>
+    </div>
+    {% else %}
+    <div class="card shadow-sm">
+      <div class="card-body text-center py-5">
+        <i class="fas fa-school fa-3x text-muted mb-3"></i>
+        <h5 class="text-muted mb-2">Selecciona un curso</h5>
+        <p class="text-muted">
+          {% if user_type == 'director' or user_type == 'administrador' %}
+            Elige un curso para ver las asignaturas disponibles y sus estudiantes.
+          {% else %}
+            Elige uno de tus cursos para ver las asignaturas que impartes.
+          {% endif %}
+        </p>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- JavaScript -->
+<script>
+function mostrarAsignarAsignaturas() {
+  const panel = document.getElementById('panelAsignarAsignaturas');
+  if (panel.style.display === 'none') {
+    panel.style.display = 'block';
+  } else {
+    panel.style.display = 'none';
+  }
+}
+
+function asignarTodasLasAsignaturas() {
+  const select = document.querySelector('select[name="asignaturas_ids"]');
+  for (let i = 0; i < select.options.length; i++) {
+    if (!select.options[i].disabled) {
+      select.options[i].selected = true;
+    }
+  }
+  
+  if (confirm('¿Deseas asignar TODAS las asignaturas disponibles a este curso?')) {
+    select.form.submit();
+  }
+}
+
+function copyEvaluationName() {
+  const generalName = document.getElementById('nombre_evaluacion_general').value;
+  const nameInputs = document.querySelectorAll('.nombre-evaluacion');
+  nameInputs.forEach(input => {
+    if (!input.value) {
+      input.value = generalName;
+    }
+  });
+}
+
+function copyDescription() {
+  const generalDesc = document.getElementById('descripcion_general').value;
+  const descInputs = document.querySelectorAll('.descripcion-evaluacion');
+  descInputs.forEach(input => {
+    if (!input.value) {
+      input.value = generalDesc;
+    }
+  });
+}
+
+function fillAllFields() {
+  const generalName = document.getElementById('nombre_evaluacion_general').value;
+  const generalDesc = document.getElementById('descripcion_general').value;
+  
+  if (!generalName) {
+    alert('Por favor, ingresa primero el nombre general de la evaluación.');
+    return;
+  }
+  
+  // Llenar nombres de evaluación
+  document.querySelectorAll('.nombre-evaluacion').forEach(input => {
+    input.value = generalName;
+  });
+  
+  // Llenar descripciones si hay una general
+  if (generalDesc) {
+    document.querySelectorAll('.descripcion-evaluacion').forEach(input => {
+      input.value = generalDesc;
+    });
+  }
+}
+
+function clearAllFields() {
+  if (confirm('¿Estás seguro de que quieres limpiar todos los campos?')) {
+    document.getElementById('nombre_evaluacion_general').value = '';
+    document.getElementById('descripcion_general').value = '';
+    
+    document.querySelectorAll('.nombre-evaluacion, .descripcion-evaluacion').forEach(input => {
+      input.value = '';
+    });
+    
+    document.querySelectorAll('input[type="number"], input[name*="detalle"]').forEach(input => {
+      input.value = '';
+    });
+  }
+}
+
+function fillSampleGrades() {
+  if (confirm('¿Deseas rellenar con datos de ejemplo? Esto sobrescribirá los campos actuales.')) {
+    // Rellenar campos generales
+    document.getElementById('nombre_evaluacion_general').value = 'Evaluación de Ejemplo';
+    document.getElementById('descripcion_general').value = 'Evaluación de prueba del sistema';
+    
+    // Llenar datos automáticamente
+    fillAllFields();
+    
+    // Rellenar puntajes de ejemplo (entre 4.0 y 7.0)
+    document.querySelectorAll('input[name*="puntaje_"]').forEach((input, index) => {
+      const randomGrade = (Math.random() * 3 + 4).toFixed(1); // Entre 4.0 y 7.0
+      input.value = randomGrade;
+    });
+    
+    // Rellenar porcentajes de ejemplo
+    document.querySelectorAll('input[name*="porcentaje_"]').forEach((input, index) => {
+      const puntaje = parseFloat(input.parentNode.parentNode.querySelector('input[name*="puntaje_"]').value);
+      const porcentaje = Math.round(((puntaje - 1) / 6) * 100); // Convertir a porcentaje
+      input.value = porcentaje;
+    });
+    
+    // Rellenar detalles de ejemplo
+    document.querySelectorAll('input[name*="detalle_"]').forEach((input, index) => {
+      const puntaje = parseFloat(input.parentNode.parentNode.querySelector('input[name*="puntaje_"]').value);
+      if (puntaje >= 6.0) {
+        input.value = 'Excelente';
+      } else if (puntaje >= 5.0) {
+        input.value = 'Muy bueno';
+      } else if (puntaje >= 4.0) {
+        input.value = 'Bueno';
+      } else {
+        input.value = 'Necesita mejorar';
+      }
+    });
+  }
+}
+
+// Validación en tiempo real
+document.addEventListener('DOMContentLoaded', function() {
+  // Validar puntajes
+  document.querySelectorAll('input[name*="puntaje_"]').forEach(input => {
+    input.addEventListener('blur', function() {
+      const value = parseFloat(this.value);
+      if (this.value && (value < 1.0 || value > 7.0)) {
+        this.classList.add('is-invalid');
+        if (!this.nextElementSibling || !this.nextElementSibling.classList.contains('invalid-feedback')) {
+          const feedback = document.createElement('div');
+          feedback.className = 'invalid-feedback';
+          feedback.textContent = 'El puntaje debe estar entre 1.0 y 7.0';
+          this.parentNode.appendChild(feedback);
+        }
+      } else {
+        this.classList.remove('is-invalid');
+        const feedback = this.parentNode.querySelector('.invalid-feedback');
+        if (feedback) feedback.remove();
+      }
+    });
+  });
+  
+  // Validar porcentajes
+  document.querySelectorAll('input[name*="porcentaje_"]').forEach(input => {
+    input.addEventListener('blur', function() {
+      const value = parseFloat(this.value);
+      if (this.value && (value < 0 || value > 100)) {
+        this.classList.add('is-invalid');
+        if (!this.nextElementSibling || !this.nextElementSibling.classList.contains('invalid-feedback')) {
+          const feedback = document.createElement('div');
+          feedback.className = 'invalid-feedback';
+          feedback.textContent = 'El porcentaje debe estar entre 0 y 100';
+          this.parentNode.appendChild(feedback);
+        }
+      } else {
+        this.classList.remove('is-invalid');
+        const feedback = this.parentNode.querySelector('.invalid-feedback');
+        if (feedback) feedback.remove();
+      }
+    });
+  });
+});
+</script>
+
+<style>
+.card {
+  border: 1px solid #dee2e6;
+}
+
+.table-hover tbody tr:hover {
+  background-color: #f8f9fa;
+}
+
+.fw-bold {
+  font-weight: 600;
+}
+
+.text-dark {
+  color: #212529 !important;
+}
+
+.form-control:focus {
+  border-color: #86b7fe;
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+.btn-group {
+  gap: 0.25rem;
+}
+</style>
+{% endblock %}

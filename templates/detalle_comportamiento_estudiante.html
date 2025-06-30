@@ -1,0 +1,374 @@
+{% extends "index_master.html" %}
+{% block content %}
+<div class="right_col" role="main">
+  <div class="container-fluid">
+    <h3><i class="fa fa-user-graduate"></i> Comportamiento de {{ estudiante.get_nombre_completo }}</h3>
+    
+    <!-- Información del estudiante -->
+    <div class="row mb-4">
+      <div class="col-md-12">
+        <div class="card">
+          <div class="card-body">
+            <div class="row align-items-center">
+              <div class="col-md-6">
+                <h5 class="mb-1">{{ estudiante.get_nombre_completo }}</h5>
+                <div class="text-muted">
+                  <span><i class="fa fa-id-card"></i> RUT: {{ estudiante.numero_documento }}</span>
+                  <span class="ms-3"><i class="fa fa-school"></i> Curso: {{ curso_actual }}</span>
+                  <span class="ms-3"><i class="fa fa-calendar"></i> Desde: {{ estudiante.fecha_ingreso|date:"d/m/Y" }}</span>
+                </div>
+              </div>
+              <div class="col-md-6 text-end">
+                <div class="d-flex justify-content-end align-items-center">
+                  <div class="me-3">
+                    <span class="badge" style="background-color: {{ stats.color }}; font-size: 1.2em; padding: 0.5em 1em;">
+                      {{ stats.puntaje_total }} pts
+                    </span>
+                    <div class="mt-1">
+                      <strong style="color: {{ stats.color }};">{{ stats.nivel }}</strong>
+                    </div>
+                  </div>
+                  <div>
+                    <a href="{% url 'libro_anotaciones' %}" class="btn btn-secondary">
+                      <i class="fa fa-arrow-left"></i> Volver
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Estadísticas del comportamiento -->
+    <div class="row mb-4">
+      <div class="col-md-3">
+        <div class="card text-center border-primary">
+          <div class="card-body">
+            <h5 class="card-title text-primary">{{ stats.total_anotaciones }}</h5>
+            <p class="card-text">Total Anotaciones</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card text-center border-success">
+          <div class="card-body">
+            <h5 class="card-title text-success">{{ stats.positivas }}</h5>
+            <p class="card-text">Positivas</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card text-center border-danger">
+          <div class="card-body">
+            <h5 class="card-title text-danger">{{ stats.negativas }}</h5>
+            <p class="card-text">Negativas</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card text-center border-warning">
+          <div class="card-body">
+            <h5 class="card-title text-warning">{{ stats.graves }}</h5>
+            <p class="card-text">Graves</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filtros por fecha -->
+    <div class="card mb-4">
+      <div class="card-header">
+        <h5><i class="fa fa-calendar"></i> Filtrar por Período</h5>
+      </div>
+      <div class="card-body">
+        <form method="get" class="row g-3">
+          <div class="col-md-4">
+            <label class="form-label fw-bold">Desde</label>
+            <input type="date" name="fecha_desde" class="form-control" value="{{ fecha_desde }}">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-bold">Hasta</label>
+            <input type="date" name="fecha_hasta" class="form-control" value="{{ fecha_hasta }}">
+          </div>
+          <div class="col-md-4 d-flex align-items-end">
+            <button type="submit" class="btn btn-primary me-2">
+              <i class="fa fa-filter"></i> Filtrar
+            </button>
+            <a href="{% url 'detalle_comportamiento_estudiante' estudiante.id %}" class="btn btn-secondary">
+              <i class="fa fa-refresh"></i> Limpiar
+            </a>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Gráfico de evolución (si hay datos) -->
+    {% if datos_grafico %}
+    <div class="card mb-4">
+      <div class="card-header">
+        <h5><i class="fa fa-chart-line"></i> Evolución del Comportamiento (Últimos 30 días)</h5>
+      </div>
+      <div class="card-body">
+        <canvas id="graficoComportamiento" style="max-height: 300px;"></canvas>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Lista de anotaciones -->
+    <div class="card">
+      <div class="card-header">
+        <h5><i class="fa fa-list"></i> Historial de Anotaciones ({{ anotaciones.paginator.count }} registros)</h5>
+      </div>
+      <div class="card-body">
+        {% if anotaciones %}
+        <div class="timeline">
+          {% for anotacion in anotaciones %}
+          <div class="timeline-item">
+            <div class="timeline-marker" style="background-color: {{ anotacion.color_tipo }};"></div>
+            <div class="timeline-content">
+              <div class="card border-left" style="border-left: 4px solid {{ anotacion.color_tipo }};">
+                <div class="card-body">
+                  <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div>
+                      <h6 class="mb-1">
+                        <i class="fa {{ anotacion.icono_tipo }}" style="color: {{ anotacion.color_tipo }};"></i>
+                        {{ anotacion.titulo }}
+                      </h6>
+                      <div class="text-muted small">
+                        <span><i class="fa fa-calendar"></i> {{ anotacion.fecha_creacion|date:"d/m/Y H:i" }}</span>
+                        <span class="ms-2"><i class="fa fa-user-tie"></i> {{ anotacion.profesor_autor.get_nombre_completo }}</span>
+                        {% if anotacion.asignatura %}
+                        <span class="ms-2"><i class="fa fa-book"></i> {{ anotacion.asignatura.nombre }}</span>
+                        {% endif %}
+                      </div>
+                    </div>
+                    
+                    <div class="text-end">
+                      <span class="badge" style="background-color: {{ anotacion.color_tipo }};">
+                        {% if anotacion.puntos > 0 %}+{% endif %}{{ anotacion.puntos }} pts
+                      </span>
+                      {% if anotacion.es_grave %}
+                      <br><span class="badge bg-warning mt-1">
+                        <i class="fa fa-exclamation-triangle"></i> Grave
+                      </span>
+                      {% endif %}
+                      {% if anotacion.requiere_atencion_apoderado %}
+                      <br><span class="badge bg-info mt-1">
+                        <i class="fa fa-phone"></i> Apoderado
+                      </span>
+                      {% endif %}
+                    </div>
+                  </div>
+
+                  <p class="mb-2">{{ anotacion.descripcion }}</p>
+                  
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                      <span class="badge bg-secondary">{{ anotacion.get_categoria_display }}</span>
+                      <span class="badge bg-light text-dark ms-1">{{ anotacion.get_tipo_display }}</span>
+                    </div>
+                    
+                    {% if user_type != 'alumno' %}
+                    <div>
+                      <small class="text-muted">
+                        {{ anotacion.fecha_para_humanos }}
+                      </small>
+                    </div>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+
+        <!-- Paginación -->
+        {% if anotaciones.has_other_pages %}
+        <nav aria-label="Paginación de anotaciones" class="mt-4">
+          <ul class="pagination justify-content-center">
+            {% if anotaciones.has_previous %}
+              <li class="page-item">
+                <a class="page-link" href="?page=1{% if fecha_desde %}&fecha_desde={{ fecha_desde }}{% endif %}{% if fecha_hasta %}&fecha_hasta={{ fecha_hasta }}{% endif %}">Primera</a>
+              </li>
+              <li class="page-item">
+                <a class="page-link" href="?page={{ anotaciones.previous_page_number }}{% if fecha_desde %}&fecha_desde={{ fecha_desde }}{% endif %}{% if fecha_hasta %}&fecha_hasta={{ fecha_hasta }}{% endif %}">Anterior</a>
+              </li>
+            {% endif %}
+
+            <li class="page-item active">
+              <span class="page-link">
+                Página {{ anotaciones.number }} de {{ anotaciones.paginator.num_pages }}
+              </span>
+            </li>
+
+            {% if anotaciones.has_next %}
+              <li class="page-item">
+                <a class="page-link" href="?page={{ anotaciones.next_page_number }}{% if fecha_desde %}&fecha_desde={{ fecha_desde }}{% endif %}{% if fecha_hasta %}&fecha_hasta={{ fecha_hasta }}{% endif %}">Siguiente</a>
+              </li>
+              <li class="page-item">
+                <a class="page-link" href="?page={{ anotaciones.paginator.num_pages }}{% if fecha_desde %}&fecha_desde={{ fecha_desde }}{% endif %}{% if fecha_hasta %}&fecha_hasta={{ fecha_hasta }}{% endif %}">Última</a>
+              </li>
+            {% endif %}
+          </ul>
+        </nav>
+        {% endif %}
+
+        {% else %}
+        <div class="text-center py-5">
+          <i class="fa fa-clipboard fa-3x text-muted mb-3"></i>
+          <h5>No hay anotaciones</h5>
+          <p class="text-muted">
+            {% if fecha_desde or fecha_hasta %}
+              No hay anotaciones en el período seleccionado.
+            {% else %}
+              Este estudiante no tiene anotaciones registradas.
+            {% endif %}
+          </p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if datos_grafico %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('graficoComportamiento').getContext('2d');
+    
+    // Preparar datos del gráfico
+    const datosGrafico = {{ datos_grafico|safe }};
+    const fechas = Object.keys(datosGrafico).sort();
+    const puntos = fechas.map(fecha => datosGrafico[fecha]);
+    
+    // Calcular puntos acumulativos
+    const puntosAcumulativos = [];
+    let acumulado = 0;
+    for (let i = 0; i < puntos.length; i++) {
+        acumulado += puntos[i];
+        puntosAcumulativos.push(acumulado);
+    }
+    
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: fechas.map(fecha => {
+                const d = new Date(fecha);
+                return d.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' });
+            }),
+            datasets: [{
+                label: 'Puntos Diarios',
+                data: puntos,
+                borderColor: '#0d6efd',
+                backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.3
+            }, {
+                label: 'Puntos Acumulados',
+                data: puntosAcumulativos,
+                borderColor: '#198754',
+                backgroundColor: 'rgba(25, 135, 84, 0.1)',
+                borderWidth: 2,
+                fill: false,
+                tension: 0.3
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                title: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(0,0,0,0.1)'
+                    }
+                },
+                x: {
+                    grid: {
+                        color: 'rgba(0,0,0,0.1)'
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
+{% endif %}
+
+<style>
+.card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+.card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+.border-left {
+    border-left-width: 4px !important;
+}
+
+.timeline {
+    position: relative;
+    padding-left: 30px;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 30px;
+}
+
+.timeline-item:before {
+    content: '';
+    position: absolute;
+    left: -22px;
+    top: 0;
+    bottom: -30px;
+    width: 2px;
+    background-color: #dee2e6;
+}
+
+.timeline-item:last-child:before {
+    bottom: 0;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -30px;
+    top: 10px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 3px solid #fff;
+    box-shadow: 0 0 0 1px #dee2e6;
+}
+
+.timeline-content {
+    margin-left: 20px;
+}
+
+.badge {
+    font-size: 0.75em;
+}
+
+.border-primary { border-color: #0d6efd !important; }
+.border-success { border-color: #198754 !important; }
+.border-danger { border-color: #dc3545 !important; }
+.border-warning { border-color: #ffc107 !important; }
+</style>
+{% endblock %}

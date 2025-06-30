@@ -1,0 +1,78 @@
+<!-- filepath: c:\Users\Danie\Desktop\Proyecto_Titulo\sma\templates\ver_horario_curso.html -->
+{% extends "index_master.html" %}
+{% block content %}
+<div class="right_col" role="main">
+  <div class="container-fluid">
+    <h2>Horario de Curso</h2>
+    {% if es_director %}
+      <form method="post" class="mb-4">
+        {% csrf_token %}
+        <div class="row">
+          <div class="col-md-6">
+            <label for="curso_id"><strong>Selecciona un curso:</strong></label>
+            <select name="curso_id" id="curso_id" class="form-control" required>
+              <option value="">-- Selecciona --</option>
+              {% for curso in cursos %}
+                <option value="{{ curso.id }}" {% if curso_seleccionado and curso.id == curso_seleccionado.id %}selected{% endif %}>
+                  {{ curso.nombre }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-2 align-self-end">
+            <button type="submit" class="btn btn-primary">Ver Horario</button>
+          </div>
+        </div>
+      </form>
+      {% if curso_seleccionado %}
+        <h3>Horario para: {{ curso_seleccionado.nombre }}</h3>
+      {% endif %}
+    {% elif es_profesor %}
+      <h3>Mi Horario</h3>
+    {% endif %}
+
+    {% if horarios %}
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th>Día</th>
+            <th>Hora Inicio</th>
+            <th>Hora Fin</th>
+            <th>Asignatura</th>
+            <th>Curso</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for horario in horarios %}
+          <tr>
+            <td>{{ horario.get_dia_display }}</td>
+            <td>{{ horario.hora_inicio|time:"H:i" }}</td>
+            <td>{{ horario.hora_fin|time:"H:i" }}</td>
+            <td>
+              {% if horario.asignatura %}
+                {{ horario.asignatura.nombre }}
+              {% else %}
+                Sin asignatura
+              {% endif %}
+            </td>
+            <td>
+              {% if horario.curso %}
+                {{ horario.curso.nombre }}
+              {% else %}
+                Sin curso
+              {% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="5" class="text-center">No hay horarios registrados.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% elif es_director and not curso_seleccionado %}
+      <div class="alert alert-info">Seleccione un curso para ver su horario.</div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
