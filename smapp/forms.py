@@ -965,6 +965,11 @@ class AnotacionForm(forms.ModelForm):
         from django.utils import timezone
         anio_actual = timezone.now().year
         
+        # Configurar estudiantes: inicialmente todos para permitir selección vía AJAX
+        # La validación real se hará en el método clean()
+        self.fields['estudiante'].queryset = Estudiante.objects.all().order_by('primer_nombre', 'apellido_paterno')
+        self.fields['estudiante'].empty_label = "Seleccionar estudiante..."
+        
         # Filtrar cursos según el tipo de usuario
         if profesor:
             # Profesor: solo sus cursos donde es jefe o tiene asignaturas
@@ -982,16 +987,6 @@ class AnotacionForm(forms.ModelForm):
                     anio=anio_actual
                 ).distinct()
                 cursos_ids.update(cursos_asignaturas.values_list('id', flat=True))
-            except:
-                pass
-            
-            try:
-                # Intentar usar la relación legacy si existe
-                cursos_legacy = Curso.objects.filter(
-                    asignaturas__profesor_responsable=profesor,
-                    anio=anio_actual
-                ).distinct()
-                cursos_ids.update(cursos_legacy.values_list('id', flat=True))
             except:
                 pass
             
@@ -1042,9 +1037,6 @@ class AnotacionForm(forms.ModelForm):
             
             self.fields['curso'].queryset = cursos_con_estudiantes
             self.fields['asignatura'].queryset = Asignatura.objects.all().order_by('nombre')
-        
-        # Hacer que el campo estudiante se filtre dinámicamente por AJAX
-        self.fields['estudiante'].queryset = Estudiante.objects.none()
         
         # Si estamos editando una anotación existente, configurar los campos
         if self.instance.pk:  # Editando anotación existente
