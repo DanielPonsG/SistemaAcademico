@@ -648,9 +648,106 @@ def calendario(request):
 @login_required
 def inicio(request):
     """Vista del panel de inicio personalizado por tipo de usuario"""
+    from django.utils import timezone
+    from django.db.models import Avg, Count
+    
     context = {
         'user': request.user,
     }
+    
+    # Datos específicos según el tipo de usuario
+    if hasattr(request.user, 'perfil'):
+        user_type = request.user.perfil.tipo_usuario
+        
+        if user_type == 'alumno':
+            try:
+                estudiante = request.user.estudiante
+                anio_actual = timezone.now().year
+                
+                # Información del curso actual
+                curso_actual = estudiante.cursos.filter(anio=anio_actual).first()
+                
+                # Asignaturas del estudiante
+                asignaturas = []
+                if curso_actual:
+                    asignaturas = curso_actual.asignaturas.all()
+                
+                # Estadísticas de notas
+                from .models import Calificacion, Inscripcion
+                inscripciones = Inscripcion.objects.filter(estudiante=estudiante)
+                calificaciones = Calificacion.objects.filter(inscripcion__in=inscripciones)
+                
+                promedio_general = calificaciones.aggregate(Avg('nota'))['nota__avg']
+                total_notas = calificaciones.count()
+                
+                # Estadísticas de asistencia
+                from .models import AsistenciaAlumno
+                asistencias = AsistenciaAlumno.objects.filter(estudiante=estudiante)
+                total_asistencias = asistencias.count()
+                presentes = asistencias.filter(presente=True).count()
+                porcentaje_asistencia = (presentes / total_asistencias * 100) if total_asistencias > 0 else 0
+                
+                # Anotaciones recientes
+                from .models import Anotacion
+                anotaciones_recientes = Anotacion.objects.filter(
+                    estudiante=estudiante
+                ).order_by('-fecha_creacion')[:5]
+                
+                # Próximos horarios (próximos 3 días)
+                from datetime import datetime, timedelta
+                from .models import HorarioCurso
+                hoy = timezone.now().date()
+                proximos_horarios = []
+                if curso_actual:
+                    for i in range(3):  # Próximos 3 días
+                        fecha = hoy + timedelta(days=i)
+                        dia_semana = fecha.weekday()  # 0=Lunes, 6=Domingo
+                        horarios_dia = HorarioCurso.objects.filter(
+                            curso=curso_actual,
+                            dia=dia_semana + 1  # El modelo usa 1=Lunes
+                        ).order_by('hora_inicio')
+                        
+                        if horarios_dia.exists():
+                            proximos_horarios.append({
+                                'fecha': fecha,
+                                'dia_nombre': ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'][dia_semana],
+                                'horarios': horarios_dia
+                            })
+                
+                context.update({
+                    'estudiante': estudiante,
+                    'curso_actual': curso_actual,
+                    'asignaturas': asignaturas,
+                    'promedio_general': round(promedio_general, 2) if promedio_general else None,
+                    'total_notas': total_notas,
+                    'total_asistencias': total_asistencias,
+                    'presentes': presentes,
+                    'porcentaje_asistencia': round(porcentaje_asistencia, 1),
+                    'anotaciones_recientes': anotaciones_recientes,
+                    'proximos_horarios': proximos_horarios[:3],  # Solo 3 días
+                })
+                
+            except Exception as e:
+                context['error_estudiante'] = f"Error al cargar datos del estudiante: {str(e)}"
+                
+        elif user_type == 'profesor':
+            try:
+                profesor = request.user.profesor
+                anio_actual = timezone.now().year
+                
+                # Cursos asignados
+                cursos_jefe = profesor.cursos_jefatura.filter(anio=anio_actual)
+                cursos_asignaturas = profesor.asignaturas_responsable.all()
+                
+                context.update({
+                    'profesor': profesor,
+                    'cursos_jefe': cursos_jefe,
+                    'cursos_asignaturas': cursos_asignaturas,
+                })
+                
+            except Exception as e:
+                context['error_profesor'] = f"Error al cargar datos del profesor: {str(e)}"
+    
     return render(request, 'inicio.html', context)
 
 def login_view(request):

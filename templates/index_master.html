@@ -307,146 +307,151 @@
 
             <!-- sidebar menu -->
             <div id="sidebar-menu" class="main_menu_side hidden-print main_menu">
-              {% if user.is_authenticated and user.perfil.tipo_usuario == 'estudiante' %}
+              {% if user.is_authenticated and user.perfil.tipo_usuario == 'alumno' %}
                 <!-- MENÚ PARA ESTUDIANTES -->
                 <div class="menu_section">
-                  <h3><i class="fas fa-tachometer-alt"></i> PANEL PRINCIPAL</h3>
+                  <h3><i class="fas fa-home"></i> MI PANEL</h3>
                   <ul class="nav side-menu">
                     <li style="--delay: 1">
-                      <a href="{% url 'inicio' %}"><i class="fas fa-home"></i> Panel de Inicio</a>
+                      <a href="{% url 'inicio' %}"><i class="fas fa-tachometer-alt"></i> Panel de Estudiante</a>
                     </li>
                   </ul>
                 </div>
+                
                 <div class="menu_section">
-                  <h3><i class="fas fa-calendar-alt"></i> CALENDARIO ACADÉMICO</h3>
+                  <h3><i class="fas fa-calendar-alt"></i> CALENDARIO Y HORARIOS</h3>
                   <ul class="nav side-menu">
                     <li style="--delay: 2">
-                      <a href="{% url 'calendario' %}"><i class="fas fa-calendar-check"></i> Ver Calendario</a>
+                      <a href="{% url 'calendario' %}"><i class="fas fa-calendar-check"></i> Calendario Académico</a>
+                    </li>
+                    <li style="--delay: 3">
+                      <a href="{% url 'mis_horarios' %}"><i class="fas fa-clock"></i> Mi Horario de Clases</a>
                     </li>
                   </ul>
                 </div>
+                
+                <div class="menu_section">
+                  <h3><i class="fas fa-graduation-cap"></i> MI CURSO Y COMPAÑEROS</h3>
+                  <ul class="nav side-menu">
+                    <li style="--delay: 4">
+                      <a href="{% url 'mi_curso' %}"><i class="fas fa-chalkboard"></i> Información de mi Curso</a>
+                    </li>
+                    <li style="--delay: 5">
+                      <a href="{% url 'mi_curso' %}"><i class="fas fa-user-friends"></i> Mis Compañeros de Clase</a>
+                    </li>
+                  </ul>
+                </div>
+                
                 <div class="menu_section">
                   <h3><i class="fas fa-book-open"></i> MIS ASIGNATURAS</h3>
                   <ul class="nav side-menu">
-                    <li style="--delay: 3">
-                      <a href="{% url 'listar_asignaturas' %}"><i class="fas fa-book-reader"></i> Mis Materias</a>
-                    </li>
-                  </ul>
-                </div>
-                <div class="menu_section">
-                  <h3><i class="fas fa-clock"></i> HORARIOS</h3>
-                  <ul class="nav side-menu">
-                    <li style="--delay: 4">
-                      <a href="{% url 'mis_horarios' %}"><i class="fas fa-calendar-week"></i> Mi Horario de Clases</a>
-                    </li>
-                  </ul>
-                </div>
-                <div class="menu_section">
-                  <h3><i class="fas fa-chart-line"></i> MIS NOTAS</h3>
-                  <ul class="nav side-menu">
-                    <li style="--delay: 5">
-                      <a href="{% url 'ver_notas_curso' %}"><i class="fas fa-star"></i> Ver mis Calificaciones</a>
-                    </li>
-                  </ul>
-                </div>
-                <div class="menu_section">
-                  <h3><i class="fas fa-user-check"></i> MI ASISTENCIA</h3>
-                  <ul class="nav side-menu">
                     <li style="--delay: 6">
-                      <a href="{% url 'ver_asistencia_alumno' %}"><i class="fas fa-clipboard-list"></i> Ver mi Asistencia</a>
+                      <a href="{% url 'listar_asignaturas' %}"><i class="fas fa-book-reader"></i> Ver mis Materias</a>
                     </li>
                   </ul>
                 </div>
+                
                 <div class="menu_section">
-                  <h3><i class="fas fa-users"></i> MI CURSO</h3>
+                  <h3><i class="fas fa-chart-line"></i> MIS CALIFICACIONES</h3>
                   <ul class="nav side-menu">
                     <li style="--delay: 7">
-                      <a href="{% url 'mi_curso' %}"><i class="fas fa-user-friends"></i> Compañeros de Clase</a>
+                      <a href="{% url 'ver_notas_curso' %}"><i class="fas fa-star"></i> Ver mis Notas</a>
+                    </li>
+                    <li style="--delay: 8">
+                      <a href="{% url 'ver_notas_curso' %}"><i class="fas fa-calculator"></i> Mi Promedio General</a>
                     </li>
                   </ul>
                 </div>
+                
                 <div class="menu_section">
-                  <h3><i class="fas fa-book"></i> MIS ANOTACIONES</h3>
+                  <h3><i class="fas fa-clipboard-check"></i> MI ASISTENCIA</h3>
                   <ul class="nav side-menu">
-                    <li style="--delay: 8">
-                      <a href="{% url 'libro_anotaciones' %}"><i class="fas fa-book-open"></i> Ver Mis Anotaciones</a>
+                    <li style="--delay: 9">
+                      <a href="{% url 'ver_asistencia_alumno' %}"><i class="fas fa-user-check"></i> Ver mi Asistencia</a>
+                    </li>
+                  </ul>
+                </div>
+                
+                <div class="menu_section">
+                  <h3><i class="fas fa-clipboard-list"></i> MIS ANOTACIONES</h3>
+                  <ul class="nav side-menu">
+                    <li style="--delay: 10">
+                      <a href="{% url 'libro_anotaciones' %}"><i class="fas fa-book"></i> Ver mis Anotaciones</a>
+                    </li>
+                    <li style="--delay: 11">
+                      <a href="{% url 'detalle_comportamiento_estudiante' estudiante_id=user.estudiante.id %}"><i class="fas fa-medal"></i> Mi Registro de Comportamiento</a>
                     </li>
                   </ul>
                 </div>
               {% elif user.is_authenticated and user.perfil.tipo_usuario == 'profesor' %}
                 <!-- MENÚ PARA PROFESORES -->
                 <div class="menu_section">
-                  <h3><i class="fas fa-tachometer-alt"></i> PANEL DE CONTROL</h3>
+                  <h3><i class="fas fa-home"></i> INICIO</h3>
                   <ul class="nav side-menu">
                     <li style="--delay: 1">
-                      <a href="{% url 'inicio' %}"><i class="fas fa-dashboard"></i> Panel Principal</a>
+                      <a href="{% url 'inicio' %}"><i class="fas fa-dashboard"></i> Panel Docente</a>
                     </li>
                   </ul>
                 </div>
+                
                 <div class="menu_section">
-                  <h3><i class="fas fa-calendar-alt"></i> GESTIÓN DE CALENDARIO</h3>
+                  <h3><i class="fas fa-calendar-alt"></i> CALENDARIO Y HORARIOS</h3>
                   <ul class="nav side-menu">
                     <li style="--delay: 2">
-                      <a href="{% url 'calendario' %}"><i class="fas fa-calendar-check"></i> Ver Calendario</a>
+                      <a href="{% url 'calendario' %}"><i class="fas fa-calendar-check"></i> Calendario Académico</a>
                     </li>
                     <li style="--delay: 3">
-                      <a href="{% url 'agregar_evento' %}"><i class="fas fa-calendar-plus"></i> Agregar Evento</a>
+                      <a href="{% url 'agregar_evento' %}"><i class="fas fa-calendar-plus"></i> Crear Evento</a>
                     </li>
-                  </ul>
-                </div>
-                <div class="menu_section">
-                  <h3><i class="fas fa-chalkboard"></i> MIS CURSOS</h3>
-                  <ul class="nav side-menu">
-                    <li style="--delay: 3">
-                      <a href="{% url 'listar_cursos' %}"><i class="fas fa-chalkboard-teacher"></i> Cursos Asignados</a>
-                    </li>
-                  </ul>
-                </div>
-                <div class="menu_section">
-                  <h3><i class="fas fa-book-open"></i> ASIGNATURAS</h3>
-                  <ul class="nav side-menu">
                     <li style="--delay: 4">
-                      <a href="{% url 'listar_asignaturas' %}"><i class="fas fa-books"></i> Mis Materias</a>
-                    </li>
-                  </ul>
-                </div>
-                <div class="menu_section">
-                  <h3><i class="fas fa-calendar-week"></i> HORARIOS</h3>
-                  <ul class="nav side-menu">
-                    <li style="--delay: 5">
                       <a href="{% url 'mis_horarios' %}"><i class="fas fa-clock"></i> Mi Horario</a>
                     </li>
                   </ul>
                 </div>
+                
                 <div class="menu_section">
-                  <h3><i class="fas fa-star"></i> CALIFICACIONES</h3>
+                  <h3><i class="fas fa-chalkboard-teacher"></i> MIS CURSOS</h3>
                   <ul class="nav side-menu">
-                    <li style="--delay: 6">
-                      <a href="{% url 'ingresar_notas' %}"><i class="fas fa-edit"></i> Ingresar Notas</a>
+                    <li style="--delay: 5">
+                      <a href="{% url 'listar_cursos' %}"><i class="fas fa-users"></i> Cursos Asignados</a>
                     </li>
-                    <li style="--delay: 7">
-                      <a href="{% url 'ver_notas_curso' %}"><i class="fas fa-chart-bar"></i> Ver Calificaciones</a>
+                    <li style="--delay: 6">
+                      <a href="{% url 'listar_asignaturas' %}"><i class="fas fa-book-open"></i> Mis Asignaturas</a>
                     </li>
                   </ul>
                 </div>
+                
                 <div class="menu_section">
-                  <h3><i class="fas fa-user-check"></i> ASISTENCIA</h3>
+                  <h3><i class="fas fa-star"></i> GESTIÓN DE NOTAS</h3>
                   <ul class="nav side-menu">
+                    <li style="--delay: 7">
+                      <a href="{% url 'ingresar_notas' %}"><i class="fas fa-edit"></i> Ingresar Calificaciones</a>
+                    </li>
                     <li style="--delay: 8">
+                      <a href="{% url 'ver_notas_curso' %}"><i class="fas fa-chart-bar"></i> Ver Notas del Curso</a>
+                    </li>
+                  </ul>
+                </div>
+                
+                <div class="menu_section">
+                  <h3><i class="fas fa-user-check"></i> CONTROL DE ASISTENCIA</h3>
+                  <ul class="nav side-menu">
+                    <li style="--delay: 9">
                       <a href="{% url 'registrar_asistencia_alumno' %}"><i class="fas fa-clipboard-check"></i> Tomar Asistencia</a>
                     </li>
-                    <li style="--delay: 9">
+                    <li style="--delay: 10">
                       <a href="{% url 'ver_asistencia_alumno' %}"><i class="fas fa-chart-line"></i> Reportes de Asistencia</a>
                     </li>
                   </ul>
                 </div>
+                
                 <div class="menu_section">
-                  <h3><i class="fas fa-book"></i> LIBRO DE ANOTACIONES</h3>
+                  <h3><i class="fas fa-book"></i> ANOTACIONES</h3>
                   <ul class="nav side-menu">
-                    <li style="--delay: 10">
-                      <a href="{% url 'libro_anotaciones' %}"><i class="fas fa-book-open"></i> Ver Anotaciones</a>
-                    </li>
                     <li style="--delay: 11">
+                      <a href="{% url 'libro_anotaciones' %}"><i class="fas fa-book-open"></i> Libro de Anotaciones</a>
+                    </li>
+                    <li style="--delay: 12">
                       <a href="{% url 'crear_anotacion' %}"><i class="fas fa-pen"></i> Nueva Anotación</a>
                     </li>
                   </ul>
