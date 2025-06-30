@@ -1093,37 +1093,89 @@ class AsistenciaAlumnoForm(forms.ModelForm):
 class AsistenciaProfesorForm(forms.ModelForm):
     class Meta:
         model = AsistenciaProfesor
-        fields = ['profesor', 'asignatura', 'fecha', 'presente', 'observacion']
+        fields = ['profesor', 'asignatura', 'curso', 'fecha', 'presente', 'observacion', 'justificacion', 'hora_registro']
         widgets = {
             'profesor': forms.Select(attrs={
                 'class': 'form-select',
                 'required': True
             }),
             'asignatura': forms.Select(attrs={
-                'class': 'form-select',
-                'required': True
+                'class': 'form-select'
+            }),
+            'curso': forms.Select(attrs={
+                'class': 'form-select'
             }),
             'fecha': forms.DateInput(attrs={
                 'class': 'form-control',
                 'type': 'date',
-                'required': True
+                'required': True,
+                'value': timezone.now().date()
+            }),
+            'hora_registro': forms.TimeInput(attrs={
+                'class': 'form-control',
+                'type': 'time',
+                'value': timezone.now().time().strftime('%H:%M')
             }),
             'presente': forms.CheckboxInput(attrs={
-                'class': 'form-check-input'
+                'class': 'form-check-input',
+                'checked': True
             }),
             'observacion': forms.Textarea(attrs={
                 'class': 'form-control',
                 'rows': 3,
-                'placeholder': 'Observaciones o justificación de ausencia...'
+                'placeholder': 'Observaciones generales...'
+            }),
+            'justificacion': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': 'Justificación en caso de ausencia...'
             }),
         }
         labels = {
             'profesor': 'Profesor',
-            'asignatura': 'Asignatura',
+            'asignatura': 'Asignatura (Opcional)',
+            'curso': 'Curso (Opcional)',
             'fecha': 'Fecha',
+            'hora_registro': 'Hora de Registro',
             'presente': 'Presente',
-            'observacion': 'Observación/Justificación'
+            'observacion': 'Observación',
+            'justificacion': 'Justificación'
         }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        # Configurar querysets ordenados
+        self.fields['profesor'].queryset = Profesor.objects.all().order_by('primer_nombre', 'apellido_paterno')
+        self.fields['asignatura'].queryset = Asignatura.objects.all().order_by('nombre')
+        self.fields['curso'].queryset = Curso.objects.filter(anio=timezone.now().year).order_by('nivel', 'paralelo')
+        
+        # Hacer campos opcionales
+        self.fields['asignatura'].required = False
+        self.fields['curso'].required = False
+        self.fields['observacion'].required = False
+        self.fields['justificacion'].required = False
+        
+        # Configurar valores por defecto
+        if not self.instance.pk:  # Solo para nuevos registros
+            self.fields['fecha'].initial = timezone.now().date()
+            self.fields['hora_registro'].initial = timezone.now().time()
+            self.fields['presente'].initial = True
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        presente = cleaned_data.get('presente')
+        justificacion = cleaned_data.get('justificacion')
+        
+        # Si no está presente, la justificación debe ser proporcionada
+        if not presente and not justificacion:
+            raise forms.ValidationError('Se requiere justificación para registrar una ausencia.')
+        
+        # Si está presente, limpiar la justificación
+        if presente:
+            cleaned_data['justificacion'] = ''
+        
+        return cleaned_data
 
 class AnotacionForm(forms.ModelForm):
     """Formulario para crear y editar anotaciones del libro de comportamiento"""

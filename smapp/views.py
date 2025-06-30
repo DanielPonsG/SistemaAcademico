@@ -1945,15 +1945,73 @@ def ver_asistencia_alumno(request):
 
 @login_required
 def registrar_asistencia_profesor(request):
-    """Vista para registrar asistencia de profesores"""
-    context = {'user': request.user}
+    """Vista para mostrar que la funcionalidad está en implementación futura"""
+    from django.contrib import messages
+    
+    # Verificar permisos
+    user_type = None
+    if hasattr(request.user, 'perfil'):
+        user_type = request.user.perfil.tipo_usuario
+        if user_type not in ['director', 'administrador', 'profesor']:
+            messages.error(request, 'No tienes permisos para acceder a esta sección.')
+            return redirect('inicio')
+    else:
+        messages.error(request, 'Usuario sin perfil definido.')
+        return redirect('inicio')
+    
+    # Mostrar mensaje informativo
+    messages.info(request, 'La funcionalidad de registro de asistencia de profesores estará disponible en una futura actualización.')
+    
+    context = {
+        'titulo': 'Asistencia de Profesores - Implementación Futura',
+        'user': request.user,
+        'implementacion_futura': True
+    }
     return render(request, 'registrar_asistencia_profesor.html', context)
 
 @login_required
 def ver_asistencia_profesor(request):
-    """Vista para ver asistencia de profesores"""
-    context = {'user': request.user}
+    """Vista para mostrar que la funcionalidad de visualización está en implementación futura"""
+    from django.contrib import messages
+    
+    # Verificar permisos
+    user_type = None
+    if hasattr(request.user, 'perfil'):
+        user_type = request.user.perfil.tipo_usuario
+        if user_type not in ['director', 'administrador', 'profesor']:
+            messages.error(request, 'No tienes permisos para acceder a esta sección.')
+            return redirect('inicio')
+    else:
+        messages.error(request, 'Usuario sin perfil definido.')
+        return redirect('inicio')
+    
+    # Mostrar mensaje informativo
+    messages.info(request, 'La visualización de asistencia de profesores estará disponible en una futura actualización.')
+    
+    context = {
+        'titulo': 'Ver Asistencia de Profesores - Implementación Futura',
+        'user': request.user,
+        'implementacion_futura': True,
+        'total_asistencias': 0,
+        'total_presentes': 0,
+        'total_ausentes': 0,
+        'porcentaje_asistencia': 0,
+        'asistencias': [],
+        'page_obj': None
+    }
+    
     return render(request, 'ver_asistencia_profesor.html', context)
+    
+    return render(request, 'ver_asistencia_profesor.html', context)
+
+# Función de editar asistencia de profesores deshabilitada - Implementación futura
+"""
+@login_required
+def editar_asistencia_profesor(request, asistencia_id):
+    # Vista para editar un registro individual de asistencia de profesor
+    # Implementación futura
+    pass
+"""
 
 @login_required
 def seleccionar_curso_horarios(request):

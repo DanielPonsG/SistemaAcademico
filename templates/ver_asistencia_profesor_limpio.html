@@ -1,0 +1,279 @@
+{% extends "index_master.html" %}
+{% block content %}
+<div class="right_col" role="main">
+  <div class="container-fluid">
+    <h3><i class="fa fa-chart-column"></i> Reportes de Asistencia - Profesores</h3>
+    
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
+
+    <!-- Estadísticas -->
+    <div class="row mb-4">
+      <div class="col-md-3">
+        <div class="card text-center border-primary">
+          <div class="card-body">
+            <h5 class="card-title text-primary">{{ total_asistencias }}</h5>
+            <p class="card-text">Total Registros</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card text-center border-success">
+          <div class="card-body">
+            <h5 class="card-title text-success">{{ total_presentes }}</h5>
+            <p class="card-text">Presentes</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card text-center border-danger">
+          <div class="card-body">
+            <h5 class="card-title text-danger">{{ total_ausentes }}</h5>
+            <p class="card-text">Ausentes</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card text-center border-info">
+          <div class="card-body">
+            <h5 class="card-title text-info">{{ porcentaje_asistencia }}%</h5>
+            <p class="card-text">% Asistencia</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="card mb-4">
+      <div class="card-header">
+        <h5><i class="fa fa-filter"></i> Filtros</h5>
+      </div>
+      <div class="card-body">
+        <form method="get" class="row g-3">
+          <div class="col-md-3">
+            <label class="form-label">Profesor</label>
+            <select name="profesor" class="form-control">
+              <option value="">Todos los profesores</option>
+              {% for profesor in profesores %}
+                <option value="{{ profesor.id }}" 
+                  {% if request.GET.profesor == profesor.id|stringformat:"s" %}selected{% endif %}>
+                  {{ profesor.get_nombre_completo }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-2">
+            <label class="form-label">Fecha Desde</label>
+            <input type="date" name="fecha_desde" class="form-control" 
+                   value="{{ request.GET.fecha_desde }}">
+          </div>
+          <div class="col-md-2">
+            <label class="form-label">Fecha Hasta</label>
+            <input type="date" name="fecha_hasta" class="form-control" 
+                   value="{{ request.GET.fecha_hasta }}">
+          </div>
+          <div class="col-md-2">
+            <label class="form-label">Estado</label>
+            <select name="presente" class="form-control">
+              <option value="">Todos</option>
+              <option value="true" {% if request.GET.presente == "true" %}selected{% endif %}>
+                Presentes
+              </option>
+              <option value="false" {% if request.GET.presente == "false" %}selected{% endif %}>
+                Ausentes
+              </option>
+            </select>
+          </div>
+          <div class="col-md-3 d-flex align-items-end">
+            <button type="submit" class="btn btn-primary me-2">
+              <i class="fa fa-search"></i> Filtrar
+            </button>
+            <a href="{% url 'ver_asistencia_profesor' %}" class="btn btn-secondary">
+              <i class="fa fa-refresh"></i> Limpiar
+            </a>
+            <a href="{% url 'registrar_asistencia_profesor' %}" class="btn btn-success">
+              <i class="fa fa-plus"></i> Nuevo
+            </a>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Tabla de asistencias -->
+    <div class="card">
+      <div class="card-header">
+        <h5><i class="fa fa-list"></i> Registros de Asistencia</h5>
+      </div>
+      <div class="card-body">
+        {% if asistencias %}
+          <div class="table-responsive">
+            <table class="table table-striped table-hover">
+              <thead class="table-dark">
+                <tr>
+                  <th>Fecha</th>
+                  <th>Hora</th>
+                  <th>Profesor</th>
+                  <th>Asignatura</th>
+                  <th>Curso</th>
+                  <th>Estado</th>
+                  <th>Observación</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for asistencia in asistencias %}
+                <tr class="{% if asistencia.presente %}table-success{% else %}table-warning{% endif %}">
+                  <td>
+                    <strong>{{ asistencia.fecha|date:"d/m/Y" }}</strong>
+                  </td>
+                  <td>
+                    {{ asistencia.hora_registro|time:"H:i" }}
+                  </td>
+                  <td>
+                    <strong>{{ asistencia.profesor.get_nombre_completo }}</strong>
+                    {% if asistencia.profesor.especialidad %}
+                      <br><small class="text-muted">{{ asistencia.profesor.especialidad }}</small>
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if asistencia.asignatura %}
+                      <span class="badge bg-primary">{{ asistencia.asignatura.nombre }}</span>
+                    {% else %}
+                      <span class="text-muted"><em>General</em></span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if asistencia.curso %}
+                      <span class="badge bg-info">{{ asistencia.curso }}</span>
+                    {% else %}
+                      <span class="text-muted"><em>N/A</em></span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if asistencia.presente %}
+                      <span class="badge bg-success">
+                        <i class="fa fa-check"></i> Presente
+                      </span>
+                    {% else %}
+                      <span class="badge bg-danger">
+                        <i class="fa fa-times"></i> Ausente
+                      </span>
+                      {% if asistencia.justificacion %}
+                        <br><small class="text-muted">{{ asistencia.justificacion|truncatechars:50 }}</small>
+                      {% endif %}
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if asistencia.observacion %}
+                      {{ asistencia.observacion|truncatechars:50 }}
+                    {% else %}
+                      <span class="text-muted"><em>Sin observaciones</em></span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    <div class="btn-group btn-group-sm" role="group">
+                      <span class="badge bg-secondary">
+                        <i class="fa fa-clock me-1"></i>Implementación futura
+                      </span>
+                    </div>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Paginación -->
+          {% if is_paginated %}
+          <nav aria-label="Navegación de páginas">
+            <ul class="pagination justify-content-center">
+              {% if page_obj.has_previous %}
+                <li class="page-item">
+                  <a class="page-link" href="?{{ request.GET.urlencode }}&page={{ page_obj.previous_page_number }}">
+                    Anterior
+                  </a>
+                </li>
+              {% endif %}
+              
+              <li class="page-item active">
+                <span class="page-link">
+                  Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+                </span>
+              </li>
+              
+              {% if page_obj.has_next %}
+                <li class="page-item">
+                  <a class="page-link" href="?{{ request.GET.urlencode }}&page={{ page_obj.next_page_number }}">
+                    Siguiente
+                  </a>
+                </li>
+              {% endif %}
+            </ul>
+          </nav>
+          {% endif %}
+
+        {% else %}
+          <div class="alert alert-info text-center">
+            <i class="fa fa-info-circle fa-2x mb-3"></i>
+            <h5>No hay registros de asistencia</h5>
+            <p class="mb-3">No se encontraron registros con los filtros aplicados.</p>
+            <a href="{% url 'registrar_asistencia_profesor' %}" class="btn btn-success">
+              <i class="fa fa-plus"></i> Registrar Primera Asistencia
+            </a>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Información adicional -->
+    <div class="row mt-4">
+      <div class="col-md-12">
+        <div class="alert alert-info">
+          <h6><i class="fa fa-info-circle"></i> Información del Sistema</h6>
+          <ul class="mb-0">
+            <li><strong>Registros totales:</strong> {{ total_asistencias }}</li>
+            <li><strong>Porcentaje de asistencia:</strong> {{ porcentaje_asistencia }}%</li>
+            <li><strong>Funcionalidad de edición:</strong> En desarrollo (próxima actualización)</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<style>
+.table-success {
+    background-color: #d1edff !important;
+}
+
+.table-warning {
+    background-color: #fff3cd !important;
+}
+
+.badge {
+    font-size: 0.85em;
+}
+
+.card {
+    border: 1px solid rgba(0,0,0,.125);
+    box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,.075);
+}
+
+.card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid rgba(0,0,0,.125);
+}
+
+.btn-group-sm > .btn, .btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+</style>
+{% endblock %}

@@ -433,17 +433,26 @@ class AsistenciaAlumno(models.Model):
         return self.estudiante.numero_documento
 
 class AsistenciaProfesor(models.Model):
-    profesor = models.ForeignKey(Profesor, on_delete=models.CASCADE)
-    asignatura = models.ForeignKey(Asignatura, on_delete=models.CASCADE, null=True, blank=True)  # <--- Cambia aquí
+    profesor = models.ForeignKey(Profesor, on_delete=models.CASCADE, related_name='asistencias')
+    asignatura = models.ForeignKey(Asignatura, on_delete=models.CASCADE, related_name='asistencias_profesores', null=True, blank=True)
+    curso = models.ForeignKey(Curso, on_delete=models.CASCADE, related_name='asistencias_profesores', null=True, blank=True)
     fecha = models.DateField(default=timezone.now)
     presente = models.BooleanField(default=True)
     observacion = models.CharField(max_length=255, blank=True, null=True)
+    justificacion = models.TextField(blank=True, null=True, help_text='Justificación en caso de ausencia')
+    
+    # Campos de registro
+    hora_registro = models.TimeField(default=timezone.now)
+    registrado_por_usuario = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='asistencias_profesores_registradas')
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_modificacion = models.DateTimeField(auto_now=True)
 
     class Meta:
-        unique_together = ('profesor', 'asignatura', 'fecha')
+        unique_together = ('profesor', 'asignatura', 'curso', 'fecha')
+        ordering = ['-fecha', 'profesor__primer_nombre']
 
     def __str__(self):
-        return f"{self.profesor} - {self.asignatura} - {self.fecha} - {'Presente' if self.presente else 'Ausente'}"
+        return f"{self.profesor} - {self.asignatura or 'General'} - {self.fecha} - {'Presente' if self.presente else 'Ausente'}"
 
 class Anotacion(models.Model):
     """
