@@ -5,18 +5,26 @@ from django.utils import timezone
 
 def validar_rut(rut):
     """Validar formato y dígito verificador del RUT chileno"""
-    # Limpiar el RUT
-    rut = rut.replace(".", "").replace("-", "").upper()
+    if not rut:
+        return False
+        
+    # Limpiar el RUT - remover puntos, guiones y espacios
+    rut_limpio = rut.replace(".", "").replace("-", "").replace(" ", "").upper()
     
-    if len(rut) < 2:
+    # Verificar longitud mínima
+    if len(rut_limpio) < 2:
         return False
     
     # Separar número y dígito verificador
-    numero = rut[:-1]
-    dv = rut[-1]
+    numero = rut_limpio[:-1]
+    dv = rut_limpio[-1]
     
     # Validar que el número contenga solo dígitos
     if not numero.isdigit():
+        return False
+    
+    # Validar longitud del número (debe ser entre 7 y 8 dígitos)
+    if len(numero) < 7 or len(numero) > 8:
         return False
     
     # Calcular dígito verificador
@@ -39,6 +47,7 @@ def validar_rut(rut):
     else:
         dv_calculado = str(dv_calculado)
     
+    # Comparar dígito verificador
     return dv == dv_calculado
 
 def formatear_rut(rut):
@@ -118,9 +127,8 @@ class EstudianteForm(forms.ModelForm):
             }),
             'numero_documento': forms.TextInput(attrs={
                 'class': 'form-control rut-input',
-                'placeholder': '12345678-9',
-                'maxlength': '12',
-                'pattern': '[0-9]{1,2}[0-9]{3}[0-9]{3}-[0-9kK]{1}'
+                'placeholder': '12.345.678-9',
+                'maxlength': '12'
             }),
             'fecha_nacimiento': forms.DateInput(attrs={
                 'class': 'form-control',
@@ -154,11 +162,34 @@ class EstudianteForm(forms.ModelForm):
     def clean_numero_documento(self):
         rut = self.cleaned_data.get('numero_documento')
         if rut:
+            # Limpiar espacios en blanco
+            rut = rut.strip()
+            
+            # Validar formato básico
+            if not rut:
+                raise forms.ValidationError('El RUT es obligatorio.')
+            
             # Validar formato y dígito verificador del RUT
             if not validar_rut(rut):
-                raise forms.ValidationError('RUT inválido. Formato esperado: 12345678-9')
-            # Formatear correctamente
-            rut = formatear_rut(rut)
+                raise forms.ValidationError(
+                    'RUT inválido. Verifique el número y dígito verificador. '
+                    'Formato esperado: 12.345.678-9 o 12345678-9'
+                )
+            
+            # Formatear correctamente para almacenar
+            rut_formateado = formatear_rut(rut)
+            
+            # Verificar que no existe otro estudiante con el mismo RUT
+            if self.instance and self.instance.pk:
+                # Editando estudiante existente
+                if Estudiante.objects.filter(numero_documento=rut_formateado).exclude(pk=self.instance.pk).exists():
+                    raise forms.ValidationError('Ya existe un estudiante con este RUT.')
+            else:
+                # Creando nuevo estudiante
+                if Estudiante.objects.filter(numero_documento=rut_formateado).exists():
+                    raise forms.ValidationError('Ya existe un estudiante con este RUT.')
+            
+            return rut_formateado
         return rut
 
     def clean_fecha_nacimiento(self):
@@ -222,9 +253,8 @@ class ProfesorForm(forms.ModelForm):
             }),
             'numero_documento': forms.TextInput(attrs={
                 'class': 'form-control rut-input',
-                'placeholder': '12345678-9',
-                'maxlength': '12',
-                'pattern': '[0-9]{1,2}[0-9]{3}[0-9]{3}-[0-9kK]{1}'
+                'placeholder': '12.345.678-9',
+                'maxlength': '12'
             }),
             'fecha_nacimiento': forms.DateInput(attrs={
                 'class': 'form-control',
@@ -262,11 +292,34 @@ class ProfesorForm(forms.ModelForm):
     def clean_numero_documento(self):
         rut = self.cleaned_data.get('numero_documento')
         if rut:
+            # Limpiar espacios en blanco
+            rut = rut.strip()
+            
+            # Validar formato básico
+            if not rut:
+                raise forms.ValidationError('El RUT es obligatorio.')
+            
             # Validar formato y dígito verificador del RUT
             if not validar_rut(rut):
-                raise forms.ValidationError('RUT inválido. Formato esperado: 12345678-9')
-            # Formatear correctamente
-            rut = formatear_rut(rut)
+                raise forms.ValidationError(
+                    'RUT inválido. Verifique el número y dígito verificador. '
+                    'Formato esperado: 12.345.678-9 o 12345678-9'
+                )
+            
+            # Formatear correctamente para almacenar
+            rut_formateado = formatear_rut(rut)
+            
+            # Verificar que no existe otro profesor con el mismo RUT
+            if self.instance and self.instance.pk:
+                # Editando profesor existente
+                if Profesor.objects.filter(numero_documento=rut_formateado).exclude(pk=self.instance.pk).exists():
+                    raise forms.ValidationError('Ya existe un profesor con este RUT.')
+            else:
+                # Creando nuevo profesor
+                if Profesor.objects.filter(numero_documento=rut_formateado).exists():
+                    raise forms.ValidationError('Ya existe un profesor con este RUT.')
+            
+            return rut_formateado
         return rut
 
     def clean_fecha_nacimiento(self):
@@ -802,7 +855,8 @@ class AsignaturaForm(forms.ModelForm):
     
     class Meta:
         model = Asignatura
-        fields = ['codigo_asignatura', 'nombre', 'descripcion', 'profesor_responsable', 'cursos']
+        fields = ['codigo_asignatura', 'nombre', 'descripcion', 'profesor_responsable', 'cursos'
+        ]
         widgets = {
             'codigo_asignatura': forms.TextInput(attrs={
                 'class': 'form-control',
