@@ -648,6 +648,10 @@ def calendario(request):
 @login_required
 def inicio(request):
     """Vista del panel de inicio personalizado por tipo de usuario"""
+    # Si el usuario no está autenticado, redirigir al login
+    if not request.user.is_authenticated:
+        return redirect('login')
+    
     context = {
         'user': request.user,
     }
