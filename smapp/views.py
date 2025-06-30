@@ -648,10 +648,6 @@ def calendario(request):
 @login_required
 def inicio(request):
     """Vista del panel de inicio personalizado por tipo de usuario"""
-    # Si el usuario no está autenticado, redirigir al login
-    if not request.user.is_authenticated:
-        return redirect('login')
-    
     context = {
         'user': request.user,
     }
@@ -1541,47 +1537,8 @@ def ver_notas_curso(request):
 
 @login_required
 def asignar_asignaturas_curso(request):
-    """Vista para asignar asignaturas a un curso"""
-    if request.method == 'POST':
-        # Verificar permisos
-        user_type = getattr(request.user, 'perfil', None)
-        if not user_type or user_type.tipo_usuario not in ['director', 'administrador']:
-            messages.error(request, 'No tienes permisos para asignar asignaturas.')
-            return redirect('inicio')
-        
-        curso_id = request.POST.get('curso_id')
-        asignaturas_ids = request.POST.getlist('asignaturas_ids')
-        
-        if not curso_id or not asignaturas_ids:
-            messages.error(request, 'Datos incompletos para asignar asignaturas.')
-            return redirect('ingresar_notas')
-        
-        try:
-            curso = get_object_or_404(Curso, id=curso_id)
-            asignaturas = Asignatura.objects.filter(id__in=asignaturas_ids)
-            
-            # Asignar las asignaturas al curso
-            asignaturas_asignadas = 0
-            for asignatura in asignaturas:
-                if asignatura not in curso.asignaturas.all():
-                    curso.asignaturas.add(asignatura)
-                    asignaturas_asignadas += 1
-            
-            if asignaturas_asignadas > 0:
-                messages.success(
-                    request, 
-                    f'Se asignaron {asignaturas_asignadas} asignaturas exitosamente al curso {curso}.'
-                )
-            else:
-                messages.warning(request, 'Las asignaturas seleccionadas ya estaban asignadas al curso.')
-                
-        except Exception as e:
-            messages.error(request, f'Error al asignar asignaturas: {str(e)}')
-        
-        # Redirigir de vuelta a ingresar notas con el curso seleccionado
-        return redirect(f'{reverse("ingresar_notas")}?curso_id={curso_id}')
-    
-    return redirect('ingresar_notas')
+    """Vista para asignar asignaturas a cursos"""
+    return redirect('listar_cursos')
 
 @login_required
 def registrar_asistencia_alumno(request):
@@ -2711,7 +2668,7 @@ def editar_asistencia_alumno(request, asistencia_id):
         return redirect('ver_asistencia_alumno')
     
     if request.method == 'POST':
-        form = AsistenciaAlumnoForm(request.POST, instance=asistencia)
+        form = AsistenciaAlumnoForm(request.POST, instance=asistencia, editando=True)
         if form.is_valid():
             asistencia_actualizada = form.save(commit=False)
             asistencia_actualizada.fecha_modificacion = timezone.now()
@@ -2725,7 +2682,7 @@ def editar_asistencia_alumno(request, asistencia_id):
         else:
             messages.error(request, 'Por favor corrige los errores en el formulario.')
     else:
-        form = AsistenciaAlumnoForm(instance=asistencia)
+        form = AsistenciaAlumnoForm(instance=asistencia, editando=True)
     
     context = {
         'form': form,
@@ -2929,6 +2886,7 @@ def crear_anotacion(request):
     return render(request, 'crear_anotacion.html', context)
 
 @login_required
+@login_required
 def editar_anotacion(request, anotacion_id):
     """Vista para editar una anotación existente"""
     anotacion = get_object_or_404(Anotacion, id=anotacion_id)
@@ -2963,7 +2921,7 @@ def editar_anotacion(request, anotacion_id):
         return redirect('libro_anotaciones')
     
     if request.method == 'POST':
-        form = AnotacionForm(request.POST, instance=anotacion, profesor=profesor_actual)
+        form = AnotacionForm(request.POST, instance=anotacion, profesor=profesor_actual, editando=True)
         if form.is_valid():
             anotacion_actualizada = form.save()
             
@@ -2975,7 +2933,7 @@ def editar_anotacion(request, anotacion_id):
         else:
             messages.error(request, 'Por favor corrige los errores en el formulario.')
     else:
-        form = AnotacionForm(instance=anotacion, profesor=profesor_actual)
+        form = AnotacionForm(instance=anotacion, profesor=profesor_actual, editando=True)
     
     context = {
         'form': form,

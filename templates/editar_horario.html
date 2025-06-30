@@ -1,18 +1,301 @@
-<!-- filepath: c:\Users\Danie\Desktop\Proyecto_Titulo\sma\templates\editar_horario.html -->
 {% extends "index_master.html" %}
+{% load widget_tweaks %}
+
 {% block content %}
 <div class="right_col" role="main">
   <div class="container-fluid">
-    <h3>Editar Horario</h3>
-    {% if mensaje %}
-      <div class="alert alert-success">{{ mensaje }}</div>
-    {% endif %}
-    <form method="post">
-      {% csrf_token %}
-      {{ form.as_p }}
-      <button type="submit" class="btn btn-success">Guardar Cambios</button>
-      <a href="{% url 'ver_horario_curso' %}" class="btn btn-secondary">Cancelar</a>
-    </form>
+    <div class="row justify-content-center">
+      <div class="col-lg-8 col-md-10">
+        <div class="card border-0 shadow-sm">
+          <div class="card-header bg-light border-0">
+            <h4 class="mb-0 text-dark fw-bold">
+              <i class="fas fa-clock text-primary me-2"></i>Editar Horario
+            </h4>
+          </div>
+          <div class="card-body">
+            <!-- Header con información del horario -->
+            <div class="row mb-4">
+              <div class="col-12">
+                <div class="bg-white p-3 rounded border">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                      <h2 class="h4 text-dark mb-2">
+                        <i class="fas fa-calendar-alt text-success me-2"></i>
+                        {% if horario %}
+                          {{ horario.curso.nombre }} - {{ horario.asignatura.nombre }}
+                        {% else %}
+                          Editar Horario
+                        {% endif %}
+                      </h2>
+                      {% if horario %}
+                        <p class="text-muted mb-0 small">
+                          {{ horario.get_dia_display }} - {{ horario.hora_inicio }} a {{ horario.hora_fin }}
+                          {% if horario.profesor %}
+                            <br>Profesor: {{ horario.profesor.get_nombre_completo }}
+                          {% endif %}
+                        </p>
+                      {% endif %}
+                    </div>
+                    <div>
+                      <a href="{% url 'ver_horario_curso' %}" class="btn btn-light border">
+                        <i class="fas fa-arrow-left me-1"></i>Volver
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Mensajes -->
+            {% if messages %}
+              {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                  <i class="fas fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}exclamation-triangle{% else %}info-circle{% endif %} me-2"></i>
+                  {{ message }}
+                  <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+              {% endfor %}
+            {% endif %}
+
+            <!-- Información actual del horario -->
+            {% if horario %}
+            <div class="alert alert-info d-flex align-items-center mb-4">
+              <i class="fas fa-info-circle text-info me-2"></i>
+              <div>
+                <strong>Información Actual:</strong> 
+                {{ horario.get_dia_display }} de {{ horario.hora_inicio }} a {{ horario.hora_fin }}
+                <br><small>{{ horario.curso.nombre }} - {{ horario.asignatura.nombre }}</small>
+                {% if horario.profesor %}
+                  <br><small>Profesor: {{ horario.profesor.get_nombre_completo }}</small>
+                {% endif %}
+              </div>
+            </div>
+            {% endif %}
+
+            <!-- Formulario -->
+            <form method="post" id="editarHorarioForm">
+              {% csrf_token %}
+              
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label class="form-label fw-bold">
+                    <i class="fas fa-graduation-cap me-1"></i>
+                    {% if form.curso.label %}{{ form.curso.label }}{% else %}Curso{% endif %}
+                  </label>
+                  {% render_field form.curso class="form-control" %}
+                  {% for error in form.curso.errors %}
+                    <div class="text-danger small">{{ error }}</div>
+                  {% endfor %}
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                  <label class="form-label fw-bold">
+                    <i class="fas fa-book me-1"></i>
+                    {% if form.asignatura.label %}{{ form.asignatura.label }}{% else %}Asignatura{% endif %}
+                  </label>
+                  {% render_field form.asignatura class="form-control" %}
+                  {% for error in form.asignatura.errors %}
+                    <div class="text-danger small">{{ error }}</div>
+                  {% endfor %}
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="col-md-4 mb-3">
+                  <label class="form-label fw-bold">
+                    <i class="fas fa-calendar-day me-1"></i>
+                    {% if form.dia.label %}{{ form.dia.label }}{% else %}Día{% endif %}
+                  </label>
+                  {% render_field form.dia class="form-control" %}
+                  {% for error in form.dia.errors %}
+                    <div class="text-danger small">{{ error }}</div>
+                  {% endfor %}
+                </div>
+
+                <div class="col-md-4 mb-3">
+                  <label class="form-label fw-bold">
+                    <i class="fas fa-clock me-1"></i>
+                    {% if form.hora_inicio.label %}{{ form.hora_inicio.label }}{% else %}Hora Inicio{% endif %}
+                  </label>
+                  {% render_field form.hora_inicio class="form-control" type="time" %}
+                  {% for error in form.hora_inicio.errors %}
+                    <div class="text-danger small">{{ error }}</div>
+                  {% endfor %}
+                </div>
+
+                <div class="col-md-4 mb-3">
+                  <label class="form-label fw-bold">
+                    <i class="fas fa-clock me-1"></i>
+                    {% if form.hora_fin.label %}{{ form.hora_fin.label }}{% else %}Hora Fin{% endif %}
+                  </label>
+                  {% render_field form.hora_fin class="form-control" type="time" %}
+                  {% for error in form.hora_fin.errors %}
+                    <div class="text-danger small">{{ error }}</div>
+                  {% endfor %}
+                </div>
+              </div>
+
+              {% if form.profesor %}
+              <div class="row">
+                <div class="col-md-12 mb-3">
+                  <label class="form-label fw-bold">
+                    <i class="fas fa-chalkboard-teacher me-1"></i>
+                    {% if form.profesor.label %}{{ form.profesor.label }}{% else %}Profesor{% endif %}
+                  </label>
+                  {% render_field form.profesor class="form-control" %}
+                  {% for error in form.profesor.errors %}
+                    <div class="text-danger small">{{ error }}</div>
+                  {% endfor %}
+                  <small class="text-muted">Selecciona el profesor responsable de esta clase</small>
+                </div>
+              </div>
+              {% endif %}
+
+              {% if form.aula %}
+              <div class="row">
+                <div class="col-md-12 mb-4">
+                  <label class="form-label fw-bold">
+                    <i class="fas fa-door-open me-1"></i>
+                    {% if form.aula.label %}{{ form.aula.label }}{% else %}Aula{% endif %}
+                  </label>
+                  {% render_field form.aula class="form-control" %}
+                  {% for error in form.aula.errors %}
+                    <div class="text-danger small">{{ error }}</div>
+                  {% endfor %}
+                  <small class="text-muted">Aula donde se dictará la clase (opcional)</small>
+                </div>
+              </div>
+              {% endif %}
+
+              <!-- Vista previa del horario -->
+              {% if horario %}
+              <div class="card border-success mb-4">
+                <div class="card-header bg-success text-white">
+                  <h6 class="mb-0"><i class="fas fa-eye me-1"></i>Vista Previa</h6>
+                </div>
+                <div class="card-body">
+                  <div class="row text-center">
+                    <div class="col-md-2">
+                      <small class="text-muted">Día</small>
+                      <div class="fw-bold">{{ horario.get_dia_display }}</div>
+                    </div>
+                    <div class="col-md-2">
+                      <small class="text-muted">Inicio</small>
+                      <div class="fw-bold">{{ horario.hora_inicio }}</div>
+                    </div>
+                    <div class="col-md-2">
+                      <small class="text-muted">Fin</small>
+                      <div class="fw-bold">{{ horario.hora_fin }}</div>
+                    </div>
+                    <div class="col-md-3">
+                      <small class="text-muted">Curso</small>
+                      <div class="fw-bold text-primary">{{ horario.curso.nombre }}</div>
+                    </div>
+                    <div class="col-md-3">
+                      <small class="text-muted">Asignatura</small>
+                      <div class="fw-bold text-success">{{ horario.asignatura.nombre }}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {% endif %}
+
+              <!-- Errores generales -->
+              {% if form.non_field_errors %}
+                <div class="alert alert-danger">
+                  {% for error in form.non_field_errors %}
+                    <div>{{ error }}</div>
+                  {% endfor %}
+                </div>
+              {% endif %}
+
+              <!-- Botones -->
+              <div class="d-flex justify-content-end gap-2">
+                <a href="{% url 'ver_horario_curso' %}" class="btn btn-secondary">
+                  <i class="fas fa-times me-1"></i>Cancelar
+                </a>
+                <button type="submit" class="btn btn-success">
+                  <i class="fas fa-save me-1"></i>Guardar Cambios
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
+
+<style>
+.form-control:focus,
+.form-select:focus {
+  border-color: #198754;
+  box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.15);
+}
+
+.btn-success {
+  background: #198754;
+  border-color: #198754;
+}
+
+.btn-success:hover {
+  background: #157347;
+  border-color: #146c43;
+  transform: translateY(-1px);
+}
+
+.gap-2 {
+  gap: 0.5rem;
+}
+
+.card {
+  border: 1px solid #dee2e6;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Validación de horas
+  function validarHoras() {
+    const horaInicio = document.getElementById('id_hora_inicio');
+    const horaFin = document.getElementById('id_hora_fin');
+    
+    if (horaInicio && horaFin && horaInicio.value && horaFin.value) {
+      if (horaInicio.value >= horaFin.value) {
+        horaInicio.classList.add('is-invalid');
+        horaFin.classList.add('is-invalid');
+        return false;
+      } else {
+        horaInicio.classList.remove('is-invalid');
+        horaFin.classList.remove('is-invalid');
+        return true;
+      }
+    }
+    return true;
+  }
+  
+  // Agregar eventos de validación
+  const horaInicio = document.getElementById('id_hora_inicio');
+  const horaFin = document.getElementById('id_hora_fin');
+  
+  if (horaInicio) horaInicio.addEventListener('change', validarHoras);
+  if (horaFin) horaFin.addEventListener('change', validarHoras);
+  
+  // Validación del formulario
+  document.getElementById('editarHorarioForm').addEventListener('submit', function(e) {
+    if (!validarHoras()) {
+      e.preventDefault();
+      alert('La hora de inicio debe ser menor que la hora de fin.');
+      return false;
+    }
+    
+    // Confirmar cambios
+    if (!confirm('¿Estás seguro de que deseas guardar los cambios?')) {
+      e.preventDefault();
+      return false;
+    }
+  });
+});
+</script>
 {% endblock %}

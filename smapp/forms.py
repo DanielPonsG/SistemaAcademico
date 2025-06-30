@@ -872,16 +872,141 @@ class CalificacionForm(forms.ModelForm):
     class Meta:
         model = Calificacion
         fields = ['nombre_evaluacion', 'puntaje', 'descripcion']
+        widgets = {
+            'nombre_evaluacion': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Ej: Prueba 1, Control Lectura, etc.',
+                'maxlength': 100
+            }),
+            'puntaje': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': 1.0,
+                'max': 7.0,
+                'step': 0.1,
+                'placeholder': '1.0 - 7.0'
+            }),
+            'descripcion': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': 'Observaciones adicionales sobre la evaluación (opcional)',
+            })
+        }
+        labels = {
+            'nombre_evaluacion': 'Nombre de la Evaluación',
+            'puntaje': 'Puntaje (1.0 - 7.0)',
+            'descripcion': 'Descripción/Observaciones'
+        }
+    
+    def clean_puntaje(self):
+        puntaje = self.cleaned_data.get('puntaje')
+        if puntaje is not None:
+            if puntaje < 1.0 or puntaje > 7.0:
+                raise forms.ValidationError('El puntaje debe estar entre 1.0 y 7.0')
+        return puntaje
 
 class AsistenciaAlumnoForm(forms.ModelForm):
     class Meta:
         model = AsistenciaAlumno
-        fields = ['estudiante', 'asignatura', 'fecha', 'presente', 'observacion']
+        fields = ['estudiante', 'curso', 'asignatura', 'fecha', 'presente', 'observacion']
+        widgets = {
+            'estudiante': forms.Select(attrs={
+                'class': 'form-select',
+                'required': True
+            }),
+            'curso': forms.Select(attrs={
+                'class': 'form-select',
+                'required': True
+            }),
+            'asignatura': forms.Select(attrs={
+                'class': 'form-select',
+                'required': True
+            }),
+            'fecha': forms.DateInput(attrs={
+                'class': 'form-control',
+                'type': 'date',
+                'required': True
+            }),
+            'presente': forms.CheckboxInput(attrs={
+                'class': 'form-check-input'
+            }),
+            'observacion': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': 'Observaciones o justificación de ausencia...'
+            }),
+        }
+        labels = {
+            'estudiante': 'Estudiante',
+            'curso': 'Curso',
+            'asignatura': 'Asignatura',
+            'fecha': 'Fecha',
+            'presente': 'Presente',
+            'observacion': 'Observación/Justificación'
+        }
+    
+    def __init__(self, *args, **kwargs):
+        editando = kwargs.pop('editando', False)
+        super().__init__(*args, **kwargs)
+        
+        # En modo edición, hacer campos de solo lectura
+        if editando and self.instance and self.instance.pk:
+            self.fields['estudiante'].widget.attrs['disabled'] = True
+            self.fields['curso'].widget.attrs['disabled'] = True
+            self.fields['fecha'].widget.attrs['disabled'] = True
+            
+            # Filtrar asignaturas del curso
+            if self.instance.curso:
+                self.fields['asignatura'].queryset = self.instance.curso.asignaturas.all()
+        
+        # Configurar querysets
+        from django.utils import timezone
+        anio_actual = timezone.now().year
+        
+        from .models import Estudiante, Curso, Asignatura
+        self.fields['estudiante'].queryset = Estudiante.objects.all().order_by(
+            'apellido_paterno', 'primer_nombre'
+        )
+        self.fields['curso'].queryset = Curso.objects.filter(anio=anio_actual).order_by(
+            'nivel', 'paralelo'
+        )
+        
+        if not editando:
+            self.fields['asignatura'].queryset = Asignatura.objects.all().order_by('nombre')
 
 class AsistenciaProfesorForm(forms.ModelForm):
     class Meta:
         model = AsistenciaProfesor
         fields = ['profesor', 'asignatura', 'fecha', 'presente', 'observacion']
+        widgets = {
+            'profesor': forms.Select(attrs={
+                'class': 'form-select',
+                'required': True
+            }),
+            'asignatura': forms.Select(attrs={
+                'class': 'form-select',
+                'required': True
+            }),
+            'fecha': forms.DateInput(attrs={
+                'class': 'form-control',
+                'type': 'date',
+                'required': True
+            }),
+            'presente': forms.CheckboxInput(attrs={
+                'class': 'form-check-input'
+            }),
+            'observacion': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': 'Observaciones o justificación de ausencia...'
+            }),
+        }
+        labels = {
+            'profesor': 'Profesor',
+            'asignatura': 'Asignatura',
+            'fecha': 'Fecha',
+            'presente': 'Presente',
+            'observacion': 'Observación/Justificación'
+        }
 
 class AnotacionForm(forms.ModelForm):
     """Formulario para crear y editar anotaciones del libro de comportamiento"""
@@ -960,13 +1085,89 @@ class AnotacionForm(forms.ModelForm):
     
     def __init__(self, *args, **kwargs):
         profesor = kwargs.pop('profesor', None)
+        editando = kwargs.pop('editando', False)
         super().__init__(*args, **kwargs)
         
         from django.utils import timezone
         anio_actual = timezone.now().year
         
-        # Configurar estudiantes: inicialmente todos para permitir selección vía AJAX
-        # La validación real se hará en el método clean()
+        # Si estamos editando, los campos estudiante y curso no se pueden cambiar
+        if editando and self.instance and self.instance.pk:
+            # Hacer que los campos estudiante y curso sean de solo lectura en edición
+            self.fields['estudiante'].widget.attrs['disabled'] = True
+            self.fields['curso'].widget.attrs['disabled'] = True
+            
+            # Filtrar las asignaturas según el curso actual
+            if self.instance.curso:
+                self.fields['asignatura'].queryset = self.instance.curso.asignaturas.all()
+            
+        else:
+            # Configurar estudiantes y cursos para creación
+            from .models import Estudiante, Curso
+            
+            # Filtrar estudiantes y cursos actuales
+            self.fields['estudiante'].queryset = Estudiante.objects.all().order_by(
+                'apellido_paterno', 'primer_nombre'
+            )
+            self.fields['curso'].queryset = Curso.objects.filter(anio=anio_actual).order_by(
+                'nivel', 'paralelo'
+            )
+        
+        # Configurar asignaturas - inicialmente vacío, se llenará vía AJAX
+        from .models import Asignatura
+        if not editando:
+            self.fields['asignatura'].queryset = Asignatura.objects.none()
+        
+        # Si hay un profesor, filtrar solo sus asignaturas
+        if profesor:
+            asignaturas_profesor = profesor.asignaturas.all()
+            if asignaturas_profesor.exists():
+                self.fields['asignatura'].queryset = asignaturas_profesor
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        
+        # Validar que el estudiante pertenezca al curso seleccionado
+        estudiante = cleaned_data.get('estudiante')
+        curso = cleaned_data.get('curso')
+        
+        if estudiante and curso:
+            if not estudiante.cursos.filter(id=curso.id).exists():
+                raise forms.ValidationError({
+                    'estudiante': 'El estudiante seleccionado no pertenece al curso indicado.'
+                })
+        
+        # Validar puntos según el tipo
+        tipo = cleaned_data.get('tipo')
+        puntos = cleaned_data.get('puntos')
+        es_grave = cleaned_data.get('es_grave', False)
+        
+        if tipo and puntos is not None:
+            if tipo == 'positiva' and puntos <= 0:
+                cleaned_data['puntos'] = 5  # Corregir automáticamente
+            elif tipo == 'negativa' and puntos >= 0:
+                cleaned_data['puntos'] = -6 if es_grave else -3  # Corregir automáticamente
+            elif tipo == 'neutra':
+                cleaned_data['puntos'] = 0  # Las neutras no dan puntos
+        
+        return cleaned_data
+    
+    def save(self, commit=True):
+        anotacion = super().save(commit=False)
+        
+        # Establecer automáticamente los puntos según el tipo si no se han configurado manualmente
+        if not hasattr(anotacion, '_puntos_manual'):
+            if anotacion.tipo == 'positiva':
+                anotacion.puntos = 5
+            elif anotacion.tipo == 'negativa':
+                anotacion.puntos = -6 if anotacion.es_grave else -3
+            else:  # neutra
+                anotacion.puntos = 0
+        
+        if commit:
+            anotacion.save()
+        
+        return anotacion
         self.fields['estudiante'].queryset = Estudiante.objects.all().order_by('primer_nombre', 'apellido_paterno')
         self.fields['estudiante'].empty_label = "Seleccionar estudiante..."
         

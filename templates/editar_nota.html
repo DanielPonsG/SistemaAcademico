@@ -47,39 +47,49 @@
               
               <div class="row mb-3">
                 <div class="col-md-6">
-                  <label class="form-label fw-bold">{{ form.nombre_evaluacion.label }}</label>
+                  <label class="form-label fw-bold">
+                    {% if form.nombre_evaluacion.label %}{{ form.nombre_evaluacion.label }}{% else %}Nombre de Evaluación{% endif %}
+                  </label>
                   {% render_field form.nombre_evaluacion class="form-control" %}
                   {% for error in form.nombre_evaluacion.errors %}
                     <div class="text-danger small">{{ error }}</div>
                   {% endfor %}
                 </div>
                 <div class="col-md-3">
-                  <label class="form-label fw-bold">{{ form.puntaje.label }}</label>
+                  <label class="form-label fw-bold">
+                    {% if form.puntaje.label %}{{ form.puntaje.label }}{% else %}Puntaje{% endif %}
+                  </label>
                   {% render_field form.puntaje class="form-control" %}
                   {% for error in form.puntaje.errors %}
                     <div class="text-danger small">{{ error }}</div>
                   {% endfor %}
                 </div>
                 <div class="col-md-3">
-                  <label class="form-label fw-bold">{{ form.porcentaje.label }}</label>
-                  {% render_field form.porcentaje class="form-control" %}
-                  {% for error in form.porcentaje.errors %}
-                    <div class="text-danger small">{{ error }}</div>
-                  {% endfor %}
+                  <label class="form-label fw-bold">Porcentaje</label>
+                  <input type="number" class="form-control" 
+                         value="{% if nota.puntaje %}{{ nota.porcentaje|floatformat:1 }}{% endif %}" 
+                         step="0.1" min="1" max="7" readonly>
+                  <small class="text-muted">Calculado automáticamente</small>
                 </div>
               </div>
 
+              {% if form.detalle %}
               <div class="mb-3">
-                <label class="form-label fw-bold">{{ form.detalle.label }}</label>
+                <label class="form-label fw-bold">
+                  {% if form.detalle.label %}{{ form.detalle.label }}{% else %}Detalle{% endif %}
+                </label>
                 {% render_field form.detalle class="form-control" %}
                 {% for error in form.detalle.errors %}
                   <div class="text-danger small">{{ error }}</div>
                 {% endfor %}
               </div>
+              {% endif %}
 
               <div class="mb-4">
-                <label class="form-label fw-bold">{{ form.descripcion.label }}</label>
-                {% render_field form.descripcion class="form-control" %}
+                <label class="form-label fw-bold">
+                  {% if form.descripcion.label %}{{ form.descripcion.label }}{% else %}Descripción{% endif %}
+                </label>
+                {% render_field form.descripcion class="form-control" rows="3" %}
                 {% for error in form.descripcion.errors %}
                   <div class="text-danger small">{{ error }}</div>
                 {% endfor %}

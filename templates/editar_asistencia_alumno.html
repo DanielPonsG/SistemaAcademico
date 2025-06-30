@@ -1,8 +1,10 @@
 {% extends "index_master.html" %}
+{% load widget_tweaks %}
+
 {% block content %}
 <div class="right_col" role="main">
   <div class="container-fluid">
-    <h3><i class="fa fa-edit"></i> {{ titulo }}</h3>
+    <h3><i class="fa fa-edit"></i> {{ titulo|default:"Editar Asistencia" }}</h3>
     
     {% if messages %}
       {% for message in messages %}
@@ -25,83 +27,109 @@
               
               <div class="row">
                 <div class="col-md-6">
-                  {% for field in form %}
-                    {% if field.name in 'estudiante,curso,asignatura,profesor_registro' %}
-                    <div class="mb-3">
-                      <label class="form-label fw-bold">{{ field.label }}</label>
-                      {{ field }}
-                      {% for error in field.errors %}
-                        <div class="text-danger small">{{ error }}</div>
-                      {% endfor %}
-                    </div>
-                    {% endif %}
-                  {% endfor %}
+                  <!-- Campos de solo lectura para información básica -->
+                  <div class="mb-3">
+                    <label class="form-label fw-bold">
+                      <i class="fa fa-user me-1"></i>Estudiante
+                    </label>
+                    <input type="text" class="form-control" 
+                           value="{{ asistencia.estudiante.get_nombre_completo }}" readonly>
+                    <input type="hidden" name="estudiante" value="{{ asistencia.estudiante.id }}">
+                  </div>
+                  
+                  <div class="mb-3">
+                    <label class="form-label fw-bold">
+                      <i class="fa fa-graduation-cap me-1"></i>Curso
+                    </label>
+                    <input type="text" class="form-control" 
+                           value="{{ asistencia.curso.nombre }}" readonly>
+                    <input type="hidden" name="curso" value="{{ asistencia.curso.id }}">
+                  </div>
+                  
+                  <div class="mb-3">
+                    <label class="form-label fw-bold">
+                      <i class="fa fa-book me-1"></i>
+                      {% if form.asignatura.label %}{{ form.asignatura.label }}{% else %}Asignatura{% endif %}
+                    </label>
+                    {% render_field form.asignatura class="form-control" %}
+                    {% for error in form.asignatura.errors %}
+                      <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+                  </div>
                 </div>
                 
                 <div class="col-md-6">
-                  <!-- Campos de solo lectura para fecha y hora -->
+                  <!-- Campos de fecha y hora (solo lectura) -->
                   <div class="mb-3">
-                    <label class="form-label fw-bold">Fecha de Registro</label>
-                    <input type="text" class="form-control" value="{{ asistencia.fecha|date:'d/m/Y l' }}" readonly>
-                    <small class="form-text text-muted">Registro automático</small>
+                    <label class="form-label fw-bold">
+                      <i class="fa fa-calendar me-1"></i>Fecha
+                    </label>
+                    <input type="text" class="form-control" 
+                           value="{{ asistencia.fecha|date:'d/m/Y' }}" readonly>
+                    <input type="hidden" name="fecha" value="{{ asistencia.fecha|date:'Y-m-d' }}">
                   </div>
                   
                   <div class="mb-3">
-                    <label class="form-label fw-bold">Hora de Registro</label>
-                    <input type="text" class="form-control" value="{{ asistencia.hora_registro|time:'H:i:s' }}" readonly>
-                    <small class="form-text text-muted">Registro automático</small>
+                    <label class="form-label fw-bold">
+                      <i class="fa fa-clock me-1"></i>Hora de Registro
+                    </label>
+                    <input type="text" class="form-control" 
+                           value="{{ asistencia.fecha_creacion|date:'H:i' }}" readonly>
                   </div>
                   
-                  {% for field in form %}
-                    {% if field.name == 'presente' %}
-                    <div class="mb-3">
-                      <div class="form-check form-switch">
-                        {{ field }}
-                        <label class="form-check-label fw-bold" for="{{ field.id_for_label }}">
-                          {{ field.label }}
-                        </label>
-                      </div>
-                      {% for error in field.errors %}
-                        <div class="text-danger small">{{ error }}</div>
-                      {% endfor %}
-                    </div>
-                    {% endif %}
-                  {% endfor %}
+                  <div class="mb-3">
+                    <label class="form-label fw-bold">
+                      <i class="fa fa-chalkboard-teacher me-1"></i>Registrado por
+                    </label>
+                    <input type="text" class="form-control" 
+                           value="{{ asistencia.profesor_registro.get_nombre_completo }}" readonly>
+                    <input type="hidden" name="profesor_registro" value="{{ asistencia.profesor_registro.id }}">
+                  </div>
                 </div>
               </div>
               
               <div class="row">
                 <div class="col-md-12">
-                  {% for field in form %}
-                    {% if field.name == 'observacion' %}
-                    <div class="mb-3">
-                      <label class="form-label fw-bold">{{ field.label }}</label>
-                      {{ field }}
-                      {% for error in field.errors %}
+                  <div class="mb-3">
+                    <div class="form-check form-switch">
+                      {% render_field form.presente class="form-check-input" %}
+                      <label class="form-check-label fw-bold" for="{{ form.presente.id_for_label }}">
+                        <i class="fa fa-check-circle me-1"></i>
+                        {% if form.presente.label %}{{ form.presente.label }}{% else %}Presente{% endif %}
+                      </label>
+                      {% for error in form.presente.errors %}
                         <div class="text-danger small">{{ error }}</div>
                       {% endfor %}
                     </div>
-                    {% endif %}
-                  {% endfor %}
+                    <small class="text-muted">Marcar si el estudiante estuvo presente en la clase</small>
+                  </div>
                 </div>
               </div>
               
-              <div class="row">
+              <div class="row" id="justificacion-container" {% if asistencia.presente %}style="display: none;"{% endif %}>
                 <div class="col-md-12">
-                  {% for field in form %}
-                    {% if field.name == 'justificacion' %}
-                    <div class="mb-3" id="justificacion-container">
-                      <label class="form-label fw-bold">{{ field.label }}</label>
-                      {{ field }}
-                      {% for error in field.errors %}
-                        <div class="text-danger small">{{ error }}</div>
-                      {% endfor %}
-                      <div class="form-text">Solo se requiere para ausencias</div>
-                    </div>
-                    {% endif %}
-                  {% endfor %}
+                  <div class="mb-3">
+                    <label class="form-label fw-bold">
+                      <i class="fa fa-comment me-1"></i>
+                      {% if form.observacion.label %}{{ form.observacion.label }}{% else %}Justificación/Observación{% endif %}
+                    </label>
+                    {% render_field form.observacion class="form-control" rows="3" placeholder="Motivo de la ausencia o justificación..." %}
+                    {% for error in form.observacion.errors %}
+                      <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+                    <small class="text-muted">Describe el motivo de la ausencia o cualquier observación relevante</small>
+                  </div>
                 </div>
               </div>
+
+              <!-- Errores generales -->
+              {% if form.non_field_errors %}
+                <div class="alert alert-danger">
+                  {% for error in form.non_field_errors %}
+                    <div>{{ error }}</div>
+                  {% endfor %}
+                </div>
+              {% endif %}
 
               <div class="text-center mt-4">
                 <button type="submit" class="btn btn-success btn-lg">
@@ -123,11 +151,16 @@
           </div>
           <div class="card-body">
             <p><strong>Estudiante:</strong><br>{{ asistencia.estudiante.get_nombre_completo }}</p>
-            <p><strong>RUT:</strong> {{ asistencia.estudiante.rut }}</p>
+            <p><strong>RUT:</strong> {{ asistencia.estudiante.numero_documento }}</p>
             <p><strong>Curso:</strong><br>{{ asistencia.curso }}</p>
             <p><strong>Asignatura:</strong><br>{{ asistencia.asignatura.nombre }}</p>
             <p><strong>Fecha:</strong><br>{{ asistencia.fecha|date:"d/m/Y l" }}</p>
             <p><strong>Registrado por:</strong><br>{{ asistencia.profesor_registro.get_nombre_completo }}</p>
+            <p><strong>Estado Actual:</strong><br>
+              <span class="badge {% if asistencia.presente %}bg-success{% else %}bg-danger{% endif %}">
+                {% if asistencia.presente %}Presente{% else %}Ausente{% endif %}
+              </span>
+            </p>
           </div>
         </div>
         
@@ -156,14 +189,16 @@
 document.addEventListener('DOMContentLoaded', function() {
     const presenteCheckbox = document.querySelector('input[name="presente"]');
     const justificacionContainer = document.getElementById('justificacion-container');
-    const justificacionField = document.querySelector('textarea[name="justificacion"]');
+    const justificacionField = document.querySelector('textarea[name="observacion"]');
     
     function toggleJustificacion() {
-        if (presenteCheckbox.checked) {
-            justificacionContainer.style.display = 'none';
-            justificacionField.value = '';
-        } else {
-            justificacionContainer.style.display = 'block';
+        if (presenteCheckbox && justificacionContainer) {
+            if (presenteCheckbox.checked) {
+                justificacionContainer.style.display = 'none';
+                if (justificacionField) justificacionField.value = '';
+            } else {
+                justificacionContainer.style.display = 'block';
+            }
         }
     }
     
@@ -171,7 +206,9 @@ document.addEventListener('DOMContentLoaded', function() {
     toggleJustificacion();
     
     // Escuchar cambios
-    presenteCheckbox.addEventListener('change', toggleJustificacion);
+    if (presenteCheckbox) {
+        presenteCheckbox.addEventListener('change', toggleJustificacion);
+    }
 });
 </script>
 
@@ -194,6 +231,10 @@ document.addEventListener('DOMContentLoaded', function() {
 .form-switch .form-check-input:checked {
     background-color: #198754;
     border-color: #198754;
+}
+
+.gap-2 {
+    gap: 0.5rem;
 }
 </style>
 {% endblock %}
