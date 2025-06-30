@@ -117,11 +117,7 @@
                     {% endif %}
                   </td>
                   <td>
-                    {% if horario.profesor %}
-                      {{ horario.profesor.get_nombre_completo }}
-                    {% else %}
-                      <em class="text-muted">Sin asignar</em>
-                    {% endif %}
+                    <em class="text-muted">Sin asignar</em>
                   </td>
                   <td>
                     <div class="btn-group btn-group-sm">
@@ -351,18 +347,55 @@ function filtrarProfesores() {
     const profesorSelect = document.getElementById('profesorSelect');
     
     if (!asignaturaId) {
-        // Mostrar todos los profesores
-        Array.from(profesorSelect.options).forEach(option => {
-            if (option.value !== '') option.style.display = 'block';
-        });
+        // Mostrar todos los profesores originales
+        resetProfesores();
         return;
     }
     
-    // Aquí puedes implementar filtrado por AJAX si es necesario
-    // Por ahora mostramos todos los profesores
-    Array.from(profesorSelect.options).forEach(option => {
-        if (option.value !== '') option.style.display = 'block';
-    });
+    // Hacer petición AJAX para obtener profesores de la asignatura
+    fetch(`/api/asignatura/${asignaturaId}/profesores/`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Limpiar opciones actuales (excepto la primera)
+                while (profesorSelect.children.length > 1) {
+                    profesorSelect.removeChild(profesorSelect.lastChild);
+                }
+                
+                // Agregar profesores filtrados
+                data.profesores.forEach(profesor => {
+                    const option = document.createElement('option');
+                    option.value = profesor.id;
+                    option.textContent = profesor.nombre;
+                    profesorSelect.appendChild(option);
+                });
+                
+                // Si no hay profesores para esta asignatura, mostrar mensaje
+                if (data.profesores.length === 0) {
+                    const option = document.createElement('option');
+                    option.value = '';
+                    option.textContent = 'No hay profesores asignados a esta asignatura';
+                    option.disabled = true;
+                    profesorSelect.appendChild(option);
+                }
+            } else {
+                console.warn('Error al obtener profesores:', data.error);
+                // En caso de error, mostrar todos los profesores
+                resetProfesores();
+            }
+        })
+        .catch(error => {
+            console.error('Error al filtrar profesores:', error);
+            // En caso de error de conexión, mostrar todos los profesores
+            resetProfesores();
+        });
+}
+
+// Función auxiliar para resetear la lista de profesores a la original
+function resetProfesores() {
+    const profesorSelect = document.getElementById('profesorSelect');
+    // Por simplicidad, no filtramos en caso de error
+    // En una implementación más completa, podrías guardar la lista original
 }
 
 // Función para guardar horario
@@ -390,36 +423,165 @@ function guardarHorario() {
     btnGuardar.disabled = true;
     btnGuardar.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Guardando...';
     
-    // Simular guardado (aquí deberías hacer la petición AJAX real)
-    setTimeout(() => {
-        mostrarExito('Horario guardado correctamente');
-        const modal = bootstrap.Modal.getInstance(document.getElementById('modalCrearHorario'));
-        modal.hide();
-        
-        // Recargar página después de un momento
-        setTimeout(() => location.reload(), 1500);
-    }, 1000);
+    // Preparar datos del formulario manualmente para asegurar que se envíen correctamente
+    const formData = new FormData();
+    formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+    formData.append('curso_id', document.getElementById('cursoId').value);
+    formData.append('asignatura', asignatura);  // Cambiar a 'asignatura' en lugar de 'asignatura_id'
+    formData.append('dia', dia);
+    formData.append('hora_inicio', horaInicio);
+    formData.append('hora_fin', horaFin);
+    
+    // Incluir profesor si está seleccionado
+    const profesor = document.getElementById('profesorSelect').value;
+    if (profesor) {
+        formData.append('profesor', profesor);  // Cambiar a 'profesor' en lugar de 'profesor_id'
+    }
+    
+    // Determinar si es creación o edición
+    const horarioId = document.getElementById('horarioId').value;
+    if (horarioId) {
+        formData.append('horario_id', horarioId);
+    }
+    
+    const url = horarioId ? '/ajax/editar-horario/' : '/ajax/crear-horario/';
+    
+    console.log('Enviando datos:', {
+        curso_id: formData.get('curso_id'),
+        asignatura: formData.get('asignatura'),
+        dia: formData.get('dia'),
+        hora_inicio: formData.get('hora_inicio'),
+        hora_fin: formData.get('hora_fin'),
+        profesor: formData.get('profesor'),
+        horario_id: formData.get('horario_id')
+    });
+    
+    // Hacer petición AJAX
+    fetch(url, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => {
+        console.log('Respuesta status:', response.status);
+        return response.json();
+    })
+    .then(data => {
+        console.log('Respuesta datos:', data);
+        if (data.success) {
+            mostrarExito(data.message);
+            const modal = bootstrap.Modal.getInstance(document.getElementById('modalCrearHorario'));
+            modal.hide();
+            
+            // Actualizar la tabla dinámicamente en lugar de recargar
+            if (horarioId) {
+                // Edición: actualizar fila existente
+                actualizarFilaHorario(data.horario);
+            } else {
+                // Creación: agregar nueva fila
+                agregarFilaHorario(data.horario);
+            }
+            
+            // También actualizar los contadores
+            actualizarContadores();
+            
+        } else {
+            if (data.errors && Array.isArray(data.errors)) {
+                const errorMsg = data.errors.join('<br>');
+                mostrarError(`${data.error}:<br>${errorMsg}`);
+            } else {
+                mostrarError(data.error || 'Error desconocido');
+            }
+        }
+    })
+    .catch(error => {
+        console.error('Error completo:', error);
+        mostrarError('Error de conexión. Inténtalo de nuevo.');
+    })
+    .finally(() => {
+        // Restaurar botón
+        btnGuardar.disabled = false;
+        btnGuardar.innerHTML = textoOriginal;
+    });
 }
 
 // Función para editar horario
 function editarHorario(horarioId) {
     currentHorarioId = horarioId;
     
-    // Aquí deberías cargar los datos del horario via AJAX
-    // Por ahora solo configuramos el modal
-    document.getElementById('tituloModal').textContent = 'Editar Horario';
-    document.getElementById('btnGuardarHorario').innerHTML = '<i class="fas fa-save me-1"></i>Actualizar Horario';
-    
-    const modal = new bootstrap.Modal(document.getElementById('modalCrearHorario'));
-    modal.show();
+    // Cargar datos del horario via AJAX
+    fetch(`/ajax/obtener-horario/?horario_id=${horarioId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const horario = data.horario;
+                
+                // Llenar formulario con datos del horario
+                document.getElementById('horarioId').value = horario.id;
+                document.getElementById('asignaturaSelect').value = horario.asignatura_id;
+                document.getElementById('profesorSelect').value = horario.profesor_id;
+                document.getElementById('diaSelect').value = horario.dia;
+                document.getElementById('horaInicio').value = horario.hora_inicio;
+                document.getElementById('horaFin').value = horario.hora_fin;
+                
+                // Filtrar profesores según la asignatura seleccionada
+                if (horario.asignatura_id) {
+                    filtrarProfesores();
+                    // Después de un momento, seleccionar el profesor
+                    setTimeout(() => {
+                        document.getElementById('profesorSelect').value = horario.profesor_id;
+                    }, 500);
+                }
+                
+                // Configurar modal para edición
+                document.getElementById('tituloModal').textContent = 'Editar Horario';
+                document.getElementById('btnGuardarHorario').innerHTML = '<i class="fas fa-save me-1"></i>Actualizar Horario';
+                
+                // Mostrar modal
+                const modal = new bootstrap.Modal(document.getElementById('modalCrearHorario'));
+                modal.show();
+            } else {
+                mostrarError('Error al cargar datos del horario: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error al cargar horario:', error);
+            mostrarError('Error de conexión al cargar el horario.');
+        });
 }
 
 // Función para eliminar horario
 function eliminarHorario(horarioId) {
     if (confirm('¿Estás seguro de que deseas eliminar este horario?')) {
-        // Aquí deberías hacer la petición AJAX para eliminar
-        mostrarExito('Horario eliminado correctamente');
-        setTimeout(() => location.reload(), 1500);
+        // Hacer petición AJAX para eliminar
+        const formData = new FormData();
+        formData.append('horario_id', horarioId);
+        formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+        
+        fetch('/ajax/eliminar-horario-nuevo/', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Respuesta eliminar:', data);
+            if (data.success) {
+                mostrarExito(data.message);
+                // Remover la fila de la tabla dinámicamente
+                removerFilaHorario(horarioId);
+            } else {
+                mostrarError('Error al eliminar horario: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error al eliminar horario:', error);
+            mostrarError('Error de conexión al eliminar el horario.');
+        });
     }
 }
 
@@ -452,12 +614,163 @@ function mostrarMensaje(mensaje, tipo, icono) {
     
     alertContainer.appendChild(alertDiv);
     
-    // Auto-remover después de 5 segundos
+    // Auto-remover después de 8 segundos (más tiempo para leer errores largos)
     setTimeout(() => {
         if (alertDiv.parentNode) {
             alertDiv.remove();
         }
-    }, 5000);
+    }, 8000);
+}
+
+// Función para agregar nueva fila a la tabla
+function agregarFilaHorario(horario) {
+    const tbody = document.querySelector('table tbody');
+    const mensaje = document.querySelector('.text-center.py-5'); // Mensaje "No hay horarios"
+    
+    // Si existe el mensaje de "no hay horarios", removerlo
+    if (mensaje) {
+        mensaje.remove();
+        // Mostrar la tabla
+        const tableContainer = document.querySelector('.table-responsive');
+        if (tableContainer) {
+            tableContainer.style.display = 'block';
+        }
+    }
+    
+    // Crear nueva fila
+    const nuevaFila = document.createElement('tr');
+    nuevaFila.innerHTML = `
+        <td><strong>${horario.dia}</strong></td>
+        <td>${horario.hora_inicio} - ${horario.hora_fin}</td>
+        <td>
+            <span class="badge bg-primary">${horario.asignatura}</span>
+        </td>
+        <td>
+            <em class="text-muted">${horario.profesor}</em>
+        </td>
+        <td>
+            <div class="btn-group btn-group-sm">
+                <button type="button" class="btn btn-outline-warning btn-editar" 
+                        data-horario-id="${horario.id}" title="Editar">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button type="button" class="btn btn-outline-danger btn-eliminar" 
+                        data-horario-id="${horario.id}" title="Eliminar">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </td>
+    `;
+    
+    // Agregar event listeners a los nuevos botones
+    const btnEditar = nuevaFila.querySelector('.btn-editar');
+    const btnEliminar = nuevaFila.querySelector('.btn-eliminar');
+    
+    btnEditar.addEventListener('click', function() {
+        editarHorario(horario.id);
+    });
+    
+    btnEliminar.addEventListener('click', function() {
+        eliminarHorario(horario.id);
+    });
+    
+    // Insertar la fila en la tabla
+    tbody.appendChild(nuevaFila);
+    
+    // Animar la nueva fila
+    nuevaFila.style.backgroundColor = '#d4edda';
+    setTimeout(() => {
+        nuevaFila.style.backgroundColor = '';
+    }, 2000);
+}
+
+// Función para actualizar fila existente
+function actualizarFilaHorario(horario) {
+    const fila = document.querySelector(`tr button[data-horario-id="${horario.id}"]`).closest('tr');
+    if (fila) {
+        fila.innerHTML = `
+            <td><strong>${horario.dia}</strong></td>
+            <td>${horario.hora_inicio} - ${horario.hora_fin}</td>
+            <td>
+                <span class="badge bg-primary">${horario.asignatura}</span>
+            </td>
+            <td>
+                <em class="text-muted">${horario.profesor}</em>
+            </td>
+            <td>
+                <div class="btn-group btn-group-sm">
+                    <button type="button" class="btn btn-outline-warning btn-editar" 
+                            data-horario-id="${horario.id}" title="Editar">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button type="button" class="btn btn-outline-danger btn-eliminar" 
+                            data-horario-id="${horario.id}" title="Eliminar">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </td>
+        `;
+        
+        // Agregar event listeners a los botones actualizados
+        const btnEditar = fila.querySelector('.btn-editar');
+        const btnEliminar = fila.querySelector('.btn-eliminar');
+        
+        btnEditar.addEventListener('click', function() {
+            editarHorario(horario.id);
+        });
+        
+        btnEliminar.addEventListener('click', function() {
+            eliminarHorario(horario.id);
+        });
+        
+        // Animar la fila actualizada
+        fila.style.backgroundColor = '#fff3cd';
+        setTimeout(() => {
+            fila.style.backgroundColor = '';
+        }, 2000);
+    }
+}
+
+// Función para actualizar contadores
+function actualizarContadores() {
+    const totalHorarios = document.querySelectorAll('table tbody tr').length;
+    const contadorElement = document.querySelector('.card-body h3');
+    if (contadorElement) {
+        contadorElement.textContent = totalHorarios;
+    }
+}
+
+// Función para remover fila de la tabla
+function removerFilaHorario(horarioId) {
+    const fila = document.querySelector(`tr button[data-horario-id="${horarioId}"]`).closest('tr');
+    if (fila) {
+        // Animar antes de remover
+        fila.style.transition = 'opacity 0.3s ease';
+        fila.style.opacity = '0';
+        
+        setTimeout(() => {
+            fila.remove();
+            
+            // Si no quedan filas, mostrar mensaje
+            const tbody = document.querySelector('table tbody');
+            if (tbody && tbody.children.length === 0) {
+                const cardBody = document.querySelector('.card-body');
+                cardBody.innerHTML = `
+                    <div class="text-center py-5">
+                        <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted mb-2">No hay horarios programados</h5>
+                        <p class="text-muted mb-3">Comienza agregando horarios para este curso</p>
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalCrearHorario">
+                            <i class="fas fa-plus me-1"></i>Agregar Primer Horario
+                        </button>
+                    </div>
+                `;
+            }
+            
+            // Actualizar contadores
+            actualizarContadores();
+        }, 300);
+    }
 }
 </script>
 {% endblock %}

@@ -2012,22 +2012,167 @@ def gestionar_horarios(request, curso_id=None):
 @login_required
 def ajax_crear_horario(request):
     """Vista AJAX para crear horario"""
-    return JsonResponse({'success': False, 'error': 'Función no implementada'})
+    from .forms import HorarioCursoForm
+    from django.http import JsonResponse
+    import json
+    
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'Método no permitido'})
+    
+    try:
+        # Obtener datos del POST
+        curso_id = request.POST.get('curso_id')
+        if not curso_id:
+            return JsonResponse({'success': False, 'error': 'ID de curso requerido'})
+        
+        curso = get_object_or_404(Curso, id=curso_id)
+        
+        # Crear formulario con los datos
+        form = HorarioCursoForm(request.POST, curso=curso)
+        
+        if form.is_valid():
+            horario = form.save(commit=False)
+            horario.curso = curso
+            horario.save()
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'Horario creado exitosamente',
+                'horario': {
+                    'id': horario.id,
+                    'dia': horario.get_dia_display(),
+                    'hora_inicio': horario.hora_inicio.strftime('%H:%M'),
+                    'hora_fin': horario.hora_fin.strftime('%H:%M'),
+                    'asignatura': horario.asignatura.nombre if horario.asignatura else 'Sin asignatura',
+                    'profesor': 'Sin asignar'  # El modelo no tiene campo profesor por ahora
+                }
+            })
+        else:
+            errors = []
+            for field, error_list in form.errors.items():
+                field_label = field
+                if field in form.fields and hasattr(form.fields[field], 'label') and form.fields[field].label:
+                    field_label = form.fields[field].label
+                for error in error_list:
+                    errors.append(f"{field_label}: {error}")
+            
+            return JsonResponse({
+                'success': False,
+                'error': 'Error de validación',
+                'errors': errors
+            })
+    
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': f'Error interno: {str(e)}'})
 
 @login_required
 def ajax_editar_horario(request):
     """Vista AJAX para editar horario"""
-    return JsonResponse({'success': False, 'error': 'Función no implementada'})
+    from .forms import HorarioCursoForm
+    from django.http import JsonResponse
+    
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'Método no permitido'})
+    
+    try:
+        horario_id = request.POST.get('horario_id')
+        if not horario_id:
+            return JsonResponse({'success': False, 'error': 'ID de horario requerido'})
+        
+        horario = get_object_or_404(HorarioCurso, id=horario_id)
+        
+        # Crear formulario con los datos del horario existente
+        form = HorarioCursoForm(request.POST, instance=horario, curso=horario.curso)
+        
+        if form.is_valid():
+            horario_actualizado = form.save()
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'Horario actualizado exitosamente',
+                'horario': {
+                    'id': horario_actualizado.id,
+                    'dia': horario_actualizado.get_dia_display(),
+                    'hora_inicio': horario_actualizado.hora_inicio.strftime('%H:%M'),
+                    'hora_fin': horario_actualizado.hora_fin.strftime('%H:%M'),
+                    'asignatura': horario_actualizado.asignatura.nombre if horario_actualizado.asignatura else 'Sin asignatura',
+                    'profesor': 'Sin asignar'  # El modelo no tiene campo profesor por ahora
+                }
+            })
+        else:
+            errors = []
+            for field, error_list in form.errors.items():
+                field_label = field
+                if field in form.fields and hasattr(form.fields[field], 'label') and form.fields[field].label:
+                    field_label = form.fields[field].label
+                for error in error_list:
+                    errors.append(f"{field_label}: {error}")
+            
+            return JsonResponse({
+                'success': False,
+                'error': 'Error de validación',
+                'errors': errors
+            })
+    
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': f'Error interno: {str(e)}'})
 
 @login_required
 def ajax_obtener_horario(request):
-    """Vista AJAX para obtener horario"""
-    return JsonResponse({'success': False, 'error': 'Función no implementada'})
+    """Vista AJAX para obtener datos de un horario"""
+    from django.http import JsonResponse
+    
+    if request.method != 'GET':
+        return JsonResponse({'success': False, 'error': 'Método no permitido'})
+    
+    try:
+        horario_id = request.GET.get('horario_id')
+        if not horario_id:
+            return JsonResponse({'success': False, 'error': 'ID de horario requerido'})
+        
+        horario = get_object_or_404(HorarioCurso, id=horario_id)
+        
+        return JsonResponse({
+            'success': True,
+            'horario': {
+                'id': horario.id,
+                'dia': horario.dia,
+                'hora_inicio': horario.hora_inicio.strftime('%H:%M'),
+                'hora_fin': horario.hora_fin.strftime('%H:%M'),
+                'asignatura_id': horario.asignatura.id if horario.asignatura else '',
+                'profesor_id': '',  # No hay campo profesor en el modelo
+                'asignatura_nombre': horario.asignatura.nombre if horario.asignatura else 'Sin asignatura',
+                'profesor_nombre': 'Sin asignar'  # No hay campo profesor en el modelo
+            }
+        })
+    
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': f'Error interno: {str(e)}'})
 
 @login_required
 def ajax_eliminar_horario_nuevo(request):
     """Vista AJAX para eliminar horario"""
-    return JsonResponse({'success': False, 'error': 'Función no implementada'})
+    from django.http import JsonResponse
+    
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'Método no permitido'})
+    
+    try:
+        horario_id = request.POST.get('horario_id')
+        if not horario_id:
+            return JsonResponse({'success': False, 'error': 'ID de horario requerido'})
+        
+        horario = get_object_or_404(HorarioCurso, id=horario_id)
+        horario_info = f"{horario.asignatura.nombre if horario.asignatura else 'Sin asignatura'} - {horario.get_dia_display()}"
+        horario.delete()
+        
+        return JsonResponse({
+            'success': True,
+            'message': f'Horario "{horario_info}" eliminado exitosamente'
+        })
+    
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': f'Error interno: {str(e)}'})
 
 @login_required
 def asignar_profesor_asignatura(request, asignatura_id):
@@ -2037,7 +2182,23 @@ def asignar_profesor_asignatura(request, asignatura_id):
 @login_required
 def obtener_profesores_asignatura(request, asignatura_id):
     """Vista para obtener profesores de asignatura"""
-    return JsonResponse({'profesores': []})
+    try:
+        asignatura = get_object_or_404(Asignatura, id=asignatura_id)
+        profesores = asignatura.profesores.all().order_by('primer_nombre', 'apellido_paterno')
+        
+        profesores_data = []
+        for profesor in profesores:
+            profesores_data.append({
+                'id': profesor.id,
+                'nombre': profesor.get_nombre_completo()
+            })
+        
+        return JsonResponse({
+            'success': True,
+            'profesores': profesores_data
+        })
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': f'Error: {str(e)}'})
 
 @login_required
 def editar_evento(request, evento_id):

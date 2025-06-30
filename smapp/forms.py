@@ -596,9 +596,126 @@ class CursoForm(forms.ModelForm):
 
 # Formularios básicos adicionales
 class HorarioCursoForm(forms.ModelForm):
+    """Formulario para crear y editar horarios de curso"""
+    
+    # Campo adicional para profesor (no está en el modelo, pero lo necesitamos en el formulario)
+    profesor = forms.ModelChoiceField(
+        queryset=Profesor.objects.none(),
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-select'}),
+        label='Profesor',
+        help_text='Selecciona el profesor que imparte la clase'
+    )
+    
     class Meta:
         model = HorarioCurso
         fields = ['dia', 'hora_inicio', 'hora_fin', 'asignatura']
+        widgets = {
+            'dia': forms.Select(attrs={'class': 'form-select'}),
+            'hora_inicio': forms.TimeInput(attrs={
+                'class': 'form-control',
+                'type': 'time',
+                'min': '07:00',
+                'max': '18:00',
+                'step': '300'
+            }),
+            'hora_fin': forms.TimeInput(attrs={
+                'class': 'form-control',
+                'type': 'time',
+                'min': '07:00',
+                'max': '18:00',
+                'step': '300'
+            }),
+            'asignatura': forms.Select(attrs={'class': 'form-select'})
+        }
+        labels = {
+            'dia': 'Día de la semana',
+            'hora_inicio': 'Hora de inicio',
+            'hora_fin': 'Hora de fin',
+            'asignatura': 'Asignatura'
+        }
+        help_texts = {
+            'hora_inicio': 'Hora de inicio de la clase (formato 24h)',
+            'hora_fin': 'Hora de fin de la clase (formato 24h)',
+            'asignatura': 'Selecciona la asignatura para esta clase'
+        }
+
+    def __init__(self, *args, **kwargs):
+        curso = kwargs.pop('curso', None)
+        super().__init__(*args, **kwargs)
+        
+        # Guardar referencia al curso para validación
+        self._curso = curso
+        
+        if curso:
+            # Filtrar asignaturas del curso
+            self.fields['asignatura'].queryset = curso.asignaturas.all().order_by('nombre')
+            self.fields['asignatura'].empty_label = "-- Seleccionar asignatura --"
+            
+            # Obtener profesores disponibles
+            self.fields['profesor'].queryset = Profesor.objects.all().order_by('primer_nombre', 'apellido_paterno')
+            self.fields['profesor'].empty_label = "-- Seleccionar profesor --"
+        
+        # Configurar campos requeridos
+        self.fields['dia'].required = True
+        self.fields['hora_inicio'].required = True
+        self.fields['hora_fin'].required = True
+        self.fields['asignatura'].required = True
+        self.fields['profesor'].required = False  # Profesor es opcional
+
+    def clean(self):
+        cleaned_data = super().clean()
+        hora_inicio = cleaned_data.get('hora_inicio')
+        hora_fin = cleaned_data.get('hora_fin')
+        dia = cleaned_data.get('dia')
+        asignatura = cleaned_data.get('asignatura')
+        
+        # Validar horas
+        if hora_inicio and hora_fin:
+            if hora_inicio >= hora_fin:
+                raise forms.ValidationError('La hora de inicio debe ser anterior a la hora de fin.')
+            
+            # Validar duración mínima (30 minutos)
+            from datetime import datetime, timedelta
+            inicio_dt = datetime.combine(datetime.today(), hora_inicio)
+            fin_dt = datetime.combine(datetime.today(), hora_fin)
+            duracion = fin_dt - inicio_dt
+            
+            if duracion < timedelta(minutes=30):
+                raise forms.ValidationError('La duración mínima de una clase debe ser de 30 minutos.')
+            
+            if duracion > timedelta(hours=3):
+                raise forms.ValidationError('La duración máxima de una clase debe ser de 3 horas.')
+        
+        # Validar solapamiento de horarios
+        curso = None
+        if hasattr(self, 'instance') and self.instance.pk:
+            # Editando un horario existente
+            curso = self.instance.curso
+        elif hasattr(self, '_curso'):
+            # Creando un nuevo horario
+            curso = self._curso
+            
+        if curso and dia and hora_inicio and hora_fin:
+            horarios_existentes = HorarioCurso.objects.filter(
+                curso=curso,
+                dia=dia
+            )
+            
+            # Excluir el horario actual si estamos editando
+            if hasattr(self, 'instance') and self.instance.pk:
+                horarios_existentes = horarios_existentes.exclude(pk=self.instance.pk)
+            
+            for horario in horarios_existentes:
+                # Verificar solapamiento
+                if (hora_inicio < horario.hora_fin and hora_fin > horario.hora_inicio):
+                    raise forms.ValidationError(
+                        f'Este horario se solapa con otro horario existente: '
+                        f'{horario.asignatura.nombre if horario.asignatura else "Sin asignatura"} '
+                        f'({horario.hora_inicio.strftime("%H:%M")} - {horario.hora_fin.strftime("%H:%M")})'
+                    )
+        
+        return cleaned_data
 
 class AsignarEstudianteForm(forms.Form):
     """Formulario para asignar estudiantes pendientes a cursos"""
