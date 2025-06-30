@@ -2042,7 +2042,76 @@ def obtener_profesores_asignatura(request, asignatura_id):
 @login_required
 def editar_evento(request, evento_id):
     """Vista para editar evento"""
-    context = {'user': request.user, 'evento_id': evento_id}
+    from .forms import EventoCalendarioForm
+    from django.contrib import messages
+    from django.shortcuts import get_object_or_404, redirect
+    from django.utils import timezone
+    
+    # Verificar permisos
+    user_type = 'otro'
+    if request.user.is_superuser:
+        user_type = 'administrador'
+    elif hasattr(request.user, 'perfil') and request.user.perfil:
+        user_type = request.user.perfil.tipo_usuario
+    elif hasattr(request.user, 'profesor'):
+        user_type = 'profesor'
+    
+    # Obtener el evento
+    evento = get_object_or_404(EventoCalendario, id=evento_id)
+    
+    # Verificar permisos para editar
+    puede_editar = False
+    if user_type in ['administrador', 'director']:
+        puede_editar = True
+    elif user_type == 'profesor' and evento.creado_por == request.user:
+        puede_editar = True
+    
+    if not puede_editar:
+        messages.error(request, 'No tienes permisos para editar este evento.')
+        return redirect('calendario')
+    
+    if request.method == 'POST':
+        form = EventoCalendarioForm(request.POST, instance=evento, editando=True)
+        if form.is_valid():
+            try:
+                evento_actualizado = form.save()
+                messages.success(
+                    request, 
+                    f'Evento "{evento_actualizado.titulo}" actualizado exitosamente.'
+                )
+                return redirect('calendario')
+            except Exception as e:
+                messages.error(request, f'Error al actualizar el evento: {str(e)}')
+        else:
+            messages.error(request, 'Por favor corrige los errores en el formulario.')
+    else:
+        form = EventoCalendarioForm(instance=evento, editando=True)
+    
+    # Obtener cursos disponibles para el contexto
+    cursos = []
+    if user_type in ['administrador', 'director']:
+        cursos = Curso.objects.filter(anio=timezone.now().year).order_by('nivel', 'paralelo')
+    elif user_type == 'profesor':
+        try:
+            profesor = request.user.profesor
+            cursos = Curso.objects.filter(
+                Q(profesor_jefe=profesor) | Q(asignaturas__profesores=profesor),
+                anio=timezone.now().year
+            ).distinct().order_by('nivel', 'paralelo')
+        except:
+            cursos = []
+    
+    context = {
+        'user': request.user,
+        'evento': evento,
+        'form': form,
+        'cursos': cursos,
+        'user_type': user_type,
+        'puede_editar': puede_editar,
+        'tipos_evento': EventoCalendario.TIPO_EVENTO_CHOICES,
+        'prioridades': EventoCalendario.PRIORIDAD_CHOICES,
+    }
+    
     return render(request, 'editar_evento.html', context)
 
 @login_required

@@ -1410,3 +1410,126 @@ class RegistroMasivoAsistenciaForm(forms.Form):
         self.fields['curso'].queryset = Curso.objects.filter(
             anio=anio_actual
         ).order_by('nivel', 'paralelo')
+
+
+class EventoCalendarioForm(forms.ModelForm):
+    """Formulario para crear y editar eventos del calendario"""
+    
+    class Meta:
+        model = EventoCalendario
+        fields = [
+            'titulo', 'descripcion', 'fecha', 'hora_inicio', 'hora_fin',
+            'tipo_evento', 'prioridad', 'cursos', 'para_todos_los_cursos', 
+            'solo_profesores'
+        ]
+        widgets = {
+            'titulo': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Ingresa título del evento'
+            }),
+            'descripcion': forms.Textarea(attrs={
+                'class': 'form-control',
+                'placeholder': 'Descripción opcional del evento',
+                'rows': 3
+            }),
+            'fecha': forms.DateInput(attrs={
+                'class': 'form-control',
+                'type': 'date'
+            }),
+            'hora_inicio': forms.TimeInput(attrs={
+                'class': 'form-control',
+                'type': 'time'
+            }),
+            'hora_fin': forms.TimeInput(attrs={
+                'class': 'form-control',
+                'type': 'time'
+            }),
+            'tipo_evento': forms.Select(attrs={
+                'class': 'form-select'
+            }),
+            'prioridad': forms.Select(attrs={
+                'class': 'form-select'
+            }),
+            'cursos': forms.CheckboxSelectMultiple(attrs={
+                'class': 'form-check-input'
+            }),
+            'para_todos_los_cursos': forms.CheckboxInput(attrs={
+                'class': 'form-check-input'
+            }),
+            'solo_profesores': forms.CheckboxInput(attrs={
+                'class': 'form-check-input'
+            })
+        }
+        labels = {
+            'titulo': 'Título del evento',
+            'descripcion': 'Descripción',
+            'fecha': 'Fecha',
+            'hora_inicio': 'Hora de inicio',
+            'hora_fin': 'Hora de fin',
+            'tipo_evento': 'Tipo de evento',
+            'prioridad': 'Prioridad',
+            'cursos': 'Cursos específicos',
+            'para_todos_los_cursos': 'Para todos los cursos',
+            'solo_profesores': 'Solo para profesores'
+        }
+        help_texts = {
+            'descripcion': 'Descripción opcional del evento',
+            'hora_inicio': 'Hora de inicio opcional',
+            'hora_fin': 'Debe ser mayor que la hora de inicio',
+            'cursos': 'Selecciona cursos específicos (opcional si es para todos)',
+            'para_todos_los_cursos': 'Marcar si el evento es para todos los cursos',
+            'solo_profesores': 'Marcar si es solo para profesores'
+        }
+
+    def __init__(self, *args, **kwargs):
+        self.editando = kwargs.pop('editando', False)
+        super().__init__(*args, **kwargs)
+        
+        # Filtrar solo cursos del año actual
+        from django.utils import timezone
+        anio_actual = timezone.now().year
+        self.fields['cursos'].queryset = Curso.objects.filter(
+            anio=anio_actual
+        ).order_by('nivel', 'paralelo')
+        
+        # Configurar campos requeridos
+        self.fields['titulo'].required = True
+        self.fields['fecha'].required = True
+        
+        # Si estamos editando, agregar clase de solo lectura donde sea apropiado
+        if self.editando:
+            # Mantener todos los campos editables para eventos
+            pass
+
+    def clean(self):
+        cleaned_data = super().clean()
+        hora_inicio = cleaned_data.get('hora_inicio')
+        hora_fin = cleaned_data.get('hora_fin')
+        para_todos_los_cursos = cleaned_data.get('para_todos_los_cursos')
+        solo_profesores = cleaned_data.get('solo_profesores')
+        cursos = cleaned_data.get('cursos')
+
+        # Validar horas
+        if hora_inicio and hora_fin:
+            if hora_inicio >= hora_fin:
+                raise forms.ValidationError(
+                    'La hora de inicio debe ser menor que la hora de fin.'
+                )
+
+        # Validar asignación de cursos
+        if not para_todos_los_cursos and not solo_profesores and not cursos:
+            raise forms.ValidationError(
+                'Debes seleccionar al menos un curso específico o marcar "Para todos los cursos" o "Solo profesores".'
+            )
+
+        return cleaned_data
+
+    def save(self, commit=True):
+        evento = super().save(commit=False)
+        
+        if commit:
+            evento.save()
+            # Guardar relaciones many-to-many
+            self.save_m2m()
+            
+        return evento

@@ -1,4 +1,5 @@
 {% extends "index_master.html" %}
+{% load widget_tweaks %}
 
 {% block content %}
 <div class="right_col" role="main">
@@ -48,16 +49,30 @@
               <div class="row mb-3">
                 <div class="col-md-8">
                   <label class="form-label fw-bold">
-                    <i class="fas fa-heading me-1 text-primary"></i>Título del evento *
+                    <i class="fas fa-heading me-1 text-primary"></i>{{ form.titulo.label }} *
                   </label>
-                  <input type="text" name="titulo" class="form-control" value="{{ evento.titulo }}" required>
+                  {% render_field form.titulo %}
+                  {% if form.titulo.errors %}
+                    <div class="text-danger mt-1">
+                      {% for error in form.titulo.errors %}
+                        <small>{{ error }}</small>
+                      {% endfor %}
+                    </div>
+                  {% endif %}
                 </div>
                 
                 <div class="col-md-4">
                   <label class="form-label fw-bold">
-                    <i class="fas fa-calendar me-1 text-primary"></i>Fecha *
+                    <i class="fas fa-calendar me-1 text-primary"></i>{{ form.fecha.label }} *
                   </label>
-                  <input type="date" name="fecha" class="form-control" value="{{ evento.fecha|date:'Y-m-d' }}" required>
+                  {% render_field form.fecha %}
+                  {% if form.fecha.errors %}
+                    <div class="text-danger mt-1">
+                      {% for error in form.fecha.errors %}
+                        <small>{{ error }}</small>
+                      {% endfor %}
+                    </div>
+                  {% endif %}
                 </div>
               </div>
               
@@ -65,20 +80,32 @@
               <div class="row mb-3">
                 <div class="col-md-6">
                   <label class="form-label fw-bold">
-                    <i class="fas fa-clock me-1 text-primary"></i>Hora inicio
+                    <i class="fas fa-clock me-1 text-primary"></i>{{ form.hora_inicio.label }}
                   </label>
-                  <input type="time" name="hora_inicio" id="hora_inicio" class="form-control" value="{{ evento.hora_inicio|time:'H:i' }}">
-                  <div class="invalid-feedback" id="error_hora_inicio"></div>
-                  <small class="form-text text-muted">Opcional</small>
+                  {% render_field form.hora_inicio %}
+                  {% if form.hora_inicio.errors %}
+                    <div class="text-danger mt-1">
+                      {% for error in form.hora_inicio.errors %}
+                        <small>{{ error }}</small>
+                      {% endfor %}
+                    </div>
+                  {% endif %}
+                  <small class="form-text text-muted">{{ form.hora_inicio.help_text }}</small>
                 </div>
                 
                 <div class="col-md-6">
                   <label class="form-label fw-bold">
-                    <i class="fas fa-clock me-1 text-primary"></i>Hora fin
+                    <i class="fas fa-clock me-1 text-primary"></i>{{ form.hora_fin.label }}
                   </label>
-                  <input type="time" name="hora_fin" id="hora_fin" class="form-control" value="{{ evento.hora_fin|time:'H:i' }}">
-                  <div class="invalid-feedback" id="error_hora_fin"></div>
-                  <small class="form-text text-muted">Debe ser mayor que hora inicio</small>
+                  {% render_field form.hora_fin %}
+                  {% if form.hora_fin.errors %}
+                    <div class="text-danger mt-1">
+                      {% for error in form.hora_fin.errors %}
+                        <small>{{ error }}</small>
+                      {% endfor %}
+                    </div>
+                  {% endif %}
+                  <small class="form-text text-muted">{{ form.hora_fin.help_text }}</small>
                 </div>
               </div>
               
@@ -86,36 +113,47 @@
               <div class="row mb-3">
                 <div class="col-md-6">
                   <label class="form-label fw-bold">
-                    <i class="fas fa-tag me-1 text-primary"></i>Tipo de evento
+                    <i class="fas fa-tag me-1 text-primary"></i>{{ form.tipo_evento.label }}
                   </label>
-                  <select name="tipo_evento" class="form-select">
-                    <option value="general" {% if evento.tipo_evento == 'general' %}selected{% endif %}>Evento General</option>
-                    <option value="evaluacion" {% if evento.tipo_evento == 'evaluacion' %}selected{% endif %}>Evaluación/Prueba</option>
-                    <option value="reunion" {% if evento.tipo_evento == 'reunion' %}selected{% endif %}>Reunión</option>
-                    <option value="actividad" {% if evento.tipo_evento == 'actividad' %}selected{% endif %}>Actividad Escolar</option>
-                    <option value="administrativo" {% if evento.tipo_evento == 'administrativo' %}selected{% endif %}>Administrativo</option>
-                    <option value="otro" {% if evento.tipo_evento == 'otro' %}selected{% endif %}>Otro</option>
-                  </select>
+                  {% render_field form.tipo_evento %}
+                  {% if form.tipo_evento.errors %}
+                    <div class="text-danger mt-1">
+                      {% for error in form.tipo_evento.errors %}
+                        <small>{{ error }}</small>
+                      {% endfor %}
+                    </div>
+                  {% endif %}
                 </div>
                 
                 <div class="col-md-6">
                   <label class="form-label fw-bold">
-                    <i class="fas fa-flag me-1 text-warning"></i>Prioridad
+                    <i class="fas fa-exclamation-circle me-1 text-primary"></i>{{ form.prioridad.label }}
                   </label>
-                  <select name="prioridad" class="form-select">
-                    <option value="baja" {% if evento.prioridad == 'baja' %}selected{% endif %}>Baja</option>
-                    <option value="media" {% if evento.prioridad == 'media' %}selected{% endif %}>Media</option>
-                    <option value="alta" {% if evento.prioridad == 'alta' %}selected{% endif %}>Alta</option>
-                  </select>
+                  {% render_field form.prioridad %}
+                  {% if form.prioridad.errors %}
+                    <div class="text-danger mt-1">
+                      {% for error in form.prioridad.errors %}
+                        <small>{{ error }}</small>
+                      {% endfor %}
+                    </div>
+                  {% endif %}
                 </div>
               </div>
               
               <!-- Descripción -->
               <div class="mb-3">
                 <label class="form-label fw-bold">
-                  <i class="fas fa-align-left me-1 text-primary"></i>Descripción
+                  <i class="fas fa-align-left me-1 text-primary"></i>{{ form.descripcion.label }}
                 </label>
-                <textarea name="descripcion" class="form-control" rows="3">{{ evento.descripcion }}</textarea>
+                {% render_field form.descripcion %}
+                {% if form.descripcion.errors %}
+                  <div class="text-danger mt-1">
+                    {% for error in form.descripcion.errors %}
+                      <small>{{ error }}</small>
+                    {% endfor %}
+                  </div>
+                {% endif %}
+                <small class="form-text text-muted">{{ form.descripcion.help_text }}</small>
               </div>
               
               <!-- Dirigido a -->
@@ -123,84 +161,76 @@
                 <label class="form-label fw-bold">
                   <i class="fas fa-users me-1 text-primary"></i>Dirigido a
                 </label>
-                <div class="form-check mb-2">
-                  <input class="form-check-input" type="radio" name="dirigido_a" id="dirigido_todos" value="todos" {% if dirigido_a_actual == 'todos' %}checked{% endif %}>
-                  <label class="form-check-label" for="dirigido_todos">
-                    <i class="fas fa-globe me-1 text-success"></i>Todos los cursos
-                  </label>
-                </div>
-                <div class="form-check mb-2">
-                  <input class="form-check-input" type="radio" name="dirigido_a" id="dirigido_profesores" value="solo_profesores" {% if dirigido_a_actual == 'solo_profesores' %}checked{% endif %}>
-                  <label class="form-check-label" for="dirigido_profesores">
-                    <i class="fas fa-chalkboard-teacher me-1 text-warning"></i>Solo profesores
-                  </label>
-                </div>
-                {% if cursos %}
-                <div class="form-check mb-2">
-                  <input class="form-check-input" type="radio" name="dirigido_a" id="dirigido_especificos" value="cursos_especificos" {% if dirigido_a_actual == 'cursos_especificos' %}checked{% endif %}>
-                  <label class="form-check-label" for="dirigido_especificos">
-                    <i class="fas fa-users-class me-1 text-primary"></i>Cursos específicos
-                  </label>
-                </div>
-                <div id="cursosEspecificos" class="mt-3 p-3 bg-light rounded border" {% if dirigido_a_actual != 'cursos_especificos' %}style="display: none;"{% endif %}>
-                  <label class="form-label fw-bold small text-primary">
-                    <i class="fas fa-check-square me-1"></i>Seleccionar cursos:
-                  </label>
-                  <div class="row">
-                    {% for curso in cursos %}
-                    <div class="col-md-6 mb-2">
-                      <div class="form-check">
-                        <input class="form-check-input" type="checkbox" name="cursos_especificos" value="{{ curso.id }}" id="curso_{{ curso.id }}" {% if curso in cursos_seleccionados %}checked{% endif %}>
-                        <label class="form-check-label" for="curso_{{ curso.id }}">
-                          <strong>{{ curso.get_nivel_display }}{{ curso.paralelo }}</strong>
-                          {% if curso.profesor_jefe %}
-                            <br><small class="text-muted">Prof. {{ curso.profesor_jefe.primer_nombre }} {{ curso.profesor_jefe.apellido_paterno }}</small>
-                          {% endif %}
-                        </label>
-                      </div>
+                
+                <div class="row">
+                  <div class="col-md-4">
+                    <div class="form-check">
+                      {% render_field form.para_todos_los_cursos %}
+                      <label class="form-check-label" for="{{ form.para_todos_los_cursos.id_for_label }}">
+                        {{ form.para_todos_los_cursos.label }}
+                      </label>
                     </div>
-                    {% endfor %}
+                  </div>
+                  
+                  <div class="col-md-4">
+                    <div class="form-check">
+                      {% render_field form.solo_profesores %}
+                      <label class="form-check-label" for="{{ form.solo_profesores.id_for_label }}">
+                        {{ form.solo_profesores.label }}
+                      </label>
+                    </div>
                   </div>
                 </div>
-                {% endif %}
-              </div>
-              
-              <!-- Información del responsable -->
-              <div class="alert alert-info">
-                <i class="fas fa-info-circle me-2"></i>
-                <strong>Responsable original:</strong> 
-                {% if evento.creado_por %}
-                  {{ evento.creado_por.first_name|default:evento.creado_por.username }}
-                {% else %}
-                  Sistema
-                {% endif %}
-                <br><small>Creado el {{ evento.creado_en|date:"d/m/Y H:i" }}</small>
-              </div>
-              
-              <!-- Información del responsable original -->
-              <div class="mb-4">
-                <div class="alert alert-warning">
-                  <i class="fas fa-user me-2"></i>
-                  <strong>Responsable original:</strong> 
-                  {% if evento.creado_por %}
-                    {{ evento.creado_por.first_name|default:evento.creado_por.username }}
-                  {% else %}
-                    Sistema
+                
+                <!-- Cursos específicos -->
+                <div id="cursosEspecificos" class="mt-3" style="{% if evento.para_todos_los_cursos or evento.solo_profesores %}display: none;{% endif %}">
+                  <label class="form-label fw-bold">
+                    <i class="fas fa-school me-1 text-primary"></i>{{ form.cursos.label }}
+                  </label>
+                  
+                  <div class="row">
+                    {% for curso in form.cursos %}
+                      <div class="col-md-6 mb-2">
+                        <div class="form-check">
+                          {{ curso.tag }}
+                          <label class="form-check-label" for="{{ curso.id_for_label }}">
+                            {{ curso.choice_label }}
+                          </label>
+                        </div>
+                      </div>
+                    {% endfor %}
+                  </div>
+                  
+                  {% if form.cursos.errors %}
+                    <div class="text-danger mt-1">
+                      {% for error in form.cursos.errors %}
+                        <small>{{ error }}</small>
+                      {% endfor %}
+                    </div>
                   {% endif %}
-                  <small class="d-block">
-                    Creado el {{ evento.creado_en|date:"d/m/Y H:i" }}
-                  </small>
                 </div>
               </div>
 
+              <!-- Errores no de campo -->
+              {% if form.non_field_errors %}
+                <div class="alert alert-danger">
+                  {% for error in form.non_field_errors %}
+                    <div>{{ error }}</div>
+                  {% endfor %}
+                </div>
+              {% endif %}
+
               <!-- Botones de acción -->
-              <div class="d-flex gap-2 justify-content-end">
-                <a href="{% url 'calendario' %}" class="btn btn-light border">
+              <div class="d-flex justify-content-between">
+                <a href="{% url 'calendario' %}" class="btn btn-secondary">
                   <i class="fas fa-times me-1"></i>Cancelar
                 </a>
-                <button type="submit" class="btn btn-success">
-                  <i class="fas fa-save me-1"></i>Guardar Cambios
-                </button>
+                
+                <div>
+                  <button type="submit" class="btn btn-warning">
+                    <i class="fas fa-save me-1"></i>Actualizar Evento
+                  </button>
+                </div>
               </div>
             </form>
           </div>
@@ -210,94 +240,25 @@
   </div>
 </div>
 
-<style>
-.form-control:focus,
-.form-select:focus {
-  border-color: #198754;
-  box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.15);
-}
-
-.btn-success {
-  background: #198754;
-  border-color: #198754;
-}
-
-.btn-success:hover {
-  background: #157347;
-  border-color: #146c43;
-  transform: translateY(-1px);
-}
-
-.form-check:hover .form-check-label {
-  color: #198754;
-}
-
-.card {
-  border: 1px solid #dee2e6;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-</style>
-
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  // Validación de horas
-  function validarHoras() {
-    const horaInicio = document.getElementById('hora_inicio');
-    const horaFin = document.getElementById('hora_fin');
-    const errorInicio = document.getElementById('error_hora_inicio');
-    const errorFin = document.getElementById('error_hora_fin');
-    
-    // Limpiar errores previos
-    horaInicio.classList.remove('is-invalid');
-    horaFin.classList.remove('is-invalid');
-    errorInicio.textContent = '';
-    errorFin.textContent = '';
-    
-    // Solo validar si ambas horas tienen valor
-    if (horaInicio.value && horaFin.value) {
-      if (horaInicio.value >= horaFin.value) {
-        horaInicio.classList.add('is-invalid');
-        horaFin.classList.add('is-invalid');
-        errorInicio.textContent = 'La hora de inicio debe ser menor que la hora de fin';
-        errorFin.textContent = 'La hora de fin debe ser mayor que la hora de inicio';
-        return false;
+  // Manejar visibilidad de cursos específicos
+  const paraTodos = document.getElementById('{{ form.para_todos_los_cursos.id_for_label }}');
+  const soloProfesores = document.getElementById('{{ form.solo_profesores.id_for_label }}');
+  const cursosDiv = document.getElementById('cursosEspecificos');
+  
+  function toggleCursosEspecificos() {
+    if (paraTodos && soloProfesores && cursosDiv) {
+      if (paraTodos.checked || soloProfesores.checked) {
+        cursosDiv.style.display = 'none';
+      } else {
+        cursosDiv.style.display = 'block';
       }
     }
-    return true;
   }
   
-  // Agregar eventos de validación
-  document.getElementById('hora_inicio').addEventListener('change', validarHoras);
-  document.getElementById('hora_fin').addEventListener('change', validarHoras);
-  
-  // Mostrar/ocultar selector de cursos específicos
-  document.querySelectorAll('input[name="dirigido_a"]').forEach(radio => {
-    radio.addEventListener('change', function() {
-      const cursosDiv = document.getElementById('cursosEspecificos');
-      
-      if (cursosDiv) {
-        if (this.value === 'cursos_especificos') {
-          cursosDiv.style.display = 'block';
-        } else {
-          cursosDiv.style.display = 'none';
-          // No desmarcar checkboxes al cambiar, mantener selección
-        }
-      }
-    });
-  });
-  
-  // Validar cursos específicos
-  function validarCursosEspecificos() {
-    const dirigidoEspecificos = document.getElementById('dirigido_especificos');
-    const checkboxes = document.querySelectorAll('input[name="cursos_especificos"]:checked');
-    
-    if (dirigidoEspecificos && dirigidoEspecificos.checked && checkboxes.length === 0) {
-      alert('Debes seleccionar al menos un curso específico');
-      document.getElementById('cursosEspecificos').scrollIntoView({ behavior: 'smooth' });
-      return false;
-    }
-    return true;
-  }
+  if (paraTodos) paraTodos.addEventListener('change', toggleCursosEspecificos);
+  if (soloProfesores) soloProfesores.addEventListener('change', toggleCursosEspecificos);
   
   // Validación del formulario
   document.getElementById('editarEventoForm').addEventListener('submit', function(e) {
@@ -310,14 +271,27 @@ document.addEventListener('DOMContentLoaded', function() {
       return false;
     }
     
-    if (!validarHoras()) {
-      e.preventDefault();
-      return false;
+    // Validar horas si están presentes
+    const horaInicio = this.querySelector('[name="hora_inicio"]').value;
+    const horaFin = this.querySelector('[name="hora_fin"]').value;
+    
+    if (horaInicio && horaFin) {
+      if (horaInicio >= horaFin) {
+        e.preventDefault();
+        alert('La hora de inicio debe ser menor que la hora de fin.');
+        return false;
+      }
     }
     
-    if (!validarCursosEspecificos()) {
-      e.preventDefault();
-      return false;
+    // Validar cursos específicos
+    if (paraTodos && soloProfesores && !paraTodos.checked && !soloProfesores.checked) {
+      const cursosSeleccionados = document.querySelectorAll('input[name="cursos"]:checked');
+      if (cursosSeleccionados.length === 0) {
+        e.preventDefault();
+        alert('Debes seleccionar al menos un curso específico o marcar una opción general.');
+        if (cursosDiv) cursosDiv.scrollIntoView({ behavior: 'smooth' });
+        return false;
+      }
     }
     
     // Confirmar cambios
@@ -332,7 +306,7 @@ document.addEventListener('DOMContentLoaded', function() {
     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Guardando cambios...';
     submitBtn.disabled = true;
     
-    // Permitir que el formulario se envíe normalmente
+    // Restaurar botón después de un tiempo si no se redirige
     setTimeout(() => {
       submitBtn.innerHTML = originalText;
       submitBtn.disabled = false;
