@@ -1,23 +1,393 @@
-<!-- filepath: c:\Users\Danie\Desktop\Proyecto_Titulo\sma\templates\mi_curso.html -->
 {% extends "index_master.html" %}
+
 {% block content %}
 <div class="right_col" role="main">
   <div class="container-fluid">
-    <h2>Mi Curso</h2>
-    {% if curso %}
-      <div class="card">
-        <div class="card-header bg-primary text-white">
-          <strong>Curso Asignado</strong>
-        </div>
-        <div class="card-body">
-          <p><strong>Nombre:</strong> {{ curso.nombre }}</p>
-          <p><strong>Código:</strong> {{ curso.codigo_curso }}</p>
-          <p><strong>Profesor Responsable:</strong> {{ curso.profesor_responsable }}</p>
+    
+    <!-- Header de la página -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="bg-white p-4 rounded shadow-sm border">
+          <div class="row align-items-center">
+            <div class="col-md-8">
+              <div class="d-flex align-items-center">
+                <div class="me-3">
+                  <i class="fas fa-school fa-3x text-primary"></i>
+                </div>
+                <div>
+                  <h1 class="h3 mb-1 text-dark">Mi Curso</h1>
+                  <p class="mb-0 text-muted">
+                    <i class="fas fa-user me-2"></i>
+                    Información del curso de {{ user.first_name|default:user.username }}
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4 text-end d-none d-md-block">
+              <div class="text-center">
+                <i class="fas fa-users fa-2x text-muted mb-2"></i>
+                <p class="mb-0 small text-muted">Vista de estudiante</p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
+    </div>
+
+    {% if es_alumno and curso_actual %}
+    
+    <!-- Información del curso -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="card border-0 shadow-sm">
+          <div class="card-header bg-primary text-white">
+            <h4 class="mb-0"><i class="fas fa-university me-2"></i>Información del Curso</h4>
+          </div>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-6">
+                <div class="info-group mb-3">
+                  <label class="fw-bold text-dark mb-1">Curso:</label>
+                  <p class="mb-0 fs-5">{{ curso_actual.get_nivel_display }}{{ curso_actual.paralelo }}</p>
+                </div>
+                <div class="info-group mb-3">
+                  <label class="fw-bold text-dark mb-1">Año Académico:</label>
+                  <p class="mb-0">{{ curso_actual.anio }}</p>
+                </div>
+                <div class="info-group mb-3">
+                  <label class="fw-bold text-dark mb-1">Profesor Jefe:</label>
+                  {% if profesor_jefe %}
+                    <p class="mb-0">
+                      <i class="fas fa-chalkboard-teacher me-2 text-success"></i>
+                      {{ profesor_jefe.get_nombre_completo }}
+                    </p>
+                    {% if profesor_jefe.email %}
+                    <small class="text-muted">
+                      <i class="fas fa-envelope me-1"></i>{{ profesor_jefe.email }}
+                    </small>
+                    {% endif %}
+                  {% else %}
+                    <p class="mb-0 text-muted">
+                      <i class="fas fa-user-times me-2"></i>No asignado
+                    </p>
+                  {% endif %}
+                </div>
+              </div>
+              <div class="col-md-6">
+                <!-- Estadísticas del curso -->
+                <div class="row g-3">
+                  <div class="col-6">
+                    <div class="stats-card text-center p-3 bg-light rounded border">
+                      <i class="fas fa-users fa-2x text-primary mb-2"></i>
+                      <h4 class="mb-1">{{ total_estudiantes }}</h4>
+                      <small class="text-muted">Estudiantes</small>
+                    </div>
+                  </div>
+                  <div class="col-6">
+                    <div class="stats-card text-center p-3 bg-light rounded border">
+                      <i class="fas fa-book fa-2x text-info mb-2"></i>
+                      <h4 class="mb-1">{{ total_asignaturas }}</h4>
+                      <small class="text-muted">Asignaturas</small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Panel de compañeros y asignaturas -->
+    <div class="row">
+      <!-- Mis compañeros de curso -->
+      <div class="col-lg-8 mb-4">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-header bg-light border-0">
+            <h5 class="mb-0 text-dark">
+              <i class="fas fa-users text-success me-2"></i>
+              Mis Compañeros de Curso
+              <span class="badge bg-success ms-2">{{ companeros.count }}</span>
+            </h5>
+          </div>
+          <div class="card-body">
+            {% if companeros %}
+              <div class="row g-3">
+                {% for companero in companeros %}
+                <div class="col-md-6 col-lg-4">
+                  <div class="companero-card p-3 border rounded bg-light h-100">
+                    <div class="d-flex align-items-center">
+                      <div class="me-3">
+                        <i class="fas fa-user-circle fa-2x text-muted"></i>
+                      </div>
+                      <div>
+                        <h6 class="mb-1 fw-bold">{{ companero.primer_nombre }} {{ companero.apellido_paterno }}</h6>
+                        {% if companero.segundo_nombre %}
+                          <p class="mb-0 small text-muted">{{ companero.segundo_nombre }} {{ companero.apellido_materno|default:"" }}</p>
+                        {% endif %}
+                        {% if companero.numero_documento %}
+                          <small class="text-muted">
+                            <i class="fas fa-id-card me-1"></i>{{ companero.numero_documento }}
+                          </small>
+                        {% endif %}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                {% endfor %}
+              </div>
+              
+              <!-- Paginación simple si hay muchos compañeros -->
+              {% if companeros.count > 12 %}
+              <div class="text-center mt-4">
+                <small class="text-muted">Mostrando los primeros 12 compañeros</small>
+              </div>
+              {% endif %}
+              
+            {% else %}
+              <div class="text-center py-4">
+                <i class="fas fa-user-friends fa-3x text-muted mb-3"></i>
+                <h6 class="text-muted">No hay otros compañeros en tu curso</h6>
+                <p class="text-muted small">Eres el único estudiante registrado en este curso.</p>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel lateral: Asignaturas del curso -->
+      <div class="col-lg-4 mb-4">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-header bg-light border-0">
+            <h5 class="mb-0 text-dark">
+              <i class="fas fa-book text-info me-2"></i>
+              Asignaturas del Curso
+            </h5>
+          </div>
+          <div class="card-body">
+            {% if asignaturas_curso %}
+              <div class="list-group list-group-flush">
+                {% for asignatura in asignaturas_curso %}
+                  <div class="list-group-item border-0 px-0 py-3">
+                    <div class="d-flex align-items-start">
+                      <div class="me-3">
+                        <i class="fas fa-book-open fa-lg text-info"></i>
+                      </div>
+                      <div class="flex-grow-1">
+                        <h6 class="mb-1 fw-bold">{{ asignatura.nombre }}</h6>
+                        {% if asignatura.codigo_asignatura %}
+                          <small class="text-muted d-block">Código: {{ asignatura.codigo_asignatura }}</small>
+                        {% endif %}
+                        {% if asignatura.profesor_responsable %}
+                          <small class="text-success">
+                            <i class="fas fa-user me-1"></i>{{ asignatura.profesor_responsable.get_nombre_completo }}
+                          </small>
+                        {% else %}
+                          <small class="text-muted">
+                            <i class="fas fa-user-times me-1"></i>Sin profesor asignado
+                          </small>
+                        {% endif %}
+                      </div>
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+              
+              <div class="text-center mt-3">
+                <a href="{% url 'listar_asignaturas' %}" class="btn btn-outline-info btn-sm">
+                  <i class="fas fa-eye me-1"></i>Ver Detalles de Asignaturas
+                </a>
+              </div>
+              
+            {% else %}
+              <div class="text-center py-4">
+                <i class="fas fa-book fa-3x text-muted mb-3"></i>
+                <h6 class="text-muted">Sin asignaturas</h6>
+                <p class="text-muted small">No hay asignaturas asignadas a tu curso.</p>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Acciones rápidas -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="card border-0 shadow-sm">
+          <div class="card-header bg-light border-0">
+            <h5 class="mb-0 text-dark">
+              <i class="fas fa-rocket text-primary me-2"></i>Acciones Relacionadas con mi Curso
+            </h5>
+          </div>
+          <div class="card-body">
+            <div class="row g-3">
+              <div class="col-md-3">
+                <a href="{% url 'mis_horarios' %}" class="btn btn-outline-primary w-100 py-3">
+                  <i class="fas fa-calendar-alt fa-2x d-block mb-2"></i>
+                  <strong>Ver Horario</strong>
+                  <br><small>Horario de clases</small>
+                </a>
+              </div>
+              <div class="col-md-3">
+                <a href="{% url 'ver_notas_curso' %}" class="btn btn-outline-success w-100 py-3">
+                  <i class="fas fa-chart-line fa-2x d-block mb-2"></i>
+                  <strong>Mis Notas</strong>
+                  <br><small>Ver calificaciones</small>
+                </a>
+              </div>
+              <div class="col-md-3">
+                <a href="{% url 'ver_asistencia_alumno' %}" class="btn btn-outline-info w-100 py-3">
+                  <i class="fas fa-user-check fa-2x d-block mb-2"></i>
+                  <strong>Mi Asistencia</strong>
+                  <br><small>Registro de asistencia</small>
+                </a>
+              </div>
+              <div class="col-md-3">
+                <a href="{% url 'libro_anotaciones' %}" class="btn btn-outline-warning w-100 py-3">
+                  <i class="fas fa-sticky-note fa-2x d-block mb-2"></i>
+                  <strong>Anotaciones</strong>
+                  <br><small>Observaciones</small>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {% elif error_curso %}
+    
+    <!-- Error o sin curso asignado -->
+    <div class="row">
+      <div class="col-12">
+        <div class="alert alert-warning text-center">
+          <i class="fas fa-exclamation-triangle fa-3x mb-3"></i>
+          <h4>Sin Curso Asignado</h4>
+          <p>{{ error_curso }}</p>
+          <p class="mb-0">Por favor, contacta con el administrador para que te asigne a un curso.</p>
+        </div>
+      </div>
+    </div>
+
     {% else %}
-      <div class="alert alert-warning">No tienes un curso asignado.</div>
+    
+    <!-- Vista para no estudiantes -->
+    <div class="row">
+      <div class="col-12">
+        <div class="alert alert-info text-center">
+          <i class="fas fa-info-circle fa-3x mb-3"></i>
+          <h4>Vista Exclusiva para Estudiantes</h4>
+          <p>Esta sección está diseñada específicamente para que los estudiantes vean información de su curso.</p>
+          <a href="{% url 'inicio' %}" class="btn btn-primary">
+            <i class="fas fa-arrow-left me-2"></i>Volver al Inicio
+          </a>
+        </div>
+      </div>
+    </div>
+
     {% endif %}
+    
   </div>
 </div>
+
+<style>
+.info-group {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.info-group:last-child {
+  border-bottom: none;
+}
+
+.companero-card {
+  transition: all 0.3s ease;
+  border: 1px solid #e9ecef !important;
+}
+
+.companero-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  border-color: #007bff !important;
+}
+
+.stats-card {
+  transition: all 0.3s ease;
+}
+
+.stats-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.list-group-item {
+  transition: background-color 0.2s ease;
+}
+
+.list-group-item:hover {
+  background-color: #f8f9fa;
+}
+
+.btn-outline-primary:hover,
+.btn-outline-success:hover,
+.btn-outline-info:hover,
+.btn-outline-warning:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.card {
+  border: 1px solid #dee2e6;
+}
+
+.badge {
+  font-size: 0.75rem;
+}
+
+.text-dark {
+  color: #212529 !important;
+}
+
+@media (max-width: 768px) {
+  .companero-card {
+    margin-bottom: 1rem;
+  }
+  
+  .stats-card {
+    margin-bottom: 1rem;
+  }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Animación de entrada para las tarjetas de compañeros
+  const companeroCards = document.querySelectorAll('.companero-card');
+  companeroCards.forEach((card, index) => {
+    card.style.opacity = '0';
+    card.style.transform = 'translateY(20px)';
+    
+    setTimeout(() => {
+      card.style.transition = 'all 0.6s ease';
+      card.style.opacity = '1';
+      card.style.transform = 'translateY(0)';
+    }, index * 100);
+  });
+  
+  // Animación para las tarjetas de estadísticas
+  const statsCards = document.querySelectorAll('.stats-card');
+  statsCards.forEach((card, index) => {
+    card.style.opacity = '0';
+    card.style.transform = 'scale(0.9)';
+    
+    setTimeout(() => {
+      card.style.transition = 'all 0.4s ease';
+      card.style.opacity = '1';
+      card.style.transform = 'scale(1)';
+    }, 300 + (index * 150));
+  });
+});
+</script>
+
 {% endblock %}

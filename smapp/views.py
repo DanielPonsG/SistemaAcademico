@@ -1021,8 +1021,65 @@ def mis_horarios(request):
 
 @login_required  
 def mi_curso(request):
-    """Vista para mostrar información del curso"""
-    context = {'user': request.user}
+    """Vista para mostrar información del curso del estudiante"""
+    from django.utils import timezone
+    from django.contrib import messages
+    
+    context = {
+        'user': request.user,
+    }
+    
+    # Verificar que el usuario sea estudiante
+    if hasattr(request.user, 'perfil') and request.user.perfil.tipo_usuario == 'alumno':
+        try:
+            estudiante = request.user.estudiante
+            anio_actual = timezone.now().year
+            
+            # Obtener curso actual del estudiante
+            curso_actual = estudiante.cursos.filter(anio=anio_actual).order_by('-nivel').first()
+            
+            # Si no hay curso del año actual, tomar el más reciente
+            if not curso_actual:
+                curso_actual = estudiante.cursos.order_by('-anio', '-nivel').first()
+            
+            if curso_actual:
+                # Obtener compañeros de curso (excluyendo al propio estudiante)
+                companeros = curso_actual.estudiantes.exclude(id=estudiante.id).order_by('primer_nombre', 'apellido_paterno')
+                
+                # Obtener asignaturas del curso
+                asignaturas_curso = curso_actual.asignaturas.all().order_by('nombre')
+                
+                # Obtener profesor jefe
+                profesor_jefe = curso_actual.profesor_jefe
+                
+                # Estadísticas del curso
+                total_estudiantes = curso_actual.estudiantes.count()
+                total_asignaturas = asignaturas_curso.count()
+                
+                context.update({
+                    'estudiante': estudiante,
+                    'curso_actual': curso_actual,
+                    'companeros': companeros,
+                    'asignaturas_curso': asignaturas_curso,
+                    'profesor_jefe': profesor_jefe,
+                    'total_estudiantes': total_estudiantes,
+                    'total_asignaturas': total_asignaturas,
+                    'es_alumno': True,
+                })
+                
+            else:
+                context['error_curso'] = "No tienes un curso asignado actualmente."
+                
+        except Exception as e:
+            context['error_curso'] = f"Error al cargar información del curso: {str(e)}"
+            import traceback
+            print(f"Error en mi_curso (alumno): {traceback.format_exc()}")
+    
+    else:
+        # Para otros tipos de usuario (profesores, admin)
+        messages.info(request, 'Esta vista está diseñada específicamente para estudiantes.')
+        context['error_curso'] = "Esta sección es exclusiva para estudiantes."
+    
     return render(request, 'mi_curso.html', context)
 
 @login_required
