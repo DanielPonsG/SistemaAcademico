@@ -731,13 +731,30 @@ def inicio(request):
                 from .models import HorarioCurso
                 hoy = timezone.now().date()
                 proximos_horarios = []
+                horario_semanal_completo = []
+                horas_disponibles = []
+                
                 if curso_actual:
+                    # Mapeo de días: weekday() a códigos del modelo
+                    dias_weekday_a_codigo = {
+                        0: 'LU',  # Lunes
+                        1: 'MA',  # Martes  
+                        2: 'MI',  # Miércoles
+                        3: 'JU',  # Jueves
+                        4: 'VI',  # Viernes
+                        5: 'SA',  # Sábado
+                        6: 'DO'   # Domingo
+                    }
+                    
+                    # Próximos 3 días
                     for i in range(3):  # Próximos 3 días
                         fecha = hoy + timedelta(days=i)
                         dia_semana = fecha.weekday()  # 0=Lunes, 6=Domingo
+                        codigo_dia = dias_weekday_a_codigo[dia_semana]
+                        
                         horarios_dia = HorarioCurso.objects.filter(
                             curso=curso_actual,
-                            dia=dia_semana + 1  # El modelo usa 1=Lunes
+                            dia=codigo_dia
                         ).order_by('hora_inicio')
                         
                         if horarios_dia.exists():
@@ -746,6 +763,38 @@ def inicio(request):
                                 'dia_nombre': ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'][dia_semana],
                                 'horarios': horarios_dia
                             })
+                    
+                    # Horario completo de la semana (todos los días)
+                    horarios_semana = HorarioCurso.objects.filter(
+                        curso=curso_actual
+                    ).order_by('dia', 'hora_inicio')
+                    
+                    # Crear estructura para horario semanal completo
+                    dias_codigo_a_info = {
+                        'LU': {'numero': 1, 'nombre': 'Lunes'},
+                        'MA': {'numero': 2, 'nombre': 'Martes'},
+                        'MI': {'numero': 3, 'nombre': 'Miércoles'},
+                        'JU': {'numero': 4, 'nombre': 'Jueves'},
+                        'VI': {'numero': 5, 'nombre': 'Viernes'},
+                        'SA': {'numero': 6, 'nombre': 'Sábado'},
+                        'DO': {'numero': 7, 'nombre': 'Domingo'}
+                    }
+                    
+                    for codigo_dia, info_dia in dias_codigo_a_info.items():
+                        horarios_del_dia = horarios_semana.filter(dia=codigo_dia)
+                        if horarios_del_dia.exists():
+                            horario_semanal_completo.append({
+                                'dia_numero': info_dia['numero'],
+                                'dia_nombre': info_dia['nombre'],
+                                'horarios': horarios_del_dia
+                            })
+                    
+                    # Generar lista de horas disponibles para la tabla
+                    if horarios_semana.exists():
+                        horas_set = set()
+                        for horario in horarios_semana:
+                            horas_set.add(horario.hora_inicio.strftime('%H:%M'))
+                        horas_disponibles = sorted(list(horas_set))
                 
                 # Información adicional del estudiante
                 todos_cursos = estudiante.cursos.all().order_by('-anio', '-nivel')
@@ -763,6 +812,8 @@ def inicio(request):
                     'porcentaje_asistencia': round(porcentaje_asistencia, 1),
                     'anotaciones_recientes': anotaciones_recientes,
                     'proximos_horarios': proximos_horarios[:3],  # Solo 3 días
+                    'horario_semanal_completo': horario_semanal_completo,
+                    'horas_disponibles': horas_disponibles,
                 })
                 
             except Estudiante.DoesNotExist:

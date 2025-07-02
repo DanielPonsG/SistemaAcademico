@@ -33,69 +33,323 @@
       </div>
     </div>
 
-    <!-- Panel de estadísticas rápidas -->
-    <div class="row mb-4">
-      <div class="col-xl-3 col-md-6 mb-3">
-        <div class="card border h-100">
-          <div class="card-body text-center bg-white">
-            <div class="mb-3">
-              <i class="fas fa-graduation-cap fa-3x text-primary"></i>
-            </div>
-            <h5 class="text-muted mb-1">Estado del Sistema</h5>
-            <h4 class="text-success mb-0">
-              <i class="fas fa-check-circle me-1"></i>Activo
-            </h4>
+    {% if user.perfil.tipo_usuario == 'alumno' %}
+    <!-- ################################################## -->
+    <!-- ########## PANEL SIMPLIFICADO PARA ESTUDIANTES ######### -->
+    <!-- ################################################## -->
+    <div class="row">
+      <!-- Panel Principal: Resumen Académico -->
+      <div class="col-lg-8 mb-4">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-header bg-light border-0">
+            <h4 class="mb-0 text-dark"><i class="fas fa-graduation-cap text-primary me-2"></i>Mi Información Académica</h4>
           </div>
-        </div>
-      </div>
-      
-      <div class="col-xl-3 col-md-6 mb-3">
-        <div class="card border h-100">
-          <div class="card-body text-center bg-white">
-            <div class="mb-3">
-              <i class="fas fa-clock fa-3x text-success"></i>
-            </div>
-            <h5 class="text-muted mb-1">Última Conexión</h5>
-            <h6 class="text-dark mb-0" id="lastConnection">Ahora</h6>
-          </div>
-        </div>
-      </div>
-      
-      <div class="col-xl-3 col-md-6 mb-3">
-        <div class="card border h-100">
-          <div class="card-body text-center bg-white">
-            <div class="mb-3">
-              <i class="fas fa-user-shield fa-3x text-info"></i>
-            </div>
-            <h5 class="text-muted mb-1">Permisos</h5>
-            <h6 class="text-dark mb-0">
-              {% if user.perfil.tipo_usuario == 'administrador' %}
-                <span class="badge bg-danger">Administrador Total</span>
-              {% elif user.perfil.tipo_usuario == 'profesor' %}
-                <span class="badge bg-warning">Gestión Académica</span>                {% elif user.perfil.tipo_usuario == 'alumno' %}
-                <span class="badge bg-info">Solo Lectura</span>
-              {% else %}
-                <span class="badge bg-success">Director</span>
+          <div class="card-body">
+            {% if estudiante %}
+              <!-- Información básica del curso -->
+              {% if curso_actual %}
+              <div class="alert alert-primary mb-4">
+                <div class="row align-items-center">
+                  <div class="col-md-8">
+                    <h5 class="mb-1"><i class="fas fa-university me-2"></i>{{ curso_actual.get_nivel_display }}{{ curso_actual.paralelo }}</h5>
+                    <p class="mb-0">
+                      <strong>Profesor Jefe:</strong> {{ curso_actual.profesor_jefe.get_nombre_completo|default:"No asignado" }}
+                      <br><strong>Año Académico:</strong> {{ curso_actual.anio }}
+                    </p>
+                  </div>
+                  <div class="col-md-4 text-end">
+                    <i class="fas fa-school fa-3x text-primary opacity-25"></i>
+                  </div>
+                </div>
+              </div>
               {% endif %}
-            </h6>
+
+              <!-- Estadísticas académicas principales -->
+              <div class="row mb-5 academic-section">
+                <div class="col-md-3 mb-3">
+                  <div class="text-center p-3 bg-light rounded stats-card">
+                    <i class="fas fa-trophy fa-2x text-warning mb-2"></i>
+                    <h4 class="mb-1">{{ promedio_general|default:"--" }}</h4>
+                    <small class="text-muted">Promedio</small>
+                  </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                  <div class="text-center p-3 bg-light rounded stats-card">
+                    <i class="fas fa-calendar-check fa-2x text-success mb-2"></i>
+                    <h4 class="mb-1">{{ porcentaje_asistencia|default:"0" }}%</h4>
+                    <small class="text-muted">Asistencia</small>
+                  </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                  <div class="text-center p-3 bg-light rounded stats-card">
+                    <i class="fas fa-book fa-2x text-info mb-2"></i>
+                    <h4 class="mb-1">{{ asignaturas.count|default:"0" }}</h4>
+                    <small class="text-muted">Materias</small>
+                  </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                  <div class="text-center p-3 bg-light rounded stats-card">
+                    <i class="fas fa-sticky-note fa-2x text-secondary mb-2"></i>
+                    <h4 class="mb-1">{{ anotaciones_recientes.count|default:"0" }}</h4>
+                    <small class="text-muted">Anotaciones</small>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Horario Semanal -->
+              <div class="academic-section">
+                <h5 class="text-dark mb-4 section-title"><i class="fas fa-calendar-week me-2"></i>Mi Horario de Clases</h5>
+              {% if proximos_horarios %}
+                <!-- Vista de próximos días (solo los siguientes 3 días) -->
+                <div class="mb-4">
+                  <h6 class="text-muted mb-3"><i class="fas fa-clock me-1"></i>Próximas Clases</h6>
+                  <div class="row g-2">
+                    {% for dia in proximos_horarios %}
+                    <div class="col-md-4">
+                      <div class="card border h-100">
+                        <div class="card-header bg-light py-2">
+                          <h6 class="mb-0 text-primary">{{ dia.dia_nombre }}</h6>
+                          <small class="text-muted">{{ dia.fecha|date:"d/m/Y" }}</small>
+                        </div>
+                        <div class="card-body py-2">
+                          {% for horario in dia.horarios|slice:":4" %}
+                            <div class="d-flex justify-content-between small mb-1">
+                              <div>
+                                <strong>{{ horario.asignatura.nombre|truncatechars:18 }}</strong>
+                                {% if horario.asignatura.profesor_responsable %}
+                                  <br><small class="text-muted">{{ horario.asignatura.profesor_responsable.get_nombre_completo|truncatechars:20 }}</small>
+                                {% endif %}
+                              </div>
+                              <div class="text-end">
+                                <span class="text-muted">{{ horario.hora_inicio|time:"H:i" }}</span>
+                                <br><small class="text-muted">{{ horario.hora_fin|time:"H:i" }}</small>
+                              </div>
+                            </div>
+                            {% if not forloop.last %}<hr class="my-1">{% endif %}
+                          {% endfor %}
+                        </div>
+                      </div>
+                    </div>
+                    {% endfor %}
+                  </div>
+                </div>
+
+                <!-- Horario completo de la semana -->
+                {% if curso_actual and horario_semanal_completo %}
+                <div class="mb-4">
+                  <h6 class="text-muted mb-3"><i class="fas fa-table me-1"></i>Horario Semanal Completo - {{ curso_actual.get_nivel_display }}{{ curso_actual.paralelo }}</h6>
+                  <div class="table-responsive">
+                    <table class="table table-sm table-bordered tabla-horarios">
+                      <thead class="table-light">
+                        <tr>
+                          <th class="text-center" style="width: 100px;">Hora</th>
+                          <th class="text-center horario-cell">Lunes</th>
+                          <th class="text-center horario-cell">Martes</th>
+                          <th class="text-center horario-cell">Miércoles</th>
+                          <th class="text-center horario-cell">Jueves</th>
+                          <th class="text-center horario-cell">Viernes</th>
+                          <th class="text-center horario-cell">Sábado</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {% for hora in horas_disponibles %}
+                        <tr>
+                          <td class="text-center hora-columna">{{ hora }}</td>
+                          {% for dia_num in "123456"|make_list %}
+                            <td class="text-center align-middle horario-cell" style="height: 60px;">
+                              {% for dia_horario in horario_semanal_completo %}
+                                {% if dia_horario.dia_numero == dia_num|add:0 %}
+                                  {% for clase in dia_horario.horarios %}
+                                    {% if clase.hora_inicio|time:"H:i" == hora %}
+                                      <div class="clase-bloque">
+                                        <strong>{{ clase.asignatura.nombre|truncatechars:12 }}</strong>
+                                        {% if clase.asignatura.profesor_responsable %}
+                                          <small>{{ clase.asignatura.profesor_responsable.primer_nombre }}</small>
+                                        {% endif %}
+                                      </div>
+                                    {% endif %}
+                                  {% endfor %}
+                                {% endif %}
+                              {% endfor %}
+                            </td>
+                          {% endfor %}
+                        </tr>
+                        {% endfor %}
+                      </tbody>
+                    </table>
+                  </div>
+                  <div class="text-center mt-2">
+                    <a href="{% url 'mis_horarios' %}" class="btn btn-outline-primary btn-sm">
+                      <i class="fas fa-calendar-alt me-1"></i>Ver Horario Completo
+                    </a>
+                  </div>
+                </div>
+                {% elif curso_actual %}
+                <div class="alert alert-info text-center mb-4">
+                  <i class="fas fa-info-circle me-2"></i>No hay horarios programados para tu curso.
+                  <br><small class="text-muted">Curso: {{ curso_actual.get_nivel_display }}{{ curso_actual.paralelo }}</small>
+                </div>
+                {% endif %}
+              {% else %}
+                <div class="alert alert-info text-center mb-4">
+                  <i class="fas fa-info-circle me-2"></i>No hay horarios programados disponibles.
+                  {% if curso_actual %}
+                    <br><small class="text-muted">Curso: {{ curso_actual.get_nivel_display }}{{ curso_actual.paralelo }}</small>
+                  {% endif %}
+                </div>
+              {% endif %}
+
+              <!-- Accesos Rápidos Académicos -->
+              <div class="academic-section">
+                <h5 class="text-dark mb-4 section-title"><i class="fas fa-rocket me-2"></i>Mis Recursos Académicos</h5>
+                <div class="row g-4">
+                  <div class="col-lg-4 col-md-6 mb-3">
+                    <a href="{% url 'ver_notas_curso' %}" class="text-decoration-none">
+                      <div class="card border-0 bg-primary text-white text-center p-4 h-100 quick-access-card">
+                        <i class="fas fa-chart-line fa-3x mb-3"></i>
+                        <h6 class="mb-1 fw-bold">Mis Notas</h6>
+                        <small class="opacity-75">Ver calificaciones y evaluaciones</small>
+                      </div>
+                    </a>
+                  </div>
+                  <div class="col-lg-4 col-md-6 mb-3">
+                    <a href="{% url 'ver_asistencia_alumno' %}" class="text-decoration-none">
+                      <div class="card border-0 bg-success text-white text-center p-4 h-100 quick-access-card">
+                        <i class="fas fa-user-check fa-3x mb-3"></i>
+                        <h6 class="mb-1 fw-bold">Mi Asistencia</h6>
+                        <small class="opacity-75">Revisar registro de asistencia</small>
+                      </div>
+                    </a>
+                  </div>
+                  <div class="col-lg-4 col-md-6 mb-3">
+                    <a href="{% url 'mis_horarios' %}" class="text-decoration-none">
+                      <div class="card border-0 bg-info text-white text-center p-4 h-100 quick-access-card">
+                        <i class="fas fa-clock fa-3x mb-3"></i>
+                        <h6 class="mb-1 fw-bold">Mi Horario</h6>
+                        <small class="opacity-75">Ver horario completo de clases</small>
+                      </div>
+                    </a>
+                  </div>
+                  <div class="col-lg-4 col-md-6 mb-3">
+                    <a href="{% url 'mi_curso' %}" class="text-decoration-none">
+                      <div class="card border-0 bg-warning text-white text-center p-4 h-100 quick-access-card">
+                        <i class="fas fa-users fa-3x mb-3"></i>
+                        <h6 class="mb-1 fw-bold">Mi Curso</h6>
+                        <small class="opacity-75">Información del curso y compañeros</small>
+                      </div>
+                    </a>
+                  </div>
+                  <div class="col-lg-4 col-md-6 mb-3">
+                    <a href="{% url 'listar_asignaturas' %}" class="text-decoration-none">
+                      <div class="card border-0 bg-secondary text-white text-center p-4 h-100 quick-access-card">
+                        <i class="fas fa-book fa-3x mb-3"></i>
+                        <h6 class="mb-1 fw-bold">Mis Materias</h6>
+                        <small class="opacity-75">Ver asignaturas y profesores</small>
+                      </div>
+                    </a>
+                  </div>
+                  <div class="col-lg-4 col-md-6 mb-3">
+                    <a href="{% url 'libro_anotaciones' %}" class="text-decoration-none">
+                      <div class="card border-0 bg-danger text-white text-center p-4 h-100 quick-access-card">
+                        <i class="fas fa-sticky-note fa-3x mb-3"></i>
+                        <h6 class="mb-1 fw-bold">Mis Anotaciones</h6>
+                        <small class="opacity-75">Revisar observaciones académicas</small>
+                      </div>
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+            {% elif error_estudiante %}
+              <div class="alert alert-danger text-center">
+                <h5 class="alert-heading"><i class="fas fa-exclamation-triangle me-2"></i>Error</h5>
+                <p>{{ error_estudiante }}</p>
+                <p class="mb-0">Por favor, contacta con el administrador para resolver este problema.</p>
+              </div>
+            {% endif %}
           </div>
         </div>
       </div>
-      
-      <div class="col-xl-3 col-md-6 mb-3">
-        <div class="card border h-100">
-          <div class="card-body text-center bg-white">
-            <div class="mb-3">
-              <i class="fas fa-school fa-3x text-warning"></i>
-            </div>
-            <h5 class="text-muted mb-1">Sistema</h5>
-            <h6 class="text-dark mb-0">SGA v2.0</h6>
+
+      <!-- Panel Lateral: Anotaciones y Asignaturas -->
+      <div class="col-lg-4 mb-4">
+        <!-- Anotaciones Recientes -->
+        <div class="card border-0 shadow-sm mb-4">
+          <div class="card-header bg-light border-0">
+            <h5 class="mb-0 text-dark"><i class="fas fa-book-open text-warning me-2"></i>Anotaciones Recientes</h5>
+          </div>
+          <div class="card-body">
+            {% if anotaciones_recientes %}
+              <div class="list-group list-group-flush">
+                {% for anotacion in anotaciones_recientes %}
+                  <div class="list-group-item border-0 px-0">
+                    <span class="badge bg-{% if anotacion.tipo == 'positiva' %}success{% elif anotacion.tipo == 'negativa' %}danger{% else %}warning{% endif %} mb-1">
+                      {{ anotacion.get_tipo_display }}
+                    </span>
+                    <p class="mb-1 small">{{ anotacion.descripcion|truncatewords:10 }}</p>
+                    <small class="text-muted">{{ anotacion.fecha_creacion|date:"d/m/Y" }}</small>
+                  </div>
+                {% endfor %}
+              </div>
+              <div class="text-center mt-3">
+                <a href="{% url 'libro_anotaciones' %}" class="btn btn-outline-primary btn-sm">
+                  <i class="fas fa-eye me-1"></i>Ver Todas
+                </a>
+              </div>
+            {% else %}
+              <div class="alert alert-success text-center">
+                <i class="fas fa-thumbs-up fa-2x mb-2"></i>
+                <p class="mb-0">¡Felicidades! No tienes anotaciones recientes.</p>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Mis Asignaturas -->
+        <div class="card border-0 shadow-sm">
+          <div class="card-header bg-light border-0">
+            <h5 class="mb-0 text-dark"><i class="fas fa-book text-info me-2"></i>Mis Asignaturas</h5>
+          </div>
+          <div class="card-body">
+            {% if asignaturas_con_profesores %}
+              <div class="list-group list-group-flush">
+                {% for item in asignaturas_con_profesores|slice:":5" %}
+                  <div class="list-group-item border-0 px-0">
+                    <h6 class="mb-1">{{ item.asignatura.nombre }}</h6>
+                    <small class="text-muted">
+                      {% if item.profesor %}
+                        <i class="fas fa-user me-1"></i>{{ item.profesor.get_nombre_completo }}
+                      {% else %}
+                        <i class="fas fa-user-times me-1"></i>Sin profesor asignado
+                      {% endif %}
+                    </small>
+                  </div>
+                {% endfor %}
+              </div>
+              {% if asignaturas_con_profesores.count > 5 %}
+                <div class="text-center mt-3">
+                  <a href="{% url 'listar_asignaturas' %}" class="btn btn-outline-info btn-sm">
+                    <i class="fas fa-eye me-1"></i>Ver Todas ({{ asignaturas_con_profesores.count }})
+                  </a>
+                </div>
+              {% endif %}
+            {% else %}
+              <div class="text-center">
+                <i class="fas fa-book fa-2x text-muted mb-2"></i>
+                <p class="text-muted mb-0">No tienes asignaturas asignadas</p>
+              </div>
+            {% endif %}
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Panel de accesos rápidos -->
+    {% else %}
+    <!-- ################################################## -->
+    <!-- ####### VISTA NORMAL PARA OTROS USUARIOS ######### -->
+    <!-- ################################################## -->
+
+    <!-- Panel de accesos rápidos para NO estudiantes -->
     <div class="row mb-4">
       <div class="col-12">
         <div class="card border">
@@ -204,56 +458,6 @@
                     </div>
                   </a>
                 </div>
-              {% else %}
-                <!-- PANEL PARA ESTUDIANTES -->
-                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
-                  <a href="{% url 'listar_asignaturas' %}" class="quick-access-link text-decoration-none">
-                    <div class="quick-access-card text-center p-3 rounded-3 h-100">
-                      <i class="fas fa-book-reader fa-2x text-primary mb-2"></i>
-                      <h6 class="mb-0">Mis Materias</h6>
-                    </div>
-                  </a>
-                </div>
-                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
-                  <a href="{% url 'ver_notas_curso' %}" class="quick-access-link text-decoration-none">
-                    <div class="quick-access-card text-center p-3 rounded-3 h-100">
-                      <i class="fas fa-chart-line fa-2x text-success mb-2"></i>
-                      <h6 class="mb-0">Mis Notas</h6>
-                    </div>
-                  </a>
-                </div>
-                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
-                  <a href="{% url 'ver_asistencia_alumno' %}" class="quick-access-link text-decoration-none">
-                    <div class="quick-access-card text-center p-3 rounded-3 h-100">
-                      <i class="fas fa-calendar-check fa-2x text-warning mb-2"></i>
-                      <h6 class="mb-0">Mi Asistencia</h6>
-                    </div>
-                  </a>
-                </div>
-                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
-                  <a href="{% url 'mis_horarios' %}" class="quick-access-link text-decoration-none">
-                    <div class="quick-access-card text-center p-3 rounded-3 h-100">
-                      <i class="fas fa-clock fa-2x text-info mb-2"></i>
-                      <h6 class="mb-0">Mi Horario</h6>
-                    </div>
-                  </a>
-                </div>
-                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
-                  <a href="{% url 'mi_curso' %}" class="quick-access-link text-decoration-none">
-                    <div class="quick-access-card text-center p-3 rounded-3 h-100">
-                      <i class="fas fa-user-friends fa-2x text-danger mb-2"></i>
-                      <h6 class="mb-0">Mi Curso</h6>
-                    </div>
-                  </a>
-                </div>
-                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
-                  <a href="{% url 'libro_anotaciones' %}" class="quick-access-link text-decoration-none">
-                    <div class="quick-access-card text-center p-3 rounded-3 h-100">
-                      <i class="fas fa-sticky-note fa-2x text-secondary mb-2"></i>
-                      <h6 class="mb-0">Mis Anotaciones</h6>
-                    </div>
-                  </a>
-                </div>
               {% endif %}
             </div>
           </div>
@@ -261,259 +465,64 @@
       </div>
     </div>
 
-    <!-- Panel de información del sistema -->
+    <!-- Panel de información del sistema para NO estudiantes -->
     <div class="row">
       <!-- Panel principal específico por usuario -->
       <div class="col-lg-8 mb-4">
-        {% if user.perfil.tipo_usuario == 'alumno' and estudiante %}
-          <!-- PANEL ESPECÍFICO PARA ESTUDIANTES -->
-          <div class="card border-0 shadow-sm h-100">
-            <div class="card-header bg-light border-0">
-              <h5 class="mb-0">
-                <i class="fas fa-graduation-cap text-primary me-2"></i>Mi Información Académica
-              </h5>
-            </div>
-            <div class="card-body">
-              <!-- Información básica del estudiante -->
-              <div class="row g-3 mb-4">
-                <div class="col-md-6">
-                  <div class="info-item">
-                    <h6 class="text-muted mb-1">
-                      <i class="fas fa-user me-1"></i>Nombre Completo
-                    </h6>
-                    <p class="mb-0 fw-semibold">{{ estudiante.get_nombre_completo }}</p>
-                  </div>
-                </div>
-                <div class="col-md-6">
-                  <div class="info-item">
-                    <h6 class="text-muted mb-1">
-                      <i class="fas fa-id-card me-1"></i>RUT
-                    </h6>
-                    <p class="mb-0 fw-semibold">{{ estudiante.numero_documento }}</p>
-                  </div>
-                </div>
-                <div class="col-md-6">
-                  <div class="info-item">
-                    <h6 class="text-muted mb-1">
-                      <i class="fas fa-chalkboard me-1"></i>Mi Curso
-                    </h6>
-                    <p class="mb-0 fw-semibold">
-                      {% if curso_actual %}
-                        {{ curso_actual.get_nivel_display }}{{ curso_actual.paralelo }}
-                        {% if todos_cursos.count > 1 %}
-                          <small class="text-muted">({{ todos_cursos.count }} cursos total)</small>
-                        {% endif %}
-                      {% else %}
-                        <span class="text-muted">No asignado</span>
-                      {% endif %}
-                    </p>
-                  </div>
-                </div>
-                <div class="col-md-6">
-                  <div class="info-item">
-                    <h6 class="text-muted mb-1">
-                      <i class="fas fa-book-open me-1"></i>Total de Asignaturas
-                    </h6>
-                    <p class="mb-0 fw-semibold">{{ asignaturas.count }} materia{{ asignaturas.count|pluralize:",s" }}</p>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Estadísticas académicas -->
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-header bg-light border-0">
+            <h5 class="mb-0">
+              <i class="fas fa-info-circle text-primary me-2"></i>Panel de Control
+            </h5>
+          </div>
+          <div class="card-body">
+            {% if user.perfil.tipo_usuario == 'profesor' %}
+              <!-- PANEL ESPECÍFICO PARA PROFESORES -->
               <div class="row g-3">
-                <div class="col-md-3">
-                  <div class="text-center p-3 bg-light rounded">
-                    <i class="fas fa-star fa-2x text-warning mb-2"></i>
-                    <h5 class="mb-1">
-                      {% if promedio_general %}
-                        {{ promedio_general }}
-                      {% else %}
-                        <span class="text-muted">--</span>
-                      {% endif %}
-                    </h5>
-                    <small class="text-muted">Promedio General</small>
+                <div class="col-md-6">
+                  <div class="info-item">
+                    <h6 class="text-muted mb-1">
+                      <i class="fas fa-user me-1"></i>Profesor
+                    </h6>
+                    <p class="mb-0 fw-semibold">{{ user.get_full_name|default:user.username }}</p>
                   </div>
                 </div>
-                <div class="col-md-3">
-                  <div class="text-center p-3 bg-light rounded">
-                    <i class="fas fa-clipboard-list fa-2x text-info mb-2"></i>
-                    <h5 class="mb-1">{{ total_notas }}</h5>
-                    <small class="text-muted">Calificaciones</small>
+                <div class="col-md-6">
+                  <div class="info-item">
+                    <h6 class="text-muted mb-1">
+                      <i class="fas fa-envelope me-1"></i>Email
+                    </h6>
+                    <p class="mb-0 fw-semibold">{{ user.email|default:"No registrado" }}</p>
                   </div>
                 </div>
-                <div class="col-md-3">
-                  <div class="text-center p-3 bg-light rounded">
-                    <i class="fas fa-calendar-check fa-2x text-success mb-2"></i>
-                    <h5 class="mb-1">{{ porcentaje_asistencia }}%</h5>
-                    <small class="text-muted">Asistencia</small>
+                {% if profesor %}
+                <div class="col-md-6">
+                  <div class="info-item">
+                    <h6 class="text-muted mb-1">
+                      <i class="fas fa-chalkboard me-1"></i>Cursos como Jefe
+                    </h6>
+                    <p class="mb-0 fw-semibold">{{ cursos_jefe.count }} curso{{ cursos_jefe.count|pluralize:",s" }}</p>
                   </div>
                 </div>
-                <div class="col-md-3">
-                  <div class="text-center p-3 bg-light rounded">
-                    <i class="fas fa-sticky-note fa-2x text-secondary mb-2"></i>
-                    <h5 class="mb-1">{{ anotaciones_recientes.count }}</h5>
-                    <small class="text-muted">Anotaciones</small>
+                <div class="col-md-6">
+                  <div class="info-item">
+                    <h6 class="text-muted mb-1">
+                      <i class="fas fa-book me-1"></i>Asignaturas
+                    </h6>
+                    <p class="mb-0 fw-semibold">{{ cursos_asignaturas.count }} asignatura{{ cursos_asignaturas.count|pluralize:",s" }}</p>
                   </div>
                 </div>
+                {% endif %}
               </div>
-
-              <!-- Próximos horarios -->
-              {% if proximos_horarios %}
-              <div class="mt-4">
-                <h6 class="text-muted mb-3">
-                  <i class="fas fa-clock me-1"></i>Próximas Clases
-                </h6>
-                <div class="row g-2">
-                  {% for dia in proximos_horarios %}
-                  <div class="col-md-4">
-                    <div class="border rounded p-2">
-                      <h6 class="mb-1 text-primary">{{ dia.dia_nombre }}</h6>
-                      <small class="text-muted d-block mb-2">{{ dia.fecha|date:"d/m" }}</small>
-                      {% for horario in dia.horarios|slice:":3" %}
-                      <div class="d-flex justify-content-between small">
-                        <span>{{ horario.asignatura.nombre|truncatechars:15 }}</span>
-                        <span class="text-muted">{{ horario.hora_inicio|time:"H:i" }}</span>
-                      </div>
-                      {% endfor %}
-                    </div>
-                  </div>
-                  {% endfor %}
-                </div>
-              </div>
-              {% endif %}
-
-              <!-- Mis Asignaturas y Profesores -->
-              {% if asignaturas_con_profesores %}
-              <div class="mt-4">
-                <h6 class="text-muted mb-3">
-                  <i class="fas fa-book me-1"></i>Mis Asignaturas y Profesores
-                </h6>
-                <div class="table-responsive">
-                  <table class="table table-sm table-hover">
-                    <thead class="table-light">
-                      <tr>
-                        <th>Asignatura</th>
-                        <th>Profesor Responsable</th>
-                        <th>Código</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {% for item in asignaturas_con_profesores %}
-                      <tr>
-                        <td>
-                          <i class="fas fa-book text-primary me-1"></i>
-                          <strong>{{ item.asignatura.nombre }}</strong>
-                        </td>
-                        <td>
-                          {% if item.profesor %}
-                            <i class="fas fa-user text-success me-1"></i>
-                            {{ item.profesor.get_nombre_completo }}
-                          {% else %}
-                            <span class="text-muted">
-                              <i class="fas fa-user-times me-1"></i>Sin asignar
-                            </span>
-                          {% endif %}
-                        </td>
-                        <td>
-                          <small class="text-muted">{{ item.asignatura.codigo_asignatura }}</small>
-                        </td>
-                      </tr>
-                      {% endfor %}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-              {% elif asignaturas %}
-              <div class="mt-4">
-                <h6 class="text-muted mb-3">
-                  <i class="fas fa-book me-1"></i>Mis Asignaturas
-                </h6>
-                <div class="row g-2">
-                  {% for asignatura in asignaturas %}
-                  <div class="col-md-6">
-                    <div class="card border card-sm">
-                      <div class="card-body p-2">
-                        <h6 class="mb-1">
-                          <i class="fas fa-book text-primary me-1"></i>
-                          {{ asignatura.nombre }}
-                        </h6>
-                        <small class="text-muted">{{ asignatura.codigo_asignatura }}</small>
-                        {% if asignatura.profesor_responsable %}
-                        <div class="small text-success mt-1">
-                          <i class="fas fa-user me-1"></i>
-                          {{ asignatura.profesor_responsable.get_nombre_completo }}
-                        </div>
-                        {% endif %}
-                      </div>
-                    </div>
-                  </div>
-                  {% endfor %}
-                </div>
-              </div>
-              {% endif %}
-
-              <!-- Información adicional del curso -->
-              {% if curso_actual %}
-              <div class="mt-4">
-                <h6 class="text-muted mb-3">
-                  <i class="fas fa-info-circle me-1"></i>Información del Curso
-                </h6>
-                <div class="row g-3">
-                  <div class="col-md-6">
-                    <div class="small">
-                      <strong>Curso:</strong> {{ curso_actual.get_nivel_display }}{{ curso_actual.paralelo }}
-                    </div>
-                  </div>
-                  <div class="col-md-6">
-                    <div class="small">
-                      <strong>Año:</strong> {{ curso_actual.anio }}
-                    </div>
-                  </div>
-                  {% if curso_actual.profesor_jefe %}
-                  <div class="col-md-12">
-                    <div class="small">
-                      <strong>Profesor Jefe:</strong> 
-                      <span class="text-primary">{{ curso_actual.profesor_jefe.get_nombre_completo }}</span>
-                    </div>
-                  </div>
-                  {% endif %}
-                </div>
-              </div>
-              {% endif %}
-            </div>
-          </div>
-        {% elif user.perfil.tipo_usuario == 'alumno' and error_estudiante %}
-          <!-- PANEL DE ERROR PARA ESTUDIANTES -->
-          <div class="card border-0 shadow-sm h-100">
-            <div class="card-header bg-light border-0">
-              <h5 class="mb-0">
-                <i class="fas fa-exclamation-triangle text-warning me-2"></i>Información del Estudiante
-              </h5>
-            </div>
-            <div class="card-body">
-              <div class="alert alert-warning">
-                <i class="fas fa-exclamation-triangle me-2"></i>
-                {{ error_estudiante }}
-              </div>
-              <p class="text-muted mb-0">Por favor, contacta con el administrador para resolver este problema.</p>
-            </div>
-          </div>
-        {% else %}
-          <!-- PANEL GENÉRICO PARA OTROS USUARIOS -->
-          <div class="card border-0 shadow-sm h-100">
-            <div class="card-header bg-light border-0">
-              <h5 class="mb-0">
-                <i class="fas fa-info-circle text-primary me-2"></i>Información del Sistema
-              </h5>
-            </div>
-            <div class="card-body">
+            {% else %}
+              <!-- PANEL GENÉRICO PARA ADMINISTRADORES Y DIRECTORES -->
               <div class="row g-3">
                 <div class="col-md-6">
                   <div class="info-item">
                     <h6 class="text-muted mb-1">
                       <i class="fas fa-user me-1"></i>Usuario Activo
                     </h6>
-                    <p class="mb-0 fw-semibold">{{ user.username }}</p>
+                    <p class="mb-0 fw-semibold">{{ user.get_full_name|default:user.username }}</p>
                   </div>
                 </div>
                 <div class="col-md-6">
@@ -541,88 +550,45 @@
                   </div>
                 </div>
               </div>
-            </div>
+            {% endif %}
           </div>
-        {% endif %}
+        </div>
       </div>
       
       <div class="col-lg-4 mb-4">
-        {% if user.perfil.tipo_usuario == 'alumno' and anotaciones_recientes %}
-          <!-- PANEL DE ANOTACIONES PARA ESTUDIANTES -->
-          <div class="card border-0 shadow-sm h-100">
-            <div class="card-header bg-light border-0">
-              <h5 class="mb-0">
-                <i class="fas fa-sticky-note text-warning me-2"></i>Mis Anotaciones Recientes
-              </h5>
-            </div>
-            <div class="card-body">
-              {% if anotaciones_recientes %}
-                {% for anotacion in anotaciones_recientes %}
-                <div class="alert 
-                  {% if anotacion.tipo == 'positiva' %}alert-success{% elif anotacion.tipo == 'negativa' %}alert-danger{% else %}alert-info{% endif %} 
-                  border-0 mb-3">
-                  <div class="d-flex">
-                    <i class="fas 
-                      {% if anotacion.tipo == 'positiva' %}fa-smile{% elif anotacion.tipo == 'negativa' %}fa-frown{% else %}fa-info-circle{% endif %} 
-                      me-2 mt-1"></i>
-                    <div>
-                      <h6 class="alert-heading mb-1">{{ anotacion.get_tipo_display|title }}</h6>
-                      <p class="mb-1 small">{{ anotacion.descripcion|truncatechars:80 }}</p>
-                      <small class="text-muted">{{ anotacion.fecha_creacion|date:"d/m/Y" }} - {{ anotacion.asignatura.nombre|default:"General" }}</small>
-                    </div>
-                  </div>
-                </div>
-                {% endfor %}
-                
-                <div class="text-center mt-3">
-                  <a href="{% url 'libro_anotaciones' %}" class="btn btn-outline-primary btn-sm">
-                    <i class="fas fa-eye me-1"></i>Ver todas mis anotaciones
-                  </a>
-                </div>
-              {% else %}
-                <div class="text-center">
-                  <i class="fas fa-smile fa-3x text-success mb-3"></i>
-                  <p class="text-muted">¡No tienes anotaciones recientes!</p>
-                  <small class="text-muted">Mantén el buen comportamiento</small>
-                </div>
-              {% endif %}
-            </div>
+        <!-- PANEL DE ANUNCIOS PARA NO ESTUDIANTES -->
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-header bg-light border-0">
+            <h5 class="mb-0">
+              <i class="fas fa-bullhorn text-warning me-2"></i>Anuncios del Sistema
+            </h5>
           </div>
-        {% else %}
-          <!-- PANEL DE ANUNCIOS PARA OTROS USUARIOS -->
-          <div class="card border-0 shadow-sm h-100">
-            <div class="card-header bg-light border-0">
-              <h5 class="mb-0">
-                <i class="fas fa-bullhorn text-warning me-2"></i>Anuncios
-              </h5>
-            </div>
-            <div class="card-body">
-              <div class="alert alert-info border-0 mb-3">
-                <div class="d-flex">
-                  <i class="fas fa-info-circle me-2 mt-1"></i>
-                  <div>
-                    <h6 class="alert-heading mb-1">Sistema Actualizado</h6>
-                    <p class="mb-0 small">Nueva versión del sistema con mejoras de rendimiento.</p>
-                  </div>
+          <div class="card-body">
+            <div class="alert alert-info border-0 mb-3">
+              <div class="d-flex">
+                <i class="fas fa-info-circle me-2 mt-1"></i>
+                <div>
+                  <h6 class="alert-heading mb-1">Sistema Actualizado</h6>
+                  <p class="mb-0 small">Nueva versión del sistema con mejoras de rendimiento.</p>
                 </div>
               </div>
-              
-              <div class="alert alert-success border-0 mb-0">
-                <div class="d-flex">
-                  <i class="fas fa-check-circle me-2 mt-1"></i>
-                  <div>
-                    <h6 class="alert-heading mb-1">Sistema Operativo</h6>
-                    <p class="mb-0 small">Todos los servicios funcionando correctamente.</p>
-                  </div>
+            </div>
+            
+            <div class="alert alert-success border-0 mb-0">
+              <div class="d-flex">
+                <i class="fas fa-check-circle me-2 mt-1"></i>
+                <div>
+                  <h6 class="alert-heading mb-1">Sistema Operativo</h6>
+                  <p class="mb-0 small">Todos los servicios funcionando correctamente.</p>
                 </div>
               </div>
             </div>
           </div>
-        {% endif %}
+        </div>
       </div>
     </div>
 
-    <!-- Panel de permisos y funcionalidades -->
+    <!-- Panel de permisos y funcionalidades para NO estudiantes -->
     <div class="row mb-4">
       <div class="col-12">
         <div class="card border-0 shadow-sm">
@@ -709,41 +675,6 @@
                   </ul>
                 </div>
               </div>
-            {% else %}
-              <div class="alert alert-info border-0 mb-3">
-                <div class="d-flex align-items-center">
-                  <i class="fas fa-graduation-cap fa-2x text-info me-3"></i>
-                  <div>
-                    <h6 class="alert-heading mb-1">Acceso de Estudiante</h6>
-                    <p class="mb-0">Puedes consultar tu información académica y seguir tu progreso.</p>
-                  </div>
-                </div>
-              </div>
-              <div class="row g-3">
-                <div class="col-md-6">
-                  <h6 class="text-success"><i class="fas fa-check me-1"></i> Consulta Académica</h6>
-                  <ul class="list-unstyled ms-3">
-                    <li><i class="fas fa-book-reader text-primary me-1"></i> Ver mis materias</li>
-                    <li><i class="fas fa-clock text-info me-1"></i> Consultar horarios de clases</li>
-                    <li><i class="fas fa-calendar-check text-success me-1"></i> Ver calendario académico</li>
-                  </ul>
-                </div>
-                <div class="col-md-6">
-                  <h6 class="text-success"><i class="fas fa-check me-1"></i> Seguimiento Personal</h6>
-                  <ul class="list-unstyled ms-3">
-                    <li><i class="fas fa-star text-warning me-1"></i> Ver mis calificaciones</li>
-                    <li><i class="fas fa-chart-line text-info me-1"></i> Consultar mi asistencia</li>
-                    <li><i class="fas fa-user-friends text-success me-1"></i> Ver compañeros de curso</li>
-                  </ul>
-                </div>
-                <div class="col-md-12">
-                  <h6 class="text-danger"><i class="fas fa-times me-1"></i> Restricciones</h6>
-                  <ul class="list-unstyled ms-3">
-                    <li><i class="fas fa-ban text-danger me-1"></i> Solo acceso de lectura - no puede modificar información</li>
-                    <li><i class="fas fa-ban text-danger me-1"></i> No puede acceder a información de otros estudiantes</li>
-                  </ul>
-                </div>
-              </div>
             {% endif %}
           </div>
         </div>
@@ -769,9 +700,177 @@
   color: #212529 !important;
 }
 
+.quick-access-card {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid rgba(0,0,0,0.125);
+  border-radius: 15px;
+  box-shadow: 0 6px 25px rgba(0,0,0,0.1);
+  overflow: hidden;
+  position: relative;
+  margin-bottom: 1.5rem;
+}
+
+.quick-access-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, rgba(255,255,255,0.15), transparent);
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  opacity: 0;
+}
+
+.quick-access-card:hover::before {
+  opacity: 1;
+}
+
+.quick-access-card:hover {
+  transform: translateY(-10px) scale(1.05);
+  box-shadow: 0 25px 50px rgba(0,0,0,0.25);
+  border-color: rgba(255,255,255,0.4);
+}
+
+.quick-access-card i {
+  transition: all 0.4s ease;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+}
+
+.quick-access-card:hover i {
+  transform: scale(1.2) rotate(5deg);
+  text-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+
+.quick-access-card h6 {
+  font-weight: 700;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.quick-access-card small {
+  opacity: 0.9;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+.stats-card {
+  transition: all 0.4s ease;
+  border-radius: 15px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+  border: 1px solid rgba(0,0,0,0.08);
+  position: relative;
+  overflow: hidden;
+}
+
+.stats-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.1), transparent);
+  pointer-events: none;
+}
+
+.stats-card:hover {
+  transform: translateY(-5px) scale(1.02);
+  box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+  border-color: rgba(0,123,255,0.3);
+}
+
+.stats-card i {
+  transition: transform 0.3s ease;
+}
+
+.stats-card:hover i {
+  transform: scale(1.1);
+}
+
+.academic-section {
+  margin-bottom: 3rem;
+  padding: 1.5rem 0;
+}
+
+.section-title {
+  border-bottom: 3px solid #e9ecef;
+  padding-bottom: 0.75rem;
+  margin-bottom: 2rem;
+  position: relative;
+}
+
+.section-title::after {
+  content: '';
+  position: absolute;
+  bottom: -3px;
+  left: 0;
+  width: 60px;
+  height: 3px;
+  background: linear-gradient(90deg, #007bff, #0056b3);
+  border-radius: 2px;
+}
+
+.horario-cell {
+  min-width: 120px;
+  padding: 8px 4px;
+}
+
+.clase-bloque {
+  background: linear-gradient(135deg, #007bff, #0056b3);
+  color: white;
+  border-radius: 6px;
+  padding: 4px 6px;
+  margin: 1px 0;
+  font-size: 0.7rem;
+  line-height: 1.2;
+  border: 1px solid rgba(255,255,255,0.2);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.clase-bloque strong {
+  display: block;
+  font-weight: 600;
+}
+
+.clase-bloque small {
+  opacity: 0.9;
+  font-size: 0.65rem;
+}
+
+.tabla-horarios {
+  font-size: 0.9rem;
+}
+
+.tabla-horarios th {
+  background-color: #f8f9fa !important;
+  font-weight: 600;
+  border: 1px solid #dee2e6;
+  vertical-align: middle;
+}
+
+.tabla-horarios td {
+  border: 1px solid #dee2e6;
+  vertical-align: middle;
+}
+
+.hora-columna {
+  background-color: #f1f3f4;
+  font-weight: 600;
+  color: #495057;
+}
+
 @media (max-width: 768px) {
   .welcome-header .col-md-4 {
     margin-top: 1rem;
+  }
+  
+  .tabla-horarios {
+    font-size: 0.8rem;
+  }
+  
+  .clase-bloque {
+    font-size: 0.65rem;
+    padding: 2px 4px;
   }
 }
 </style>
@@ -822,4 +921,7 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 });
 </script>
+    {% endif %}
+  </div>
+</div>
 {% endblock %}
