@@ -34,7 +34,7 @@ from smapp.views import (
     # Nuevas vistas AJAX para gestión de asignaturas
     gestionar_asignaturas_curso_ajax, obtener_asignaturas_curso_ajax,
     # Nueva vista para editar asistencia
-    editar_asistencia_alumno,
+    editar_asistencia_alumno, # editar_asistencia_profesor - Deshabilitada (Implementación futura)
     # Vistas del libro de anotaciones
     libro_anotaciones, crear_anotacion, editar_anotacion, eliminar_anotacion,
     detalle_comportamiento_estudiante, ajax_obtener_estudiantes_curso, ajax_obtener_estudiantes_filtro
@@ -122,7 +122,9 @@ urlpatterns = [
     path('anotaciones/eliminar/<int:anotacion_id>/', eliminar_anotacion, name='eliminar_anotacion'),
     path('anotaciones/estudiante/<int:estudiante_id>/', detalle_comportamiento_estudiante, name='detalle_comportamiento_estudiante'),
     
-    # AJAX para anotaciones
+    # AJAX para anotaciones  
     path('ajax/obtener-estudiantes-curso/', ajax_obtener_estudiantes_curso, name='ajax_obtener_estudiantes_curso'),
     path('ajax/obtener-estudiantes-filtro/', ajax_obtener_estudiantes_filtro, name='ajax_obtener_estudiantes_filtro'),
+    # Ruta de edición de asistencia de profesores deshabilitada - Implementación futura
+    # path('profesor/asistencia/editar/<int:asistencia_id>/', editar_asistencia_profesor, name='profesor_editar_asistencia'),
 ]

@@ -664,21 +664,54 @@ def inicio(request):
                 estudiante = request.user.estudiante
                 anio_actual = timezone.now().year
                 
-                # Información del curso actual
-                curso_actual = estudiante.cursos.filter(anio=anio_actual).first()
+                # Información del curso actual (tomar el más avanzado si hay varios)
+                curso_actual = estudiante.cursos.filter(anio=anio_actual).order_by('-nivel').first()
+                
+                # Si el ordenamiento por nivel no es efectivo, usar orden personalizado
+                if not curso_actual or estudiante.cursos.filter(anio=anio_actual).count() > 1:
+                    # Crear orden personalizado: primero medio, luego básico
+                    cursos_anio = estudiante.cursos.filter(anio=anio_actual)
+                    cursos_medio = cursos_anio.filter(nivel__endswith='M').order_by('-nivel')
+                    cursos_basico = cursos_anio.filter(nivel__endswith='B').order_by('-nivel')
+                    
+                    # Preferir medio sobre básico
+                    if cursos_medio.exists():
+                        curso_actual = cursos_medio.first()
+                    elif cursos_basico.exists():
+                        curso_actual = cursos_basico.first()
+                    else:
+                        curso_actual = cursos_anio.first()
+                
+                # Si no hay curso del año actual, tomar el más reciente
+                if not curso_actual:
+                    curso_actual = estudiante.cursos.order_by('-anio', '-nivel').first()
                 
                 # Asignaturas del estudiante
                 asignaturas = []
+                asignaturas_con_profesores = []
                 if curso_actual:
                     asignaturas = curso_actual.asignaturas.all()
+                    # Crear lista con información de asignaturas y sus profesores
+                    for asignatura in asignaturas:
+                        asignaturas_con_profesores.append({
+                            'asignatura': asignatura,
+                            'profesor': asignatura.profesor_responsable
+                        })
                 
                 # Estadísticas de notas
                 from .models import Calificacion, Inscripcion
+                
+                # Usar el sistema de inscripciones y calificaciones
                 inscripciones = Inscripcion.objects.filter(estudiante=estudiante)
                 calificaciones = Calificacion.objects.filter(inscripcion__in=inscripciones)
                 
-                promedio_general = calificaciones.aggregate(Avg('nota'))['nota__avg']
-                total_notas = calificaciones.count()
+                # Calcular promedio desde calificaciones
+                if calificaciones.exists():
+                    promedio_general = calificaciones.aggregate(Avg('puntaje'))['puntaje__avg']
+                    total_notas = calificaciones.count()
+                else:
+                    promedio_general = None
+                    total_notas = 0
                 
                 # Estadísticas de asistencia
                 from .models import AsistenciaAlumno
@@ -714,10 +747,15 @@ def inicio(request):
                                 'horarios': horarios_dia
                             })
                 
+                # Información adicional del estudiante
+                todos_cursos = estudiante.cursos.all().order_by('-anio', '-nivel')
+                
                 context.update({
                     'estudiante': estudiante,
                     'curso_actual': curso_actual,
+                    'todos_cursos': todos_cursos,
                     'asignaturas': asignaturas,
+                    'asignaturas_con_profesores': asignaturas_con_profesores,
                     'promedio_general': round(promedio_general, 2) if promedio_general else None,
                     'total_notas': total_notas,
                     'total_asistencias': total_asistencias,
@@ -727,8 +765,13 @@ def inicio(request):
                     'proximos_horarios': proximos_horarios[:3],  # Solo 3 días
                 })
                 
+            except Estudiante.DoesNotExist:
+                context['error_estudiante'] = "No se encontró información del estudiante asociada a este usuario."
             except Exception as e:
                 context['error_estudiante'] = f"Error al cargar datos del estudiante: {str(e)}"
+                # Para debug, agregar más información
+                import traceback
+                print(f"Error en vista inicio (alumno): {traceback.format_exc()}")
                 
         elif user_type == 'profesor':
             try:
@@ -762,7 +805,18 @@ def login_view(request):
             user = authenticate(request, username=username, password=password)
             if user is not None:
                 login(request, user)
-                return redirect('index_master')
+                
+                # Redirección personalizada según tipo de usuario
+                if hasattr(user, 'perfil'):
+                    user_type = user.perfil.tipo_usuario
+                    if user_type == 'alumno':
+                        return redirect('inicio')  # Redirigir al panel de estudiante
+                    elif user_type == 'profesor':
+                        return redirect('inicio')  # Redirigir al panel de profesor
+                    else:
+                        return redirect('index_master')  # Administradores y directores
+                else:
+                    return redirect('index_master')  # Por defecto
             else:
                 mensaje = "Credenciales inválidas"
         else:
