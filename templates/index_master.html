@@ -270,7 +270,7 @@
     <div class="container body">
       <div class="main_container">
         <div class="col-md-3 left_col 
-        {% if user.is_authenticated and user.perfil.tipo_usuario == 'estudiante' %}menu-alumno
+        {% if user.is_authenticated and user.perfil.tipo_usuario == 'alumno' %}menu-alumno
         {% elif user.is_authenticated and user.perfil.tipo_usuario == 'profesor' %}menu-profesor  
         {% else %}menu-director{% endif %}">
           <div class="left_col scroll-view">

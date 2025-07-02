@@ -1,31 +1,652 @@
-<!-- filepath: c:\Users\Danie\Desktop\Proyecto_Titulo\sma\templates\mis_horarios.html -->
 {% extends "index_master.html" %}
+
 {% block content %}
 <div class="right_col" role="main">
   <div class="container-fluid">
-    <h2>Mis Horarios</h2>
-    <table class="table table-bordered">
-      <thead>
-        <tr>
-          <th>Día</th>
-          <th>Hora Inicio</th>
-          <th>Hora Fin</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for horario in horarios %}
-        <tr>
-          <td>{{ horario.get_dia_display }}</td>
-          <td>{{ horario.hora_inicio }}</td>
-          <td>{{ horario.hora_fin }}</td>
-        </tr>
-        {% empty %}
-        <tr>
-          <td colspan="3" class="text-center">No tienes horarios asignados.</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+    
+    {% if user.perfil.tipo_usuario == 'alumno' %}
+    <!-- ################################################## -->
+    <!-- ########## VISTA DETALLADA DE HORARIOS PARA ALUMNOS ########## -->
+    <!-- ################################################## -->
+    
+    <!-- Header personalizado -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="bg-white p-4 rounded shadow-sm border">
+          <div class="row align-items-center">
+            <div class="col-md-8">
+              <div class="d-flex align-items-center">
+                <div class="me-3">
+                  <i class="fas fa-calendar-week fa-3x text-primary"></i>
+                </div>
+                <div>
+                  <h1 class="h3 mb-1 text-dark">Mi Horario de Clases</h1>
+                  <p class="mb-0 text-muted">
+                    <i class="fas fa-user me-2"></i>
+                    Horario académico de {{ user.first_name|default:user.username }}
+                    {% if curso_actual %} - {{ curso_actual }}{% endif %}
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4 text-end d-none d-md-block">
+              <div class="text-center">
+                <p class="mb-0 h5 text-primary" id="currentDateTime"></p>
+                <small class="text-muted">Fecha y hora actual</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {% if error_curso %}
+    <!-- Error sin curso asignado -->
+    <div class="row">
+      <div class="col-12">
+        <div class="alert alert-warning text-center p-5">
+          <i class="fas fa-exclamation-triangle fa-4x text-warning mb-3"></i>
+          <h4>No hay curso asignado</h4>
+          <p class="mb-3">{{ error_curso }}</p>
+          <a href="{% url 'inicio' %}" class="btn btn-primary">
+            <i class="fas fa-home me-2"></i>Volver al Inicio
+          </a>
+        </div>
+      </div>
+    </div>
+    
+    {% elif error_horarios %}
+    <!-- Error cargando horarios -->
+    <div class="row">
+      <div class="col-12">
+        <div class="alert alert-danger text-center p-5">
+          <i class="fas fa-times-circle fa-4x text-danger mb-3"></i>
+          <h4>Error al cargar horarios</h4>
+          <p class="mb-3">{{ error_horarios }}</p>
+          <a href="{% url 'inicio' %}" class="btn btn-primary">
+            <i class="fas fa-home me-2"></i>Volver al Inicio
+          </a>
+        </div>
+      </div>
+    </div>
+    
+    {% else %}
+    
+    <!-- Información del curso y estadísticas -->
+    <div class="row mb-4">
+      <div class="col-md-8">
+        <div class="card border-0 shadow-sm">
+          <div class="card-header bg-gradient-primary text-white border-0">
+            <h5 class="mb-0">
+              <i class="fas fa-graduation-cap me-2"></i>
+              Información del Curso
+            </h5>
+          </div>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-6">
+                <h6 class="text-primary mb-3">Datos Académicos</h6>
+                <div class="info-item mb-2">
+                  <i class="fas fa-school text-muted me-2"></i>
+                  <strong>Curso:</strong> {{ curso_actual }}
+                </div>
+                <div class="info-item mb-2">
+                  <i class="fas fa-user-tie text-muted me-2"></i>
+                  <strong>Profesor Jefe:</strong> 
+                  {% if curso_actual.profesor_jefe %}
+                    {{ curso_actual.profesor_jefe.get_nombre_completo }}
+                  {% else %}
+                    No asignado
+                  {% endif %}
+                </div>
+                <div class="info-item mb-2">
+                  <i class="fas fa-users text-muted me-2"></i>
+                  <strong>Total Estudiantes:</strong> {{ curso_actual.estudiantes.count }}
+                </div>
+              </div>
+              <div class="col-md-6">
+                <h6 class="text-primary mb-3">Estadísticas del Horario</h6>
+                <div class="info-item mb-2">
+                  <i class="fas fa-clock text-muted me-2"></i>
+                  <strong>Clases por semana:</strong> {{ total_clases_semana }}
+                </div>
+                <div class="info-item mb-2">
+                  <i class="fas fa-book text-muted me-2"></i>
+                  <strong>Total asignaturas:</strong> {{ asignaturas_curso.count }}
+                </div>
+                <div class="info-item mb-2">
+                  <i class="fas fa-calendar-day text-muted me-2"></i>
+                  <strong>Días con clases:</strong> {{ dias_semana|length }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-header bg-gradient-info text-white border-0">
+            <h5 class="mb-0">
+              <i class="fas fa-chart-pie me-2"></i>
+              Asignaturas y Clases
+            </h5>
+          </div>
+          <div class="card-body">
+            {% if clases_por_asignatura %}
+              <div class="asignaturas-stats">
+                {% for asignatura, cantidad in clases_por_asignatura.items %}
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <span class="text-truncate me-2" style="max-width: 70%;">
+                    <i class="fas fa-book-open text-primary me-1"></i>
+                    {{ asignatura.nombre }}
+                  </span>
+                  <span class="badge bg-primary">{{ cantidad }} hrs</span>
+                </div>
+                {% endfor %}
+              </div>
+            {% else %}
+              <div class="text-center text-muted">
+                <i class="fas fa-info-circle fa-2x mb-2"></i>
+                <p class="mb-0">No hay asignaturas programadas</p>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Horario semanal completo -->
+    <div class="row">
+      <div class="col-12">
+        <div class="card border-0 shadow-sm">
+          <div class="card-header bg-light border-0">
+            <h5 class="mb-0 text-dark">
+              <i class="fas fa-table text-success me-2"></i>
+              Horario Semanal Completo - {{ curso_actual }}
+            </h5>
+          </div>
+          <div class="card-body">
+            {% if horario_semanal_matriz %}
+            <div class="table-responsive">
+              <table class="table tabla-horarios-detallada">
+                <thead>
+                  <tr>
+                    <th class="hora-columna text-center">
+                      <i class="fas fa-clock me-1"></i>Horario
+                    </th>
+                    {% for dia in dias_semana %}
+                    <th class="text-center dia-columna">
+                      <div class="dia-header">
+                        <div class="dia-nombre">{{ dia }}</div>
+                      </div>
+                    </th>
+                    {% endfor %}
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for fila in horario_semanal_matriz %}
+                  <tr>
+                    <td class="hora-columna text-center fw-bold">
+                      <div class="hora-bloque">
+                        <div>{{ fila.hora_inicio|time:"H:i" }}</div>
+                        <small class="text-muted">{{ fila.hora_fin|time:"H:i" }}</small>
+                      </div>
+                    </td>
+                    {% for dia in dias_semana %}
+                    <td class="horario-cell text-center">
+                      {% for clase_dia, clase_obj in fila.clases.items %}
+                        {% if clase_dia == dia and clase_obj %}
+                        <div class="clase-bloque-detallada">
+                          <div class="asignatura-nombre">
+                            {{ clase_obj.asignatura.nombre|default:"Sin asignatura" }}
+                          </div>
+                          {% if clase_obj.asignatura.profesor_responsable %}
+                          <div class="profesor-nombre">
+                            {{ clase_obj.asignatura.profesor_responsable.get_nombre_completo }}
+                          </div>
+                          {% endif %}
+                        </div>
+                        {% elif clase_dia == dia %}
+                        <div class="clase-vacia">
+                          <i class="fas fa-minus text-muted"></i>
+                        </div>
+                        {% endif %}
+                      {% endfor %}
+                    </td>
+                    {% endfor %}
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+            
+            <!-- Leyenda y acciones -->
+            <div class="row mt-4">
+              <div class="col-md-6">
+                <div class="leyenda-horarios">
+                  <h6 class="text-muted mb-2">
+                    <i class="fas fa-info-circle me-1"></i>Información
+                  </h6>
+                  <div class="d-flex flex-wrap gap-3">
+                    <div class="leyenda-item">
+                      <div class="clase-bloque-detallada ejemplo me-2"></div>
+                      <small>Clase programada</small>
+                    </div>
+                    <div class="leyenda-item">
+                      <div class="clase-vacia ejemplo me-2"></div>
+                      <small>Horario libre</small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6 text-end">
+                <div class="acciones-horario">
+                  <button class="btn btn-outline-primary btn-sm me-2" onclick="imprimirHorario()">
+                    <i class="fas fa-print me-1"></i>Imprimir
+                  </button>
+                  <a href="{% url 'mi_curso' %}" class="btn btn-primary btn-sm">
+                    <i class="fas fa-users me-1"></i>Ver Mi Curso
+                  </a>
+                </div>
+              </div>
+            </div>
+            
+            {% else %}
+            <div class="text-center py-5">
+              <i class="fas fa-calendar-times fa-4x text-muted mb-3"></i>
+              <h5 class="text-muted">No hay horarios programados</h5>
+              <p class="text-muted">Tu curso aún no tiene horarios asignados.</p>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    {% endif %}
+    
+    {% else %}
+    <!-- ################################################## -->
+    <!-- ######### VISTA PARA USUARIOS NO ESTUDIANTES ######### -->
+    <!-- ################################################## -->
+    <div class="row">
+      <div class="col-12">
+        <div class="alert alert-info text-center p-5">
+          <i class="fas fa-info-circle fa-4x text-info mb-3"></i>
+          <h4>Vista exclusiva para estudiantes</h4>
+          <p class="mb-3">Esta página está diseñada específicamente para que los estudiantes vean sus horarios de clase.</p>
+          <a href="{% url 'inicio' %}" class="btn btn-primary">
+            <i class="fas fa-home me-2"></i>Volver al Panel Principal
+          </a>
+        </div>
+      </div>
+    </div>
+    {% endif %}
   </div>
 </div>
+
+<!-- Estilos específicos para la página de horarios -->
+<style>
+/* Header y gradientes */
+.bg-gradient-primary {
+  background: linear-gradient(135deg, #007bff, #0056b3) !important;
+}
+
+.bg-gradient-info {
+  background: linear-gradient(135deg, #17a2b8, #138496) !important;
+}
+
+/* Información del curso */
+.info-item {
+  padding: 0.25rem 0;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+.info-item:last-child {
+  border-bottom: none;
+}
+
+/* Estadísticas de asignaturas */
+.asignaturas-stats {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.asignaturas-stats::-webkit-scrollbar {
+  width: 4px;
+}
+
+.asignaturas-stats::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.asignaturas-stats::-webkit-scrollbar-thumb {
+  background: #007bff;
+  border-radius: 4px;
+}
+
+/* Tabla de horarios detallada */
+.tabla-horarios-detallada {
+  font-size: 0.9rem;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.tabla-horarios-detallada th,
+.tabla-horarios-detallada td {
+  border: 1px solid #dee2e6;
+  vertical-align: middle;
+  position: relative;
+}
+
+.hora-columna {
+  background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+  font-weight: 600;
+  color: #495057;
+  min-width: 100px;
+}
+
+.dia-columna {
+  background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+  color: #1976d2;
+  font-weight: 600;
+  min-width: 150px;
+}
+
+.dia-header {
+  text-align: center;
+}
+
+.dia-nombre {
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.hora-bloque {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.5rem;
+}
+
+.horario-cell {
+  padding: 8px 4px;
+  min-width: 150px;
+  height: 80px;
+}
+
+.clase-bloque-detallada {
+  background: linear-gradient(135deg, #007bff, #0056b3);
+  color: white;
+  border-radius: 8px;
+  padding: 8px;
+  margin: 2px;
+  font-size: 0.75rem;
+  line-height: 1.2;
+  border: 1px solid rgba(255,255,255,0.2);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  transition: all 0.3s ease;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+}
+
+.clase-bloque-detallada:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.25);
+}
+
+.asignatura-nombre {
+  font-weight: 600;
+  font-size: 0.8rem;
+  margin-bottom: 0.25rem;
+}
+
+.profesor-nombre {
+  font-size: 0.65rem;
+  opacity: 0.9;
+  margin-bottom: 0.25rem;
+}
+
+.clase-vacia {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.3;
+}
+
+/* Leyenda */
+.leyenda-horarios {
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.leyenda-item {
+  display: flex;
+  align-items: center;
+}
+
+.ejemplo {
+  width: 30px;
+  height: 20px;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.clase-bloque-detallada.ejemplo {
+  font-size: 0.6rem;
+  padding: 2px;
+}
+
+.clase-vacia.ejemplo {
+  background: #f8f9fa;
+  border: 1px dashed #dee2e6;
+}
+
+/* Acciones */
+.acciones-horario .btn {
+  transition: all 0.3s ease;
+}
+
+.acciones-horario .btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+/* Animaciones de entrada */
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.card {
+  animation: slideInUp 0.6s ease forwards;
+}
+
+.card:nth-child(1) { animation-delay: 0.1s; }
+.card:nth-child(2) { animation-delay: 0.2s; }
+.card:nth-child(3) { animation-delay: 0.3s; }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .tabla-horarios-detallada {
+    font-size: 0.75rem;
+  }
+  
+  .horario-cell {
+    min-width: 100px;
+    height: 60px;
+  }
+  
+  .clase-bloque-detallada {
+    padding: 4px;
+    font-size: 0.65rem;
+  }
+  
+  .asignatura-nombre {
+    font-size: 0.7rem;
+  }
+  
+  .profesor-nombre {
+    font-size: 0.6rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .tabla-horarios-detallada {
+    font-size: 0.65rem;
+  }
+  
+  .horario-cell {
+    min-width: 80px;
+    height: 50px;
+  }
+  
+  .clase-bloque-detallada {
+    padding: 2px;
+    font-size: 0.6rem;
+  }
+  
+  .asignatura-nombre {
+    font-size: 0.65rem;
+    margin-bottom: 0.1rem;
+  }
+  
+  .profesor-nombre {
+    display: none; /* Ocultar en pantallas muy pequeñas */
+  }
+}
+</style>
+
+<!-- JavaScript específico para horarios -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Actualizar fecha y hora actual
+    function updateDateTime() {
+        const now = new Date();
+        const options = { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        };
+        const dateTimeElement = document.getElementById('currentDateTime');
+        if (dateTimeElement) {
+            dateTimeElement.textContent = now.toLocaleDateString('es-ES', options);
+        }
+    }
+    
+    updateDateTime();
+    setInterval(updateDateTime, 60000); // Actualizar cada minuto
+    
+    // Animaciones de entrada escalonadas
+    const cards = document.querySelectorAll('.card');
+    cards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(30px)';
+        
+        setTimeout(() => {
+            card.style.transition = 'all 0.6s ease';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, index * 150);
+    });
+    
+    // Tooltip para clases
+    const claseBloques = document.querySelectorAll('.clase-bloque-detallada');
+    claseBloques.forEach(bloque => {
+        bloque.addEventListener('mouseenter', function() {
+            // Añadir efecto de resaltado
+            this.style.zIndex = '10';
+        });
+        
+        bloque.addEventListener('mouseleave', function() {
+            this.style.zIndex = 'auto';
+        });
+    });
+    
+    // Resaltar día actual
+    const hoy = new Date();
+    const diasSemana = ['LU', 'MA', 'MI', 'JU', 'VI'];
+    const diaActual = diasSemana[hoy.getDay() - 1]; // 0=domingo, 1=lunes, etc.
+    
+    if (diaActual) {
+        const columnas = document.querySelectorAll('.tabla-horarios-detallada th');
+        columnas.forEach((columna, index) => {
+            if (index > 0 && columna.textContent.includes(diaActual)) {
+                columna.style.background = 'linear-gradient(135deg, #fff3cd, #ffeaa7)';
+                columna.style.color = '#856404';
+                
+                // Resaltar toda la columna
+                const tabla = columna.closest('table');
+                const filas = tabla.querySelectorAll('tbody tr');
+                filas.forEach(fila => {
+                    const celda = fila.children[index];
+                    if (celda) {
+                        celda.style.background = 'rgba(255, 243, 205, 0.3)';
+                    }
+                });
+            }
+        });
+    }
+});
+
+// Función para imprimir horario
+function imprimirHorario() {
+    // Crear ventana de impresión
+    const ventanaImpresion = window.open('', '_blank');
+    
+    // Contenido HTML para imprimir
+    const contenido = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Horario de Clases</title>
+            <style>
+                body { font-family: Arial, sans-serif; margin: 20px; }
+                h1 { text-align: center; color: #007bff; }
+                table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                th, td { border: 1px solid #000; padding: 8px; text-align: center; }
+                th { background-color: #f8f9fa; font-weight: bold; }
+                .clase-info { font-size: 0.8rem; line-height: 1.2; }
+                .asignatura { font-weight: bold; }
+                .profesor { font-size: 0.7rem; color: #666; }
+                .salon { font-size: 0.7rem; color: #888; }
+            </style>
+        </head>
+        <body>
+            <h1>Mi Horario de Clases</h1>
+            <p><strong>Curso:</strong> {{ curso_actual }}</p>
+            <p><strong>Estudiante:</strong> {{ user.first_name }} {{ user.last_name }}</p>
+            <p><strong>Fecha de impresión:</strong> ${new Date().toLocaleDateString('es-ES')}</p>
+            ${document.querySelector('.tabla-horarios-detallada').outerHTML}
+        </body>
+        </html>
+    `;
+    
+    ventanaImpresion.document.write(contenido);
+    ventanaImpresion.document.close();
+    
+    // Imprimir después de cargar
+    ventanaImpresion.onload = function() {
+        ventanaImpresion.print();
+        ventanaImpresion.close();
+    };
+}
+</script>
+
 {% endblock %}

@@ -4,7 +4,175 @@
 <div class="right_col" role="main">
   <div class="container-fluid">
     
-    <!-- Header -->
+    {% if user.perfil.tipo_usuario == 'alumno' %}
+    <!-- ################################################## -->
+    <!-- ############ VISTA OPTIMIZADA PARA ALUMNOS ############## -->
+    <!-- ################################################## -->
+    
+    <!-- Header personalizado para alumnos -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="bg-white p-4 rounded shadow-sm border">
+          <div class="row align-items-center">
+            <div class="col-md-8">
+              <div class="d-flex align-items-center">
+                <div class="me-3">
+                  <i class="fas fa-calendar-alt fa-3x text-primary"></i>
+                </div>
+                <div>
+                  <h1 class="h3 mb-1 text-dark">Mi Calendario Académico</h1>
+                  <p class="mb-0 text-muted">
+                    <i class="fas fa-user me-2"></i>
+                    Eventos y actividades para {{ user.first_name|default:user.username }}
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4 text-end d-none d-md-block">
+              <div class="text-center">
+                <p class="mb-0 h5 text-primary" id="currentDateTime"></p>
+                <small class="text-muted">Fecha actual</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Estadísticas académicas para alumnos -->
+    <div class="row mb-4">
+      <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card stats-card border-0 shadow-sm h-100">
+          <div class="card-body text-center">
+            <div class="mb-3">
+              <i class="fas fa-calendar-check fa-3x text-success"></i>
+            </div>
+            <h4 class="text-success mb-1">{{ eventos.count }}</h4>
+            <p class="mb-0 small text-muted">Eventos disponibles</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card stats-card border-0 shadow-sm h-100">
+          <div class="card-body text-center">
+            <div class="mb-3">
+              <i class="fas fa-calendar-day fa-3x text-info"></i>
+            </div>
+            <h4 class="text-info mb-1">{{ eventos_count.hoy|default:0 }}</h4>
+            <p class="mb-0 small text-muted">Eventos hoy</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card stats-card border-0 shadow-sm h-100">
+          <div class="card-body text-center">
+            <div class="mb-3">
+              <i class="fas fa-calendar-week fa-3x text-warning"></i>
+            </div>
+            <h4 class="text-warning mb-1">{{ eventos_count.semana|default:0 }}</h4>
+            <p class="mb-0 small text-muted">Esta semana</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card stats-card border-0 shadow-sm h-100">
+          <div class="card-body text-center">
+            <div class="mb-3">
+              <i class="fas fa-school fa-3x text-purple"></i>
+            </div>
+            <h6 class="text-purple mb-1">{{ user.estudiante.get_curso_actual|default:"Sin curso" }}</h6>
+            <p class="mb-0 small text-muted">Mi curso</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Calendario y eventos para alumnos -->
+    <div class="row">
+      <div class="col-lg-8 mb-4">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-header bg-light border-0">
+            <h5 class="mb-0 text-dark">
+              <i class="fas fa-calendar text-primary me-2"></i>
+              Calendario Académico
+            </h5>
+          </div>
+          <div class="card-body">
+            <div id="calendar" style="height: 600px;"></div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-lg-4 mb-4">
+        <!-- Próximos eventos para el alumno -->
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-header bg-light border-0">
+            <h5 class="mb-0 text-dark">
+              <i class="fas fa-bell text-warning me-2"></i>
+              Mis Próximos Eventos
+              <span class="badge bg-warning ms-2">{{ eventos.count }}</span>
+            </h5>
+          </div>
+          <div class="card-body">
+            {% if eventos %}
+              <div class="student-events-list">
+                {% for evento in eventos|slice:":5" %}
+                <div class="event-card student-event-item mb-3 p-3 border rounded">
+                  <div class="d-flex align-items-start">
+                    <div class="event-icon-student me-3">
+                      <div class="rounded-circle d-flex align-items-center justify-content-center" 
+                           style="width: 50px; height: 50px; background: linear-gradient(135deg, {{ evento.color_por_tipo }}, {{ evento.color_por_tipo }}aa); color: white;">
+                        <strong>{{ evento.fecha.day }}</strong>
+                      </div>
+                    </div>
+                    <div class="flex-grow-1">
+                      <h6 class="mb-1 fw-bold">{{ evento.titulo }}</h6>
+                      <div class="event-meta">
+                        <p class="mb-1 small text-muted">
+                          <i class="fas fa-calendar-alt me-1"></i>
+                          {{ evento.fecha|date:"l, j F Y" }}
+                        </p>
+                        {% if evento.hora_inicio %}
+                          <p class="mb-1 small text-muted">
+                            <i class="fas fa-clock me-1"></i>
+                            {{ evento.hora_inicio|time:"H:i" }}
+                            {% if evento.hora_fin %} - {{ evento.hora_fin|time:"H:i" }}{% endif %}
+                          </p>
+                        {% endif %}
+                        <p class="mb-1 small">
+                          <span class="badge badge-event-type" style="background-color: {{ evento.color_por_tipo }};">
+                            {{ evento.get_tipo_evento_display }}
+                          </span>
+                        </p>
+                      </div>
+                      {% if evento.descripcion %}
+                        <p class="mb-0 small text-secondary">{{ evento.descripcion|truncatewords:12 }}</p>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+                {% endfor %}
+                
+                {% if eventos.count > 5 %}
+                <div class="text-center mt-3">
+                  <small class="text-muted">Y {{ eventos.count|add:"-5" }} eventos más...</small>
+                </div>
+                {% endif %}
+              </div>
+            {% else %}
+              <div class="text-center py-5">
+                <i class="fas fa-calendar-plus fa-4x text-muted mb-3"></i>
+                <h6 class="text-muted">No hay eventos programados</h6>
+                <p class="small text-muted">Los eventos de tu curso aparecerán aquí cuando estén disponibles.</p>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {% else %}
+    <!-- Header para otros usuarios -->
     <div class="page-title">
       <div class="title_left">
         <h3>Calendario de Eventos</h3>
@@ -22,7 +190,7 @@
 
     <div class="clearfix"></div>
 
-    <!-- Estadísticas -->
+    <!-- Estadísticas para otros usuarios -->
     <div class="row">
       <div class="col-md-3 col-sm-6">
         <div class="x_panel tile fixed_height_320">
@@ -74,15 +242,88 @@
       </div>
     </div>
 
-    <!-- Calendario y eventos -->
+    <!-- Calendario y eventos para otros usuarios -->
     <div class="row">
       <div class="col-md-8">
         <div class="x_panel">
           <div class="x_title">
-            <h2><i class="fa fa-calendar"></i> Calendario</h2>
             <div class="clearfix"></div>
           </div>
           <div class="x_content">
+            <div id="calendar" style="height: 600px;"></div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-md-4">
+        <div class="x_panel">
+          <div class="x_title">
+            <h2><i class="fa fa-list"></i> Próximos Eventos</h2>
+            <div class="clearfix"></div>
+          </div>
+          <div class="x_content">
+            {% if eventos %}
+              {% for evento in eventos %}
+                <div class="media event">
+                  <div class="media-left">
+                    <div class="event-icon text-center" style="background-color: {{ evento.color_por_tipo }}; color: white; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                      <strong>{{ evento.fecha.day }}</strong>
+                    </div>
+                  </div>
+                  <div class="media-body">
+                    <h6 class="media-heading">{{ evento.titulo }}</h6>
+                    <p>
+                      <small class="text-muted">
+                        <i class="fa fa-calendar"></i> {{ evento.fecha|date:"d/m/Y" }}
+                        {% if evento.hora_inicio %}
+                          <br><i class="fa fa-clock-o"></i> 
+                          {{ evento.hora_inicio|time:"H:i" }}
+                          {% if evento.hora_fin %} - {{ evento.hora_fin|time:"H:i" }}{% endif %}
+                        {% endif %}
+                        <br><i class="fa fa-user"></i> 
+                        <strong>
+                          {% if evento.creado_por %}
+                            {{ evento.creado_por.first_name|default:evento.creado_por.username }}
+                          {% else %}
+                            Sistema
+                          {% endif %}
+                        </strong>
+                      </small>
+                    </p>
+                    {% if evento.descripcion %}
+                      <p class="small">{{ evento.descripcion|truncatewords:15 }}</p>
+                    {% endif %}
+                    {% if puede_crear_eventos %}
+                    <div class="btn-group btn-group-xs">
+                      <a href="{% url 'editar_evento' evento.id %}" class="btn btn-info">
+                        <i class="fa fa-edit"></i> Editar
+                      </a>
+                      <button onclick="eliminarEvento({{ evento.id }}, '{{ evento.titulo }}')" class="btn btn-danger">
+                        <i class="fa fa-trash"></i> Eliminar
+                      </button>
+                    </div>
+                    {% endif %}
+                  </div>
+                </div>
+                <hr>
+              {% endfor %}
+            {% else %}
+              <div class="text-center">
+                <i class="fa fa-calendar-o fa-3x text-muted"></i>
+                <p>No hay eventos programados</p>
+                {% if puede_crear_eventos %}
+                  <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#modalAgregarEvento">
+                    <i class="fa fa-plus"></i> Crear Primer Evento
+                  </button>
+                {% endif %}
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    {% endif %}
             <div id="calendar" style="height: 600px;"></div>
           </div>
         </div>
@@ -292,50 +533,392 @@
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/main.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/locales/es.min.js"></script>
 
+<!-- Estilos específicos para la vista de alumnos -->
+<style>
+/* Estilos para la vista de alumnos */
+.text-purple {
+  color: #6f42c1 !important;
+}
+
+.stats-card {
+  transition: all 0.4s ease;
+  border-radius: 15px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+  border: 1px solid rgba(0,0,0,0.08);
+  position: relative;
+  overflow: hidden;
+}
+
+.stats-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.1), transparent);
+  pointer-events: none;
+}
+
+.stats-card:hover {
+  transform: translateY(-5px) scale(1.02);
+  box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+  border-color: rgba(0,123,255,0.3);
+}
+
+.stats-card i {
+  transition: transform 0.3s ease;
+}
+
+.stats-card:hover i {
+  transform: scale(1.15) rotate(5deg);
+}
+
+.student-events-list {
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.student-event-item {
+  transition: all 0.3s ease;
+  border: 1px solid #e9ecef !important;
+  border-radius: 12px !important;
+  background: linear-gradient(135deg, #ffffff, #f8f9fa);
+  position: relative;
+  overflow: hidden;
+}
+
+.student-event-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, rgba(255,255,255,0.1), transparent);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.student-event-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+  border-color: rgba(0,123,255,0.3) !important;
+}
+
+.student-event-item:hover::before {
+  opacity: 1;
+}
+
+.event-icon-student {
+  transition: transform 0.3s ease;
+}
+
+.student-event-item:hover .event-icon-student {
+  transform: scale(1.1);
+}
+
+.badge-event-type {
+  font-size: 0.7rem;
+  padding: 0.35em 0.65em;
+  border-radius: 10rem;
+  color: white !important;
+  font-weight: 600;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+.event-meta p {
+  margin-bottom: 0.25rem !important;
+}
+
+.event-meta i {
+  width: 12px;
+  text-align: center;
+}
+
+/* Mejoras al calendario para alumnos */
+#calendar {
+  border-radius: 15px;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.fc-event {
+  border: none !important;
+  border-radius: 8px !important;
+  font-weight: 600;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  transition: all 0.3s ease;
+}
+
+.fc-event:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.25);
+}
+
+.fc-header-toolbar {
+  padding: 1rem !important;
+  background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+  border-radius: 15px 15px 0 0;
+}
+
+.fc-button {
+  border-radius: 8px !important;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.fc-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+/* Animaciones de entrada */
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.stats-card,
+.student-event-item {
+  animation: slideInUp 0.6s ease forwards;
+}
+
+.stats-card:nth-child(1) { animation-delay: 0.1s; }
+.stats-card:nth-child(2) { animation-delay: 0.2s; }
+.stats-card:nth-child(3) { animation-delay: 0.3s; }
+.stats-card:nth-child(4) { animation-delay: 0.4s; }
+
+/* Responsive para móviles */
+@media (max-width: 768px) {
+  .student-events-list {
+    max-height: 400px;
+  }
+  
+  .student-event-item {
+    margin-bottom: 1rem !important;
+  }
+  
+  .event-icon-student div {
+    width: 40px !important;
+    height: 40px !important;
+    font-size: 0.9rem;
+  }
+  
+  .stats-card .card-body {
+    padding: 1rem;
+  }
+  
+  .stats-card i {
+    font-size: 2rem !important;
+  }
+}
+
+/* Scroll personalizado para la lista de eventos */
+.student-events-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.student-events-list::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.student-events-list::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #007bff, #0056b3);
+  border-radius: 10px;
+}
+
+.student-events-list::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #0056b3, #004085);
+}
+</style>
+
 <script>
 $(document).ready(function() {
     console.log('Inicializando calendario...');
+    
+    // Actualizar fecha y hora actual para alumnos
+    function updateDateTime() {
+        const now = new Date();
+        const options = { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        };
+        const dateTimeElement = document.getElementById('currentDateTime');
+        if (dateTimeElement) {
+            dateTimeElement.textContent = now.toLocaleDateString('es-ES', options);
+        }
+    }
+    
+    updateDateTime();
+    setInterval(updateDateTime, 60000); // Actualizar cada minuto
     
     // Datos de eventos desde Django
     var eventosData = {{ eventos_json|safe|default:"[]" }};
     console.log('Eventos cargados:', eventosData);
     
+    // Configuración del calendario específica para alumnos
+    var calendarConfig = {
+        locale: 'es',
+        initialView: 'dayGridMonth',
+        height: 600,
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,listWeek'
+        },
+        buttonText: {
+            today: 'Hoy',
+            month: 'Mes',
+            week: 'Semana',
+            list: 'Lista'
+        },
+        events: eventosData,
+        eventClick: function(info) {
+            // Mostrar información detallada del evento para alumnos
+            var evento = info.event;
+            var fechaFormateada = evento.start.toLocaleDateString('es-ES', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            
+            var mensaje = `📅 ${evento.title}\n\n`;
+            mensaje += `📆 Fecha: ${fechaFormateada}\n`;
+            
+            if (evento.start.getHours() !== 0 || evento.start.getMinutes() !== 0) {
+                var horaInicio = evento.start.toLocaleTimeString('es-ES', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                mensaje += `🕐 Hora: ${horaInicio}`;
+                
+                if (evento.end) {
+                    var horaFin = evento.end.toLocaleTimeString('es-ES', {
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                    mensaje += ` - ${horaFin}`;
+                }
+                mensaje += `\n`;
+            }
+            
+            if (evento.extendedProps && evento.extendedProps.description) {
+                mensaje += `\n📝 Descripción:\n${evento.extendedProps.description}`;
+            }
+            
+            alert(mensaje);
+        },
+        dateClick: function(info) {
+            {% if puede_crear_eventos %}
+            $('input[name="fecha"]').val(info.dateStr);
+            $('#modalAgregarEvento').modal('show');
+            {% else %}
+            // Para alumnos, mostrar información de la fecha seleccionada
+            var fechaSeleccionada = new Date(info.dateStr);
+            var fechaFormateada = fechaSeleccionada.toLocaleDateString('es-ES', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            
+            // Buscar eventos en esa fecha
+            var eventosEnFecha = eventosData.filter(function(evento) {
+                var fechaEvento = new Date(evento.start);
+                return fechaEvento.toDateString() === fechaSeleccionada.toDateString();
+            });
+            
+            if (eventosEnFecha.length > 0) {
+                var mensaje = `📅 Eventos para ${fechaFormateada}:\n\n`;
+                eventosEnFecha.forEach(function(evento, index) {
+                    mensaje += `${index + 1}. ${evento.title}\n`;
+                });
+                alert(mensaje);
+            } else {
+                alert(`📅 ${fechaFormateada}\n\nNo hay eventos programados para esta fecha.`);
+            }
+            {% endif %}
+        },
+        // Configuración visual mejorada para alumnos
+        eventDisplay: 'block',
+        dayMaxEvents: 3,
+        moreLinkClick: 'popover',
+        eventMouseEnter: function(info) {
+            info.el.style.transform = 'scale(1.05)';
+            info.el.style.zIndex = '1000';
+        },
+        eventMouseLeave: function(info) {
+            info.el.style.transform = 'scale(1)';
+            info.el.style.zIndex = 'auto';
+        }
+    };
+    
     // Inicializar FullCalendar
     var calendarEl = document.getElementById('calendar');
     
     if (calendarEl) {
-        var calendar = new FullCalendar.Calendar(calendarEl, {
-            locale: 'es',
-            initialView: 'dayGridMonth',
-            height: 600,
-            headerToolbar: {
-                left: 'prev,next today',
-                center: 'title',
-                right: 'dayGridMonth,timeGridWeek,listWeek'
-            },
-            buttonText: {
-                today: 'Hoy',
-                month: 'Mes',
-                week: 'Semana',
-                list: 'Lista'
-            },
-            events: eventosData,
-            eventClick: function(info) {
-                alert('Evento: ' + info.event.title + '\nFecha: ' + info.event.start.toDateString());
-            },
-            dateClick: function(info) {
-                {% if puede_crear_eventos %}
-                $('input[name="fecha"]').val(info.dateStr);
-                $('#modalAgregarEvento').modal('show');
-                {% endif %}
-            }
-        });
-        
+        var calendar = new FullCalendar.Calendar(calendarEl, calendarConfig);
         calendar.render();
         console.log('Calendario renderizado');
+        
+        // Animación de entrada para el calendario
+        setTimeout(function() {
+            calendarEl.style.opacity = '0';
+            calendarEl.style.transform = 'translateY(20px)';
+            calendarEl.style.transition = 'all 0.6s ease';
+            
+            setTimeout(function() {
+                calendarEl.style.opacity = '1';
+                calendarEl.style.transform = 'translateY(0)';
+            }, 100);
+        }, 500);
+        
     } else {
         console.error('Elemento calendar no encontrado');
     }
+    
+    // Animaciones para las tarjetas de estadísticas (solo para alumnos)
+    {% if user.perfil.tipo_usuario == 'alumno' %}
+    const statsCards = document.querySelectorAll('.stats-card');
+    statsCards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(30px)';
+        
+        setTimeout(() => {
+            card.style.transition = 'all 0.6s ease';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, index * 150);
+    });
+    
+    // Animaciones para los eventos de estudiantes
+    const eventItems = document.querySelectorAll('.student-event-item');
+    eventItems.forEach((item, index) => {
+        item.style.opacity = '0';
+        item.style.transform = 'translateX(-20px)';
+        
+        setTimeout(() => {
+            item.style.transition = 'all 0.4s ease';
+            item.style.opacity = '1';
+            item.style.transform = 'translateX(0)';
+        }, 800 + (index * 100));
+    });
+    {% endif %}
     
     {% if puede_crear_eventos %}
     // Manejar formulario de agregar evento

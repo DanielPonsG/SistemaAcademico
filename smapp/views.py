@@ -1015,8 +1015,133 @@ def agregar_evento(request):
 # Funciones adicionales requeridas por urls.py
 @login_required
 def mis_horarios(request):
-    """Vista para mostrar horarios del usuario"""
-    context = {'user': request.user}
+    """Vista para mostrar horarios detallados del curso del estudiante"""
+    from django.utils import timezone
+    from collections import defaultdict
+    
+    context = {
+        'user': request.user,
+    }
+    
+    # Verificar que el usuario sea estudiante
+    if hasattr(request.user, 'perfil') and request.user.perfil.tipo_usuario == 'alumno':
+        try:
+            estudiante = request.user.estudiante
+            anio_actual = timezone.now().year
+            
+            # Obtener curso actual del estudiante
+            curso_actual = estudiante.cursos.filter(anio=anio_actual).order_by('-nivel').first()
+            
+            # Si no hay curso del año actual, tomar el más reciente
+            if not curso_actual:
+                curso_actual = estudiante.cursos.order_by('-anio', '-nivel').first()
+            
+            if curso_actual:
+                # Obtener horarios del curso
+                horarios_curso = HorarioCurso.objects.filter(curso=curso_actual).order_by('dia', 'hora_inicio')
+                
+                # Organizar horarios por día y hora
+                DIAS_SEMANA = ['LU', 'MA', 'MI', 'JU', 'VI']
+                DIAS_NOMBRES = {
+                    'LU': 'Lunes',
+                    'MA': 'Martes', 
+                    'MI': 'Miércoles',
+                    'JU': 'Jueves',
+                    'VI': 'Viernes'
+                }
+                
+                # Crear estructura de horarios por día y bloque horario
+                horarios_organizados = defaultdict(list)
+                bloques_horarios = set()
+                
+                for horario in horarios_curso:
+                    horarios_organizados[horario.dia].append(horario)
+                    bloques_horarios.add((horario.hora_inicio, horario.hora_fin))
+                
+                # Ordenar bloques horarios
+                bloques_horarios = sorted(list(bloques_horarios))
+                
+                # Crear matriz de horarios para la tabla
+                horario_semanal_matriz = []
+                for hora_inicio, hora_fin in bloques_horarios:
+                    fila = {
+                        'hora_inicio': hora_inicio,
+                        'hora_fin': hora_fin,
+                        'clases': {}
+                    }
+                    
+                    for dia in DIAS_SEMANA:
+                        # Buscar clase en este día y hora
+                        clase = None
+                        for horario in horarios_organizados[dia]:
+                            if horario.hora_inicio == hora_inicio and horario.hora_fin == hora_fin:
+                                clase = horario
+                                break
+                        fila['clases'][dia] = clase
+                    
+                    horario_semanal_matriz.append(fila)
+                
+                # Obtener estadísticas del horario
+                total_clases_semana = sum(len(clases) for clases in horarios_organizados.values())
+                asignaturas_curso = curso_actual.asignaturas.all()
+                
+                # Contar clases por asignatura
+                clases_por_asignatura = defaultdict(int)
+                for horario in horarios_curso:
+                    if horario.asignatura:
+                        clases_por_asignatura[horario.asignatura] += 1
+                
+                # Próximas clases (siguientes 3 días)
+                from datetime import datetime, timedelta
+                hoy = datetime.now().date()
+                proximos_horarios = []
+                
+                for i in range(7):  # Buscar en los próximos 7 días
+                    fecha = hoy + timedelta(days=i)
+                    dia_semana_map = {
+                        0: 'LU', 1: 'MA', 2: 'MI', 3: 'JU', 4: 'VI', 5: 'SA', 6: 'DO'
+                    }
+                    dia_codigo = dia_semana_map.get(fecha.weekday())
+                    
+                    if dia_codigo in DIAS_SEMANA:  # Solo días de clases
+                        clases_del_dia = horarios_organizados.get(dia_codigo, [])
+                        if clases_del_dia:
+                            proximos_horarios.append({
+                                'fecha': fecha,
+                                'dia_nombre': DIAS_NOMBRES[dia_codigo],
+                                'clases': sorted(clases_del_dia, key=lambda x: x.hora_inicio)
+                            })
+                            
+                            if len(proximos_horarios) >= 3:  # Solo los próximos 3 días con clases
+                                break
+                
+                context.update({
+                    'estudiante': estudiante,
+                    'curso_actual': curso_actual,
+                    'es_alumno': True,
+                    'horarios_curso': horarios_curso,
+                    'horario_semanal_matriz': horario_semanal_matriz,
+                    'dias_semana': DIAS_SEMANA,
+                    'dias_nombres': DIAS_NOMBRES,
+                    'total_clases_semana': total_clases_semana,
+                    'asignaturas_curso': asignaturas_curso,
+                    'clases_por_asignatura': dict(clases_por_asignatura),
+                    'proximos_horarios': proximos_horarios,
+                    'bloques_horarios': bloques_horarios,
+                })
+                
+            else:
+                context['error_curso'] = "No tienes un curso asignado actualmente."
+                
+        except Exception as e:
+            context['error_horarios'] = f"Error al cargar horarios: {str(e)}"
+            import traceback
+            print(f"Error en mis_horarios: {traceback.format_exc()}")
+    
+    else:
+        # Para otros tipos de usuario, mostrar mensaje informativo
+        context['no_es_alumno'] = True
+    
     return render(request, 'mis_horarios.html', context)
 
 @login_required  
