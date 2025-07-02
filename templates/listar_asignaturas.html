@@ -31,10 +31,21 @@
         <div class="bg-white p-4 rounded shadow-sm border">
           <div class="d-flex justify-content-between align-items-center">
             <div>
-              <h2 class="h3 text-dark mb-2">
-                <i class="fas fa-book me-2"></i>Gestión de Asignaturas
-              </h2>
-              <p class="text-muted mb-0">Administra las asignaturas del sistema escolar</p>
+              {% if tipo_usuario == 'alumno' or tipo_usuario == 'estudiante' %}
+                <h2 class="h3 text-dark mb-2">
+                  <i class="fas fa-book-open me-2"></i>Mis Asignaturas
+                </h2>
+                {% if curso_actual %}
+                  <p class="text-muted mb-0">Asignaturas del curso {{ curso_actual }}</p>
+                {% else %}
+                  <p class="text-muted mb-0">Tus asignaturas académicas</p>
+                {% endif %}
+              {% else %}
+                <h2 class="h3 text-dark mb-2">
+                  <i class="fas fa-book me-2"></i>Gestión de Asignaturas
+                </h2>
+                <p class="text-muted mb-0">Administra las asignaturas del sistema escolar</p>
+              {% endif %}
             </div>
             <div>
               {% if puede_editar %}
@@ -50,42 +61,80 @@
 
     <!-- Estadísticas -->
     <div class="row mb-4">
-      <div class="col-md-3">
-        <div class="card border shadow-sm bg-white">
-          <div class="card-body text-center">
-            <i class="fas fa-book fa-2x text-primary mb-2"></i>
-            <h3 class="mb-0 text-dark">{{ total_asignaturas }}</h3>
-            <p class="mb-0 text-muted">Total Asignaturas</p>
+      {% if tipo_usuario == 'alumno' or tipo_usuario == 'estudiante' %}
+        <!-- Estadísticas para estudiantes -->
+        <div class="col-md-4">
+          <div class="card border shadow-sm bg-white">
+            <div class="card-body text-center">
+              <i class="fas fa-book fa-2x text-primary mb-2"></i>
+              <h3 class="mb-0 text-dark">{{ total_asignaturas_curso|default:0 }}</h3>
+              <p class="mb-0 text-muted">Mis Asignaturas</p>
+            </div>
           </div>
         </div>
-      </div>
-      <div class="col-md-3">
-        <div class="card border shadow-sm bg-white">
-          <div class="card-body text-center">
-            <i class="fas fa-user-check fa-2x text-success mb-2"></i>
-            <h3 class="mb-0 text-dark">{{ asignaturas_con_profesor }}</h3>
-            <p class="mb-0 text-muted">Con Profesor</p>
+        <div class="col-md-4">
+          <div class="card border shadow-sm bg-white">
+            <div class="card-body text-center">
+              <i class="fas fa-user-check fa-2x text-success mb-2"></i>
+              <h3 class="mb-0 text-dark">{{ asignaturas_con_profesor|default:0 }}</h3>
+              <p class="mb-0 text-muted">Con Profesor</p>
+            </div>
           </div>
         </div>
-      </div>
-      <div class="col-md-3">
-        <div class="card border shadow-sm bg-white">
-          <div class="card-body text-center">
-            <i class="fas fa-school fa-2x text-info mb-2"></i>
-            <h3 class="mb-0 text-dark">{{ asignaturas_con_cursos }}</h3>
-            <p class="mb-0 text-muted">Asignadas a Cursos</p>
+        <div class="col-md-4">
+          <div class="card border shadow-sm bg-white">
+            <div class="card-body text-center">
+              {% if curso_actual %}
+                <i class="fas fa-school fa-2x text-info mb-2"></i>
+                <h3 class="mb-0 text-dark">{{ curso_actual.get_nivel_display }}{{ curso_actual.paralelo }}</h3>
+                <p class="mb-0 text-muted">Mi Curso</p>
+              {% else %}
+                <i class="fas fa-exclamation-triangle fa-2x text-warning mb-2"></i>
+                <h3 class="mb-0 text-dark">---</h3>
+                <p class="mb-0 text-muted">Sin Curso</p>
+              {% endif %}
+            </div>
           </div>
         </div>
-      </div>
-      <div class="col-md-3">
-        <div class="card border shadow-sm bg-white">
-          <div class="card-body text-center">
-            <i class="fas fa-exclamation-triangle fa-2x text-warning mb-2"></i>
-            <h3 class="mb-0 text-dark">{{ asignaturas_sin_cursos }}</h3>
-            <p class="mb-0 text-muted">Sin Cursos</p>
+      {% else %}
+        <!-- Estadísticas para administradores -->
+        <div class="col-md-3">
+          <div class="card border shadow-sm bg-white">
+            <div class="card-body text-center">
+              <i class="fas fa-book fa-2x text-primary mb-2"></i>
+              <h3 class="mb-0 text-dark">{{ total_asignaturas }}</h3>
+              <p class="mb-0 text-muted">Total Asignaturas</p>
+            </div>
           </div>
         </div>
-      </div>
+        <div class="col-md-3">
+          <div class="card border shadow-sm bg-white">
+            <div class="card-body text-center">
+              <i class="fas fa-user-check fa-2x text-success mb-2"></i>
+              <h3 class="mb-0 text-dark">{{ asignaturas_con_profesor }}</h3>
+              <p class="mb-0 text-muted">Con Profesor</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="card border shadow-sm bg-white">
+            <div class="card-body text-center">
+              <i class="fas fa-school fa-2x text-info mb-2"></i>
+              <h3 class="mb-0 text-dark">{{ asignaturas_con_cursos }}</h3>
+              <p class="mb-0 text-muted">Asignadas a Cursos</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="card border shadow-sm bg-white">
+            <div class="card-body text-center">
+              <i class="fas fa-exclamation-triangle fa-2x text-warning mb-2"></i>
+              <h3 class="mb-0 text-dark">{{ asignaturas_sin_cursos }}</h3>
+              <p class="mb-0 text-muted">Sin Cursos</p>
+            </div>
+          </div>
+        </div>
+      {% endif %}
     </div>
 
     <!-- Filtros -->
@@ -141,7 +190,11 @@
     <div class="card border shadow-sm">
       <div class="card-header bg-light border-bottom">
         <h5 class="mb-0 text-dark">
-          <i class="fas fa-list me-2"></i>Asignaturas Registradas
+          {% if tipo_usuario == 'alumno' or tipo_usuario == 'estudiante' %}
+            <i class="fas fa-book-open me-2"></i>Mis Asignaturas
+          {% else %}
+            <i class="fas fa-list me-2"></i>Asignaturas Registradas
+          {% endif %}
         </h5>
       </div>
       <div class="card-body p-0">
@@ -150,76 +203,120 @@
             <table class="table table-hover mb-0">
               <thead class="table-light">
                 <tr>
-                  <th>Código</th>
-                  <th>Nombre</th>
-                  <th>Profesores</th>
-                  <th>Cursos Asignados</th>
-                  <th>Descripción</th>
-                  {% if puede_editar %}
-                  <th>Acciones</th>
+                  {% if tipo_usuario == 'alumno' or tipo_usuario == 'estudiante' %}
+                    <!-- Vista simplificada para estudiantes -->
+                    <th><i class="fas fa-book me-1"></i>Asignatura</th>
+                    <th><i class="fas fa-user-tie me-1"></i>Profesor</th>
+                    <th><i class="fas fa-info-circle me-1"></i>Descripción</th>
+                  {% else %}
+                    <!-- Vista completa para administradores -->
+                    <th>Código</th>
+                    <th>Nombre</th>
+                    <th>Profesores</th>
+                    <th>Cursos Asignados</th>
+                    <th>Descripción</th>
+                    {% if puede_editar %}
+                    <th>Acciones</th>
+                    {% endif %}
                   {% endif %}
                 </tr>
               </thead>
               <tbody>
                 {% for asignatura in asignaturas %}
                 <tr>
-                  <td class="fw-medium">{{ asignatura.codigo_asignatura }}</td>
-                  <td class="fw-bold text-dark">{{ asignatura.nombre }}</td>
-                  <td>
-                    {% with profesores=asignatura.get_profesores_display %}
-                      {% if profesores %}
-                        {% for profesor in profesores %}
-                          <span class="badge bg-success me-1 mb-1" data-professor-id="{{ profesor.id }}">
-                            {{ profesor.primer_nombre }} {{ profesor.apellido_paterno }}
-                          </span>
-                        {% endfor %}
-                      {% else %}
-                        <span class="badge bg-warning text-dark">Sin profesor</span>
+                  {% if tipo_usuario == 'alumno' or tipo_usuario == 'estudiante' %}
+                    <!-- Vista simplificada para estudiantes -->
+                    <td class="fw-bold text-dark">
+                      <i class="fas fa-book text-primary me-2"></i>
+                      {{ asignatura.nombre }}
+                      {% if asignatura.codigo_asignatura %}
+                        <br><small class="text-muted">{{ asignatura.codigo_asignatura }}</small>
                       {% endif %}
-                    {% endwith %}
-                  </td>
-                  <td>
-                    {% with cursos=asignatura.get_cursos_asignados %}
-                      {% if cursos %}
-                        {% for curso in cursos %}
-                          <span class="badge bg-info me-1 mb-1" title="{{ curso.get_nivel_display }}{{ curso.paralelo }} ({{ curso.anio }})">
-                            {{ curso.get_nivel_display }}{{ curso.paralelo }}
-                          </span>
-                        {% endfor %}
-                        <br><small class="text-muted">{{ cursos.count }} curso{{ cursos.count|pluralize }}</small>
+                    </td>
+                    <td>
+                      {% if asignatura.profesor_responsable %}
+                        <div class="d-flex align-items-center">
+                          <i class="fas fa-user-circle text-success me-2"></i>
+                          <div>
+                            <span class="fw-medium">{{ asignatura.profesor_responsable.primer_nombre }} {{ asignatura.profesor_responsable.apellido_paterno }}</span>
+                            {% if asignatura.profesor_responsable.apellido_materno %}
+                              <br><small class="text-muted">{{ asignatura.profesor_responsable.apellido_materno }}</small>
+                            {% endif %}
+                          </div>
+                        </div>
                       {% else %}
-                        <span class="badge bg-secondary">Sin cursos</span>
-                        <br><small class="text-warning">⚠️ No asignada</small>
+                        <span class="badge bg-warning text-dark">
+                          <i class="fas fa-exclamation-triangle me-1"></i>Sin profesor asignado
+                        </span>
                       {% endif %}
-                    {% endwith %}
-                  </td>
-                  <td>
-                    {% if asignatura.descripcion %}
-                      {{ asignatura.descripcion|truncatechars:60 }}
-                    {% else %}
-                      <em class="text-muted">Sin descripción</em>
+                    </td>
+                    <td>
+                      {% if asignatura.descripcion %}
+                        <p class="mb-0">{{ asignatura.descripcion|truncatechars:80 }}</p>
+                      {% else %}
+                        <em class="text-muted">Sin descripción disponible</em>
+                      {% endif %}
+                    </td>
+                  {% else %}
+                    <!-- Vista completa para administradores -->
+                    <td class="fw-medium">{{ asignatura.codigo_asignatura }}</td>
+                    <td class="fw-bold text-dark">{{ asignatura.nombre }}</td>
+                    <td>
+                      {% with profesores=asignatura.get_profesores_display %}
+                        {% if profesores %}
+                          {% for profesor in profesores %}
+                            <span class="badge bg-success me-1 mb-1" data-professor-id="{{ profesor.id }}">
+                              {{ profesor.primer_nombre }} {{ profesor.apellido_paterno }}
+                            </span>
+                          {% endfor %}
+                        {% else %}
+                          <span class="badge bg-warning text-dark">Sin profesor</span>
+                        {% endif %}
+                      {% endwith %}
+                    </td>
+                    <td>
+                      {% with cursos=asignatura.get_cursos_asignados %}
+                        {% if cursos %}
+                          {% for curso in cursos %}
+                            <span class="badge bg-info me-1 mb-1" title="{{ curso.get_nivel_display }}{{ curso.paralelo }} ({{ curso.anio }})">
+                              {{ curso.get_nivel_display }}{{ curso.paralelo }}
+                            </span>
+                          {% endfor %}
+                          <br><small class="text-muted">{{ cursos.count }} curso{{ cursos.count|pluralize }}</small>
+                        {% else %}
+                          <span class="badge bg-secondary">Sin cursos</span>
+                          <br><small class="text-warning">⚠️ No asignada</small>
+                        {% endif %}
+                      {% endwith %}
+                    </td>
+                    <td>
+                      {% if asignatura.descripcion %}
+                        {{ asignatura.descripcion|truncatechars:60 }}
+                      {% else %}
+                        <em class="text-muted">Sin descripción</em>
+                      {% endif %}
+                    </td>
+                    {% if puede_editar %}
+                    <td>
+                      <div class="btn-group btn-group-sm" role="group">
+                        <a href="{% url 'editar_asignatura' asignatura.id %}" class="btn btn-outline-primary" title="Editar">
+                          <i class="fas fa-edit"></i>
+                        </a>
+                        <button type="button" class="btn btn-outline-success" title="Gestionar Profesores"
+                                onclick="gestionarProfesores({{ asignatura.id }}, '{{ asignatura.nombre }}')">
+                          <i class="fas fa-users"></i>
+                        </button>
+                        <button type="button" class="btn btn-outline-info" title="Gestionar Cursos"
+                                onclick="gestionarCursos({{ asignatura.id }}, '{{ asignatura.nombre }}')">
+                          <i class="fas fa-school"></i>
+                        </button>
+                        <button type="button" class="btn btn-outline-danger" title="Eliminar"
+                                onclick="confirmarEliminacion('{{ asignatura.nombre }}', {{ asignatura.id }})">
+                          <i class="fas fa-trash"></i>
+                        </button>
+                      </div>
+                    </td>
                     {% endif %}
-                  </td>
-                  {% if puede_editar %}
-                  <td>
-                    <div class="btn-group btn-group-sm" role="group">
-                      <a href="{% url 'editar_asignatura' asignatura.id %}" class="btn btn-outline-primary" title="Editar">
-                        <i class="fas fa-edit"></i>
-                      </a>
-                      <button type="button" class="btn btn-outline-success" title="Gestionar Profesores"
-                              onclick="gestionarProfesores({{ asignatura.id }}, '{{ asignatura.nombre }}')">
-                        <i class="fas fa-users"></i>
-                      </button>
-                      <button type="button" class="btn btn-outline-info" title="Gestionar Cursos"
-                              onclick="gestionarCursos({{ asignatura.id }}, '{{ asignatura.nombre }}')">
-                        <i class="fas fa-school"></i>
-                      </button>
-                      <button type="button" class="btn btn-outline-danger" title="Eliminar"
-                              onclick="confirmarEliminacion('{{ asignatura.nombre }}', {{ asignatura.id }})">
-                        <i class="fas fa-trash"></i>
-                      </button>
-                    </div>
-                  </td>
                   {% endif %}
                 </tr>
                 {% endfor %}
@@ -228,13 +325,27 @@
           </div>
         {% else %}
           <div class="text-center py-5">
-            <i class="fas fa-book fa-3x text-muted mb-3"></i>
-            <h5 class="text-muted mb-2">No hay asignaturas registradas</h5>
-            <p class="text-muted mb-3">Comienza creando tu primera asignatura en el sistema</p>
-            {% if puede_editar %}
-              <a href="{% url 'agregar_asignatura' %}" class="btn btn-primary">
-                <i class="fas fa-plus me-1"></i>Nueva Asignatura
-              </a>
+            {% if tipo_usuario == 'alumno' or tipo_usuario == 'estudiante' %}
+              <!-- Mensaje para estudiantes -->
+              <i class="fas fa-book-open fa-3x text-muted mb-3"></i>
+              <h5 class="text-muted mb-2">No tienes asignaturas asignadas</h5>
+              {% if error_curso %}
+                <p class="text-muted mb-3">{{ error_curso }}</p>
+              {% elif not curso_actual %}
+                <p class="text-muted mb-3">No estás asignado a ningún curso actualmente. Contacta a tu coordinador académico.</p>
+              {% else %}
+                <p class="text-muted mb-3">Tu curso {{ curso_actual }} aún no tiene asignaturas configuradas. Consulta con tu coordinador académico.</p>
+              {% endif %}
+            {% else %}
+              <!-- Mensaje para administradores -->
+              <i class="fas fa-book fa-3x text-muted mb-3"></i>
+              <h5 class="text-muted mb-2">No hay asignaturas registradas</h5>
+              <p class="text-muted mb-3">Comienza creando tu primera asignatura en el sistema</p>
+              {% if puede_editar %}
+                <a href="{% url 'agregar_asignatura' %}" class="btn btn-primary">
+                  <i class="fas fa-plus me-1"></i>Nueva Asignatura
+                </a>
+              {% endif %}
             {% endif %}
           </div>
         {% endif %}
@@ -330,6 +441,8 @@
   </div>
 </div>
 
+<!-- Modales para gestión (solo para administradores) -->
+{% if puede_editar %}
 <!-- Modal para gestionar profesores -->
 <div class="modal fade" id="modalGestionarProfesores" tabindex="-1">
   <div class="modal-dialog modal-lg">
@@ -443,8 +556,10 @@
     </div>
   </div>
 </div>
+{% endif %}
 
 <!-- JavaScript -->
+{% if puede_editar %}
 <script>
 function gestionarProfesores(asignaturaId, asignaturaNombre) {
   document.getElementById('modalAsignaturaId').value = asignaturaId;
@@ -635,6 +750,7 @@ if (typeof bootstrap === 'undefined') {
   };
 }
 </script>
+{% endif %}
 
 <!-- Estilos mejorados para mejor legibilidad -->
 <style>
