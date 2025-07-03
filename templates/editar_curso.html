@@ -189,10 +189,10 @@
   </div>
 </div>
 
-<!-- Estilos simples y claros -->
+<!-- Estilos -->
 <style>
-  .form-select:focus,
-  .form-control:focus {
+  .form-control:focus,
+  .form-select:focus {
     border-color: #0d6efd;
     box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
   }
@@ -205,34 +205,20 @@
     border-radius: 6px;
   }
   
-  .form-select[multiple] option:checked {
-    background-color: #0d6efd;
-    color: white;
-  }
-  
-  .border {
-    border: 1px solid #dee2e6 !important;
-  }
-  
-  #preview-curso {
-    min-width: 80px;
-    font-weight: 600;
-  }
-  
-  .form-label {
-    margin-bottom: 0.5rem;
-  }
-  
-  .text-dark {
-    color: #212529 !important;
+  .form-control[multiple] {
+    min-height: 150px;
   }
   
   .fw-bold {
-    font-weight: 600 !important;
+    font-weight: 600;
   }
   
-  .bg-white {
-    background-color: #ffffff !important;
+  .alert {
+    border-radius: 8px;
+  }
+  
+  .badge {
+    font-size: 0.75em;
   }
   
   .gap-2 {
@@ -240,94 +226,81 @@
   }
 </style>
 
-<!-- JavaScript mejorado -->
+<!-- JavaScript -->
 <script>
   document.addEventListener('DOMContentLoaded', function() {
     const nivelSelect = document.getElementById('id_nivel');
     const paraleloSelect = document.getElementById('id_paralelo');
-    const previewElement = document.getElementById('preview-curso');
+    const previewCurso = document.getElementById('preview-curso');
     const estudiantesSelect = document.getElementById('id_estudiantes');
-    const selectedCountElement = document.getElementById('selected-count');
-
-    // Función para actualizar la vista previa del curso
-    function updatePreview() {
-      const nivel = nivelSelect.value;
-      const paralelo = paraleloSelect.value;
-      
-      if (nivel && paralelo) {
-        const nivelText = nivelSelect.options[nivelSelect.selectedIndex].text;
-        previewElement.textContent = nivelText + paralelo;
-        previewElement.parentElement.classList.add('text-primary');
-        previewElement.parentElement.classList.add('fw-bold');
-      } else {
-        previewElement.textContent = '{{ curso.nombre }}';
-        previewElement.parentElement.classList.remove('text-primary');
-        previewElement.parentElement.classList.remove('fw-bold');
-      }
-    }
-
-    // Función para actualizar el contador de estudiantes seleccionados
-    function updateSelectedCount() {
-      if (estudiantesSelect && selectedCountElement) {
-        const selectedOptions = Array.from(estudiantesSelect.selectedOptions);
-        selectedCountElement.textContent = selectedOptions.length;
-        document.getElementById('preview-estudiantes').textContent = selectedOptions.length;
-      }
-    }
-
-    // Event listeners
-    if (nivelSelect) nivelSelect.addEventListener('change', updatePreview);
-    if (paraleloSelect) paraleloSelect.addEventListener('change', updatePreview);
-    if (estudiantesSelect) {
-      estudiantesSelect.addEventListener('change', updateSelectedCount);
-    }
-
-    // Inicializar
-    updatePreview();
-    updateSelectedCount();
-
-    // Validación del formulario
     const form = document.querySelector('form');
-    form.addEventListener('submit', function(e) {
-      const nivel = nivelSelect.value;
-      const paralelo = paraleloSelect.value;
-      
-      if (!nivel) {
-        e.preventDefault();
-        alert('Por favor selecciona el nivel del curso.');
-        nivelSelect.focus();
-        return;
+
+    // Actualizar vista previa
+    function updatePreview() {
+      if (nivelSelect && paraleloSelect && previewCurso) {
+        const nivel = nivelSelect.options[nivelSelect.selectedIndex]?.text || '{{ curso.get_nivel_display }}';
+        const paralelo = paraleloSelect.value || '{{ curso.paralelo }}';
+        previewCurso.textContent = `${nivel}${paralelo}`;
       }
-      
-      if (!paralelo) {
-        e.preventDefault();
-        alert('Por favor selecciona el paralelo del curso.');
-        paraleloSelect.focus();
-        return;
-      }
-      
-      // Confirmar cambios si hay muchos estudiantes seleccionados
-      if (estudiantesSelect) {
-        const selectedStudents = Array.from(estudiantesSelect.selectedOptions);
-        if (selectedStudents.length > 40) {
-          if (!confirm(`¿Estás seguro de asignar ${selectedStudents.length} estudiantes a este curso? Es un número muy alto.`)) {
-            e.preventDefault();
-            return;
-          }
+    }
+
+    if (nivelSelect && paraleloSelect) {
+      nivelSelect.addEventListener('change', updatePreview);
+      paraleloSelect.addEventListener('change', updatePreview);
+    }
+
+    // Contador de estudiantes
+    if (estudiantesSelect) {
+      function updateSelectedCount() {
+        const selectedCount = Array.from(estudiantesSelect.selectedOptions).length;
+        const countElement = document.getElementById('selected-count');
+        const previewElement = document.getElementById('preview-estudiantes');
+        
+        if (countElement) {
+          countElement.textContent = selectedCount;
+        }
+        if (previewElement) {
+          previewElement.textContent = selectedCount;
         }
       }
-    });
+
+      estudiantesSelect.addEventListener('change', updateSelectedCount);
+      updateSelectedCount(); // Inicializar
+    }
+
+    // Validación
+    if (form) {
+      form.addEventListener('submit', function(e) {
+        const nivel = nivelSelect?.value;
+        const paralelo = paraleloSelect?.value;
+        
+        if (!nivel) {
+          e.preventDefault();
+          alert('Por favor selecciona el nivel del curso.');
+          nivelSelect?.focus();
+          return;
+        }
+        
+        if (!paralelo) {
+          e.preventDefault();
+          alert('Por favor selecciona el paralelo del curso.');
+          paraleloSelect?.focus();
+          return;
+        }
+      });
+    }
   });
 
-  // Funciones auxiliares para selección múltiple
+  // Funciones auxiliares
   function selectAllStudents() {
     const select = document.getElementById('id_estudiantes');
     if (select) {
       for (let option of select.options) {
         option.selected = true;
       }
-      document.getElementById('selected-count').textContent = select.options.length;
-      document.getElementById('preview-estudiantes').textContent = select.options.length;
+      // Actualizar contador
+      const event = new Event('change');
+      select.dispatchEvent(event);
     }
   }
   
@@ -337,8 +310,9 @@
       for (let option of select.options) {
         option.selected = false;
       }
-      document.getElementById('selected-count').textContent = '0';
-      document.getElementById('preview-estudiantes').textContent = '0';
+      // Actualizar contador
+      const event = new Event('change');
+      select.dispatchEvent(event);
     }
   }
 
@@ -357,355 +331,6 @@
       for (let option of select.options) {
         option.selected = false;
       }
-    }
-  }
-</script>
-{% endblock %}
-            <form method="post" novalidate>
-              {% csrf_token %}
-              
-              <!-- Información básica del curso -->
-              <div class="row mb-4">
-                <div class="col-md-6 mb-3">
-                  <label for="{{ form.nivel.id_for_label }}" class="form-label text-dark fw-medium">
-                    <i class="fas fa-layer-group text-primary me-1"></i>{{ form.nivel.label }}
-                  </label>
-                  {{ form.nivel }}
-                  {% if form.nivel.errors %}
-                    <div class="text-danger small mt-1">
-                      {% for error in form.nivel.errors %}
-                        <div><i class="fas fa-exclamation-circle me-1"></i>{{ error }}</div>
-                      {% endfor %}
-                    </div>
-                  {% endif %}
-                </div>
-                
-                <div class="col-md-6 mb-3">
-                  <label for="{{ form.paralelo.id_for_label }}" class="form-label text-dark fw-medium">
-                    <i class="fas fa-clone text-success me-1"></i>{{ form.paralelo.label }}
-                  </label>
-                  {{ form.paralelo }}
-                  {% if form.paralelo.errors %}
-                    <div class="text-danger small mt-1">
-                      {% for error in form.paralelo.errors %}
-                        <div><i class="fas fa-exclamation-circle me-1"></i>{{ error }}</div>
-                      {% endfor %}
-                    </div>
-                  {% endif %}
-                </div>
-              </div>
-
-              <!-- Vista previa del curso -->
-              <div class="bg-light border rounded p-3 mb-4">
-                <div class="d-flex align-items-center">
-                  <div class="border rounded px-3 py-2 me-3 text-primary fw-bold bg-white" style="min-width: 80px; text-align: center;">
-                    <span id="preview-curso">{{ curso.nombre }}</span>
-                  </div>
-                  <div>
-                    <strong class="text-dark">Vista previa del curso</strong>
-                    <p class="mb-0 small text-muted">Este será el nuevo nombre del curso después de los cambios</p>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Profesor Jefe -->
-              <div class="mb-4">
-                <label for="{{ form.profesor_jefe.id_for_label }}" class="form-label fw-bold">
-                  <i class="fas fa-chalkboard-teacher text-info me-1"></i>{{ form.profesor_jefe.label }}
-                </label>
-                {{ form.profesor_jefe }}
-                {% if form.profesor_jefe.errors %}
-                  <div class="text-danger small mt-1">
-                    {% for error in form.profesor_jefe.errors %}
-                      <div><i class="fas fa-exclamation-circle me-1"></i>{{ error }}</div>
-                    {% endfor %}
-                  </div>
-                {% endif %}
-                <div class="form-text">
-                  <i class="fas fa-info-circle me-1"></i>El profesor jefe es quien tendrá la responsabilidad principal del curso
-                </div>
-              </div>
-
-              <!-- Asignaturas -->
-              <div class="mb-4">
-                <label for="{{ form.asignaturas.id_for_label }}" class="form-label fw-bold">
-                  <i class="fas fa-book text-success me-1"></i>{{ form.asignaturas.label }}
-                </label>
-                <div class="row">
-                  <div class="col-md-8">
-                    {{ form.asignaturas }}
-                    {% if form.asignaturas.help_text %}
-                      <div class="form-text">{{ form.asignaturas.help_text }}</div>
-                    {% endif %}
-                    {% if form.asignaturas.errors %}
-                      <div class="text-danger small mt-1">
-                        {% for error in form.asignaturas.errors %}
-                          <div><i class="fas fa-exclamation-circle me-1"></i>{{ error }}</div>
-                        {% endfor %}
-                      </div>
-                    {% endif %}
-                  </div>
-                  <div class="col-md-4">
-                    <div class="d-grid gap-2">
-                      <button type="button" class="btn btn-light border" onclick="selectAllSubjects()">
-                        <i class="fas fa-check-square me-1"></i>Seleccionar Todas
-                      </button>
-                      <button type="button" class="btn btn-light border" onclick="clearAllSubjects()">
-                        <i class="fas fa-square me-1"></i>Limpiar Selección
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Nueva Asignatura -->
-              <div class="mb-4">
-                <label for="{{ form.nueva_asignatura.id_for_label }}" class="form-label fw-bold">
-                  <i class="fas fa-plus-circle text-success me-1"></i>{{ form.nueva_asignatura.label }}
-                </label>
-                {{ form.nueva_asignatura }}
-                {% if form.nueva_asignatura.help_text %}
-                  <div class="form-text text-success">
-                    <i class="fas fa-lightbulb me-1"></i>{{ form.nueva_asignatura.help_text }}
-                  </div>
-                {% endif %}
-                {% if form.nueva_asignatura.errors %}
-                  <div class="text-danger small mt-1">
-                    {% for error in form.nueva_asignatura.errors %}
-                      <div><i class="fas fa-exclamation-circle me-1"></i>{{ error }}</div>
-                    {% endfor %}
-                  </div>
-                {% endif %}
-              </div>
-
-              <!-- Estudiantes -->
-              <div class="mb-4">
-                <label for="{{ form.estudiantes.id_for_label }}" class="form-label fw-bold">
-                  <i class="fas fa-user-graduate text-primary me-1"></i>{{ form.estudiantes.label }}
-                </label>
-                
-                <!-- Aviso importante sobre restricción -->
-                <div class="alert alert-info d-flex align-items-center mb-3">
-                  <i class="fas fa-info-circle text-info me-2"></i>
-                  <div class="small">
-                    <strong>Estudiantes disponibles:</strong> Se muestran los estudiantes actualmente en este curso y los estudiantes disponibles (que no están asignados a ningún curso en {{ curso.anio }}).
-                    {% if total_estudiantes_disponibles > 0 %}
-                      Hay <strong>{{ total_estudiantes_disponibles }}</strong> estudiantes disponibles para asignar.
-                    {% else %}
-                      <span class="text-warning">No hay estudiantes adicionales disponibles.</span>
-                    {% endif %}
-                  </div>
-                </div>
-                
-                <div class="row">
-                  <div class="col-md-8">
-                    {{ form.estudiantes }}
-                    {% if form.estudiantes.help_text %}
-                      <div class="form-text">{{ form.estudiantes.help_text }}</div>
-                    {% endif %}
-                    {% if form.estudiantes.errors %}
-                      <div class="text-danger small mt-1">
-                        {% for error in form.estudiantes.errors %}
-                          <div><i class="fas fa-exclamation-circle me-1"></i>{{ error|linebreaksbr }}</div>
-                        {% endfor %}
-                      </div>
-                    {% endif %}
-                  </div>
-                  <div class="col-md-4">
-                    <div class="d-grid gap-2">
-                      <button type="button" class="btn btn-light border" onclick="selectAllStudents()">
-                        <i class="fas fa-check-square me-1"></i>Seleccionar Todos
-                      </button>
-                      <button type="button" class="btn btn-light border" onclick="clearAllStudents()">
-                        <i class="fas fa-square me-1"></i>Limpiar Selección
-                      </button>
-                      <div class="bg-light border rounded p-2 mt-2 mb-0">
-                        <strong class="text-dark">Contador:</strong> <span id="selected-count" class="text-dark fw-bold">0</span> seleccionados
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Validación de formulario -->
-              {% if form.non_field_errors %}
-                <div class="alert alert-danger">
-                  {% for error in form.non_field_errors %}
-                    <div><i class="fas fa-exclamation-triangle me-1"></i>{{ error }}</div>
-                  {% endfor %}
-                </div>
-              {% endif %}
-
-              <!-- Botones -->
-              <div class="d-flex justify-content-end gap-2 mt-4">
-                <a href="{% url 'listar_cursos' %}" class="btn btn-light border">
-                  <i class="fas fa-times me-1"></i>Cancelar
-                </a>
-                <button type="submit" class="btn btn-success">
-                  <i class="fas fa-save me-1"></i>Guardar Cambios
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Estilos simples y claros -->
-<style>
-  .form-select:focus,
-  .form-control:focus {
-    border-color: #0d6efd;
-    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
-  }
-  
-  .card {
-    border: 1px solid #dee2e6;
-  }
-  
-  .btn {
-    border-radius: 6px;
-  }
-  
-  .form-select[multiple] option:checked {
-    background-color: #0d6efd;
-    color: white;
-  }
-  
-  .border {
-    border: 1px solid #dee2e6 !important;
-  }
-  
-  #preview-curso {
-    min-width: 80px;
-    font-weight: 600;
-  }
-  
-  .form-label {
-    margin-bottom: 0.5rem;
-  }
-  
-  .text-dark {
-    color: #212529 !important;
-  }
-  
-  .fw-bold {
-    font-weight: 600 !important;
-  }
-  
-  .bg-white {
-    background-color: #ffffff !important;
-  }
-</style>
-
-<!-- JavaScript mejorado -->
-<script>
-  document.addEventListener('DOMContentLoaded', function() {
-    const nivelSelect = document.getElementById('id_nivel');
-    const paraleloSelect = document.getElementById('id_paralelo');
-    const previewElement = document.getElementById('preview-curso');
-    const estudiantesSelect = document.getElementById('id_estudiantes');
-    const selectedCountElement = document.getElementById('selected-count');
-
-    // Función para actualizar la vista previa del curso
-    function updatePreview() {
-      const nivel = nivelSelect.value;
-      const paralelo = paraleloSelect.value;
-      
-      if (nivel && paralelo) {
-        const nivelText = nivelSelect.options[nivelSelect.selectedIndex].text;
-        previewElement.textContent = nivelText + paralelo;
-        previewElement.parentElement.classList.add('text-primary');
-        previewElement.parentElement.classList.add('fw-bold');
-      } else {
-        previewElement.textContent = '{{ curso.nombre }}';
-        previewElement.parentElement.classList.remove('text-primary');
-        previewElement.parentElement.classList.remove('fw-bold');
-      }
-    }
-
-    // Función para actualizar el contador de estudiantes seleccionados
-    function updateSelectedCount() {
-      if (estudiantesSelect && selectedCountElement) {
-        const selectedOptions = Array.from(estudiantesSelect.selectedOptions);
-        selectedCountElement.textContent = selectedOptions.length;
-      }
-    }
-
-    // Event listeners
-    nivelSelect.addEventListener('change', updatePreview);
-    paraleloSelect.addEventListener('change', updatePreview);
-    if (estudiantesSelect) {
-      estudiantesSelect.addEventListener('change', updateSelectedCount);
-    }
-
-    // Inicializar
-    updatePreview();
-    updateSelectedCount();
-
-    // Validación del formulario
-    const form = document.querySelector('form');
-    form.addEventListener('submit', function(e) {
-      const nivel = nivelSelect.value;
-      const paralelo = paraleloSelect.value;
-      
-      if (!nivel) {
-        e.preventDefault();
-        alert('Por favor selecciona el nivel del curso.');
-        nivelSelect.focus();
-        return;
-      }
-      
-      if (!paralelo) {
-        e.preventDefault();
-        alert('Por favor selecciona el paralelo del curso.');
-        paraleloSelect.focus();
-        return;
-      }
-      
-      // Confirmar cambios si hay muchos estudiantes seleccionados
-      if (estudiantesSelect) {
-        const selectedStudents = Array.from(estudiantesSelect.selectedOptions);
-        if (selectedStudents.length > 40) {
-          if (!confirm(`¿Estás seguro de asignar ${selectedStudents.length} estudiantes a este curso? Es un número muy alto.`)) {
-            e.preventDefault();
-            return;
-          }
-        }
-      }
-    });
-  });
-
-  // Funciones auxiliares para selección múltiple
-  function selectAllStudents() {
-    const select = document.getElementById('id_estudiantes');
-    for (let option of select.options) {
-      option.selected = true;
-    }
-    document.getElementById('selected-count').textContent = select.options.length;
-  }
-  
-  function clearAllStudents() {
-    const select = document.getElementById('id_estudiantes');
-    for (let option of select.options) {
-      option.selected = false;
-    }
-    document.getElementById('selected-count').textContent = '0';
-  }
-
-  function selectAllSubjects() {
-    const select = document.getElementById('id_asignaturas');
-    for (let option of select.options) {
-      option.selected = true;
-    }
-  }
-  
-  function clearAllSubjects() {
-    const select = document.getElementById('id_asignaturas');
-    for (let option of select.options) {
-      option.selected = false;
     }
   }
 </script>

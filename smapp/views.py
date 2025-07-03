@@ -3402,6 +3402,7 @@ def libro_anotaciones(request):
     from .models import calcular_puntaje_comportamiento
     from django.db.models import Count, Q
     from django.core.paginator import Paginator
+    from datetime import datetime
     
     # Determinar tipo de usuario y permisos
     user_type = None
@@ -3418,7 +3419,7 @@ def libro_anotaciones(request):
                 anotaciones_base = Anotacion.objects.filter(estudiante=estudiante_actual)
                 cursos_disponibles = estudiante_actual.cursos.filter(anio=timezone.now().year)
                 puede_crear = False
-            except:
+            except Exception as e:
                 messages.error(request, 'Error al obtener información del estudiante.')
                 return render(request, 'libro_anotaciones.html', {'error': True})
                 
@@ -3459,10 +3460,10 @@ def libro_anotaciones(request):
     
     # Aplicar filtros
     if filtro_form.is_valid():
-        if filtro_form.cleaned_data.get('curso'):
+        if filtro_form.cleaned_data.get('curso') and user_type != 'alumno':
             anotaciones = anotaciones.filter(curso=filtro_form.cleaned_data['curso'])
         
-        if filtro_form.cleaned_data.get('estudiante'):
+        if filtro_form.cleaned_data.get('estudiante') and user_type != 'alumno':
             anotaciones = anotaciones.filter(estudiante=filtro_form.cleaned_data['estudiante'])
         
         if filtro_form.cleaned_data.get('tipo'):
@@ -3515,11 +3516,21 @@ def libro_anotaciones(request):
         # Ordenar por puntaje
         stats_estudiantes.sort(key=lambda x: x['puntaje_total'], reverse=True)
     
+    # Información específica para estudiantes
+    estadisticas_estudiante = None
+    if user_type == 'alumno' and estudiante_actual:
+        estadisticas_estudiante = calcular_puntaje_comportamiento(estudiante_actual)
+        # Agregar información adicional del curso actual
+        curso_actual = estudiante_actual.get_curso_actual()
+        if curso_actual:
+            estadisticas_estudiante['curso_actual'] = curso_actual
+    
     context = {
         'anotaciones': anotaciones_paginas,
         'filtro_form': filtro_form,
         'stats_generales': stats_generales,
         'stats_estudiantes': stats_estudiantes,
+        'estadisticas_estudiante': estadisticas_estudiante,
         'user_type': user_type,
         'puede_crear': puede_crear,
         'profesor_actual': profesor_actual,
@@ -3870,11 +3881,14 @@ def ajax_obtener_estudiantes_filtro(request):
                         for est in estudiantes
                     ]
                 }
+                
                 return JsonResponse(data)
+                
             except Curso.DoesNotExist:
                 return JsonResponse({'error': 'Curso no encontrado'}, status=404)
+            except Exception as e:
+                return JsonResponse({'error': str(e)}, status=500)
         else:
-            # Si no hay curso seleccionado, devolver lista vacía
-            return JsonResponse({'estudiantes': []})
+            return JsonResponse({'error': 'ID de curso requerido'}, status=400)
     
     return JsonResponse({'error': 'Método no permitido'}, status=405)
