@@ -26,15 +26,50 @@
         <h5>Error de acceso</h5>
         <p>No tienes permisos para acceder a esta sección.</p>
       </div>
-    {% elif mensaje %}
+    {% elif mensaje and user_type != 'alumno' %}
       <div class="alert alert-info text-center">
         <i class="fa fa-info-circle fa-2x mb-2"></i>
         <h5>{{ mensaje }}</h5>
         <p>Selecciona un curso para comenzar a ver la asistencia</p>
       </div>
+    {% elif mensaje and user_type == 'alumno' %}
+      <div class="alert alert-warning text-center">
+        <i class="fa fa-exclamation-triangle fa-2x mb-2"></i>
+        <h5>{{ mensaje }}</h5>
+        <p>Contacta con la administración para que te asignen a un curso.</p>
+      </div>
     {% endif %}
 
-    <!-- Selector de Curso y Filtros -->
+    <!-- Información del Curso para Estudiantes -->
+    {% if user_type == 'alumno' and curso_seleccionado %}
+    <div class="card mb-4">
+      <div class="card-header bg-primary text-white">
+        <h5><i class="fa fa-graduation-cap me-2"></i>Mi Curso Actual</h5>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-8">
+            <h4 class="mb-2">{{ curso_seleccionado.get_nivel_display }}{{ curso_seleccionado.paralelo }} - {{ curso_seleccionado.anio }}</h4>
+            {% if curso_seleccionado.profesor_jefe %}
+            <p class="mb-1"><strong>Profesor Jefe:</strong> {{ curso_seleccionado.profesor_jefe.get_nombre_completo }}</p>
+            {% endif %}
+            <p class="mb-0"><strong>Compañeros:</strong> {{ curso_seleccionado.estudiantes.count }} estudiantes</p>
+          </div>
+          <div class="col-md-4 text-end">
+            <div class="form-group">
+              <label class="form-label fw-bold">Cambiar Semana:</label>
+              <form method="get" class="d-inline">
+                <input type="date" name="semana" class="form-control" value="{{ fecha_lunes|date:'Y-m-d' }}" onchange="this.form.submit()">
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Selector de Curso y Filtros - Solo para Profesores y Admin -->
+    {% if user_type != 'alumno' %}
     <div class="card mb-4">
       <div class="card-header">
         <h5><i class="fa fa-filter"></i> Filtros de Búsqueda</h5>
@@ -44,13 +79,7 @@
           <div class="col-md-4">
             <label class="form-label fw-bold">Curso</label>
             <select name="curso" class="form-select" onchange="this.form.submit()">
-              <option value="">
-                {% if user_type == 'alumno' %}
-                  Seleccionar mi curso...
-                {% else %}
-                  Seleccionar curso...
-                {% endif %}
-              </option>
+              <option value="">Seleccionar curso...</option>
               {% for curso in cursos_disponibles %}
                 <option value="{{ curso.id }}" {% if curso == curso_seleccionado %}selected{% endif %}>
                   {{ curso.get_nivel_display }}{{ curso.paralelo }} - {{ curso.anio }}
@@ -61,7 +90,7 @@
             </select>
           </div>
           
-          {% if curso_seleccionado and user_type != 'alumno' %}
+          {% if curso_seleccionado %}
           <div class="col-md-3">
             <label class="form-label fw-bold">Estudiante</label>
             <select name="estudiante" class="form-select" onchange="this.form.submit()">
@@ -79,9 +108,7 @@
             <input type="text" name="rut" class="form-control" value="{{ rut_filtro }}" placeholder="Ej: 12345678-9">
             <small class="form-text text-muted">Búsqueda parcial en RUT</small>
           </div>
-          {% endif %}
           
-          {% if curso_seleccionado %}
           <div class="col-md-2">
             <label class="form-label fw-bold">Semana</label>
             <input type="date" name="semana" class="form-control" value="{{ fecha_lunes|date:'Y-m-d' }}" onchange="this.form.submit()">
@@ -89,7 +116,7 @@
           </div>
           {% endif %}
           
-          {% if rut_filtro or user_type != 'alumno' %}
+          {% if rut_filtro or curso_seleccionado %}
           <div class="col-md-12">
             <button type="submit" class="btn btn-primary">
               <i class="fa fa-search"></i> Buscar
@@ -102,6 +129,7 @@
         </form>
       </div>
     </div>
+    {% endif %}
 
     {% if curso_seleccionado %}
     <!-- Navegación de Semana -->
@@ -109,6 +137,17 @@
       <div class="card-header d-flex justify-content-between align-items-center">
         <h5><i class="fa fa-calendar"></i> Semana del {{ fecha_lunes|date:"d/m/Y" }} al {{ fecha_domingo|date:"d/m/Y" }}</h5>
         <div class="btn-group">
+          {% if user_type == 'alumno' %}
+          <a href="?semana={{ semana_anterior|date:'Y-m-d' }}" class="btn btn-outline-primary btn-sm">
+            <i class="fa fa-chevron-left"></i> Anterior
+          </a>
+          <a href="{% url 'ver_asistencia_alumno' %}" class="btn btn-outline-primary btn-sm">
+            Hoy
+          </a>
+          <a href="?semana={{ semana_siguiente|date:'Y-m-d' }}" class="btn btn-outline-primary btn-sm">
+            Siguiente <i class="fa fa-chevron-right"></i>
+          </a>
+          {% else %}
           <a href="?curso={{ curso_seleccionado.id }}{% if estudiante_seleccionado %}&estudiante={{ estudiante_seleccionado.id }}{% endif %}{% if rut_filtro %}&rut={{ rut_filtro }}{% endif %}&semana={{ semana_anterior|date:'Y-m-d' }}" 
              class="btn btn-outline-primary btn-sm">
             <i class="fa fa-chevron-left"></i> Anterior
@@ -121,6 +160,7 @@
              class="btn btn-outline-primary btn-sm">
             Siguiente <i class="fa fa-chevron-right"></i>
           </a>
+          {% endif %}
         </div>
       </div>
       <div class="card-body">
@@ -173,14 +213,47 @@
         </div>
       </div>
     </div>
+    
+    <!-- Resumen personalizado para estudiantes -->
+    {% if user_type == 'alumno' and estadisticas.total > 0 %}
+    <div class="alert alert-info mb-4">
+      <div class="row">
+        <div class="col-md-8">
+          <h6><i class="fa fa-user me-2"></i>Tu resumen de asistencia esta semana:</h6>
+          <p class="mb-0">
+            Has asistido a <strong>{{ estadisticas.presentes }}</strong> de <strong>{{ estadisticas.total }}</strong> clases registradas.
+            {% if estadisticas.porcentaje_asistencia >= 85 %}
+              <span class="badge bg-success ms-2">¡Excelente asistencia!</span>
+            {% elif estadisticas.porcentaje_asistencia >= 70 %}
+              <span class="badge bg-warning ms-2">Asistencia regular</span>
+            {% else %}
+              <span class="badge bg-danger ms-2">Mejorar asistencia</span>
+            {% endif %}
+          </p>
+        </div>
+        <div class="col-md-4 text-end">
+          <div class="progress mt-2">
+            <div class="progress-bar {% if estadisticas.porcentaje_asistencia >= 85 %}bg-success{% elif estadisticas.porcentaje_asistencia >= 70 %}bg-warning{% else %}bg-danger{% endif %}" 
+                 style="width: {{ estadisticas.porcentaje_asistencia }}%">
+              {{ estadisticas.porcentaje_asistencia }}%
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
     {% endif %}
 
     <!-- Tabla de asistencias -->
     <div class="card">
       <div class="card-header d-flex justify-content-between align-items-center">
         <h5><i class="fa fa-table"></i> 
-          Registros de Asistencia
-          {% if estudiante_seleccionado %}
+          {% if user_type == 'alumno' %}
+            Mi Registro de Asistencia
+          {% else %}
+            Registros de Asistencia
+          {% endif %}
+          {% if estudiante_seleccionado and user_type != 'alumno' %}
             - {{ estudiante_seleccionado.get_nombre_completo }}
           {% elif curso_seleccionado %}
             - {{ curso_seleccionado }}
@@ -199,8 +272,10 @@
           <table class="table table-striped table-hover">
             <thead class="table-dark">
               <tr>
+                {% if user_type != 'alumno' %}
                 <th>Estudiante</th>
                 <th>RUT</th>
+                {% endif %}
                 <th>Fecha</th>
                 <th>Asignatura</th>
                 <th>Estado</th>
@@ -214,6 +289,7 @@
             <tbody>
               {% for asistencia in asistencias %}
               <tr {% if not asistencia.presente %}class="table-warning"{% endif %}>
+                {% if user_type != 'alumno' %}
                 <td>
                   <div class="d-flex align-items-center">
                     <i class="fa fa-user text-secondary me-2"></i>
@@ -226,6 +302,7 @@
                 <td>
                   <span class="badge bg-secondary">{{ asistencia.estudiante.numero_documento }}</span>
                 </td>
+                {% endif %}
                 <td>
                   <span class="fw-medium">{{ asistencia.fecha|date:"d/m/Y" }}</span><br>
                   <small class="text-muted">{{ asistencia.fecha|date:"l" }}</small>
@@ -281,7 +358,9 @@
           <i class="fa fa-calendar-times fa-3x text-muted mb-3"></i>
           <h5>No hay registros de asistencia</h5>
           <p class="text-muted">
-            {% if estudiante_seleccionado %}
+            {% if user_type == 'alumno' %}
+              No tienes registros de asistencia en esta semana
+            {% elif estudiante_seleccionado %}
               No hay registros para {{ estudiante_seleccionado.get_nombre_completo }} en esta semana
             {% elif curso_seleccionado %}
               No hay registros para {{ curso_seleccionado }} en esta semana

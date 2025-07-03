@@ -2245,6 +2245,17 @@ def ver_asistencia_alumno(request):
     asistencias = AsistenciaAlumno.objects.none()
     mensaje = ""
     
+    # Para estudiantes, seleccionar automáticamente su curso actual
+    if user_type == 'alumno' and estudiante_usuario:
+        # Buscar el curso actual del estudiante
+        curso_actual = cursos_disponibles.first()  # Obtener el primer curso del estudiante
+        if curso_actual:
+            curso_seleccionado = curso_actual
+            estudiante_seleccionado = estudiante_usuario
+            estudiantes_curso = [estudiante_usuario]
+        else:
+            mensaje = "No estás asignado a ningún curso este año"
+    
     # Configurar fecha de la semana
     if semana_str:
         try:
@@ -2271,8 +2282,8 @@ def ver_asistencia_alumno(request):
             'es_hoy': fecha_dia == timezone.now().date()
         })
     
-    # Procesar filtros
-    if curso_id:
+    # Procesar filtros - Solo para profesores y administradores
+    if curso_id and user_type != 'alumno':
         try:
             curso_seleccionado = get_object_or_404(Curso, id=curso_id)
             # Verificar permisos para este curso
@@ -2281,18 +2292,14 @@ def ver_asistencia_alumno(request):
                 curso_seleccionado = None
             else:
                 # Obtener estudiantes del curso
-                if user_type == 'alumno':
-                    # El estudiante solo se ve a sí mismo
-                    estudiantes_curso = [estudiante_usuario] if estudiante_usuario in curso_seleccionado.estudiantes.all() else []
-                else:
-                    estudiantes_curso = curso_seleccionado.estudiantes.all().order_by('primer_nombre', 'apellido_paterno')
+                estudiantes_curso = curso_seleccionado.estudiantes.all().order_by('primer_nombre', 'apellido_paterno')
                 
                 # Aplicar filtro por RUT si se especifica
                 if rut_filtro:
                     estudiantes_curso = [e for e in estudiantes_curso if rut_filtro.lower() in e.numero_documento.lower()]
                 
                 # Filtro por estudiante específico
-                if estudiante_id and user_type != 'alumno':
+                if estudiante_id:
                     try:
                         estudiante_seleccionado = get_object_or_404(Estudiante, id=estudiante_id)
                         if estudiante_seleccionado in estudiantes_curso:
@@ -2303,11 +2310,7 @@ def ver_asistencia_alumno(request):
                     except:
                         estudiantes_filtro = estudiantes_curso
                 else:
-                    if user_type == 'alumno':
-                        estudiantes_filtro = [estudiante_usuario]
-                        estudiante_seleccionado = estudiante_usuario
-                    else:
-                        estudiantes_filtro = estudiantes_curso
+                    estudiantes_filtro = estudiantes_curso
                 
                 # Obtener asistencias de la semana
                 if estudiantes_filtro:
@@ -2319,6 +2322,14 @@ def ver_asistencia_alumno(request):
                 
         except:
             messages.error(request, 'Curso no encontrado.')
+    
+    # Para estudiantes, obtener asistencias automáticamente si tienen curso
+    elif user_type == 'alumno' and curso_seleccionado:
+        asistencias = AsistenciaAlumno.objects.filter(
+            estudiante=estudiante_usuario,
+            curso=curso_seleccionado,
+            fecha__range=[fecha_lunes, fecha_domingo]
+        ).select_related('asignatura', 'profesor_registro').order_by('fecha')
     
     # Calcular estadísticas
     estadisticas = {
