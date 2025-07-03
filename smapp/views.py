@@ -1755,8 +1755,32 @@ def ver_notas_curso(request):
     # Obtener todas las asignaturas creadas para el filtro global
     todas_las_asignaturas = Asignatura.objects.all().order_by('nombre')
 
-    # Obtener cursos y asignaturas según el tipo de usuario
-    if user_type in ['director', 'administrador']:
+    # Lógica especial para estudiantes - mostrar automáticamente sus propias notas
+    if user_type == 'alumno':
+        try:
+            estudiante = Estudiante.objects.get(user=request.user)
+            curso_seleccionado = estudiante.get_curso_actual()
+            
+            if curso_seleccionado:
+                # Para estudiantes, simplemente mostrar su curso actual
+                cursos_disponibles = [curso_seleccionado]
+                asignaturas_disponibles = curso_seleccionado.asignaturas.all().order_by('nombre')
+                estudiantes_curso_asignatura = [estudiante]  # Solo el estudiante actual
+                
+                # Si se especifica una asignatura, filtrar por ella
+                if asignatura_id:
+                    try:
+                        asignatura_seleccionada = Asignatura.objects.get(id=asignatura_id)
+                    except Asignatura.DoesNotExist:
+                        asignatura_seleccionada = None
+                
+        except Estudiante.DoesNotExist:
+            # Si no existe el estudiante asociado al usuario, no mostrar nada
+            curso_seleccionado = None
+            estudiantes_curso_asignatura = []
+    
+    # Obtener cursos y asignaturas según el tipo de usuario (profesores y administradores)
+    elif user_type in ['director', 'administrador']:
         cursos_disponibles = Curso.objects.filter(anio=anio_actual).order_by('nivel', 'paralelo')
         if curso_id:
             try:
@@ -1797,58 +1821,105 @@ def ver_notas_curso(request):
         try:
             filtro_asignatura_id = buscar_asignatura_id or asignatura_id
             asignatura_seleccionada = Asignatura.objects.get(id=filtro_asignatura_id)
-            estudiantes_curso = curso_seleccionado.estudiantes.all()
-            inscripciones = Inscripcion.objects.filter(
-                estudiante__in=estudiantes_curso,
-                grupo__asignatura=asignatura_seleccionada
-            ).select_related('estudiante', 'grupo')
-            if user_type == 'profesor':
-                profesor = Profesor.objects.get(user=request.user)
-                inscripciones = inscripciones.filter(grupo__profesor=profesor)
             
-            # Obtener estudiantes únicos (evitar duplicados)
-            estudiantes_ids = set(inscripciones.values_list('estudiante_id', flat=True))
-            estudiantes_curso_asignatura = estudiantes_curso.filter(id__in=estudiantes_ids).order_by('primer_nombre', 'apellido_paterno')
+            # Para estudiantes, filtrar solo sus propias notas
+            if user_type == 'alumno':
+                estudiante = Estudiante.objects.get(user=request.user)
+                estudiantes_curso_asignatura = [estudiante]
+                inscripciones = Inscripcion.objects.filter(
+                    estudiante=estudiante,
+                    grupo__asignatura=asignatura_seleccionada
+                ).select_related('estudiante', 'grupo')
+            else:
+                estudiantes_curso = curso_seleccionado.estudiantes.all()
+                inscripciones = Inscripcion.objects.filter(
+                    estudiante__in=estudiantes_curso,
+                    grupo__asignatura=asignatura_seleccionada
+                ).select_related('estudiante', 'grupo')
+                if user_type == 'profesor':
+                    profesor = Profesor.objects.get(user=request.user)
+                    inscripciones = inscripciones.filter(grupo__profesor=profesor)
+                
+                # Obtener estudiantes únicos (evitar duplicados)
+                estudiantes_ids = set(inscripciones.values_list('estudiante_id', flat=True))
+                estudiantes_curso_asignatura = estudiantes_curso.filter(id__in=estudiantes_ids).order_by('primer_nombre', 'apellido_paterno')
             
             notas = Calificacion.objects.filter(inscripcion__in=inscripciones).select_related('inscripcion', 'inscripcion__estudiante')
             
-            # Construir lista de evaluaciones únicas (por nombre solamente, evitando duplicados por fecha)
-            evaluaciones_nombres = set()
-            for nota in notas:
-                evaluaciones_nombres.add(nota.nombre_evaluacion)
-            evaluaciones = [{'nombre': nombre} for nombre in sorted(evaluaciones_nombres)]
+            # Construir lista de evaluaciones individuales (no agrupadas por nombre)
+            if user_type == 'alumno':
+                # Para alumnos, mostrar todas las evaluaciones individuales ordenadas por fecha
+                evaluaciones = []
+                notas_ordenadas = notas.order_by('fecha_evaluacion', 'nombre_evaluacion', 'id')
+                for nota in notas_ordenadas:
+                    # Crear un identificador único para cada evaluación
+                    eval_id = f"{nota.nombre_evaluacion}_{nota.fecha_evaluacion}_{nota.id}"
+                    evaluaciones.append({
+                        'nombre': nota.nombre_evaluacion,
+                        'fecha': nota.fecha_evaluacion,
+                        'id_unico': eval_id,
+                        'nota_obj': nota
+                    })
+            else:
+                # Para profesores/administradores, mantener lógica original (agrupadas por nombre)
+                evaluaciones_nombres = set()
+                for nota in notas:
+                    evaluaciones_nombres.add(nota.nombre_evaluacion)
+                evaluaciones = [{'nombre': nombre} for nombre in sorted(evaluaciones_nombres)]
             
             # Agrupar notas por estudiante y por evaluación
             for estudiante in estudiantes_curso_asignatura:
-                notas_est = [None] * len(evaluaciones)
-                # Obtener todas las notas del estudiante para esta asignatura
-                notas_estudiante = notas.filter(inscripcion__estudiante=estudiante)
-                
-                for idx, ev in enumerate(evaluaciones):
-                    # Obtener la nota más reciente para esta evaluación
-                    nota = notas_estudiante.filter(nombre_evaluacion=ev['nombre']).order_by('-fecha_evaluacion').first()
-                    notas_est[idx] = nota
+                if user_type == 'alumno':
+                    # Para alumnos, crear lista de notas directamente ordenadas
+                    notas_estudiante = notas.filter(inscripcion__estudiante=estudiante).order_by('fecha_evaluacion', 'nombre_evaluacion', 'id')
+                    notas_est = list(notas_estudiante)
+                else:
+                    # Para otros usuarios, mantener lógica original
+                    notas_est = [None] * len(evaluaciones)
+                    # Obtener todas las notas del estudiante para esta asignatura
+                    notas_estudiante = notas.filter(inscripcion__estudiante=estudiante)
+                    
+                    for idx, ev in enumerate(evaluaciones):
+                        # Obtener la nota más reciente para esta evaluación
+                        nota = notas_estudiante.filter(nombre_evaluacion=ev['nombre']).order_by('-fecha_evaluacion').first()
+                        notas_est[idx] = nota
                 notas_por_estudiante[estudiante] = notas_est
         except Asignatura.DoesNotExist:
             evaluaciones = []
             estudiantes_curso_asignatura = []
     elif curso_seleccionado:
         # Mostrar notas de todas las asignaturas del curso cuando no se selecciona una asignatura específica
-        estudiantes_curso = curso_seleccionado.estudiantes.all()
-        asignaturas_curso = curso_seleccionado.asignaturas.all()
-        
-        # Obtener todas las inscripciones del curso para todas las asignaturas
-        inscripciones = Inscripcion.objects.filter(
-            estudiante__in=estudiantes_curso,
-            grupo__asignatura__in=asignaturas_curso
-        ).select_related('estudiante', 'grupo', 'grupo__asignatura')
-        
-        if user_type == 'profesor':
-            try:
-                profesor = Profesor.objects.get(user=request.user)
-                inscripciones = inscripciones.filter(grupo__profesor=profesor)
-            except Profesor.DoesNotExist:
-                pass
+        if user_type == 'alumno':
+            # Para estudiantes, mostrar solo sus notas de todas las asignaturas
+            estudiante = Estudiante.objects.get(user=request.user)
+            estudiantes_curso_asignatura = [estudiante]
+            asignaturas_curso = curso_seleccionado.asignaturas.all()
+            
+            # Obtener inscripciones solo del estudiante actual
+            inscripciones = Inscripcion.objects.filter(
+                estudiante=estudiante,
+                grupo__asignatura__in=asignaturas_curso
+            ).select_related('estudiante', 'grupo', 'grupo__asignatura')
+        else:
+            # Para profesores y administradores, mantener lógica original
+            estudiantes_curso = curso_seleccionado.estudiantes.all()
+            asignaturas_curso = curso_seleccionado.asignaturas.all()
+            
+            # Obtener todas las inscripciones del curso para todas las asignaturas
+            inscripciones = Inscripcion.objects.filter(
+                estudiante__in=estudiantes_curso,
+                grupo__asignatura__in=asignaturas_curso
+            ).select_related('estudiante', 'grupo', 'grupo__asignatura')
+            
+            if user_type == 'profesor':
+                try:
+                    profesor = Profesor.objects.get(user=request.user)
+                    inscripciones = inscripciones.filter(grupo__profesor=profesor)
+                except Profesor.DoesNotExist:
+                    pass
+            
+            # Obtener estudiantes únicos del curso
+            estudiantes_curso_asignatura = estudiantes_curso.order_by('primer_nombre', 'apellido_paterno')
         
         # Obtener todas las notas
         notas = Calificacion.objects.filter(inscripcion__in=inscripciones).select_related(
@@ -1862,9 +1933,6 @@ def ver_notas_curso(request):
             evaluaciones_set.add(eval_name)
         
         evaluaciones = [{'nombre': nombre} for nombre in sorted(evaluaciones_set)]
-        
-        # Obtener estudiantes únicos del curso
-        estudiantes_curso_asignatura = estudiantes_curso.order_by('primer_nombre', 'apellido_paterno')
         
         # Agrupar notas por estudiante y por evaluación
         for estudiante in estudiantes_curso_asignatura:
@@ -1948,6 +2016,59 @@ def ver_notas_curso(request):
     promedio_asignatura = round(suma_total / total_notas_asignatura, 2) if total_notas_asignatura > 0 else None
     context['promedios_estudiantes'] = promedios_estudiantes
     context['promedio_asignatura'] = promedio_asignatura
+
+    # Calcular promedios por asignatura específicamente para estudiantes
+    promedios_por_asignatura = {}
+    promedio_general_estudiante = None
+    
+    if user_type == 'alumno' and curso_seleccionado and estudiantes_tabla:
+        estudiante = estudiantes_tabla[0]  # Solo hay un estudiante (el actual)
+        
+        # Obtener todas las asignaturas del curso del estudiante
+        asignaturas_curso = curso_seleccionado.asignaturas.all()
+        
+        # Calcular promedio por cada asignatura
+        suma_promedios_asignaturas = 0
+        asignaturas_con_notas = 0
+        
+        for asignatura in asignaturas_curso:
+            # Obtener todas las notas del estudiante para esta asignatura
+            inscripciones_asignatura = Inscripcion.objects.filter(
+                estudiante=estudiante,
+                grupo__asignatura=asignatura
+            )
+            notas_asignatura = Calificacion.objects.filter(
+                inscripcion__in=inscripciones_asignatura
+            )
+            
+            if notas_asignatura.exists():
+                puntajes = [nota.puntaje for nota in notas_asignatura]
+                promedio_asignatura_actual = round(sum(puntajes) / len(puntajes), 2)
+                estado_asignatura = 'Aprobado' if promedio_asignatura_actual >= 4.0 else 'Reprobado'
+                
+                promedios_por_asignatura[asignatura.id] = {
+                    'asignatura': asignatura,
+                    'promedio': promedio_asignatura_actual,
+                    'total_notas': len(puntajes),
+                    'estado': estado_asignatura,
+                }
+                
+                suma_promedios_asignaturas += promedio_asignatura_actual
+                asignaturas_con_notas += 1
+            else:
+                promedios_por_asignatura[asignatura.id] = {
+                    'asignatura': asignatura,
+                    'promedio': '--',
+                    'total_notas': 0,
+                    'estado': '--',
+                }
+        
+        # Calcular promedio general del estudiante
+        if asignaturas_con_notas > 0:
+            promedio_general_estudiante = round(suma_promedios_asignaturas / asignaturas_con_notas, 2)
+    
+    context['promedios_por_asignatura'] = promedios_por_asignatura
+    context['promedio_general_estudiante'] = promedio_general_estudiante
 
     return render(request, 'ver_notas_curso.html', context)
 
