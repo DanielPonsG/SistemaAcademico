@@ -1607,25 +1607,55 @@ def ingresar_notas(request):
             profesor = Profesor.objects.get(user=request.user)
             # Cursos donde es profesor jefe
             cursos_como_jefe = Curso.objects.filter(profesor_jefe=profesor, anio=anio_actual)
-            # Cursos donde imparte asignaturas
-            cursos_con_asignaturas = Curso.objects.filter(
+            
+            # Obtener cursos donde imparte asignaturas (usando ambas relaciones)
+            # 1. Como profesor responsable de asignaturas
+            cursos_por_responsabilidad = Curso.objects.filter(
                 asignaturas__profesor_responsable=profesor, anio=anio_actual
             ).distinct()
-            # Combinar ambos tipos de cursos
-            cursos_disponibles = (cursos_como_jefe | cursos_con_asignaturas).distinct().order_by('nivel', 'paralelo')
+            
+            # 2. A través de la relación ManyToMany
+            asignaturas_manytomany = profesor.asignaturas.all()
+            if asignaturas_manytomany.exists():
+                cursos_por_manytomany = Curso.objects.filter(
+                    asignaturas__in=asignaturas_manytomany, anio=anio_actual
+                ).distinct()
+            else:
+                cursos_por_manytomany = Curso.objects.none()
+            
+            # Combinar todos los tipos de cursos usando IDs para evitar error de combinación
+            ids_jefe = list(cursos_como_jefe.values_list('id', flat=True))
+            ids_responsabilidad = list(cursos_por_responsabilidad.values_list('id', flat=True))
+            ids_manytomany = list(cursos_por_manytomany.values_list('id', flat=True))
+            todos_ids = list(set(ids_jefe + ids_responsabilidad + ids_manytomany))
+            
+            cursos_disponibles = Curso.objects.filter(
+                id__in=todos_ids, anio=anio_actual
+            ).distinct().order_by('nivel', 'paralelo')
             if curso_id:
                 try:
                     curso_seleccionado = cursos_disponibles.get(id=curso_id)
                     asignaturas_curso = curso_seleccionado.asignaturas.all()
-                    # Filtrar solo las asignaturas donde el profesor es responsable
-                    asignaturas_profesor = profesor.asignaturas_responsable.all()
-                    asignaturas_profesor_old = Asignatura.objects.filter(profesor_responsable=profesor)
-                    asignaturas_jefe = asignaturas_curso if curso_seleccionado.profesor_jefe == profesor else Asignatura.objects.none()
-                    ids_asignaturas = set()
-                    ids_asignaturas.update(asignaturas_profesor.values_list('id', flat=True))
-                    ids_asignaturas.update(asignaturas_profesor_old.values_list('id', flat=True))
-                    ids_asignaturas.update(asignaturas_jefe.values_list('id', flat=True))
-                    asignaturas_disponibles = asignaturas_curso.filter(id__in=ids_asignaturas).distinct().order_by('nombre')
+                    
+                    # Determinar qué asignaturas puede ver el profesor
+                    if curso_seleccionado.profesor_jefe == profesor:
+                        # Si es profesor jefe del curso, puede ver todas las asignaturas
+                        asignaturas_disponibles = asignaturas_curso.order_by('nombre')
+                    else:
+                        # Si no es profesor jefe, solo ve asignaturas donde es responsable o tiene asignadas
+                        ids_asignaturas = set()
+                        
+                        # Asignaturas donde es responsable (ForeignKey)
+                        asignaturas_responsable = profesor.asignaturas_responsable.all()
+                        ids_asignaturas.update(asignaturas_responsable.values_list('id', flat=True))
+                        
+                        # Asignaturas asignadas (ManyToMany)
+                        asignaturas_manytomany = profesor.asignaturas.all()
+                        ids_asignaturas.update(asignaturas_manytomany.values_list('id', flat=True))
+                        
+                        # Filtrar solo las asignaturas del curso que tiene asignadas
+                        asignaturas_disponibles = asignaturas_curso.filter(id__in=ids_asignaturas).distinct().order_by('nombre')
+                    
                     if not asignaturas_disponibles.exists() and asignaturas_curso.exists():
                         messages.info(request, f'No tienes asignaturas asignadas en el curso {curso_seleccionado}.')
                 except Curso.DoesNotExist:
@@ -1642,34 +1672,81 @@ def ingresar_notas(request):
     if curso_seleccionado and asignatura_id:
         try:
             asignatura_seleccionada = asignaturas_disponibles.get(id=asignatura_id)
-            # Obtener o crear grupo para esta asignatura y curso
-            periodo_actual = PeriodoAcademico.objects.filter(activo=True).first()
-            if not periodo_actual:
-                from datetime import date
-                periodo_actual = PeriodoAcademico.objects.create(
-                    nombre=f"Año Lectivo {anio_actual}",
-                    fecha_inicio=date(anio_actual, 3, 1),
-                    fecha_fin=date(anio_actual, 12, 15),
-                    activo=True
-                )
-            profesor_asignatura = asignatura_seleccionada.profesor_responsable
-            grupo, created = Grupo.objects.get_or_create(
-                asignatura=asignatura_seleccionada,
-                periodo_academico=periodo_actual,
-                profesor=profesor_asignatura,
-                defaults={'capacidad_maxima': 50}
-            )
+            
+            # Obtener estudiantes del curso directamente
             estudiantes_curso = curso_seleccionado.estudiantes.all()
-            for estudiante in estudiantes_curso:
-                Inscripcion.objects.get_or_create(estudiante=estudiante, grupo=grupo)
-            inscripciones_filtradas = Inscripcion.objects.filter(
-                estudiante__in=curso_seleccionado.estudiantes.all(),
-                grupo__asignatura=asignatura_seleccionada
-            ).select_related('estudiante', 'grupo')
-            if user_type == 'profesor':
-                profesor = Profesor.objects.get(user=request.user)
-                inscripciones_filtradas = inscripciones_filtradas.filter(grupo__profesor=profesor)
-            estudiantes_curso_asignatura = inscripciones_filtradas.order_by('estudiante__primer_nombre', 'estudiante__apellido_paterno')
+            
+            if estudiantes_curso.exists():
+                # Obtener o crear período académico
+                periodo_actual = PeriodoAcademico.objects.filter(activo=True).first()
+                if not periodo_actual:
+                    from datetime import date
+                    periodo_actual = PeriodoAcademico.objects.create(
+                        nombre=f"Año Lectivo {anio_actual}",
+                        fecha_inicio=date(anio_actual, 3, 1),
+                        fecha_fin=date(anio_actual, 12, 15),
+                        activo=True
+                    )
+                
+                # Determinar el profesor del grupo
+                if user_type == 'profesor':
+                    profesor_actual = Profesor.objects.get(user=request.user)
+                    # Si el profesor actual puede dar esta asignatura, usar el profesor actual
+                    puede_dar_asignatura = (
+                        asignatura_seleccionada.profesor_responsable == profesor_actual or
+                        profesor_actual.asignaturas.filter(id=asignatura_seleccionada.id).exists() or
+                        curso_seleccionado.profesor_jefe == profesor_actual
+                    )
+                    if puede_dar_asignatura:
+                        profesor_grupo = profesor_actual
+                    else:
+                        profesor_grupo = asignatura_seleccionada.profesor_responsable
+                else:
+                    profesor_grupo = asignatura_seleccionada.profesor_responsable
+                
+                # Obtener o crear grupo para esta asignatura y curso
+                grupo, created = Grupo.objects.get_or_create(
+                    asignatura=asignatura_seleccionada,
+                    periodo_academico=periodo_actual,
+                    profesor=profesor_grupo,
+                    defaults={'capacidad_maxima': 50}
+                )
+                
+                # Crear inscripciones para todos los estudiantes del curso
+                for estudiante in estudiantes_curso:
+                    Inscripcion.objects.get_or_create(estudiante=estudiante, grupo=grupo)
+                
+                # Obtener inscripciones
+                inscripciones_filtradas = Inscripcion.objects.filter(
+                    estudiante__in=estudiantes_curso,
+                    grupo__asignatura=asignatura_seleccionada
+                ).select_related('estudiante', 'grupo')
+                
+                # Para profesores, aplicar filtros adicionales
+                if user_type == 'profesor':
+                    profesor_actual = Profesor.objects.get(user=request.user)
+                    # Un profesor puede ver estudiantes si:
+                    # 1. Es el profesor del grupo
+                    # 2. Es el profesor responsable de la asignatura
+                    # 3. Es el profesor jefe del curso
+                    # 4. Tiene la asignatura asignada (ManyToMany)
+                    inscripciones_filtradas = inscripciones_filtradas.filter(
+                        models.Q(grupo__profesor=profesor_actual) |
+                        models.Q(grupo__asignatura__profesor_responsable=profesor_actual) |
+                        models.Q(estudiante__cursos__profesor_jefe=profesor_actual) |
+                        models.Q(grupo__asignatura__profesores=profesor_actual)
+                    ).distinct()
+                
+                estudiantes_curso_asignatura = inscripciones_filtradas.order_by('estudiante__primer_nombre', 'estudiante__apellido_paterno')
+                
+                # Debug: Verificar que realmente hay estudiantes
+                if not estudiantes_curso_asignatura.exists():
+                    messages.warning(request, f'No se encontraron estudiantes para el curso {curso_seleccionado} en la asignatura {asignatura_seleccionada.nombre}.')
+                else:
+                    messages.success(request, f'Se encontraron {estudiantes_curso_asignatura.count()} estudiantes para ingresar notas.')
+            else:
+                messages.info(request, f'El curso {curso_seleccionado} no tiene estudiantes asignados.')
+                estudiantes_curso_asignatura = []
         except Asignatura.DoesNotExist:
             messages.error(request, 'La asignatura seleccionada no existe.')
 
@@ -1793,23 +1870,56 @@ def ver_notas_curso(request):
     elif user_type == 'profesor':
         try:
             profesor = Profesor.objects.get(user=request.user)
+            # Cursos donde es profesor jefe
             cursos_como_jefe = Curso.objects.filter(profesor_jefe=profesor, anio=anio_actual)
-            cursos_con_asignaturas = Curso.objects.filter(
+            
+            # Obtener cursos donde imparte asignaturas (usando ambas relaciones)
+            # 1. Como profesor responsable de asignaturas
+            cursos_por_responsabilidad = Curso.objects.filter(
                 asignaturas__profesor_responsable=profesor, anio=anio_actual
             ).distinct()
-            cursos_disponibles = (cursos_como_jefe | cursos_con_asignaturas).distinct().order_by('nivel', 'paralelo')
+            
+            # 2. A través de la relación ManyToMany
+            asignaturas_manytomany = profesor.asignaturas.all()
+            if asignaturas_manytomany.exists():
+                cursos_por_manytomany = Curso.objects.filter(
+                    asignaturas__in=asignaturas_manytomany, anio=anio_actual
+                ).distinct()
+            else:
+                cursos_por_manytomany = Curso.objects.none()
+            
+            # Combinar todos los tipos de cursos usando IDs para evitar error de combinación
+            ids_jefe = list(cursos_como_jefe.values_list('id', flat=True))
+            ids_responsabilidad = list(cursos_por_responsabilidad.values_list('id', flat=True))
+            ids_manytomany = list(cursos_por_manytomany.values_list('id', flat=True))
+            todos_ids = list(set(ids_jefe + ids_responsabilidad + ids_manytomany))
+            
+            cursos_disponibles = Curso.objects.filter(
+                id__in=todos_ids, anio=anio_actual
+            ).distinct().order_by('nivel', 'paralelo')
             if curso_id:
                 try:
                     curso_seleccionado = cursos_disponibles.get(id=curso_id)
                     asignaturas_curso = curso_seleccionado.asignaturas.all()
-                    asignaturas_profesor = profesor.asignaturas_responsable.all()
-                    asignaturas_profesor_old = Asignatura.objects.filter(profesor_responsable=profesor)
-                    asignaturas_jefe = asignaturas_curso if curso_seleccionado.profesor_jefe == profesor else Asignatura.objects.none()
-                    ids_asignaturas = set()
-                    ids_asignaturas.update(asignaturas_profesor.values_list('id', flat=True))
-                    ids_asignaturas.update(asignaturas_profesor_old.values_list('id', flat=True))
-                    ids_asignaturas.update(asignaturas_jefe.values_list('id', flat=True))
-                    asignaturas_disponibles = asignaturas_curso.filter(id__in=ids_asignaturas).distinct().order_by('nombre')
+                    
+                    # Determinar qué asignaturas puede ver el profesor
+                    if curso_seleccionado.profesor_jefe == profesor:
+                        # Si es profesor jefe del curso, puede ver todas las asignaturas
+                        asignaturas_disponibles = asignaturas_curso.order_by('nombre')
+                    else:
+                        # Si no es profesor jefe, solo ve asignaturas donde es responsable o tiene asignadas
+                        ids_asignaturas = set()
+                        
+                        # Asignaturas donde es responsable (ForeignKey)
+                        asignaturas_responsable = profesor.asignaturas_responsable.all()
+                        ids_asignaturas.update(asignaturas_responsable.values_list('id', flat=True))
+                        
+                        # Asignaturas asignadas (ManyToMany)
+                        asignaturas_manytomany = profesor.asignaturas.all()
+                        ids_asignaturas.update(asignaturas_manytomany.values_list('id', flat=True))
+                        
+                        # Filtrar solo las asignaturas del curso que tiene asignadas
+                        asignaturas_disponibles = asignaturas_curso.filter(id__in=ids_asignaturas).distinct().order_by('nombre')
                 except Curso.DoesNotExist:
                     pass
         except Profesor.DoesNotExist:
@@ -1838,9 +1948,21 @@ def ver_notas_curso(request):
                     estudiante__in=estudiantes_curso,
                     grupo__asignatura=asignatura_seleccionada
                 ).select_related('estudiante', 'grupo')
+                
+                # Para profesores, aplicar filtros más amplios
                 if user_type == 'profesor':
-                    profesor = Profesor.objects.get(user=request.user)
-                    inscripciones = inscripciones.filter(grupo__profesor=profesor)
+                    profesor_actual = Profesor.objects.get(user=request.user)
+                    # Un profesor puede ver estudiantes si:
+                    # 1. Es el profesor del grupo
+                    # 2. Es el profesor responsable de la asignatura
+                    # 3. Es el profesor jefe del curso
+                    # 4. Tiene la asignatura asignada (ManyToMany)
+                    inscripciones = inscripciones.filter(
+                        models.Q(grupo__profesor=profesor_actual) |
+                        models.Q(grupo__asignatura__profesor_responsable=profesor_actual) |
+                        models.Q(estudiante__cursos__profesor_jefe=profesor_actual) |
+                        models.Q(grupo__asignatura__profesores=profesor_actual)
+                    ).distinct()
                 
                 # Obtener estudiantes únicos (evitar duplicados)
                 estudiantes_ids = set(inscripciones.values_list('estudiante_id', flat=True))
@@ -2101,18 +2223,34 @@ def registrar_asistencia_alumno(request):
         elif user_type == 'profesor':
             try:
                 profesor_actual = request.user.profesor
-                # Profesor puede ver cursos donde es jefe o donde tiene asignaturas asignadas
-                cursos_jefe = profesor_actual.cursos_jefatura.filter(anio=timezone.now().year)
-                cursos_asignaturas = Curso.objects.filter(
+                # USAR LA MISMA LÓGICA QUE EN NOTAS - Filtrado mejorado para profesores
+                # 1. Cursos donde es jefe
+                cursos_como_jefe = Curso.objects.filter(
+                    profesor_jefe=profesor_actual,
+                    anio=timezone.now().year
+                )
+                
+                # 2. Cursos donde tiene asignaturas (como responsable)
+                cursos_con_asignaturas_responsable = Curso.objects.filter(
                     asignaturas__profesor_responsable=profesor_actual,
                     anio=timezone.now().year
                 ).distinct()
-                # También incluir cursos donde el profesor tiene asignaturas con profesor_responsable (campo legacy)
-                cursos_legacy = Curso.objects.filter(
-                    asignaturas__profesor_responsable=profesor_actual,
+                
+                # 3. Cursos donde tiene asignaturas (ManyToMany)
+                cursos_con_asignaturas_asignadas = Curso.objects.filter(
+                    asignaturas__profesores=profesor_actual,
                     anio=timezone.now().year
                 ).distinct()
-                cursos_disponibles = (cursos_jefe | cursos_asignaturas | cursos_legacy).distinct().order_by('nivel', 'paralelo')
+                
+                # Combinar usando IDs para evitar el error de QuerySet
+                cursos_ids = list(set(
+                    list(cursos_como_jefe.values_list('id', flat=True)) +
+                    list(cursos_con_asignaturas_responsable.values_list('id', flat=True)) +
+                    list(cursos_con_asignaturas_asignadas.values_list('id', flat=True))
+                ))
+                
+                cursos_disponibles = Curso.objects.filter(id__in=cursos_ids).order_by('nivel', 'paralelo')
+                
             except:
                 messages.error(request, 'Error al obtener información del profesor.')
                 return render(request, 'registrar_asistencia_alumno.html', {'error': True})
@@ -2334,17 +2472,34 @@ def ver_asistencia_alumno(request):
         elif user_type == 'profesor':
             try:
                 profesor_actual = request.user.profesor
-                # Profesor puede ver cursos donde es jefe o donde tiene asignaturas
-                cursos_jefe = profesor_actual.cursos_jefatura.filter(anio=timezone.now().year)
-                cursos_asignaturas = Curso.objects.filter(
+                # USAR LA MISMA LÓGICA QUE EN NOTAS - Filtrado mejorado para profesores
+                # 1. Cursos donde es jefe
+                cursos_como_jefe = Curso.objects.filter(
+                    profesor_jefe=profesor_actual,
+                    anio=timezone.now().year
+                )
+                
+                # 2. Cursos donde tiene asignaturas (como responsable)
+                cursos_con_asignaturas_responsable = Curso.objects.filter(
                     asignaturas__profesor_responsable=profesor_actual,
                     anio=timezone.now().year
                 ).distinct()
-                cursos_legacy = Curso.objects.filter(
-                    asignaturas__profesor_responsable=profesor_actual,
+                
+                # 3. Cursos donde tiene asignaturas (ManyToMany)
+                cursos_con_asignaturas_asignadas = Curso.objects.filter(
+                    asignaturas__profesores=profesor_actual,
                     anio=timezone.now().year
                 ).distinct()
-                cursos_disponibles = (cursos_jefe | cursos_asignaturas | cursos_legacy).distinct().order_by('nivel', 'paralelo')
+                
+                # Combinar usando IDs para evitar el error de QuerySet
+                cursos_ids = list(set(
+                    list(cursos_como_jefe.values_list('id', flat=True)) +
+                    list(cursos_con_asignaturas_responsable.values_list('id', flat=True)) +
+                    list(cursos_con_asignaturas_asignadas.values_list('id', flat=True))
+                ))
+                
+                cursos_disponibles = Curso.objects.filter(id__in=cursos_ids).order_by('nivel', 'paralelo')
+                
             except:
                 messages.error(request, 'Error al obtener información del profesor.')
                 return render(request, 'ver_asistencia_alumno.html', {'error': True})
@@ -3487,11 +3642,18 @@ def editar_asistencia_alumno(request, asistencia_id):
         elif user_type == 'profesor':
             try:
                 profesor_actual = request.user.profesor
-                # Profesor solo puede editar si es jefe del curso o responsable de la asignatura
-                puede_editar = (
-                    asistencia.curso.profesor_jefe == profesor_actual or
-                    asistencia.asignatura.profesor_responsable == profesor_actual
-                )
+                # USAR LA MISMA LÓGICA QUE EN NOTAS - Verificar si tiene acceso al curso
+                # 1. Es jefe del curso
+                es_jefe_curso = asistencia.curso.profesor_jefe == profesor_actual
+                
+                # 2. Es responsable de la asignatura
+                es_responsable_asignatura = asistencia.asignatura.profesor_responsable == profesor_actual
+                
+                # 3. Está asignado a la asignatura (ManyToMany)
+                esta_asignado_asignatura = asistencia.asignatura.profesores.filter(id=profesor_actual.id).exists()
+                
+                puede_editar = es_jefe_curso or es_responsable_asignatura or esta_asignado_asignatura
+                
                 if not puede_editar:
                     messages.error(request, 'No tienes permisos para editar este registro de asistencia.')
                     return redirect('ver_asistencia_alumno')
