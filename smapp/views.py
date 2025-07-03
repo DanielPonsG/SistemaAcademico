@@ -1404,22 +1404,18 @@ def listar_asignaturas(request):
     filtro_nombre = request.GET.get('filtro_nombre', '')
     
     # Base de asignaturas según tipo de usuario
-    if user_type == 'estudiante':
+    if user_type == 'estudiante' or user_type == 'alumno':
         # Estudiantes solo ven las asignaturas de su curso actual
         try:
-            estudiante = request.user.estudiante
+            estudiante = Estudiante.objects.get(user=request.user)
             anio_actual = timezone.now().year
             
-            # Obtener curso actual del estudiante (el más reciente del año actual)
-            curso_actual = estudiante.cursos.filter(anio=anio_actual).order_by('-nivel').first()
-            
-            # Si no hay curso del año actual, tomar el más reciente
-            if not curso_actual:
-                curso_actual = estudiante.cursos.order_by('-anio', '-nivel').first()
+            # Obtener curso actual del estudiante usando el método del modelo
+            curso_actual = estudiante.get_curso_actual()
             
             if curso_actual:
                 # Solo las asignaturas asignadas al curso actual del estudiante
-                asignaturas = curso_actual.asignaturas.select_related('profesor_responsable').all()
+                asignaturas = curso_actual.asignaturas.select_related('profesor_responsable').order_by('nombre')
                 cursos_alumno_ids = [curso_actual.id]
                 
                 # Información adicional para el estudiante
@@ -1428,7 +1424,7 @@ def listar_asignaturas(request):
                     'curso_actual': curso_actual,
                     'total_asignaturas_curso': asignaturas.count(),
                     'asignaturas_con_profesor': asignaturas.filter(profesor_responsable__isnull=False).count(),
-                    'asignaturas_sin_profesor': asignaturas.filter(profesor_responsable__isnull=True).count(),
+                    'asignaturas_sin_profesor_count': asignaturas.filter(profesor_responsable__isnull=True).count(),
                 }
             else:
                 asignaturas = Asignatura.objects.none()
@@ -1436,6 +1432,12 @@ def listar_asignaturas(request):
                 context_estudiante = {
                     'error_curso': 'No tienes un curso asignado actualmente.'
                 }
+        except Estudiante.DoesNotExist:
+            asignaturas = Asignatura.objects.none()
+            cursos_alumno_ids = []
+            context_estudiante = {
+                'error_estudiante': 'No se encontró tu información de estudiante. Contacta al administrador.'
+            }
         except Exception as e:
             asignaturas = Asignatura.objects.none()
             cursos_alumno_ids = []
@@ -1558,7 +1560,7 @@ def listar_asignaturas(request):
     }
     
     # Agregar contexto específico para estudiantes
-    if user_type == 'estudiante' and 'context_estudiante' in locals():
+    if (user_type == 'estudiante' or user_type == 'alumno') and 'context_estudiante' in locals():
         context.update(context_estudiante)
     
     return render(request, 'listar_asignaturas.html', context)

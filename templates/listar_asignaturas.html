@@ -63,7 +63,7 @@
     <div class="row mb-4">
       {% if tipo_usuario == 'alumno' or tipo_usuario == 'estudiante' %}
         <!-- Estadísticas para estudiantes -->
-        <div class="col-md-4">
+        <div class="col-md-3">
           <div class="card border shadow-sm bg-white">
             <div class="card-body text-center">
               <i class="fas fa-book fa-2x text-primary mb-2"></i>
@@ -72,7 +72,7 @@
             </div>
           </div>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-3">
           <div class="card border shadow-sm bg-white">
             <div class="card-body text-center">
               <i class="fas fa-user-check fa-2x text-success mb-2"></i>
@@ -81,7 +81,22 @@
             </div>
           </div>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-3">
+          <div class="card border shadow-sm bg-white">
+            <div class="card-body text-center">
+              {% if asignaturas_sin_profesor_count %}
+                <i class="fas fa-exclamation-triangle fa-2x text-warning mb-2"></i>
+                <h3 class="mb-0 text-dark">{{ asignaturas_sin_profesor_count|default:0 }}</h3>
+                <p class="mb-0 text-muted">Sin Profesor</p>
+              {% else %}
+                <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
+                <h3 class="mb-0 text-dark">0</h3>
+                <p class="mb-0 text-muted">Sin Profesor</p>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
           <div class="card border shadow-sm bg-white">
             <div class="card-body text-center">
               {% if curso_actual %}
@@ -136,6 +151,46 @@
         </div>
       {% endif %}
     </div>
+
+    <!-- Información del curso para estudiantes -->
+    {% if tipo_usuario == 'alumno' or tipo_usuario == 'estudiante' %}
+      {% if curso_actual %}
+      <div class="card mb-4 bg-light border-primary">
+        <div class="card-body">
+          <div class="row align-items-center">
+            <div class="col-md-8">
+              <h5 class="card-title mb-1">
+                <i class="fas fa-graduation-cap me-2 text-primary"></i>
+                Mi Curso: {{ curso_actual.get_nivel_display }}{{ curso_actual.paralelo }}
+              </h5>
+              <p class="text-muted mb-2">
+                <strong>Año:</strong> {{ curso_actual.anio }} | 
+                <strong>Profesor Jefe:</strong> {{ curso_actual.profesor_jefe.get_nombre_completo|default:"No asignado" }}
+              </p>
+              <p class="mb-0">
+                <i class="fas fa-info-circle text-info me-1"></i>
+                A continuación se muestran todas las asignaturas de tu curso académico
+              </p>
+            </div>
+            <div class="col-md-4 text-end">
+              <div class="badge bg-primary fs-6 px-3 py-2">
+                <i class="fas fa-book me-1"></i>
+                {{ total_asignaturas_curso }} Asignatura{{ total_asignaturas_curso|pluralize }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% elif error_curso %}
+      <div class="card mb-4 bg-warning bg-opacity-10 border-warning">
+        <div class="card-body text-center">
+          <i class="fas fa-exclamation-triangle fa-2x text-warning mb-3"></i>
+          <h5 class="text-warning mb-2">Información de Curso</h5>
+          <p class="mb-0">{{ error_curso }}</p>
+        </div>
+      </div>
+      {% endif %}
+    {% endif %}
 
     <!-- Filtros -->
     {% if puede_editar %}
@@ -204,10 +259,11 @@
               <thead class="table-light">
                 <tr>
                   {% if tipo_usuario == 'alumno' or tipo_usuario == 'estudiante' %}
-                    <!-- Vista simplificada para estudiantes -->
+                    <!-- Vista mejorada para estudiantes -->
                     <th><i class="fas fa-book me-1"></i>Asignatura</th>
-                    <th><i class="fas fa-user-tie me-1"></i>Profesor</th>
+                    <th><i class="fas fa-user-tie me-1"></i>Profesor Responsable</th>
                     <th><i class="fas fa-info-circle me-1"></i>Descripción</th>
+                    <th><i class="fas fa-clipboard-check me-1"></i>Estado</th>
                   {% else %}
                     <!-- Vista completa para administradores -->
                     <th>Código</th>
@@ -225,37 +281,90 @@
                 {% for asignatura in asignaturas %}
                 <tr>
                   {% if tipo_usuario == 'alumno' or tipo_usuario == 'estudiante' %}
-                    <!-- Vista simplificada para estudiantes -->
+                    <!-- Vista mejorada para estudiantes -->
                     <td class="fw-bold text-dark">
-                      <i class="fas fa-book text-primary me-2"></i>
-                      {{ asignatura.nombre }}
-                      {% if asignatura.codigo_asignatura %}
-                        <br><small class="text-muted">{{ asignatura.codigo_asignatura }}</small>
-                      {% endif %}
+                      <div class="d-flex align-items-center">
+                        <i class="fas fa-book text-primary me-3" style="font-size: 1.2em;"></i>
+                        <div>
+                          <h6 class="mb-1 fw-bold">{{ asignatura.nombre }}</h6>
+                          {% if asignatura.codigo_asignatura %}
+                            <small class="text-muted">
+                              <i class="fas fa-tag me-1"></i>
+                              Código: {{ asignatura.codigo_asignatura }}
+                            </small>
+                          {% else %}
+                            <small class="text-muted">Sin código asignado</small>
+                          {% endif %}
+                        </div>
+                      </div>
                     </td>
                     <td>
                       {% if asignatura.profesor_responsable %}
                         <div class="d-flex align-items-center">
-                          <i class="fas fa-user-circle text-success me-2"></i>
+                          <div class="bg-success bg-opacity-10 rounded-circle p-2 me-3">
+                            <i class="fas fa-user text-success"></i>
+                          </div>
                           <div>
-                            <span class="fw-medium">{{ asignatura.profesor_responsable.primer_nombre }} {{ asignatura.profesor_responsable.apellido_paterno }}</span>
+                            <span class="fw-medium d-block">
+                              {{ asignatura.profesor_responsable.primer_nombre }} {{ asignatura.profesor_responsable.apellido_paterno }}
+                            </span>
                             {% if asignatura.profesor_responsable.apellido_materno %}
-                              <br><small class="text-muted">{{ asignatura.profesor_responsable.apellido_materno }}</small>
+                              <small class="text-muted">{{ asignatura.profesor_responsable.apellido_materno }}</small>
+                            {% endif %}
+                            {% if asignatura.profesor_responsable.codigo_profesor %}
+                              <br><small class="text-muted">
+                                <i class="fas fa-id-card me-1"></i>
+                                {{ asignatura.profesor_responsable.codigo_profesor }}
+                              </small>
                             {% endif %}
                           </div>
                         </div>
                       {% else %}
-                        <span class="badge bg-warning text-dark">
-                          <i class="fas fa-exclamation-triangle me-1"></i>Sin profesor asignado
-                        </span>
+                        <div class="d-flex align-items-center">
+                          <div class="bg-warning bg-opacity-10 rounded-circle p-2 me-3">
+                            <i class="fas fa-exclamation-triangle text-warning"></i>
+                          </div>
+                          <div>
+                            <span class="badge bg-warning text-dark">
+                              Sin profesor asignado
+                            </span>
+                            <br><small class="text-muted">Consulta con coordinación académica</small>
+                          </div>
+                        </div>
                       {% endif %}
                     </td>
                     <td>
                       {% if asignatura.descripcion %}
-                        <p class="mb-0">{{ asignatura.descripcion|truncatechars:80 }}</p>
+                        <p class="mb-1">{{ asignatura.descripcion|truncatechars:100 }}</p>
+                        {% if asignatura.descripcion|length > 100 %}
+                          <small class="text-primary">
+                            <i class="fas fa-eye me-1"></i>
+                            Mostrar más...
+                          </small>
+                        {% endif %}
                       {% else %}
-                        <em class="text-muted">Sin descripción disponible</em>
+                        <em class="text-muted">
+                          <i class="fas fa-info-circle me-1"></i>
+                          Descripción no disponible
+                        </em>
                       {% endif %}
+                    </td>
+                    <td>
+                      <div class="text-center">
+                        {% if asignatura.profesor_responsable %}
+                          <span class="badge bg-success fs-6 px-3 py-2">
+                            <i class="fas fa-check-circle me-1"></i>
+                            Activa
+                          </span>
+                          <br><small class="text-muted mt-1 d-block">Lista para clases</small>
+                        {% else %}
+                          <span class="badge bg-warning text-dark fs-6 px-3 py-2">
+                            <i class="fas fa-clock me-1"></i>
+                            Pendiente
+                          </span>
+                          <br><small class="text-muted mt-1 d-block">Sin profesor</small>
+                        {% endif %}
+                      </div>
                     </td>
                   {% else %}
                     <!-- Vista completa para administradores -->
@@ -326,16 +435,51 @@
         {% else %}
           <div class="text-center py-5">
             {% if tipo_usuario == 'alumno' or tipo_usuario == 'estudiante' %}
-              <!-- Mensaje para estudiantes -->
-              <i class="fas fa-book-open fa-3x text-muted mb-3"></i>
-              <h5 class="text-muted mb-2">No tienes asignaturas asignadas</h5>
-              {% if error_curso %}
-                <p class="text-muted mb-3">{{ error_curso }}</p>
-              {% elif not curso_actual %}
-                <p class="text-muted mb-3">No estás asignado a ningún curso actualmente. Contacta a tu coordinador académico.</p>
-              {% else %}
-                <p class="text-muted mb-3">Tu curso {{ curso_actual }} aún no tiene asignaturas configuradas. Consulta con tu coordinador académico.</p>
-              {% endif %}
+              <!-- Mensaje mejorado para estudiantes -->
+              <div class="mb-4">
+                <i class="fas fa-book-open fa-4x text-primary mb-3 opacity-50"></i>
+                <h4 class="text-primary mb-3">No hay asignaturas disponibles</h4>
+                
+                {% if error_curso %}
+                  <div class="alert alert-warning d-inline-block">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    {{ error_curso }}
+                  </div>
+                {% elif error_estudiante %}
+                  <div class="alert alert-danger d-inline-block">
+                    <i class="fas fa-times-circle me-2"></i>
+                    {{ error_estudiante }}
+                  </div>
+                {% elif not curso_actual %}
+                  <div class="alert alert-info d-inline-block">
+                    <i class="fas fa-info-circle me-2"></i>
+                    No estás asignado a ningún curso actualmente.
+                  </div>
+                  <p class="text-muted mt-3">
+                    Por favor, contacta a tu coordinador académico para que te asigne a un curso.
+                  </p>
+                {% else %}
+                  <div class="alert alert-warning d-inline-block">
+                    <i class="fas fa-clock me-2"></i>
+                    Tu curso {{ curso_actual }} aún no tiene asignaturas configuradas.
+                  </div>
+                  <p class="text-muted mt-3">
+                    Las asignaturas serán asignadas pronto. Consulta con tu coordinador académico si tienes dudas.
+                  </p>
+                {% endif %}
+                
+                <div class="mt-4">
+                  <p class="text-muted mb-2">
+                    <i class="fas fa-lightbulb me-1 text-warning"></i>
+                    <strong>¿Qué puedes hacer mientras tanto?</strong>
+                  </p>
+                  <ul class="list-unstyled text-muted">
+                    <li><i class="fas fa-check text-success me-2"></i>Revisar tu horario de clases</li>
+                    <li><i class="fas fa-check text-success me-2"></i>Consultar tus notas anteriores</li>
+                    <li><i class="fas fa-check text-success me-2"></i>Contactar a coordinación académica</li>
+                  </ul>
+                </div>
+              </div>
             {% else %}
               <!-- Mensaje para administradores -->
               <i class="fas fa-book fa-3x text-muted mb-3"></i>
