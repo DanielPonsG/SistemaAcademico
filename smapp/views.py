@@ -829,18 +829,166 @@ def inicio(request):
                 profesor = request.user.profesor
                 anio_actual = timezone.now().year
                 
-                # Cursos asignados
+                # Cursos donde es jefe
                 cursos_jefe = profesor.cursos_jefatura.filter(anio=anio_actual)
-                cursos_asignaturas = profesor.asignaturas_responsable.all()
+                
+                # Cursos donde tiene asignaturas
+                cursos_con_asignaturas = profesor.get_cursos_asignados()
+                
+                # Asignaturas que enseña
+                asignaturas_profesor = profesor.asignaturas.all()
+                
+                # Estadísticas de anotaciones creadas
+                from .models import Anotacion
+                anotaciones_creadas = Anotacion.objects.filter(profesor_autor=profesor)
+                anotaciones_recientes = anotaciones_creadas.order_by('-fecha_creacion')[:5]
+                
+                # Estadísticas por tipo de anotación
+                stats_anotaciones = {
+                    'total': anotaciones_creadas.count(),
+                    'positivas': anotaciones_creadas.filter(tipo='positiva').count(),
+                    'negativas': anotaciones_creadas.filter(tipo='negativa').count(),
+                    'neutras': anotaciones_creadas.filter(tipo='neutra').count(),
+                }
+                
+                # Próximos horarios del profesor
+                from .models import HorarioCurso
+                from datetime import datetime, timedelta
+                hoy = timezone.now().date()
+                proximos_horarios_profesor = []
+                
+                # Mapeo de días
+                dias_weekday_a_codigo = {
+                    0: 'LU', 1: 'MA', 2: 'MI', 3: 'JU', 4: 'VI', 5: 'SA', 6: 'DO'
+                }
+                
+                # Próximos 3 días de horarios
+                for i in range(3):
+                    fecha = hoy + timedelta(days=i)
+                    dia_semana = fecha.weekday()
+                    codigo_dia = dias_weekday_a_codigo[dia_semana]
+                    
+                    horarios_dia = HorarioCurso.objects.filter(
+                        curso__in=cursos_con_asignaturas,
+                        dia=codigo_dia
+                    ).order_by('hora_inicio')
+                    
+                    if horarios_dia.exists():
+                        proximos_horarios_profesor.append({
+                            'fecha': fecha,
+                            'dia_nombre': ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'][dia_semana],
+                            'horarios': horarios_dia
+                        })
+                
+                # Total de estudiantes bajo su responsabilidad
+                total_estudiantes = 0
+                for curso in cursos_con_asignaturas:
+                    total_estudiantes += curso.estudiantes.count()
+                
+                # Asistencia reciente de profesores
+                from .models import AsistenciaProfesor
+                asistencias_profesor = AsistenciaProfesor.objects.filter(
+                    profesor=profesor
+                ).order_by('-fecha')[:10]
                 
                 context.update({
                     'profesor': profesor,
                     'cursos_jefe': cursos_jefe,
-                    'cursos_asignaturas': cursos_asignaturas,
+                    'cursos_con_asignaturas': cursos_con_asignaturas,
+                    'asignaturas_profesor': asignaturas_profesor,
+                    'anotaciones_creadas': anotaciones_creadas,
+                    'anotaciones_recientes': anotaciones_recientes,
+                    'stats_anotaciones': stats_anotaciones,
+                    'proximos_horarios_profesor': proximos_horarios_profesor,
+                    'total_estudiantes': total_estudiantes,
+                    'asistencias_profesor': asistencias_profesor,
+                })
+                
+            except AttributeError:
+                context['error_profesor'] = "No se encontró información del profesor asociada a este usuario."
+            except Exception as e:
+                context['error_profesor'] = f"Error al cargar datos del profesor: {str(e)}"
+                import traceback
+                print(f"Error en vista inicio (profesor): {traceback.format_exc()}")
+                
+        elif user_type in ['administrador', 'director']:
+            try:
+                # Estadísticas generales del sistema
+                from .models import Estudiante, Profesor, Curso, Asignatura, EventoCalendario, Anotacion, AsistenciaAlumno
+                anio_actual = timezone.now().year
+                
+                # Contadores principales
+                total_estudiantes_sistema = Estudiante.objects.count()
+                total_profesores_sistema = Profesor.objects.count()
+                total_cursos_activos = Curso.objects.filter(anio=anio_actual).count()
+                total_asignaturas_sistema = Asignatura.objects.count()
+                
+                # Estadísticas de cursos por nivel
+                cursos_por_nivel = {}
+                cursos_activos = Curso.objects.filter(anio=anio_actual)
+                for curso in cursos_activos:
+                    nivel = curso.get_nivel_display()
+                    if nivel not in cursos_por_nivel:
+                        cursos_por_nivel[nivel] = {'cursos': 0, 'estudiantes': 0}
+                    cursos_por_nivel[nivel]['cursos'] += 1
+                    cursos_por_nivel[nivel]['estudiantes'] += curso.estudiantes.count()
+                
+                # Eventos próximos
+                from datetime import datetime, timedelta
+                hoy = timezone.now().date()
+                proximos_eventos = EventoCalendario.objects.filter(
+                    fecha__gte=hoy,
+                    fecha__lte=hoy + timedelta(days=7)
+                ).order_by('fecha')[:5]
+                
+                # Anotaciones recientes del sistema
+                anotaciones_recientes_sistema = Anotacion.objects.all().order_by('-fecha_creacion')[:10]
+                
+                # Estadísticas de anotaciones
+                stats_anotaciones_sistema = {
+                    'total': Anotacion.objects.count(),
+                    'positivas': Anotacion.objects.filter(tipo='positiva').count(),
+                    'negativas': Anotacion.objects.filter(tipo='negativa').count(),
+                    'neutras': Anotacion.objects.filter(tipo='neutra').count(),
+                }
+                
+                # Estadísticas de asistencia general
+                asistencias_hoy = AsistenciaAlumno.objects.filter(fecha=hoy)
+                total_asistencias_hoy = asistencias_hoy.count()
+                presentes_hoy = asistencias_hoy.filter(presente=True).count()
+                porcentaje_asistencia_hoy = (presentes_hoy / total_asistencias_hoy * 100) if total_asistencias_hoy > 0 else 0
+                
+                # Cursos recientes (últimos creados)
+                cursos_recientes = Curso.objects.filter(anio=anio_actual).order_by('-id')[:5]
+                
+                # Profesores recientes (últimos agregados)
+                profesores_recientes = Profesor.objects.order_by('-id')[:5]
+                
+                # Estudiantes recientes (últimos agregados)
+                estudiantes_recientes = Estudiante.objects.order_by('-id')[:5]
+                
+                context.update({
+                    'total_estudiantes_sistema': total_estudiantes_sistema,
+                    'total_profesores_sistema': total_profesores_sistema,
+                    'total_cursos_activos': total_cursos_activos,
+                    'total_asignaturas_sistema': total_asignaturas_sistema,
+                    'cursos_por_nivel': cursos_por_nivel,
+                    'proximos_eventos': proximos_eventos,
+                    'anotaciones_recientes_sistema': anotaciones_recientes_sistema,
+                    'stats_anotaciones_sistema': stats_anotaciones_sistema,
+                    'total_asistencias_hoy': total_asistencias_hoy,
+                    'presentes_hoy': presentes_hoy,
+                    'porcentaje_asistencia_hoy': round(porcentaje_asistencia_hoy, 1),
+                    'cursos_recientes': cursos_recientes,
+                    'profesores_recientes': profesores_recientes,
+                    'estudiantes_recientes': estudiantes_recientes,
+                    'anio_actual': anio_actual,
                 })
                 
             except Exception as e:
-                context['error_profesor'] = f"Error al cargar datos del profesor: {str(e)}"
+                context['error_admin'] = f"Error al cargar datos del sistema: {str(e)}"
+                import traceback
+                print(f"Error en vista inicio (admin/director): {traceback.format_exc()}")
     
     return render(request, 'inicio.html', context)
 
@@ -864,10 +1012,12 @@ def login_view(request):
                         return redirect('inicio')  # Redirigir al panel de estudiante
                     elif user_type == 'profesor':
                         return redirect('inicio')  # Redirigir al panel de profesor
+                    elif user_type in ['administrador', 'director']:
+                        return redirect('inicio')  # Redirigir al panel personalizado
                     else:
-                        return redirect('index_master')  # Administradores y directores
+                        return redirect('index_master')  # Otros usuarios
                 else:
-                    return redirect('index_master')  # Por defecto
+                    return redirect('inicio')  # Por defecto
             else:
                 mensaje = "Credenciales inválidas"
         else:

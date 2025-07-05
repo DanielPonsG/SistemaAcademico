@@ -172,148 +172,176 @@
     </div>
 
     {% else %}
-    <!-- Header para otros usuarios -->
-    <div class="page-title">
-      <div class="title_left">
-        <h3>Calendario de Eventos</h3>
-      </div>
-      <div class="title_right">
-        {% if puede_crear_eventos %}
-        <div class="pull-right">
-          <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modalAgregarEvento">
-            <i class="fa fa-plus"></i> Nuevo Evento
-          </button>
-        </div>
-        {% endif %}
-      </div>
-    </div>
-
-    <div class="clearfix"></div>
-
-    <!-- Estadísticas para otros usuarios -->
-    <div class="row">
-      <div class="col-md-3 col-sm-6">
-        <div class="x_panel tile fixed_height_320">
-          <div class="x_title">
-            <h2>Eventos Totales</h2>
-            <div class="clearfix"></div>
-          </div>
-          <div class="x_content">
-            <h4>{{ eventos.count }}</h4>
-            <span class="small">eventos registrados</span>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-3 col-sm-6">
-        <div class="x_panel tile fixed_height_320">
-          <div class="x_title">
-            <h2>Eventos Hoy</h2>
-            <div class="clearfix"></div>
-          </div>
-          <div class="x_content">
-            <h4>{{ eventos_count.hoy|default:0 }}</h4>
-            <span class="small">eventos para hoy</span>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-3 col-sm-6">
-        <div class="x_panel tile fixed_height_320">
-          <div class="x_title">
-            <h2>Esta Semana</h2>
-            <div class="clearfix"></div>
-          </div>
-          <div class="x_content">
-            <h4>{{ eventos_count.semana|default:0 }}</h4>
-            <span class="small">eventos esta semana</span>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-3 col-sm-6">
-        <div class="x_panel tile fixed_height_320">
-          <div class="x_title">
-            <h2>Usuario</h2>
-            <div class="clearfix"></div>
-          </div>
-          <div class="x_content">
-            <h6>{{ request.user.first_name|default:request.user.username }}</h6>
-            <span class="small">{{ user_type|capfirst }}</span>
+    <!-- ################################################## -->
+    <!-- ##### VISTA OPTIMIZADA PARA ADMINISTRADORES Y DIRECTORES ##### -->
+    <!-- ################################################## -->
+    
+    <!-- Header personalizado para administradores -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="bg-white p-4 rounded shadow-sm border">
+          <div class="row align-items-center">
+            <div class="col-md-8">
+              <div class="d-flex align-items-center">
+                <div class="me-3">
+                  <i class="fas fa-calendar-alt fa-3x text-primary"></i>
+                </div>
+                <div>
+                  <h1 class="h3 mb-1 text-dark">Gestión de Calendario</h1>
+                  <p class="mb-0 text-muted">
+                    <i class="fas fa-user-shield me-2"></i>
+                    Panel administrativo para {{ user.first_name|default:user.username }}
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4 text-end">
+              {% if puede_crear_eventos %}
+              <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#modalAgregarEvento">
+                <i class="fas fa-plus me-2"></i>Nuevo Evento
+              </button>
+              {% endif %}
+            </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Calendario y eventos para otros usuarios -->
-    <div class="row">
-      <div class="col-md-8">
-        <div class="x_panel">
-          <div class="x_title">
-            <div class="clearfix"></div>
+    <!-- Estadísticas del calendario para administradores -->
+    <div class="row mb-4">
+      <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card admin-stats-card border-0 shadow-sm h-100">
+          <div class="card-body text-center">
+            <div class="mb-3">
+              <i class="fas fa-calendar-check fa-3x text-primary"></i>
+            </div>
+            <h3 class="text-primary mb-1">{{ eventos.count }}</h3>
+            <p class="mb-0 small text-muted">Eventos Totales</p>
           </div>
-          <div class="x_content">
+        </div>
+      </div>
+      <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card admin-stats-card border-0 shadow-sm h-100">
+          <div class="card-body text-center">
+            <div class="mb-3">
+              <i class="fas fa-calendar-day fa-3x text-success"></i>
+            </div>
+            <h3 class="text-success mb-1">{{ eventos_count.hoy|default:0 }}</h3>
+            <p class="mb-0 small text-muted">Eventos Hoy</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card admin-stats-card border-0 shadow-sm h-100">
+          <div class="card-body text-center">
+            <div class="mb-3">
+              <i class="fas fa-calendar-week fa-3x text-warning"></i>
+            </div>
+            <h3 class="text-warning mb-1">{{ eventos_count.semana|default:0 }}</h3>
+            <p class="mb-0 small text-muted">Esta Semana</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card admin-stats-card border-0 shadow-sm h-100">
+          <div class="card-body text-center">
+            <div class="mb-3">
+              <i class="fas fa-user-shield fa-3x text-info"></i>
+            </div>
+            <h6 class="text-info mb-1">{{ user.perfil.tipo_usuario|capfirst }}</h6>
+            <p class="mb-0 small text-muted">Rol Actual</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Calendario y eventos para administradores -->
+    <div class="row">
+      <div class="col-lg-8 mb-4">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-header bg-light border-0">
+            <h5 class="mb-0 text-dark">
+              <i class="fas fa-calendar text-primary me-2"></i>
+              Calendario Administrativo
+            </h5>
+          </div>
+          <div class="card-body">
             <div id="calendar" style="height: 600px;"></div>
           </div>
         </div>
       </div>
       
-      <div class="col-md-4">
-        <div class="x_panel">
-          <div class="x_title">
-            <h2><i class="fa fa-list"></i> Próximos Eventos</h2>
-            <div class="clearfix"></div>
+      <div class="col-lg-4 mb-4">
+        <!-- Gestión de eventos para administradores -->
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-header bg-light border-0">
+            <h5 class="mb-0 text-dark">
+              <i class="fas fa-cogs text-warning me-2"></i>
+              Gestión de Eventos
+              <span class="badge bg-primary ms-2">{{ eventos.count }}</span>
+            </h5>
           </div>
-          <div class="x_content">
+          <div class="card-body">
             {% if eventos %}
-              {% for evento in eventos %}
-                <div class="media event">
-                  <div class="media-left">
-                    <div class="event-icon text-center" style="background-color: {{ evento.color_por_tipo }}; color: white; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                      <strong>{{ evento.fecha.day }}</strong>
+              <div class="admin-events-list" style="max-height: 500px; overflow-y: auto;">
+                {% for evento in eventos %}
+                <div class="event-card admin-item mb-3 p-3 border rounded">
+                  <div class="d-flex align-items-start">
+                    <div class="event-icon-admin me-3">
+                      <div class="text-center" style="background-color: {{ evento.color_por_tipo|default:'#007bff' }}; color: white; width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">
+                        {{ evento.fecha.day }}
+                      </div>
                     </div>
-                  </div>
-                  <div class="media-body">
-                    <h6 class="media-heading">{{ evento.titulo }}</h6>
-                    <p>
-                      <small class="text-muted">
-                        <i class="fa fa-calendar"></i> {{ evento.fecha|date:"d/m/Y" }}
-                        {% if evento.hora_inicio %}
-                          <br><i class="fa fa-clock-o"></i> 
-                          {{ evento.hora_inicio|time:"H:i" }}
-                          {% if evento.hora_fin %} - {{ evento.hora_fin|time:"H:i" }}{% endif %}
-                        {% endif %}
-                        <br><i class="fa fa-user"></i> 
-                        <strong>
+                    <div class="flex-grow-1">
+                      <h6 class="mb-1 text-dark">{{ evento.titulo|truncatechars:25 }}</h6>
+                      <div class="event-meta">
+                        <p class="mb-1 small text-muted">
+                          <i class="fas fa-calendar me-1"></i>{{ evento.fecha|date:"d/m/Y" }}
+                          {% if evento.hora_inicio %}
+                            | <i class="fas fa-clock me-1"></i>{{ evento.hora_inicio|time:"H:i" }}
+                            {% if evento.hora_fin %} - {{ evento.hora_fin|time:"H:i" }}{% endif %}
+                          {% endif %}
+                        </p>
+                        <p class="mb-1 small text-muted">
+                          <i class="fas fa-user me-1"></i>
                           {% if evento.creado_por %}
                             {{ evento.creado_por.first_name|default:evento.creado_por.username }}
                           {% else %}
                             Sistema
                           {% endif %}
-                        </strong>
-                      </small>
-                    </p>
-                    {% if evento.descripcion %}
-                      <p class="small">{{ evento.descripcion|truncatewords:15 }}</p>
-                    {% endif %}
-                    {% if puede_crear_eventos %}
-                    <div class="btn-group btn-group-xs">
-                      <a href="{% url 'editar_evento' evento.id %}" class="btn btn-info">
-                        <i class="fa fa-edit"></i> Editar
-                      </a>
-                      <button onclick="eliminarEvento({{ evento.id }}, '{{ evento.titulo }}')" class="btn btn-danger">
-                        <i class="fa fa-trash"></i> Eliminar
-                      </button>
+                        </p>
+                        {% if evento.tipo_evento %}
+                        <span class="badge badge-event-type" style="background-color: {{ evento.color_por_tipo|default:'#6c757d' }};">
+                          {{ evento.get_tipo_evento_display|default:evento.tipo_evento }}
+                        </span>
+                        {% endif %}
+                      </div>
+                      {% if evento.descripcion %}
+                        <p class="mb-2 small">{{ evento.descripcion|truncatewords:10 }}</p>
+                      {% endif %}
+                      {% if puede_crear_eventos %}
+                      <div class="btn-group btn-group-sm mt-2">
+                        <a href="{% url 'editar_evento' evento.id %}" class="btn btn-outline-info btn-sm">
+                          <i class="fas fa-edit"></i> Editar
+                        </a>
+                        <button onclick="eliminarEvento({{ evento.id }}, '{{ evento.titulo }}')" class="btn btn-outline-danger btn-sm">
+                          <i class="fas fa-trash"></i> Eliminar
+                        </button>
+                      </div>
+                      {% endif %}
                     </div>
-                    {% endif %}
                   </div>
                 </div>
-                <hr>
-              {% endfor %}
+                {% endfor %}
+              </div>
             {% else %}
-              <div class="text-center">
-                <i class="fa fa-calendar-o fa-3x text-muted"></i>
-                <p>No hay eventos programados</p>
+              <div class="text-center py-5">
+                <i class="fas fa-calendar-plus fa-4x text-muted mb-3"></i>
+                <h6 class="text-muted">No hay eventos programados</h6>
+                <p class="small text-muted">Crea el primer evento del sistema.</p>
                 {% if puede_crear_eventos %}
-                  <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#modalAgregarEvento">
-                    <i class="fa fa-plus"></i> Crear Primer Evento
+                  <button type="button" class="btn btn-primary btn-sm mt-2" data-toggle="modal" data-target="#modalAgregarEvento">
+                    <i class="fas fa-plus me-1"></i>Crear Primer Evento
                   </button>
                 {% endif %}
               </div>
@@ -324,78 +352,6 @@
     </div>
     
     {% endif %}
-            <div id="calendar" style="height: 600px;"></div>
-          </div>
-        </div>
-      </div>
-      
-      <div class="col-md-4">
-        <div class="x_panel">
-          <div class="x_title">
-            <h2><i class="fa fa-list"></i> Próximos Eventos</h2>
-            <div class="clearfix"></div>
-          </div>
-          <div class="x_content">
-            {% if eventos %}
-              {% for evento in eventos %}
-                <div class="media event">
-                  <div class="media-left">
-                    <div class="event-icon text-center" style="background-color: {{ evento.color_por_tipo }}; color: white; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                      <strong>{{ evento.fecha.day }}</strong>
-                    </div>
-                  </div>
-                  <div class="media-body">
-                    <h6 class="media-heading">{{ evento.titulo }}</h6>
-                    <p>
-                      <small class="text-muted">
-                        <i class="fa fa-calendar"></i> {{ evento.fecha|date:"d/m/Y" }}
-                        {% if evento.hora_inicio %}
-                          <br><i class="fa fa-clock-o"></i> 
-                          {{ evento.hora_inicio|time:"H:i" }}
-                          {% if evento.hora_fin %} - {{ evento.hora_fin|time:"H:i" }}{% endif %}
-                        {% endif %}
-                        <br><i class="fa fa-user"></i> 
-                        <strong>
-                          {% if evento.creado_por %}
-                            {{ evento.creado_por.first_name|default:evento.creado_por.username }}
-                          {% else %}
-                            Sistema
-                          {% endif %}
-                        </strong>
-                      </small>
-                    </p>
-                    {% if evento.descripcion %}
-                      <p class="small">{{ evento.descripcion|truncatewords:15 }}</p>
-                    {% endif %}
-                    {% if puede_crear_eventos %}
-                    <div class="btn-group btn-group-xs">
-                      <a href="{% url 'editar_evento' evento.id %}" class="btn btn-info">
-                        <i class="fa fa-edit"></i> Editar
-                      </a>
-                      <button onclick="eliminarEvento({{ evento.id }}, '{{ evento.titulo }}')" class="btn btn-danger">
-                        <i class="fa fa-trash"></i> Eliminar
-                      </button>
-                    </div>
-                    {% endif %}
-                  </div>
-                </div>
-                <hr>
-              {% endfor %}
-            {% else %}
-              <div class="text-center">
-                <i class="fa fa-calendar-o fa-3x text-muted"></i>
-                <p>No hay eventos programados</p>
-                {% if puede_crear_eventos %}
-                  <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#modalAgregarEvento">
-                    <i class="fa fa-plus"></i> Crear Primer Evento
-                  </button>
-                {% endif %}
-              </div>
-            {% endif %}
-          </div>
-        </div>
-      </div>
-    </div>
   </div>
 </div>
 
@@ -740,6 +696,176 @@
 .student-events-list::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(135deg, #0056b3, #004085);
 }
+
+/* Estilos específicos para administradores y directores */
+.admin-stats-card {
+  transition: all 0.4s ease;
+  border-radius: 15px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+  border: 1px solid rgba(0,0,0,0.08);
+  position: relative;
+  overflow: hidden;
+}
+
+.admin-stats-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.1), transparent);
+  pointer-events: none;
+}
+
+.admin-stats-card:hover {
+  transform: translateY(-8px) scale(1.03);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+  border-color: rgba(0,123,255,0.4);
+}
+
+.admin-stats-card i {
+  transition: transform 0.3s ease;
+}
+
+.admin-stats-card:hover i {
+  transform: scale(1.2) rotate(10deg);
+}
+
+.admin-events-list {
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.admin-events-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.admin-events-list::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.admin-events-list::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #28a745, #20c997);
+  border-radius: 10px;
+}
+
+.admin-events-list::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #20c997, #17a2b8);
+}
+
+.admin-item {
+  transition: all 0.3s ease;
+  border-radius: 12px !important;
+  background: linear-gradient(135deg, #ffffff, #f8f9fa);
+  position: relative;
+  overflow: hidden;
+}
+
+.admin-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, rgba(40, 167, 69, 0.05), transparent);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.admin-item:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+  border-color: rgba(40, 167, 69, 0.3) !important;
+}
+
+.admin-item:hover::before {
+  opacity: 1;
+}
+
+.event-icon-admin {
+  transition: transform 0.3s ease;
+}
+
+.admin-item:hover .event-icon-admin {
+  transform: scale(1.15);
+}
+
+.event-meta p {
+  margin-bottom: 0.25rem !important;
+}
+
+.event-meta i {
+  width: 14px;
+  text-align: center;
+}
+
+/* Mejoras específicas del calendario para administradores */
+.admin-stats-card .card-body {
+  padding: 1.5rem;
+}
+
+.admin-stats-card h3 {
+  font-weight: 700;
+  font-size: 2.5rem;
+}
+
+/* Animaciones de entrada para administradores */
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.admin-stats-card {
+  animation: slideInRight 0.6s ease forwards;
+}
+
+.admin-stats-card:nth-child(1) { animation-delay: 0.1s; }
+.admin-stats-card:nth-child(2) { animation-delay: 0.2s; }
+.admin-stats-card:nth-child(3) { animation-delay: 0.3s; }
+.admin-stats-card:nth-child(4) { animation-delay: 0.4s; }
+
+.admin-item {
+  animation: slideInUp 0.5s ease forwards;
+}
+
+/* Responsive para administradores */
+@media (max-width: 768px) {
+  .admin-events-list {
+    max-height: 350px;
+  }
+  
+  .admin-item {
+    margin-bottom: 1rem !important;
+  }
+  
+  .event-icon-admin div {
+    width: 35px !important;
+    height: 35px !important;
+    font-size: 0.8rem;
+  }
+  
+  .admin-stats-card .card-body {
+    padding: 1rem;
+  }
+  
+  .admin-stats-card i {
+    font-size: 2rem !important;
+  }
+  
+  .admin-stats-card h3 {
+    font-size: 2rem !important;
+  }
+}
 </style>
 
 <script>
@@ -770,7 +896,7 @@ $(document).ready(function() {
     var eventosData = {{ eventos_json|safe|default:"[]" }};
     console.log('Eventos cargados:', eventosData);
     
-    // Configuración del calendario específica para alumnos
+    // Configuración del calendario adaptada por tipo de usuario
     var calendarConfig = {
         locale: 'es',
         initialView: 'dayGridMonth',
@@ -788,7 +914,6 @@ $(document).ready(function() {
         },
         events: eventosData,
         eventClick: function(info) {
-            // Mostrar información detallada del evento para alumnos
             var evento = info.event;
             var fechaFormateada = evento.start.toLocaleDateString('es-ES', {
                 weekday: 'long',
@@ -821,6 +946,12 @@ $(document).ready(function() {
                 mensaje += `\n📝 Descripción:\n${evento.extendedProps.description}`;
             }
             
+            {% if user.perfil.tipo_usuario == 'administrador' or user.perfil.tipo_usuario == 'director' %}
+            if (evento.extendedProps && evento.extendedProps.creado_por) {
+                mensaje += `\n👤 Creado por: ${evento.extendedProps.creado_por}`;
+            }
+            {% endif %}
+            
             alert(mensaje);
         },
         dateClick: function(info) {
@@ -828,7 +959,7 @@ $(document).ready(function() {
             $('input[name="fecha"]').val(info.dateStr);
             $('#modalAgregarEvento').modal('show');
             {% else %}
-            // Para alumnos, mostrar información de la fecha seleccionada
+            // Para usuarios sin permisos, mostrar información de la fecha
             var fechaSeleccionada = new Date(info.dateStr);
             var fechaFormateada = fechaSeleccionada.toLocaleDateString('es-ES', {
                 weekday: 'long',
@@ -837,7 +968,6 @@ $(document).ready(function() {
                 day: 'numeric'
             });
             
-            // Buscar eventos en esa fecha
             var eventosEnFecha = eventosData.filter(function(evento) {
                 var fechaEvento = new Date(evento.start);
                 return fechaEvento.toDateString() === fechaSeleccionada.toDateString();
@@ -854,13 +984,13 @@ $(document).ready(function() {
             }
             {% endif %}
         },
-        // Configuración visual mejorada para alumnos
         eventDisplay: 'block',
-        dayMaxEvents: 3,
+        dayMaxEvents: {% if user.perfil.tipo_usuario == 'administrador' or user.perfil.tipo_usuario == 'director' %}5{% else %}3{% endif %},
         moreLinkClick: 'popover',
         eventMouseEnter: function(info) {
             info.el.style.transform = 'scale(1.05)';
             info.el.style.zIndex = '1000';
+            info.el.style.cursor = 'pointer';
         },
         eventMouseLeave: function(info) {
             info.el.style.transform = 'scale(1)';
@@ -918,6 +1048,47 @@ $(document).ready(function() {
             item.style.transform = 'translateX(0)';
         }, 800 + (index * 100));
     });
+    {% endif %}
+    
+    // Animaciones para administradores y directores
+    {% if user.perfil.tipo_usuario == 'administrador' or user.perfil.tipo_usuario == 'director' %}
+    const adminStatsCards = document.querySelectorAll('.admin-stats-card');
+    adminStatsCards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateX(50px)';
+        
+        setTimeout(() => {
+            card.style.transition = 'all 0.6s ease';
+            card.style.opacity = '1';
+            card.style.transform = 'translateX(0)';
+        }, index * 150);
+    });
+    
+    // Animaciones para los eventos de administradores
+    const adminEventItems = document.querySelectorAll('.admin-item');
+    adminEventItems.forEach((item, index) => {
+        item.style.opacity = '0';
+        item.style.transform = 'translateY(30px)';
+        
+        setTimeout(() => {
+            item.style.transition = 'all 0.5s ease';
+            item.style.opacity = '1';
+            item.style.transform = 'translateY(0)';
+        }, 800 + (index * 100));
+    });
+    
+    // Efectos adicionales para el panel administrativo
+    const adminHeader = document.querySelector('.bg-white.p-4.rounded.shadow-sm');
+    if (adminHeader) {
+        adminHeader.style.opacity = '0';
+        adminHeader.style.transform = 'translateY(-20px)';
+        
+        setTimeout(() => {
+            adminHeader.style.transition = 'all 0.8s ease';
+            adminHeader.style.opacity = '1';
+            adminHeader.style.transform = 'translateY(0)';
+        }, 200);
+    }
     {% endif %}
     
     {% if puede_crear_eventos %}
