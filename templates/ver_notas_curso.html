@@ -135,6 +135,116 @@
         {% endif %}
       </div>
       <div class="card-body p-0">
+
+        <!-- Ranking de Mejores Estudiantes (Solo para Admin/Director/Profesor) -->
+        {% if user_type != 'alumno' and ranking_estudiantes and curso_seleccionado %}
+        <div class="bg-light p-3 border-bottom">
+          <div class="row">
+            <div class="col-md-12">
+              <h6 class="mb-3">
+                <i class="fas fa-trophy text-warning me-2"></i>
+                {% if asignatura_seleccionada %}
+                  Top 5 Estudiantes en {{ asignatura_seleccionada.nombre }}
+                {% else %}
+                  Top 5 Estudiantes por Promedio General del Curso
+                {% endif %}
+              </h6>
+              
+              <div class="row g-2">
+                {% for estudiante_data in ranking_estudiantes|slice:":5" %}
+                <div class="col-md-2">
+                  <div class="card h-100 border-0 shadow-sm ranking-card position-relative">
+                    <!-- Insignia de posición -->
+                    <div class="position-absolute top-0 start-0 ranking-badge">
+                      {% if forloop.counter == 1 %}
+                        <span class="badge bg-warning text-dark"><i class="fas fa-crown"></i> 1°</span>
+                      {% elif forloop.counter == 2 %}
+                        <span class="badge bg-secondary"><i class="fas fa-medal"></i> 2°</span>
+                      {% elif forloop.counter == 3 %}
+                        <span class="badge bg-dark"><i class="fas fa-medal"></i> 3°</span>
+                      {% else %}
+                        <span class="badge bg-primary">{{ forloop.counter }}°</span>
+                      {% endif %}
+                    </div>
+                    
+                    <div class="card-body text-center p-2">
+                      <!-- Avatar o inicial -->
+                      <div class="ranking-avatar mx-auto mb-2">
+                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                          <strong>{{ estudiante_data.estudiante.primer_nombre|first }}{{ estudiante_data.estudiante.apellido_paterno|first }}</strong>
+                        </div>
+                      </div>
+                      
+                      <!-- Información del estudiante -->
+                      <h6 class="card-title mb-1 small text-truncate" title="{{ estudiante_data.estudiante.get_nombre_completo }}">
+                        {{ estudiante_data.estudiante.primer_nombre }} {{ estudiante_data.estudiante.apellido_paterno }}
+                      </h6>
+                      
+                      <!-- Promedio -->
+                      <div class="mb-1">
+                        <span class="badge fs-6 {% if estudiante_data.promedio >= 6.0 %}bg-success{% elif estudiante_data.promedio >= 4.0 %}bg-warning{% else %}bg-danger{% endif %}">
+                          {{ estudiante_data.promedio }}
+                        </span>
+                      </div>
+                      
+                      <!-- Información adicional -->
+                      <small class="text-muted">
+                        {% if asignatura_seleccionada %}
+                          {{ estudiante_data.total_notas }} nota{{ estudiante_data.total_notas|pluralize:",s" }}
+                        {% else %}
+                          {{ estudiante_data.total_asignaturas }} asignatura{{ estudiante_data.total_asignaturas|pluralize:",s" }}
+                        {% endif %}
+                      </small>
+                    </div>
+                  </div>
+                </div>
+                {% endfor %}
+                
+                <!-- Mostrar estadísticas adicionales -->
+                {% if ranking_estudiantes|length > 5 %}
+                <div class="col-md-2">
+                  <div class="card h-100 border-0 bg-light">
+                    <div class="card-body text-center d-flex flex-column justify-content-center p-2">
+                      <div class="text-muted">
+                        <i class="fas fa-users fa-2x mb-2"></i>
+                        <p class="mb-1 small"><strong>+{{ ranking_estudiantes|length|add:"-5" }}</strong></p>
+                        <p class="mb-0 small">estudiantes más</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                {% endif %}
+              </div>
+              
+              <!-- Estadísticas rápidas -->
+              {% if estadisticas_curso %}
+              <div class="row mt-3">
+                <div class="col-md-12">
+                  <div class="d-flex justify-content-around text-center">
+                    <div class="stat-item">
+                      <div class="text-success fw-bold">{{ estadisticas_curso.aprobados }}</div>
+                      <small class="text-muted">Aprobados</small>
+                    </div>
+                    <div class="stat-item">
+                      <div class="text-danger fw-bold">{{ estadisticas_curso.reprobados }}</div>
+                      <small class="text-muted">Reprobados</small>
+                    </div>
+                    <div class="stat-item">
+                      <div class="text-primary fw-bold">{{ estadisticas_curso.promedio_curso }}</div>
+                      <small class="text-muted">Promedio Curso</small>
+                    </div>
+                    <div class="stat-item">
+                      <div class="text-warning fw-bold">{{ estadisticas_curso.total_estudiantes }}</div>
+                      <small class="text-muted">Total Estudiantes</small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        {% endif %}
         <!-- Vista especial para estudiantes - Resumen por asignatura -->
         {% if user_type == 'alumno' and not asignatura_seleccionada and promedios_por_asignatura %}
         <div class="table-responsive">
@@ -355,6 +465,73 @@
   background-color: #f8f9fa;
   border-bottom: 2px solid #dee2e6;
   font-weight: 600;
+}
+
+/* Estilos para el ranking de estudiantes */
+.ranking-card {
+  transition: all 0.3s ease;
+  background: linear-gradient(135deg, #ffffff, #f8f9fa);
+}
+
+.ranking-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+}
+
+.ranking-badge {
+  z-index: 10;
+  margin: 0.25rem;
+}
+
+.ranking-avatar {
+  transition: transform 0.3s ease;
+}
+
+.ranking-card:hover .ranking-avatar {
+  transform: scale(1.1);
+}
+
+.stat-item {
+  flex: 1;
+  padding: 0 1rem;
+}
+
+.stat-item:not(:last-child) {
+  border-right: 1px solid #dee2e6;
+}
+
+/* Animaciones para las tarjetas del ranking */
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.ranking-card {
+  animation: slideInUp 0.6s ease forwards;
+}
+
+.ranking-card:nth-child(1) { animation-delay: 0.1s; }
+.ranking-card:nth-child(2) { animation-delay: 0.2s; }
+.ranking-card:nth-child(3) { animation-delay: 0.3s; }
+.ranking-card:nth-child(4) { animation-delay: 0.4s; }
+.ranking-card:nth-child(5) { animation-delay: 0.5s; }
+
+/* Responsive para móviles */
+@media (max-width: 768px) {
+  .ranking-card {
+    margin-bottom: 0.5rem;
+  }
+  
+  .stat-item {
+    padding: 0 0.5rem;
+    font-size: 0.9rem;
+  }
 }
 </style>
 {% endblock %}

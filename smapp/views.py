@@ -631,7 +631,7 @@ def calendario(request):
             cursos = []
     
     context = {
-        'eventos': eventos.order_by('fecha')[:10],  # Próximos 10 eventos para la tabla
+        'eventos': eventos.order_by('fecha'),  # Todos los eventos ordenados por fecha
         'eventos_json': json.dumps(eventos_json),
         'eventos_count': eventos_count,
         'cursos': cursos,
@@ -2499,6 +2499,95 @@ def ver_notas_curso(request):
     
     context['promedios_por_asignatura'] = promedios_por_asignatura
     context['promedio_general_estudiante'] = promedio_general_estudiante
+
+    # Generar ranking de mejores estudiantes (solo para admin, director, profesor)
+    ranking_estudiantes = []
+    estadisticas_curso = {}
+    
+    if user_type in ['administrador', 'director', 'profesor'] and curso_seleccionado:
+        if asignatura_seleccionada:
+            # Ranking para una asignatura específica
+            ranking_data = []
+            for estudiante in estudiantes_tabla:
+                promedio_data = promedios_estudiantes.get(estudiante.id, {})
+                promedio = promedio_data.get('promedio')
+                total_notas = promedio_data.get('total_notas', 0)
+                
+                if promedio != '--' and promedio is not None:
+                    ranking_data.append({
+                        'estudiante': estudiante,
+                        'promedio': promedio,
+                        'total_notas': total_notas,
+                        'total_asignaturas': 1  # Solo una asignatura
+                    })
+            
+            # Ordenar por promedio descendente
+            ranking_estudiantes = sorted(ranking_data, key=lambda x: x['promedio'], reverse=True)
+            
+            # Estadísticas de la asignatura
+            if promedios_estudiantes:
+                aprobados = sum(1 for p in promedios_estudiantes.values() 
+                               if p['promedio'] != '--' and p['promedio'] >= 4.0)
+                reprobados = sum(1 for p in promedios_estudiantes.values() 
+                                if p['promedio'] != '--' and p['promedio'] < 4.0)
+                estadisticas_curso = {
+                    'aprobados': aprobados,
+                    'reprobados': reprobados,
+                    'promedio_curso': promedio_asignatura or 0,
+                    'total_estudiantes': len(estudiantes_tabla)
+                }
+        else:
+            # Ranking por promedio general del curso (todas las asignaturas)
+            ranking_data = []
+            for estudiante in estudiantes_tabla:
+                # Calcular promedio general del estudiante en todas las asignaturas del curso
+                asignaturas_curso = curso_seleccionado.asignaturas.all()
+                suma_promedios = 0
+                asignaturas_con_notas = 0
+                
+                for asignatura in asignaturas_curso:
+                    inscripciones_asignatura = Inscripcion.objects.filter(
+                        estudiante=estudiante,
+                        grupo__asignatura=asignatura
+                    )
+                    notas_asignatura = Calificacion.objects.filter(
+                        inscripcion__in=inscripciones_asignatura
+                    )
+                    
+                    if notas_asignatura.exists():
+                        puntajes = [nota.puntaje for nota in notas_asignatura]
+                        promedio_asignatura = sum(puntajes) / len(puntajes)
+                        suma_promedios += promedio_asignatura
+                        asignaturas_con_notas += 1
+                
+                if asignaturas_con_notas > 0:
+                    promedio_general = suma_promedios / asignaturas_con_notas
+                    ranking_data.append({
+                        'estudiante': estudiante,
+                        'promedio': round(promedio_general, 2),
+                        'total_notas': asignaturas_con_notas,
+                        'total_asignaturas': asignaturas_con_notas
+                    })
+            
+            # Ordenar por promedio descendente
+            ranking_estudiantes = sorted(ranking_data, key=lambda x: x['promedio'], reverse=True)
+            
+            # Estadísticas del curso completo
+            if ranking_data:
+                promedios_validos = [r['promedio'] for r in ranking_data]
+                aprobados = sum(1 for p in promedios_validos if p >= 4.0)
+                reprobados = sum(1 for p in promedios_validos if p < 4.0)
+                promedio_curso = sum(promedios_validos) / len(promedios_validos)
+                
+                estadisticas_curso = {
+                    'aprobados': aprobados,
+                    'reprobados': reprobados,
+                    'promedio_curso': round(promedio_curso, 2),
+                    'total_estudiantes': len(estudiantes_tabla)
+                }
+    
+    context['ranking_estudiantes'] = ranking_estudiantes
+    context['estadisticas_curso'] = estadisticas_curso
 
     return render(request, 'ver_notas_curso.html', context)
 
