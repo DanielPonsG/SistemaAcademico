@@ -39,7 +39,7 @@ class Estudiante(Persona):
     """
     codigo_estudiante = models.CharField(max_length=20, unique=True)
     fecha_ingreso = models.DateField(auto_now_add=True) # Se establece automáticamente al crear
-    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True, related_name='estudiante')
 
     def __str__(self):
         return f"{self.codigo_estudiante} - {self.primer_nombre} {self.apellido_paterno}"
@@ -75,7 +75,7 @@ class Profesor(Persona):
     codigo_profesor = models.CharField(max_length=20, unique=True)
     especialidad = models.CharField(max_length=100)
     fecha_contratacion = models.DateField(auto_now_add=True)
-    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True, related_name='profesor')
     asignaturas = models.ManyToManyField('Asignatura', related_name='profesores', blank=True)
 
     def __str__(self):
@@ -104,19 +104,20 @@ class Profesor(Persona):
         from django.utils import timezone
         anio_actual = timezone.now().year
         
-        # Cursos donde es jefe
-        cursos_jefe = self.cursos_jefatura.filter(anio=anio_actual)
+        # Obtener IDs de cursos donde es jefe
+        cursos_jefe_ids = self.cursos_jefatura.filter(anio=anio_actual).values_list('id', flat=True)
         
-        # Cursos donde tiene asignaturas como responsable
-        cursos_asignaturas = Curso.objects.filter(
+        # Obtener IDs de cursos donde tiene asignaturas como responsable
+        cursos_asignaturas_ids = Curso.objects.filter(
             asignaturas__profesor_responsable=self,
             anio=anio_actual
-        ).distinct()
+        ).values_list('id', flat=True)
         
-        # Combinar ambos conjuntos
-        return (cursos_jefe | cursos_asignaturas).distinct().order_by('nivel', 'paralelo')
+        # Combinar ambos conjuntos de IDs
+        todos_los_ids = set(list(cursos_jefe_ids) + list(cursos_asignaturas_ids))
         
-        return (cursos_jefe | cursos_asignaturas | cursos_legacy).distinct()
+        # Retornar cursos únicos
+        return Curso.objects.filter(id__in=todos_los_ids).order_by('nivel', 'paralelo')
 
 class Curso(models.Model):
     """

@@ -3871,13 +3871,17 @@ def libro_anotaciones(request):
                 anotaciones_base = Anotacion.objects.filter(estudiante=estudiante_actual)
                 cursos_disponibles = estudiante_actual.cursos.filter(anio=timezone.now().year)
                 puede_crear = False
+            except AttributeError:
+                messages.error(request, 'No se encontró un perfil de estudiante asociado a tu usuario.')
+                return render(request, 'libro_anotaciones.html', {'error': True})
             except Exception as e:
-                messages.error(request, 'Error al obtener información del estudiante.')
+                messages.error(request, f'Error al obtener información del estudiante: {str(e)}')
                 return render(request, 'libro_anotaciones.html', {'error': True})
                 
         elif user_type == 'profesor':
             # Profesor ve anotaciones de sus cursos y puede crear
             try:
+                # Usar la relación directa user.profesor
                 profesor_actual = request.user.profesor
                 cursos_disponibles = profesor_actual.get_cursos_asignados()
                 
@@ -3893,8 +3897,11 @@ def libro_anotaciones(request):
                     Q(estudiante__isnull=True, curso_id__in=cursos_ids)  # Anotaciones generales del curso
                 )
                 puede_crear = True
-            except:
-                messages.error(request, 'Error al obtener información del profesor.')
+            except AttributeError:
+                messages.error(request, 'No se encontró un perfil de profesor asociado a tu usuario.')
+                return render(request, 'libro_anotaciones.html', {'error': True})
+            except Exception as e:
+                messages.error(request, f'Error al obtener información del profesor: {str(e)}')
                 return render(request, 'libro_anotaciones.html', {'error': True})
                 
         elif user_type in ['director', 'administrador']:
@@ -4013,8 +4020,11 @@ def crear_anotacion(request):
         elif user_type == 'profesor':
             try:
                 profesor_actual = request.user.profesor
-            except:
-                messages.error(request, 'Error al obtener información del profesor.')
+            except AttributeError:
+                messages.error(request, 'No se encontró un perfil de profesor asociado a tu usuario.')
+                return redirect('libro_anotaciones')
+            except Exception as e:
+                messages.error(request, f'Error al obtener información del profesor: {str(e)}')
                 return redirect('libro_anotaciones')
         elif user_type not in ['director', 'administrador']:
             messages.error(request, 'No tienes permisos para crear anotaciones.')
