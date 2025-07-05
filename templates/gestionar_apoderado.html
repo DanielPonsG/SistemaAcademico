@@ -1,0 +1,460 @@
+{% extends 'index_master.html' %}
+{% load static %}
+
+{% block content %}
+<!-- page content -->
+<div class="right_col" role="main">
+  <div class="">
+    <div class="page-title">
+      <div class="title_left">
+        <h3>{{ action }} Apoderado</h3>
+      </div>
+    </div>
+
+    <div class="clearfix"></div>
+
+    <div class="row">
+      <div class="col-md-12 col-sm-12">
+        <div class="x_panel">
+          <div class="x_title">
+            <h2>
+              <i class="fas fa-{% if apoderado %}edit{% else %}plus{% endif %}"></i> 
+              {{ action }} Apoderado
+            </h2>
+            <div class="clearfix"></div>
+          </div>
+          <div class="x_content">
+            
+            <!-- Mostrar mensajes -->
+            {% if messages %}
+              {% for message in messages %}
+              <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="close" data-dismiss="alert">
+                  <span>&times;</span>
+                </button>
+              </div>
+              {% endfor %}
+            {% endif %}
+
+            <form method="POST" class="form-horizontal form-label-left">
+              {% csrf_token %}
+              
+              <!-- Información Personal -->
+              <div class="item form-group">
+                <h4 class="col-form-label col-md-3">
+                  <i class="fas fa-user"></i> Información Personal
+                </h4>
+              </div>
+              
+              <div class="item form-group">
+                <label class="col-form-label col-md-3 col-sm-3 label-align" for="primer_nombre">
+                  Primer Nombre <span class="required">*</span>
+                </label>
+                <div class="col-md-6 col-sm-6">
+                  <input type="text" 
+                         id="primer_nombre" 
+                         name="primer_nombre" 
+                         required="required" 
+                         class="form-control"
+                         value="{% if apoderado %}{{ apoderado.primer_nombre }}{% endif %}"
+                         placeholder="Primer nombre">
+                </div>
+              </div>
+
+              <div class="item form-group">
+                <label class="col-form-label col-md-3 col-sm-3 label-align" for="segundo_nombre">
+                  Segundo Nombre
+                </label>
+                <div class="col-md-6 col-sm-6">
+                  <input type="text" 
+                         id="segundo_nombre" 
+                         name="segundo_nombre" 
+                         class="form-control"
+                         value="{% if apoderado %}{{ apoderado.segundo_nombre|default:'' }}{% endif %}"
+                         placeholder="Segundo nombre (opcional)">
+                </div>
+              </div>
+
+              <div class="item form-group">
+                <label class="col-form-label col-md-3 col-sm-3 label-align" for="apellido_paterno">
+                  Apellido Paterno <span class="required">*</span>
+                </label>
+                <div class="col-md-6 col-sm-6">
+                  <input type="text" 
+                         id="apellido_paterno" 
+                         name="apellido_paterno" 
+                         required="required" 
+                         class="form-control"
+                         value="{% if apoderado %}{{ apoderado.apellido_paterno }}{% endif %}"
+                         placeholder="Apellido paterno">
+                </div>
+              </div>
+
+              <div class="item form-group">
+                <label class="col-form-label col-md-3 col-sm-3 label-align" for="apellido_materno">
+                  Apellido Materno
+                </label>
+                <div class="col-md-6 col-sm-6">
+                  <input type="text" 
+                         id="apellido_materno" 
+                         name="apellido_materno" 
+                         class="form-control"
+                         value="{% if apoderado %}{{ apoderado.apellido_materno|default:'' }}{% endif %}"
+                         placeholder="Apellido materno (opcional)">
+                </div>
+              </div>
+
+              <div class="item form-group">
+                <label class="col-form-label col-md-3 col-sm-3 label-align" for="numero_documento">
+                  RUT <span class="required">*</span>
+                </label>
+                <div class="col-md-6 col-sm-6">
+                  <input type="text" 
+                         id="numero_documento" 
+                         name="numero_documento" 
+                         required="required" 
+                         class="form-control"
+                         value="{% if apoderado %}{{ apoderado.numero_documento }}{% endif %}"
+                         placeholder="12.345.678-9">
+                </div>
+              </div>
+
+              <div class="item form-group">
+                <label class="col-form-label col-md-3 col-sm-3 label-align" for="fecha_nacimiento">
+                  Fecha de Nacimiento <span class="required">*</span>
+                </label>
+                <div class="col-md-6 col-sm-6">
+                  <input type="date" 
+                         id="fecha_nacimiento" 
+                         name="fecha_nacimiento" 
+                         required="required" 
+                         class="form-control"
+                         value="{% if apoderado %}{{ apoderado.fecha_nacimiento|date:'Y-m-d' }}{% endif %}">
+                </div>
+              </div>
+
+              <div class="item form-group">
+                <label class="col-form-label col-md-3 col-sm-3 label-align" for="genero">
+                  Género <span class="required">*</span>
+                </label>
+                <div class="col-md-6 col-sm-6">
+                  <select id="genero" name="genero" class="form-control" required>
+                    <option value="">Seleccione género</option>
+                    <option value="M" {% if apoderado and apoderado.genero == 'M' %}selected{% endif %}>Masculino</option>
+                    <option value="F" {% if apoderado and apoderado.genero == 'F' %}selected{% endif %}>Femenino</option>
+                    <option value="O" {% if apoderado and apoderado.genero == 'O' %}selected{% endif %}>Otro</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Información de Contacto -->
+              <div class="item form-group">
+                <h4 class="col-form-label col-md-3">
+                  <i class="fas fa-phone"></i> Información de Contacto
+                </h4>
+              </div>
+
+              <div class="item form-group">
+                <label class="col-form-label col-md-3 col-sm-3 label-align" for="email">
+                  Email <span class="required">*</span>
+                </label>
+                <div class="col-md-6 col-sm-6">
+                  <input type="email" 
+                         id="email" 
+                         name="email" 
+                         required="required" 
+                         class="form-control"
+                         value="{% if apoderado %}{{ apoderado.email }}{% endif %}"
+                         placeholder="correo@ejemplo.com">
+                </div>
+              </div>
+
+              <div class="item form-group">
+                <label class="col-form-label col-md-3 col-sm-3 label-align" for="telefono">
+                  Teléfono Principal
+                </label>
+                <div class="col-md-6 col-sm-6">
+                  <input type="text" 
+                         id="telefono" 
+                         name="telefono" 
+                         class="form-control"
+                         value="{% if apoderado %}{{ apoderado.telefono|default:'' }}{% endif %}"
+                         placeholder="+56912345678">
+                </div>
+              </div>
+
+              <div class="item form-group">
+                <label class="col-form-label col-md-3 col-sm-3 label-align" for="telefono_trabajo">
+                  Teléfono del Trabajo
+                </label>
+                <div class="col-md-6 col-sm-6">
+                  <input type="text" 
+                         id="telefono_trabajo" 
+                         name="telefono_trabajo" 
+                         class="form-control"
+                         value="{% if apoderado %}{{ apoderado.telefono_trabajo|default:'' }}{% endif %}"
+                         placeholder="+56223456789">
+                </div>
+              </div>
+
+              <div class="item form-group">
+                <label class="col-form-label col-md-3 col-sm-3 label-align" for="telefono_emergencia">
+                  Teléfono de Emergencia
+                </label>
+                <div class="col-md-6 col-sm-6">
+                  <input type="text" 
+                         id="telefono_emergencia" 
+                         name="telefono_emergencia" 
+                         class="form-control"
+                         value="{% if apoderado %}{{ apoderado.telefono_emergencia|default:'' }}{% endif %}"
+                         placeholder="+56987654321">
+                </div>
+              </div>
+
+              <div class="item form-group">
+                <label class="col-form-label col-md-3 col-sm-3 label-align" for="direccion">
+                  Dirección
+                </label>
+                <div class="col-md-6 col-sm-6">
+                  <input type="text" 
+                         id="direccion" 
+                         name="direccion" 
+                         class="form-control"
+                         value="{% if apoderado %}{{ apoderado.direccion|default:'' }}{% endif %}"
+                         placeholder="Dirección completa">
+                </div>
+              </div>
+
+              <!-- Información del Apoderado -->
+              <div class="item form-group">
+                <h4 class="col-form-label col-md-3">
+                  <i class="fas fa-briefcase"></i> Información del Apoderado
+                </h4>
+              </div>
+
+              <div class="item form-group">
+                <label class="col-form-label col-md-3 col-sm-3 label-align" for="codigo_apoderado">
+                  Código de Apoderado <span class="required">*</span>
+                </label>
+                <div class="col-md-6 col-sm-6">
+                  <input type="text" 
+                         id="codigo_apoderado" 
+                         name="codigo_apoderado" 
+                         required="required" 
+                         class="form-control"
+                         value="{% if apoderado %}{{ apoderado.codigo_apoderado }}{% endif %}"
+                         placeholder="APO001">
+                </div>
+              </div>
+
+              <div class="item form-group">
+                <label class="col-form-label col-md-3 col-sm-3 label-align" for="tipo_apoderado">
+                  Tipo de Apoderado <span class="required">*</span>
+                </label>
+                <div class="col-md-6 col-sm-6">
+                  <select id="tipo_apoderado" name="tipo_apoderado" class="form-control" required>
+                    <option value="">Seleccione tipo</option>
+                    <option value="titular" {% if apoderado and apoderado.tipo_apoderado == 'titular' %}selected{% endif %}>Apoderado Titular</option>
+                    <option value="suplente" {% if apoderado and apoderado.tipo_apoderado == 'suplente' %}selected{% endif %}>Apoderado Suplente</option>
+                    <option value="emergencia" {% if apoderado and apoderado.tipo_apoderado == 'emergencia' %}selected{% endif %}>Contacto de Emergencia</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="item form-group">
+                <label class="col-form-label col-md-3 col-sm-3 label-align" for="ocupacion">
+                  Ocupación
+                </label>
+                <div class="col-md-6 col-sm-6">
+                  <input type="text" 
+                         id="ocupacion" 
+                         name="ocupacion" 
+                         class="form-control"
+                         value="{% if apoderado %}{{ apoderado.ocupacion|default:'' }}{% endif %}"
+                         placeholder="Profesión u ocupación">
+                </div>
+              </div>
+
+              <div class="item form-group">
+                <label class="col-form-label col-md-3 col-sm-3 label-align" for="lugar_trabajo">
+                  Lugar de Trabajo
+                </label>
+                <div class="col-md-6 col-sm-6">
+                  <input type="text" 
+                         id="lugar_trabajo" 
+                         name="lugar_trabajo" 
+                         class="form-control"
+                         value="{% if apoderado %}{{ apoderado.lugar_trabajo|default:'' }}{% endif %}"
+                         placeholder="Empresa o lugar de trabajo">
+                </div>
+              </div>
+
+              <!-- Permisos y Configuraciones -->
+              <div class="item form-group">
+                <h4 class="col-form-label col-md-3">
+                  <i class="fas fa-shield-alt"></i> Permisos y Configuraciones
+                </h4>
+              </div>
+
+              <div class="item form-group">
+                <div class="col-md-6 col-sm-6 offset-md-3">
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" 
+                             name="puede_retirar" 
+                             {% if not apoderado or apoderado.puede_retirar %}checked{% endif %}> 
+                      Autorizado para retirar al estudiante
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <div class="item form-group">
+                <div class="col-md-6 col-sm-6 offset-md-3">
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" 
+                             name="contacto_emergencia" 
+                             {% if apoderado and apoderado.contacto_emergencia %}checked{% endif %}> 
+                      Es contacto de emergencia
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Estudiantes Asignados -->
+              <div class="item form-group">
+                <h4 class="col-form-label col-md-3">
+                  <i class="fas fa-user-graduate"></i> Estudiantes a Cargo
+                </h4>
+              </div>
+
+              <div class="item form-group">
+                <label class="col-form-label col-md-3 col-sm-3 label-align" for="estudiantes_asignados">
+                  Estudiantes <span class="required">*</span>
+                </label>
+                <div class="col-md-6 col-sm-6">
+                  <select id="estudiantes_asignados" 
+                          name="estudiantes_asignados" 
+                          class="form-control" 
+                          multiple 
+                          size="8" 
+                          required>
+                    {% for estudiante in estudiantes_disponibles %}
+                    <option value="{{ estudiante.id }}" 
+                            {% if estudiante in estudiantes_asignados %}selected{% endif %}>
+                      {{ estudiante.get_nombre_completo }} ({{ estudiante.codigo_estudiante }})
+                      {% if estudiante.get_curso_actual %} - {{ estudiante.get_curso_actual }}{% endif %}
+                    </option>
+                    {% endfor %}
+                  </select>
+                  <small class="form-text text-muted">
+                    Mantenga presionado Ctrl (Windows) o Cmd (Mac) para seleccionar múltiples estudiantes
+                  </small>
+                </div>
+              </div>
+
+              <!-- Credenciales de Usuario (opcional) -->
+              <div class="item form-group">
+                <h4 class="col-form-label col-md-3">
+                  <i class="fas fa-key"></i> Credenciales de Usuario (Opcional)
+                </h4>
+              </div>
+
+              <div class="item form-group">
+                <label class="col-form-label col-md-3 col-sm-3 label-align" for="username">
+                  Nombre de Usuario
+                </label>
+                <div class="col-md-6 col-sm-6">
+                  <input type="text" 
+                         id="username" 
+                         name="username" 
+                         class="form-control"
+                         placeholder="Usuario para acceso al sistema (opcional)">
+                  <small class="form-text text-muted">
+                    Solo complete si desea crear una cuenta de usuario para este apoderado
+                  </small>
+                </div>
+              </div>
+
+              <div class="item form-group">
+                <label class="col-form-label col-md-3 col-sm-3 label-align" for="password">
+                  Contraseña
+                </label>
+                <div class="col-md-6 col-sm-6">
+                  <input type="password" 
+                         id="password" 
+                         name="password" 
+                         class="form-control"
+                         placeholder="Contraseña para acceso al sistema">
+                </div>
+              </div>
+
+              <!-- Botones de Acción -->
+              <div class="ln_solid"></div>
+              <div class="item form-group">
+                <div class="col-md-6 col-sm-6 offset-md-3">
+                  <button type="submit" class="btn btn-success">
+                    <i class="fas fa-save"></i> {{ action }} Apoderado
+                  </button>
+                  <a href="{% url 'listar_apoderados' %}" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Cancelar
+                  </a>
+                </div>
+              </div>
+
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- /page content -->
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Validación de RUT en tiempo real
+    const rutInput = document.getElementById('numero_documento');
+    if (rutInput) {
+        rutInput.addEventListener('blur', function() {
+            const rut = this.value.trim();
+            if (rut && !validarRUT(rut)) {
+                this.setCustomValidity('RUT inválido');
+                this.classList.add('is-invalid');
+            } else {
+                this.setCustomValidity('');
+                this.classList.remove('is-invalid');
+            }
+        });
+    }
+});
+
+function validarRUT(rut) {
+    // Función básica de validación de RUT
+    rut = rut.replace(/\./g, '').replace(/-/g, '');
+    if (rut.length < 8) return false;
+    
+    const numero = rut.slice(0, -1);
+    const dv = rut.slice(-1).toUpperCase();
+    
+    let suma = 0;
+    let multiplicador = 2;
+    
+    for (let i = numero.length - 1; i >= 0; i--) {
+        suma += parseInt(numero[i]) * multiplicador;
+        multiplicador = multiplicador === 7 ? 2 : multiplicador + 1;
+    }
+    
+    const resto = suma % 11;
+    let dvCalculado = 11 - resto;
+    
+    if (dvCalculado === 11) dvCalculado = '0';
+    else if (dvCalculado === 10) dvCalculado = 'K';
+    else dvCalculado = dvCalculado.toString();
+    
+    return dv === dvCalculado;
+}
+</script>
+{% endblock %}

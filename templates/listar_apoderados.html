@@ -1,0 +1,292 @@
+{% extends "index_master.html" %}
+{% load widget_tweaks %}
+
+{% block content %}
+<div class="right_col" role="main">
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-md-12">
+        <div class="card border-0 shadow-sm">
+          <div class="card-header bg-gradient-header text-white d-flex justify-content-between align-items-center" style="border-radius: 18px 18px 0 0; background: linear-gradient(90deg, #3a8dde 0%, #6a5af9 100%);">
+            <h4 class="mb-0 fw-bold d-flex align-items-center">
+              <i class="fas fa-users me-3" style="font-size: 1.8rem;"></i>
+              <span>Gestión de Apoderados</span>
+            </h4>
+            <div>
+              <a href="{% url 'gestionar_apoderado' %}" class="btn btn-light btn-sm">
+                <i class="fas fa-plus me-1"></i> Nuevo Apoderado
+              </a>
+            </div>
+          </div>
+          
+          <div class="card-body p-4">
+            <!-- Formulario de filtros -->
+            <form method="get" class="mb-4">
+              <div class="row g-3">
+                <div class="col-md-4">
+                  <label for="q_apoderado" class="form-label fw-bold">Buscar Apoderado:</label>
+                  <input type="text" 
+                         name="q_apoderado" 
+                         id="q_apoderado"
+                         class="form-control" 
+                         placeholder="Nombre, RUT o email..."
+                         value="{{ q_apoderado }}">
+                </div>
+                
+                <div class="col-md-3">
+                  <label for="tipo_apoderado" class="form-label fw-bold">Tipo:</label>
+                  <select name="tipo_apoderado" id="tipo_apoderado" class="form-select">
+                    <option value="">Todos los tipos</option>
+                    {% for codigo, nombre in tipos_apoderado %}
+                      <option value="{{ codigo }}" {% if tipo_apoderado == codigo %}selected{% endif %}>
+                        {{ nombre }}
+                      </option>
+                    {% endfor %}
+                  </select>
+                </div>
+                
+                <div class="col-md-3">
+                  <label for="es_profesor" class="form-label fw-bold">Es Profesor:</label>
+                  <select name="es_profesor" id="es_profesor" class="form-select">
+                    <option value="">Todos</option>
+                    <option value="si" {% if es_profesor == 'si' %}selected{% endif %}>Sí</option>
+                    <option value="no" {% if es_profesor == 'no' %}selected{% endif %}>No</option>
+                  </select>
+                </div>
+                
+                <div class="col-md-2 d-flex align-items-end">
+                  <button type="submit" class="btn btn-primary w-100">
+                    <i class="fas fa-search me-1"></i> Filtrar
+                  </button>
+                </div>
+              </div>
+            </form>
+
+            <!-- Estadísticas -->
+            <div class="row mb-4">
+              <div class="col-md-4">
+                <div class="bg-primary text-white p-3 rounded shadow-sm">
+                  <div class="d-flex align-items-center">
+                    <i class="fas fa-users fa-2x me-3"></i>
+                    <div>
+                      <h5 class="mb-0">{{ total_apoderados }}</h5>
+                      <small>Total Apoderados</small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="bg-success text-white p-3 rounded shadow-sm">
+                  <div class="d-flex align-items-center">
+                    <i class="fas fa-chalkboard-teacher fa-2x me-3"></i>
+                    <div>
+                      <h5 class="mb-0">{{ apoderados_profesores }}</h5>
+                      <small>Apoderados que son Profesores</small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="bg-info text-white p-3 rounded shadow-sm">
+                  <div class="d-flex align-items-center">
+                    <i class="fas fa-user-graduate fa-2x me-3"></i>
+                    <div>
+                      <h5 class="mb-0">{{ total_apoderados|add:"-"|add:apoderados_profesores }}</h5>
+                      <small>Apoderados Externos</small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tabla de apoderados -->
+            {% if apoderados_con_estudiantes %}
+            <div class="table-responsive">
+              <table class="table table-hover align-middle">
+                <thead class="table-light">
+                  <tr>
+                    <th>Apoderado</th>
+                    <th>RUT</th>
+                    <th>Tipo</th>
+                    <th>Contacto</th>
+                    <th>Es Profesor</th>
+                    <th>Estudiantes a Cargo</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for apoderado in apoderados_con_estudiantes %}
+                  <tr>
+                    <td>
+                      <div class="d-flex align-items-center">
+                        <div class="avatar-circle bg-primary text-white me-2">
+                          {{ apoderado.primer_nombre.0 }}{{ apoderado.apellido_paterno.0 }}
+                        </div>
+                        <div>
+                          <strong>{{ apoderado.get_nombre_completo }}</strong>
+                          <br><small class="text-muted">{{ apoderado.get_tipo_apoderado_display }}</small>
+                        </div>
+                      </div>
+                    </td>
+                    <td>{{ apoderado.numero_documento }}</td>
+                    <td>
+                      <span class="badge bg-primary">{{ apoderado.get_tipo_apoderado_display }}</span>
+                    </td>
+                    <td>
+                      <div>
+                        <i class="fas fa-envelope me-1"></i> {{ apoderado.email }}
+                        {% if apoderado.telefono %}
+                          <br><i class="fas fa-phone me-1"></i> {{ apoderado.telefono }}
+                        {% endif %}
+                      </div>
+                    </td>
+                    <td>
+                      {% if apoderado.user %}
+                        {% if apoderado.user.perfil.tipo_usuario == 'profesor' %}
+                          <span class="badge bg-success">
+                            <i class="fas fa-chalkboard-teacher me-1"></i>
+                            Sí
+                          </span>
+                        {% else %}
+                          <span class="badge bg-secondary">No</span>
+                        {% endif %}
+                      {% else %}
+                        <span class="badge bg-secondary">Sin usuario</span>
+                      {% endif %}
+                    </td>
+                    <td>
+                      <div class="estudiantes-info">
+                        {% with estudiantes=apoderado.get_estudiantes_actuales %}
+                          {% if estudiantes %}
+                            <ul class="list-unstyled mb-1">
+                              {% for estudiante in estudiantes %}
+                                <li class="small">
+                                  <i class="fas fa-user-graduate me-1"></i>
+                                  {{ estudiante.get_nombre_completo }}
+                                  {% with curso=estudiante.get_curso_actual %}
+                                    {% if curso %}
+                                      <span class="text-muted">({{ curso.nombre }})</span>
+                                    {% endif %}
+                                  {% endwith %}
+                                </li>
+                              {% endfor %}
+                            </ul>
+                            <div class="mt-1">
+                              <span class="badge bg-info">{{ estudiantes.count }} estudiante{{ estudiantes.count|pluralize }}</span>
+                            </div>
+                          {% else %}
+                            <span class="text-muted small">Sin estudiantes asignados</span>
+                          {% endif %}
+                        {% endwith %}
+                      </div>
+                    </td>
+                    <td>
+                      <div class="btn-group-vertical btn-group-sm">
+                        <a href="{% url 'gestionar_apoderado' apoderado_id=apoderado.id %}" 
+                           class="btn btn-outline-primary btn-sm">
+                          <i class="fas fa-edit me-1"></i> Editar
+                        </a>
+                        <a href="{% url 'detalle_apoderado' apoderado_id=apoderado.id %}" 
+                           class="btn btn-outline-info btn-sm">
+                          <i class="fas fa-eye me-1"></i> Ver
+                        </a>
+                        <a href="{% url 'eliminar_apoderado' apoderado_id=apoderado.id %}" 
+                           class="btn btn-outline-danger btn-sm"
+                           onclick="return confirm('¿Está seguro de eliminar este apoderado?')">
+                          <i class="fas fa-trash me-1"></i> Eliminar
+                        </a>
+                      </div>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+              <i class="fas fa-user-friends fa-3x text-muted mb-3"></i>
+              <h5 class="text-muted">No se encontraron apoderados</h5>
+              <p class="text-muted">No hay apoderados que coincidan con los filtros aplicados.</p>
+              <a href="{% url 'gestionar_apoderado' %}" class="btn btn-primary">
+                <i class="fas fa-plus me-1"></i> Crear Primer Apoderado
+              </a>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Estilos adicionales -->
+<style>
+  .bg-gradient-header {
+    background: linear-gradient(90deg, #3a8dde 0%, #6a5af9 100%) !important;
+  }
+  
+  .avatar-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 0.9rem;
+  }
+  
+  .estudiantes-info {
+    max-width: 250px;
+  }
+  
+  .card {
+    border-radius: 18px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  }
+  
+  .table-hover tbody tr:hover {
+    background-color: rgba(106,90,249,0.05);
+  }
+  
+  .form-control:focus, .form-select:focus {
+    border-color: #6a5af9;
+    box-shadow: 0 0 0 0.2rem rgba(106,90,249,0.1);
+  }
+  
+  .btn-group-vertical .btn {
+    margin-bottom: 2px;
+  }
+  
+  .badge {
+    font-size: 0.75rem;
+  }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Auto-submit del formulario cuando cambian los filtros
+  const filtros = document.querySelectorAll('#tipo_apoderado, #es_profesor');
+  filtros.forEach(filtro => {
+    filtro.addEventListener('change', function() {
+      this.form.submit();
+    });
+  });
+  
+  // Búsqueda en tiempo real con debounce
+  const searchInput = document.getElementById('q_apoderado');
+  let searchTimeout;
+  
+  if (searchInput) {
+    searchInput.addEventListener('input', function() {
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(() => {
+        if (this.value.length >= 3 || this.value.length === 0) {
+          this.form.submit();
+        }
+      }, 500);
+    });
+  }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,111 @@
+{% extends 'index_master.html' %}
+{% load static %}
+
+{% block content %}
+<!-- page content -->
+<div class="right_col" role="main">
+  <div class="">
+    <div class="page-title">
+      <div class="title_left">
+        <h3>Eliminar Apoderado</h3>
+      </div>
+    </div>
+
+    <div class="clearfix"></div>
+
+    <div class="row">
+      <div class="col-md-8 col-sm-12 offset-md-2">
+        <div class="x_panel">
+          <div class="x_title">
+            <h2><i class="fas fa-exclamation-triangle text-danger"></i> Confirmar Eliminación</h2>
+            <div class="clearfix"></div>
+          </div>
+          <div class="x_content">
+            
+            <div class="alert alert-danger">
+              <h4><i class="fas fa-warning"></i> ¡Atención!</h4>
+              <p>Está a punto de eliminar al apoderado <strong>{{ apoderado.get_nombre_completo }}</strong>.</p>
+              <p>Esta acción <strong>NO SE PUEDE DESHACER</strong>.</p>
+            </div>
+
+            <!-- Información del apoderado -->
+            <div class="card">
+              <div class="card-header">
+                <h5><i class="fas fa-user"></i> Información del Apoderado</h5>
+              </div>
+              <div class="card-body">
+                <div class="row">
+                  <div class="col-md-6">
+                    <p><strong>Código:</strong> {{ apoderado.codigo_apoderado }}</p>
+                    <p><strong>Nombre:</strong> {{ apoderado.get_nombre_completo }}</p>
+                    <p><strong>RUT:</strong> {{ apoderado.numero_documento }}</p>
+                    <p><strong>Email:</strong> {{ apoderado.email|default:"Sin email" }}</p>
+                  </div>
+                  <div class="col-md-6">
+                    <p><strong>Tipo:</strong> {{ apoderado.get_tipo_apoderado_display }}</p>
+                    <p><strong>Teléfono:</strong> {{ apoderado.telefono|default:"Sin teléfono" }}</p>
+                    <p><strong>Ocupación:</strong> {{ apoderado.ocupacion|default:"Sin especificar" }}</p>
+                    {% if apoderado.user %}
+                    <p><strong>Usuario:</strong> {{ apoderado.user.username }}</p>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Estudiantes afectados -->
+            {% if apoderado.get_estudiantes_actuales %}
+            <div class="card mt-3">
+              <div class="card-header">
+                <h5><i class="fas fa-user-graduate text-warning"></i> Estudiantes Afectados</h5>
+              </div>
+              <div class="card-body">
+                <div class="alert alert-warning">
+                  <strong>Los siguientes estudiantes perderán a este apoderado:</strong>
+                </div>
+                <ul class="list-group">
+                  {% for estudiante in apoderado.get_estudiantes_actuales %}
+                  <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                      <strong>{{ estudiante.get_nombre_completo }}</strong>
+                      <br>
+                      <small class="text-muted">
+                        {{ estudiante.codigo_estudiante }}
+                        {% if estudiante.get_curso_actual %} - {{ estudiante.get_curso_actual }}{% endif %}
+                      </small>
+                    </div>
+                    <span class="badge badge-warning">{{ estudiante.apoderados.count }} apoderado{{ estudiante.apoderados.count|pluralize:"s" }}</span>
+                  </li>
+                  {% endfor %}
+                </ul>
+                <div class="alert alert-info mt-3">
+                  <i class="fas fa-info-circle"></i> 
+                  <strong>Recomendación:</strong> Asegúrese de que estos estudiantes tengan otros apoderados asignados antes de proceder.
+                </div>
+              </div>
+            </div>
+            {% endif %}
+
+            <!-- Formulario de confirmación -->
+            <form method="POST" class="mt-4">
+              {% csrf_token %}
+              <div class="text-center">
+                <button type="submit" class="btn btn-danger btn-lg">
+                  <i class="fas fa-trash"></i> 
+                  Sí, Eliminar Apoderado
+                </button>
+                <a href="{% url 'listar_apoderados' %}" class="btn btn-secondary btn-lg ml-3">
+                  <i class="fas fa-times"></i> 
+                  Cancelar
+                </a>
+              </div>
+            </form>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- /page content -->
+{% endblock %}

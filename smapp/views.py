@@ -37,44 +37,54 @@ def index(request):
 def agregar(request):
     tipo = request.GET.get('tipo', 'estudiante')
     mensaje = ""
-    if tipo == 'profesor':
-        form = ProfesorForm(request.POST or None)
-        if request.method == 'POST' and form.is_valid():
-            # Crear usuario
-            username = form.cleaned_data['username']
-            password = form.cleaned_data['password']
-            email = form.cleaned_data['email']
-            user = User.objects.create_user(username=username, password=password, email=email)
-            # Crear perfil
-            Perfil.objects.create(user=user, tipo_usuario='profesor')
-            # Crear profesor
-            profesor = form.save(commit=False)
-            profesor.user = user
-            profesor.save()
-            # Si tienes campos ManyToMany (como asignaturas), asígnalos después de save()
-            if 'asignaturas' in form.cleaned_data:
-                profesor.asignaturas.set(form.cleaned_data['asignaturas'])
-            mensaje = "Profesor agregado correctamente."
-            form = ProfesorForm()  # Limpiar formulario
+    
+    # Si es una petición GET (cambio de tipo), crear formulario vacío
+    if request.method == 'GET':
+        if tipo == 'profesor':
+            form = ProfesorForm()
+        else:
+            form = EstudianteForm()
     else:
-        form = EstudianteForm(request.POST or None)
-        if request.method == 'POST' and form.is_valid():
-            # Crear usuario
-            username = form.cleaned_data['username']
-            password = form.cleaned_data['password']
-            email = form.cleaned_data['email']
-            user = User.objects.create_user(username=username, password=password, email=email)
-            # Crear perfil
-            Perfil.objects.create(user=user, tipo_usuario='alumno')
-            # Crear estudiante
-            estudiante = form.save(commit=False)
-            estudiante.user = user
-            estudiante.save()
-            # Si tienes campos ManyToMany (como cursos), asígnalos después de save()
-            if 'cursos' in form.cleaned_data:
-                estudiante.cursos.set(form.cleaned_data['cursos'])
-            mensaje = "Estudiante agregado correctamente."
-            form = EstudianteForm()  # Limpiar formulario
+        # Es una petición POST (envío del formulario)
+        if tipo == 'profesor':
+            form = ProfesorForm(request.POST)
+            if form.is_valid():
+                # Crear usuario
+                username = form.cleaned_data['username']
+                password = form.cleaned_data['password']
+                email = form.cleaned_data['email']
+                user = User.objects.create_user(username=username, password=password, email=email)
+                # Crear perfil
+                Perfil.objects.create(user=user, tipo_usuario='profesor')
+                # Crear profesor
+                profesor = form.save(commit=False)
+                profesor.user = user
+                profesor.save()
+                # Si tienes campos ManyToMany (como asignaturas), asígnalos después de save()
+                if 'asignaturas' in form.cleaned_data:
+                    profesor.asignaturas.set(form.cleaned_data['asignaturas'])
+                mensaje = "Profesor agregado correctamente."
+                form = ProfesorForm()  # Limpiar formulario
+        else:
+            form = EstudianteForm(request.POST)
+            if form.is_valid():
+                # Crear usuario
+                username = form.cleaned_data['username']
+                password = form.cleaned_data['password']
+                email = form.cleaned_data['email']
+                user = User.objects.create_user(username=username, password=password, email=email)
+                # Crear perfil
+                Perfil.objects.create(user=user, tipo_usuario='alumno')
+                # Crear estudiante
+                estudiante = form.save(commit=False)
+                estudiante.user = user
+                estudiante.save()
+                # Si tienes campos ManyToMany (como cursos), asígnalos después de save()
+                if 'cursos' in form.cleaned_data:
+                    estudiante.cursos.set(form.cleaned_data['cursos'])
+                mensaje = "Estudiante agregado correctamente."
+                form = EstudianteForm()  # Limpiar formulario
+    
     return render(request, 'agregar.html', {'form': form, 'tipo': tipo, 'mensaje': mensaje})
 
 @admin_required

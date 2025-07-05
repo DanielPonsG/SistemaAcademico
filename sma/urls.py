@@ -49,7 +49,7 @@ urlpatterns = [
     path('logout/', logout_view, name='logout'),
     
     # CRUD de Administrador
-    path('agregar', agregar, name='agregar'),
+    path('agregar/', agregar, name='agregar'),
     path('modificar', modificar, name='modificar'),
     path('eliminar', eliminar, name='eliminar'),
     path('estudiantes/listar/', listar_estudiantes, name='listar_estudiantes'),

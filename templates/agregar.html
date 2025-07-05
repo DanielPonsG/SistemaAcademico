@@ -14,11 +14,18 @@
             </h4>
           </div>
           <div class="card-body px-4 py-4">
-            <form id="tipoUsuarioForm" method="get" class="mb-4">
+            {% if mensaje %}
+              <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="fas fa-check-circle me-2"></i>{{ mensaje }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              </div>
+            {% endif %}
+            
+            <form id="tipoUsuarioForm" method="get" class="mb-4" action="{% url 'agregar' %}">
               <div class="row align-items-center">
                 <div class="col-md-6">
                   <label for="tipo" class="form-label fw-bold text-dark">Tipo de usuario:</label>
-                  <select name="tipo" id="tipo" class="form-select" onchange="this.form.submit()" style="border-radius: 8px;">
+                  <select name="tipo" id="tipo" class="form-select" style="border-radius: 8px;">
                     <option value="estudiante" {% if tipo == 'estudiante' %}selected{% endif %}>Alumno</option>
                     <option value="profesor" {% if tipo == 'profesor' %}selected{% endif %}>Profesor</option>
                   </select>
@@ -513,8 +520,8 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
   const form = document.getElementById('registroForm');
-  const rutField = document.getElementById('{{ form.numero_documento.id_for_label }}');
-  const fechaField = document.getElementById('{{ form.fecha_nacimiento.id_for_label }}');
+  const rutField = document.querySelector('input[name="numero_documento"]');
+  const fechaField = document.querySelector('input[name="fecha_nacimiento"]');
   const edadSpan = document.getElementById('edad-calculada');
   const tipoUsuario = '{{ tipo }}';
 
@@ -629,6 +636,12 @@ function validateField(field) {
 
 function validarRUT(field) {
   const rut = field.value.replace(/[^0-9kK]/g, '');
+  const validIcon = document.getElementById('rut-valid');
+  const invalidIcon = document.getElementById('rut-invalid');
+  
+  // Ocultar íconos inicialmente
+  if (validIcon) validIcon.classList.add('d-none');
+  if (invalidIcon) invalidIcon.classList.add('d-none');
   
   if (rut.length < 2) {
     field.classList.remove('is-valid', 'is-invalid');
@@ -641,6 +654,7 @@ function validarRUT(field) {
   if (!/^\d+$/.test(num)) {
     field.classList.add('is-invalid');
     field.classList.remove('is-valid');
+    if (invalidIcon) invalidIcon.classList.remove('d-none');
     return false;
   }
   
@@ -659,10 +673,12 @@ function validarRUT(field) {
   if (dv === dvCalculado) {
     field.classList.add('is-valid');
     field.classList.remove('is-invalid');
+    if (validIcon) validIcon.classList.remove('d-none');
     return true;
   } else {
     field.classList.add('is-invalid');
     field.classList.remove('is-valid');
+    if (invalidIcon) invalidIcon.classList.remove('d-none');
     return false;
   }
 }
@@ -674,8 +690,42 @@ function limpiarFormulario() {
     document.querySelectorAll('.is-valid, .is-invalid').forEach(el => {
       el.classList.remove('is-valid', 'is-invalid');
     });
-    document.getElementById('edad-calculada').textContent = '';
+    const edadSpan = document.getElementById('edad-calculada');
+    if (edadSpan) {
+      edadSpan.textContent = '';
+    }
   }
 }
+
+// Función para manejar el cambio de tipo de usuario
+document.addEventListener('DOMContentLoaded', function() {
+  const tipoSelect = document.getElementById('tipo');
+  if (tipoSelect) {
+    tipoSelect.addEventListener('change', function() {
+      // Mostrar mensaje de confirmación si hay datos en el formulario
+      const form = document.getElementById('registroForm');
+      const formData = new FormData(form);
+      let hasData = false;
+      
+      for (let [key, value] of formData.entries()) {
+        if (value && value.trim() !== '') {
+          hasData = true;
+          break;
+        }
+      }
+      
+      if (hasData) {
+        if (!confirm('Al cambiar el tipo de usuario se perderán los datos ingresados. ¿Desea continuar?')) {
+          // Restaurar selección anterior
+          this.selectedIndex = this.selectedIndex === 0 ? 1 : 0;
+          return false;
+        }
+      }
+      
+      // Proceder con el cambio
+      this.form.submit();
+    });
+  }
+});
 </script>
 {% endblock %}
