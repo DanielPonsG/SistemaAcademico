@@ -1328,29 +1328,52 @@ class AnotacionForm(forms.ModelForm):
             # Configurar estudiantes y cursos para creación
             from .models import Estudiante, Curso
             
-            # Filtrar estudiantes y cursos actuales
-            self.fields['estudiante'].queryset = Estudiante.objects.all().order_by(
-                'apellido_paterno', 'primer_nombre'
-            )
-            self.fields['curso'].queryset = Curso.objects.filter(anio=anio_actual).order_by(
-                'nivel', 'paralelo'
-            )
+            if profesor:
+                # Para profesores: solo cursos donde tienen asignaturas
+                cursos_profesor = profesor.get_cursos_asignados()
+                self.fields['curso'].queryset = cursos_profesor
+                
+                # Estudiantes: solo de los cursos donde tiene asignaturas
+                estudiantes_ids = []
+                for curso in cursos_profesor:
+                    estudiantes_ids.extend(curso.estudiantes.values_list('id', flat=True))
+                
+                self.fields['estudiante'].queryset = Estudiante.objects.filter(
+                    id__in=estudiantes_ids
+                ).order_by('apellido_paterno', 'primer_nombre')
+                
+                # Hacer el campo estudiante opcional para permitir anotaciones generales del curso
+                self.fields['estudiante'].required = False
+                self.fields['estudiante'].empty_label = "-- Anotación general del curso --"
+                
+            else:
+                # Para administradores/directores: todos los cursos y estudiantes
+                self.fields['estudiante'].queryset = Estudiante.objects.all().order_by(
+                    'apellido_paterno', 'primer_nombre'
+                )
+                self.fields['curso'].queryset = Curso.objects.filter(anio=anio_actual).order_by(
+                    'nivel', 'paralelo'
+                )
         
-        # Configurar asignaturas - inicialmente vacío, se llenará vía AJAX
+        # Configurar asignaturas
         from .models import Asignatura
         if not editando:
-            self.fields['asignatura'].queryset = Asignatura.objects.none()
+            if profesor:
+                # Para profesores: solo sus asignaturas
+                self.fields['asignatura'].queryset = profesor.asignaturas.all()
+            else:
+                # Para admin/director: inicialmente vacío, se llenará vía AJAX
+                self.fields['asignatura'].queryset = Asignatura.objects.none()
         
-        # Si hay un profesor, filtrar solo sus asignaturas
+        # Actualizar labels y help texts
         if profesor:
-            asignaturas_profesor = profesor.asignaturas.all()
-            if asignaturas_profesor.exists():
-                self.fields['asignatura'].queryset = asignaturas_profesor
+            self.fields['curso'].help_text = 'Solo cursos donde tienes asignaturas asignadas'
+            self.fields['estudiante'].help_text = 'Opcional: Deja en blanco para anotación general del curso'
     
     def clean(self):
         cleaned_data = super().clean()
         
-        # Validar que el estudiante pertenezca al curso seleccionado
+        # Validar que el estudiante pertenezca al curso seleccionado (solo si se seleccionó estudiante)
         estudiante = cleaned_data.get('estudiante')
         curso = cleaned_data.get('curso')
         
@@ -1359,6 +1382,12 @@ class AnotacionForm(forms.ModelForm):
                 raise forms.ValidationError({
                     'estudiante': 'El estudiante seleccionado no pertenece al curso indicado.'
                 })
+        
+        # Si no hay estudiante, debe ser una anotación general del curso
+        if not estudiante and not curso:
+            raise forms.ValidationError({
+                'curso': 'Debes seleccionar al menos un curso para la anotación.'
+            })
         
         # Validar puntos según el tipo
         tipo = cleaned_data.get('tipo')

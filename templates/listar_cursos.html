@@ -20,10 +20,17 @@
       <div class="col-12">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <div>
-            <h2 class="mb-1">
-              <i class="fas fa-school me-2 text-primary"></i>Cursos {{ anio_actual }}
-            </h2>
-            <p class="text-muted mb-0">Sistema de gestión de cursos y estudiantes</p>
+            {% if tipo_usuario == 'profesor' %}
+              <h2 class="mb-1">
+                <i class="fas fa-chalkboard-teacher me-2 text-primary"></i>Mis Cursos {{ anio_actual }}
+              </h2>
+              <p class="text-muted mb-0">Cursos donde impartes clases</p>
+            {% else %}
+              <h2 class="mb-1">
+                <i class="fas fa-school me-2 text-primary"></i>Cursos {{ anio_actual }}
+              </h2>
+              <p class="text-muted mb-0">Sistema de gestión de cursos y estudiantes</p>
+            {% endif %}
           </div>
           {% if puede_editar %}
             <a href="{% url 'agregar_curso' %}" class="btn btn-primary">
@@ -41,7 +48,11 @@
                   <i class="fas fa-graduation-cap fa-2x text-primary me-3"></i>
                   <div>
                     <h4 class="mb-0 text-primary fw-bold">{{ total_cursos }}</h4>
-                    <small class="text-muted">Curso{{ total_cursos|pluralize }}</small>
+                    {% if tipo_usuario == 'profesor' %}
+                      <small class="text-muted">Mis Curso{{ total_cursos|pluralize }}</small>
+                    {% else %}
+                      <small class="text-muted">Curso{{ total_cursos|pluralize }}</small>
+                    {% endif %}
                   </div>
                 </div>
               </div>
@@ -55,7 +66,11 @@
                   <i class="fas fa-users fa-2x text-success me-3"></i>
                   <div>
                     <h4 class="mb-0 text-success fw-bold">{{ total_estudiantes }}</h4>
-                    <small class="text-muted">Estudiante{{ total_estudiantes|pluralize }} totales</small>
+                    {% if tipo_usuario == 'profesor' %}
+                      <small class="text-muted">Mis Estudiante{{ total_estudiantes|pluralize }}</small>
+                    {% else %}
+                      <small class="text-muted">Estudiante{{ total_estudiantes|pluralize }} totales</small>
+                    {% endif %}
                   </div>
                 </div>
               </div>
@@ -66,16 +81,21 @@
             <div class="card border-info">
               <div class="card-body text-center py-3">
                 <div class="d-flex align-items-center justify-content-center">
-                  <i class="fas fa-user-check fa-2x text-info me-3"></i>
+                  <i class="fas fa-book fa-2x text-info me-3"></i>
                   <div>
-                    <h4 class="mb-0 text-info fw-bold">{{ total_estudiantes_asignados }}</h4>
-                    <small class="text-muted">Asignado{{ total_estudiantes_asignados|pluralize }}</small>
+                    <h4 class="mb-0 text-info fw-bold">{{ total_asignaturas_asignadas }}</h4>
+                    {% if tipo_usuario == 'profesor' %}
+                      <small class="text-muted">Mis Asignatura{{ total_asignaturas_asignadas|pluralize }}</small>
+                    {% else %}
+                      <small class="text-muted">Asignatura{{ total_asignaturas_asignadas|pluralize }} asignadas</small>
+                    {% endif %}
                   </div>
                 </div>
               </div>
             </div>
           </div>
           
+          {% if tipo_usuario != 'profesor' %}
           <div class="col-md-3 col-sm-6 mb-3">
             <div class="card border-warning">
               <div class="card-body text-center py-3">
@@ -89,6 +109,21 @@
               </div>
             </div>
           </div>
+          {% else %}
+          <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card border-warning">
+              <div class="card-body text-center py-3">
+                <div class="d-flex align-items-center justify-content-center">
+                  <i class="fas fa-user-tie fa-2x text-warning me-3"></i>
+                  <div>
+                    <h4 class="mb-0 text-warning fw-bold">{{ profesores_jefe_asignados }}</h4>
+                    <small class="text-muted">Con Profesor Jefe</small>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          {% endif %}
         </div>
       </div>
     </div>
@@ -104,8 +139,14 @@
                   <th class="fw-semibold">Curso</th>
                   <th class="fw-semibold">Profesor Jefe</th>
                   <th class="fw-semibold text-center">Estudiantes</th>
-                  <th class="fw-semibold text-center">Asignaturas</th>
-                  {% if puede_editar %}
+                  <th class="fw-semibold text-center">
+                    {% if tipo_usuario == 'profesor' %}
+                      Mis Asignaturas
+                    {% else %}
+                      Asignaturas
+                    {% endif %}
+                  </th>
+                  {% if puede_editar and tipo_usuario != 'profesor' %}
                   <th class="fw-semibold text-center">Acciones</th>
                   {% endif %}
                 </tr>
@@ -144,15 +185,25 @@
                       {% endif %}
                     </td>
                     <td class="text-center">
-                      <span class="badge bg-info">{{ curso.asignaturas.count }}</span>
-                      {% if curso.asignaturas.count > 0 %}
-                        <button type="button" class="btn btn-sm btn-outline-primary ms-1" 
-                                onclick="toggleDetalle('asignaturas-{{ curso.id }}', this)">
-                          <i class="fas fa-eye"></i>
-                        </button>
+                      {% if tipo_usuario == 'profesor' %}
+                        <span class="badge bg-info">{{ curso.asignaturas_profesor.count }}</span>
+                        {% if curso.asignaturas_profesor.count > 0 %}
+                          <button type="button" class="btn btn-sm btn-outline-primary ms-1" 
+                                  onclick="toggleDetalle('asignaturas-{{ curso.id }}', this)">
+                            <i class="fas fa-eye"></i>
+                          </button>
+                        {% endif %}
+                      {% else %}
+                        <span class="badge bg-info">{{ curso.asignaturas.count }}</span>
+                        {% if curso.asignaturas.count > 0 %}
+                          <button type="button" class="btn btn-sm btn-outline-primary ms-1" 
+                                  onclick="toggleDetalle('asignaturas-{{ curso.id }}', this)">
+                            <i class="fas fa-eye"></i>
+                          </button>
+                        {% endif %}
                       {% endif %}
                     </td>
-                    {% if puede_editar %}
+                    {% if puede_editar and tipo_usuario != 'profesor' %}
                     <td class="text-center">
                       <div class="btn-group btn-group-sm">
                         <button type="button" class="btn btn-outline-primary" 
@@ -176,7 +227,7 @@
                   <!-- Detalle de estudiantes -->
                   {% if curso.estudiantes.count > 0 %}
                   <tr id="estudiantes-{{ curso.id }}" class="table-light collapse-row" style="display: none;">
-                    <td colspan="{% if puede_editar %}5{% else %}4{% endif %}">
+                    <td colspan="{% if puede_editar and tipo_usuario != 'profesor' %}5{% else %}4{% endif %}">
                       <div class="p-3">
                         <h6 class="text-primary mb-3">
                           <i class="fas fa-users me-1"></i>Estudiantes ({{ curso.estudiantes.count }})
@@ -196,8 +247,33 @@
                   </tr>
                   {% endif %}
                   
-                  <!-- Detalle de asignaturas -->
-                  {% if curso.asignaturas.count > 0 %}
+                  {% if tipo_usuario == 'profesor' and curso.asignaturas_profesor.count > 0 %}
+                  <tr id="asignaturas-{{ curso.id }}" class="table-light collapse-row" style="display: none;">
+                    <td colspan="4">
+                      <div class="p-3">
+                        <h6 class="text-info mb-3">
+                          <i class="fas fa-book me-1"></i>Mis Asignaturas en este Curso ({{ curso.asignaturas_profesor.count }})
+                        </h6>
+                        <div class="row">
+                          {% for asignatura in curso.asignaturas_profesor %}
+                            <div class="col-md-6 mb-2">
+                              <div class="d-flex justify-content-between align-items-center">
+                                <span class="small">
+                                  <i class="fas fa-book-open text-info me-1"></i>
+                                  <strong>{{ asignatura.nombre }}</strong>
+                                  {% if asignatura.codigo_asignatura %}
+                                    <br><small class="text-muted ms-3">Código: {{ asignatura.codigo_asignatura }}</small>
+                                  {% endif %}
+                                </span>
+                                <span class="badge bg-success ms-2">Responsable</span>
+                              </div>
+                            </div>
+                          {% endfor %}
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                  {% elif tipo_usuario != 'profesor' and curso.asignaturas.count > 0 %}
                   <tr id="asignaturas-{{ curso.id }}" class="table-light collapse-row" style="display: none;">
                     <td colspan="{% if puede_editar %}5{% else %}4{% endif %}">
                       <div class="p-3">
@@ -287,8 +363,8 @@
       </div>
     </div>
 
-    <!-- Sección de estudiantes pendientes (si los hay) -->
-    {% if estudiantes_pendientes and puede_editar %}
+    <!-- Sección de estudiantes pendientes (solo para administradores) -->
+    {% if estudiantes_pendientes and puede_editar and tipo_usuario != 'profesor' %}
     <div class="alert alert-warning mt-4">
       <h6 class="alert-heading">
         <i class="fas fa-exclamation-triangle me-2"></i>Estudiantes Pendientes ({{ total_estudiantes_pendientes }})

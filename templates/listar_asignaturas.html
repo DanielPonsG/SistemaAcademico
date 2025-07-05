@@ -40,6 +40,11 @@
                 {% else %}
                   <p class="text-muted mb-0">Tus asignaturas académicas</p>
                 {% endif %}
+              {% elif tipo_usuario == 'profesor' %}
+                <h2 class="h3 text-dark mb-2">
+                  <i class="fas fa-chalkboard-teacher me-2"></i>Mis Asignaturas
+                </h2>
+                <p class="text-muted mb-0">Asignaturas bajo tu responsabilidad y asignación</p>
               {% else %}
                 <h2 class="h3 text-dark mb-2">
                   <i class="fas fa-book me-2"></i>Gestión de Asignaturas
@@ -108,6 +113,44 @@
                 <h3 class="mb-0 text-dark">---</h3>
                 <p class="mb-0 text-muted">Sin Curso</p>
               {% endif %}
+            </div>
+          </div>
+        </div>
+      {% elif tipo_usuario == 'profesor' %}
+        <!-- Estadísticas para profesores -->
+        <div class="col-md-3">
+          <div class="card border shadow-sm bg-white">
+            <div class="card-body text-center">
+              <i class="fas fa-book fa-2x text-success mb-2"></i>
+              <h3 class="mb-0 text-dark">{{ total_asignaturas|default:0 }}</h3>
+              <p class="mb-0 text-muted">Mis Asignaturas</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="card border shadow-sm bg-white">
+            <div class="card-body text-center">
+              <i class="fas fa-graduation-cap fa-2x text-info mb-2"></i>
+              <h3 class="mb-0 text-dark">{{ total_cursos_profesor|default:0 }}</h3>
+              <p class="mb-0 text-muted">Cursos Asignados</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="card border shadow-sm bg-white">
+            <div class="card-body text-center">
+              <i class="fas fa-users fa-2x text-primary mb-2"></i>
+              <h3 class="mb-0 text-dark">{{ total_estudiantes_profesor|default:0 }}</h3>
+              <p class="mb-0 text-muted">Total Estudiantes</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="card border shadow-sm bg-white">
+            <div class="card-body text-center">
+              <i class="fas fa-star fa-2x text-warning mb-2"></i>
+              <h3 class="mb-0 text-dark">{{ total_asignaturas|default:0 }}</h3>
+              <p class="mb-0 text-muted">Como Responsable</p>
             </div>
           </div>
         </div>
@@ -241,12 +284,47 @@
     </div>
     {% endif %}
 
+    <!-- Resumen para profesores -->
+    {% if tipo_usuario == 'profesor' and asignaturas %}
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="card border shadow-sm bg-gradient-light">
+          <div class="card-body">
+            <div class="row align-items-center">
+              <div class="col-md-8">
+                <h5 class="mb-2 text-success">
+                  <i class="fas fa-clipboard-check me-2"></i>Resumen de mis Responsabilidades
+                </h5>
+                <p class="text-muted mb-1">
+                  Como profesor responsable, tienes <strong>{{ total_asignaturas }} asignatura{{ total_asignaturas|pluralize }}</strong> 
+                  distribuida{{ total_asignaturas|pluralize }} en <strong>{{ total_cursos_profesor }} curso{{ total_cursos_profesor|pluralize }}</strong> 
+                  con un total de <strong>{{ total_estudiantes_profesor }} estudiante{{ total_estudiantes_profesor|pluralize }}</strong>.
+                </p>
+                <small class="text-muted">
+                  <i class="fas fa-info-circle me-1"></i>
+                  Puedes ver los horarios detallados de tus clases en la sección "Mis Horarios"
+                </small>
+              </div>
+              <div class="col-md-4 text-end">
+                <a href="{% url 'mis_horarios' %}" class="btn btn-success">
+                  <i class="fas fa-calendar-alt me-2"></i>Ver Mis Horarios
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
     <!-- Tabla de asignaturas -->
     <div class="card border shadow-sm">
       <div class="card-header bg-light border-bottom">
         <h5 class="mb-0 text-dark">
           {% if tipo_usuario == 'alumno' or tipo_usuario == 'estudiante' %}
             <i class="fas fa-book-open me-2"></i>Mis Asignaturas
+          {% elif tipo_usuario == 'profesor' %}
+            <i class="fas fa-chalkboard-teacher me-2"></i>Mis Asignaturas Asignadas
           {% else %}
             <i class="fas fa-list me-2"></i>Asignaturas Registradas
           {% endif %}
@@ -264,6 +342,12 @@
                     <th><i class="fas fa-user-tie me-1"></i>Profesor Responsable</th>
                     <th><i class="fas fa-info-circle me-1"></i>Descripción</th>
                     <th><i class="fas fa-clipboard-check me-1"></i>Estado</th>
+                  {% elif tipo_usuario == 'profesor' %}
+                    <!-- Vista específica para profesores -->
+                    <th><i class="fas fa-book me-1"></i>Mis Asignaturas</th>
+                    <th><i class="fas fa-school me-1"></i>Cursos Asignados</th>
+                    <th><i class="fas fa-users me-1"></i>Estudiantes</th>
+                    <th><i class="fas fa-info-circle me-1"></i>Descripción</th>
                   {% else %}
                     <!-- Vista completa para administradores -->
                     <th>Código</th>
@@ -365,6 +449,107 @@
                           <br><small class="text-muted mt-1 d-block">Sin profesor</small>
                         {% endif %}
                       </div>
+                    </td>
+                  {% elif tipo_usuario == 'profesor' %}
+                    <!-- Vista específica para profesores -->
+                    <td class="fw-bold text-dark">
+                      <div class="d-flex align-items-center">
+                        <i class="fas fa-book text-success me-3" style="font-size: 1.2em;"></i>
+                        <div>
+                          <h6 class="mb-1 fw-bold">{{ asignatura.nombre }}</h6>
+                          {% if asignatura.codigo_asignatura %}
+                            <small class="text-muted">
+                              <i class="fas fa-tag me-1"></i>
+                              {{ asignatura.codigo_asignatura }}
+                            </small>
+                          {% else %}
+                            <small class="text-muted">Sin código</small>
+                          {% endif %}
+                          <!-- Indicador de responsabilidad -->
+                          {% if asignatura.profesor_responsable == user.profesor %}
+                            <br><span class="badge bg-primary badge-sm">
+                              <i class="fas fa-star me-1"></i>Responsable
+                            </span>
+                          {% endif %}
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      {% with cursos=asignatura.cursos.all %}
+                        {% if cursos %}
+                          <div class="d-flex flex-wrap gap-1">
+                            {% for curso in cursos %}
+                              <span class="badge bg-info me-1 mb-1" title="{{ curso.get_nivel_display }}{{ curso.paralelo }} - {{ curso.anio }}">
+                                <i class="fas fa-graduation-cap me-1"></i>
+                                {{ curso.get_nivel_display }}{{ curso.paralelo }}
+                              </span>
+                            {% endfor %}
+                          </div>
+                          <small class="text-muted">
+                            <i class="fas fa-info-circle me-1"></i>
+                            {{ cursos.count }} curso{{ cursos.count|pluralize }}
+                          </small>
+                        {% else %}
+                          <div class="text-center">
+                            <span class="badge bg-warning text-dark">
+                              <i class="fas fa-exclamation-triangle me-1"></i>
+                              Sin cursos asignados
+                            </span>
+                            <br><small class="text-muted">Contactar coordinación</small>
+                          </div>
+                        {% endif %}
+                      {% endwith %}
+                    </td>
+                    <td>
+                      {% with total_estudiantes=asignatura.get_total_estudiantes %}
+                        {% if total_estudiantes > 0 %}
+                          <div class="text-center">
+                            <div class="bg-info bg-opacity-10 rounded-circle p-2 mx-auto mb-2" style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center;">
+                              <i class="fas fa-users text-info"></i>
+                            </div>
+                            <h6 class="mb-0 fw-bold text-primary">
+                              {{ total_estudiantes }}
+                            </h6>
+                            <small class="text-muted">estudiante{{ total_estudiantes|pluralize }} total</small>
+                            {% comment %}Mostrar desglose por curso{% endcomment %}
+                            {% with estudiantes_por_curso=asignatura.get_estudiantes_por_curso %}
+                              {% if estudiantes_por_curso %}
+                                <div class="mt-2">
+                                  {% for item in estudiantes_por_curso %}
+                                    <small class="d-block text-info">
+                                      {{ item.nombre_curso }}: {{ item.total_estudiantes }}
+                                    </small>
+                                  {% endfor %}
+                                </div>
+                              {% endif %}
+                            {% endwith %}
+                          </div>
+                        {% else %}
+                          <div class="text-center">
+                            <div class="bg-secondary bg-opacity-10 rounded-circle p-2 mx-auto mb-2" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                              <i class="fas fa-minus text-secondary"></i>
+                            </div>
+                            <h6 class="mb-0 text-secondary">0</h6>
+                            <small class="text-muted">Sin estudiantes</small>
+                          </div>
+                        {% endif %}
+                      {% endwith %}
+                    </td>
+                    <td>
+                      {% if asignatura.descripcion %}
+                        <p class="mb-1">{{ asignatura.descripcion|truncatechars:80 }}</p>
+                        {% if asignatura.descripcion|length > 80 %}
+                          <small class="text-primary">
+                            <i class="fas fa-eye me-1"></i>
+                            Ver más...
+                          </small>
+                        {% endif %}
+                      {% else %}
+                        <em class="text-muted">
+                          <i class="fas fa-info-circle me-1"></i>
+                          Sin descripción
+                        </em>
+                      {% endif %}
                     </td>
                   {% else %}
                     <!-- Vista completa para administradores -->
@@ -898,8 +1083,54 @@ if (typeof bootstrap === 'undefined') {
 
 <!-- Estilos mejorados para mejor legibilidad -->
 <style>
+/* Gradiente suave para cards de resumen */
+.bg-gradient-light {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border: 1px solid #dee2e6;
+}
+
+/* Estadísticas mejoradas para profesores */
+.card.border.shadow-sm {
+  transition: all 0.3s ease;
+  border-radius: 12px;
+}
+
+.card.border.shadow-sm:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+}
+
+/* Iconos de estadísticas con efecto */
+.card-body i.fa-2x {
+  transition: all 0.3s ease;
+}
+
+.card:hover .card-body i.fa-2x {
+  transform: scale(1.1);
+}
+
+/* Colores específicos para iconos de profesor */
+.text-success {
+  color: #28a745 !important;
+}
+
+.text-info {
+  color: #17a2b8 !important;
+}
+
+.text-primary {
+  color: #007bff !important;
+}
+
+.text-warning {
+  color: #ffc107 !important;
+}
+
+/* Mejoras para la tabla de profesor */
 .table-hover tbody tr:hover {
   background-color: #f8f9fa;
+  transform: scale(1.01);
+  transition: all 0.2s ease;
 }
 
 .btn-group-sm > .btn {
@@ -910,7 +1141,7 @@ if (typeof bootstrap === 'undefined') {
 
 .card {
   border: 1px solid #e9ecef;
-  border-radius: 8px;
+  border-radius: 12px;
 }
 
 .border {
@@ -929,6 +1160,11 @@ if (typeof bootstrap === 'undefined') {
   font-size: 0.8em;
   padding: 0.5em 0.8em;
   border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.badge:hover {
+  transform: scale(1.05);
 }
 
 .badge.bg-success {
@@ -941,17 +1177,40 @@ if (typeof bootstrap === 'undefined') {
   color: #212529 !important;
 }
 
+.badge.bg-info {
+  background-color: #17a2b8 !important;
+  color: white !important;
+}
+
+.badge.bg-primary {
+  background-color: #007bff !important;
+  color: white !important;
+}
+
 .table th {
   border-bottom: 2px solid #dee2e6;
   background-color: #f8f9fa;
   font-weight: 600;
   color: #495057;
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
 .table td {
   border-bottom: 1px solid #dee2e6;
   vertical-align: middle;
   padding: 1rem 0.75rem;
+}
+
+/* Animaciones para botones */
+.btn {
+  transition: all 0.3s ease;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
 .btn-outline-primary:hover {
@@ -976,16 +1235,86 @@ if (typeof bootstrap === 'undefined') {
   background-color: #f8f9fa;
   border-bottom: 1px solid #dee2e6;
   font-weight: 600;
+  border-radius: 12px 12px 0 0;
 }
 
 .form-control {
   border: 1px solid #ced4da;
-  border-radius: 4px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
 }
 
 .form-control:focus {
   border-color: #80bdff;
   box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+  transform: scale(1.02);
 }
+
+/* Estilos específicos para vista de profesor */
+.profesor-asignatura-card {
+  background: linear-gradient(135deg, #e8f5e8 0%, #f0f8f0 100%);
+  border-left: 4px solid #28a745;
+}
+
+.curso-badge-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.estudiantes-counter {
+  background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  font-weight: bold;
+  color: #1976d2;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+/* Responsive mejorado */
+@media (max-width: 768px) {
+  .card:hover {
+    transform: none;
+  }
+  
+  .table-hover tbody tr:hover {
+    transform: none;
+  }
+  
+  .btn:hover {
+    transform: none;
+  }
+  
+  .form-control:focus {
+    transform: none;
+  }
+}
+
+/* Animaciones de entrada */
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.card {
+  animation: slideInUp 0.6s ease forwards;
+}
+
+/* Efectos de carga escalonados */
+.row .card:nth-child(1) { animation-delay: 0.1s; }
+.row .card:nth-child(2) { animation-delay: 0.2s; }
+.row .card:nth-child(3) { animation-delay: 0.3s; }
+.row .card:nth-child(4) { animation-delay: 0.4s; }
 </style>
 {% endblock %}

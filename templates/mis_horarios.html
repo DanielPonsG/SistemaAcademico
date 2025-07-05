@@ -266,22 +266,175 @@
     
     {% endif %}
     
-    {% else %}
+    {% elif user.perfil.tipo_usuario == 'profesor' %}
     <!-- ################################################## -->
-    <!-- ######### VISTA PARA USUARIOS NO ESTUDIANTES ######### -->
+    <!-- ########## VISTA DETALLADA DE HORARIOS PARA PROFESORES ########## -->
     <!-- ################################################## -->
+    
+    <!-- Header personalizado para profesores -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="bg-white p-4 rounded shadow-sm border">
+          <div class="row align-items-center">
+            <div class="col-md-8">
+              <div class="d-flex align-items-center">
+                <div class="me-3">
+                  <i class="fas fa-chalkboard-teacher fa-3x text-success"></i>
+                </div>
+                <div>
+                  <h1 class="h3 mb-1 text-dark">Mis Horarios de Clases</h1>
+                  <p class="mb-0 text-muted">
+                    <i class="fas fa-user-tie me-2"></i>
+                    Horarios académicos de {{ user.first_name|default:user.username }}
+                    - Profesor
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4 text-end d-none d-md-block">
+              <div class="text-center">
+                <p class="mb-0 h5 text-success" id="currentDateTimeProfesor"></p>
+                <small class="text-muted">Fecha y hora actual</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {% if not asignaturas_profesor %}
+    <!-- Error sin asignaturas asignadas -->
     <div class="row">
       <div class="col-12">
-        <div class="alert alert-info text-center p-5">
-          <i class="fas fa-info-circle fa-4x text-info mb-3"></i>
-          <h4>Vista exclusiva para estudiantes</h4>
-          <p class="mb-3">Esta página está diseñada específicamente para que los estudiantes vean sus horarios de clase.</p>
+        <div class="alert alert-warning text-center p-5">
+          <i class="fas fa-exclamation-triangle fa-4x text-warning mb-3"></i>
+          <h4>No hay asignaturas asignadas</h4>
+          <p class="mb-3">No tienes asignaturas asignadas en este momento.</p>
           <a href="{% url 'inicio' %}" class="btn btn-primary">
             <i class="fas fa-home me-2"></i>Volver al Panel Principal
           </a>
         </div>
       </div>
     </div>
+    {% else %}
+
+    <!-- Estadísticas y resumen para profesores -->
+    <div class="row mb-4">
+      <div class="col-md-6">
+        <div class="bg-white p-4 rounded shadow-sm">
+          <h5 class="mb-3 text-success">
+            <i class="fas fa-chart-line me-2"></i>Resumen Académico
+          </h5>
+          <div class="row text-center">
+            <div class="col-6">
+              <div class="p-3 bg-gradient-success text-white rounded">
+                <i class="fas fa-book fa-2x mb-2"></i>
+                <h4 class="mb-0">{{ total_asignaturas }}</h4>
+                <small>Asignatura{{ total_asignaturas|pluralize }}</small>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="p-3 bg-gradient-info text-white rounded">
+                <i class="fas fa-clock fa-2x mb-2"></i>
+                <h4 class="mb-0">{{ total_horas_semanales }}</h4>
+                <small>Hora{{ total_horas_semanales|pluralize }} semanales</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-md-6">
+        <div class="bg-white p-4 rounded shadow-sm">
+          <h5 class="mb-3 text-success">
+            <i class="fas fa-graduation-cap me-2"></i>Mis Asignaturas
+          </h5>
+          <div class="asignaturas-stats">
+            {% for asignatura in asignaturas_profesor %}
+            <div class="info-item d-flex justify-content-between align-items-center">
+              <div>
+                <strong>{{ asignatura.nombre }}</strong>
+                {% if asignatura.curso_set.all %}
+                  {% for curso in asignatura.curso_set.all %}
+                    <br><small class="text-muted">{{ curso.nombre }}</small>
+                  {% endfor %}
+                {% endif %}
+              </div>
+              <span class="badge bg-success rounded-pill">
+                {{ asignatura.horarios.count }} clase{{ asignatura.horarios.count|pluralize }}
+              </span>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabla de horarios para profesores -->
+    <div class="row">
+      <div class="col-12">
+        <div class="bg-white p-4 rounded shadow-sm">
+          <h5 class="mb-4 text-success">
+            <i class="fas fa-calendar-week me-2"></i>Horario Semanal de Clases
+          </h5>
+          
+          {% if horario_semanal_matriz %}
+          <div class="table-responsive">
+            <table class="table tabla-horarios-detallada">
+              <thead>
+                <tr>
+                  <th class="hora-columna text-center">
+                    <i class="fas fa-clock me-1"></i>Horario
+                  </th>
+                  {% for dia in dias_semana %}
+                  <th class="dia-columna dia-header">
+                    <div class="dia-nombre">{{ dia|upper }}</div>
+                  </th>
+                  {% endfor %}
+                </tr>
+              </thead>
+              <tbody>
+                {% for fila in horario_semanal_matriz %}
+                <tr>
+                  <td class="hora-columna text-center fw-bold">
+                    <div class="hora-bloque">
+                      <div>{{ fila.hora_inicio|time:"H:i" }}</div>
+                      <small class="text-muted">{{ fila.hora_fin|time:"H:i" }}</small>
+                    </div>
+                  </td>
+                  {% for dia in dias_semana %}
+                  <td class="horario-cell text-center">
+                    {% for clase_dia, clase_obj in fila.clases.items %}
+                      {% if clase_dia == dia and clase_obj %}
+                      <div class="clase-bloque-profesor">
+                        <div class="asignatura-nombre">{{ clase_obj.asignatura.nombre }}</div>
+                        <div class="curso-nombre">{{ clase_obj.curso.nombre }}</div>
+                      </div>
+                      {% elif clase_dia == dia %}
+                      <div class="clase-vacia">
+                        <i class="fas fa-minus text-muted"></i>
+                      </div>
+                      {% endif %}
+                    {% endfor %}
+                  </td>
+                  {% endfor %}
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <div class="text-center py-5">
+            <i class="fas fa-calendar-times fa-4x text-muted mb-3"></i>
+            <h5 class="text-muted">No hay horarios disponibles</h5>
+            <p class="text-muted">No se encontraron horarios para tus asignaturas asignadas.</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    
+    {% endif %}
     {% endif %}
   </div>
 </div>
@@ -459,6 +612,69 @@
   box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
+/* Estilos específicos para profesores */
+.bg-gradient-success {
+  background: linear-gradient(135deg, #28a745, #1e7e34) !important;
+}
+
+.clase-bloque-profesor {
+  background: linear-gradient(135deg, #28a745, #1e7e34);
+  color: white;
+  border-radius: 8px;
+  padding: 8px;
+  margin: 2px;
+  font-size: 0.75rem;
+  line-height: 1.2;
+  border: 1px solid rgba(255,255,255,0.2);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  transition: all 0.3s ease;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+}
+
+.clase-bloque-profesor:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.25);
+}
+
+.curso-nombre {
+  font-size: 0.65rem;
+  opacity: 0.9;
+  margin-top: 0.25rem;
+  font-weight: 500;
+}
+
+.clase-bloque-profesor.ejemplo {
+  font-size: 0.6rem;
+  padding: 2px;
+}
+
+/* Responsive para vista de profesor */
+@media (max-width: 768px) {
+  .clase-bloque-profesor {
+    padding: 4px;
+    font-size: 0.65rem;
+  }
+  
+  .curso-nombre {
+    font-size: 0.6rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .clase-bloque-profesor {
+    padding: 2px;
+    font-size: 0.6rem;
+  }
+  
+  .curso-nombre {
+    display: none; /* Ocultar en pantallas muy pequeñas */
+  }
+}
+
 /* Animaciones de entrada */
 @keyframes slideInUp {
   from {
@@ -545,8 +761,12 @@ document.addEventListener('DOMContentLoaded', function() {
             minute: '2-digit'
         };
         const dateTimeElement = document.getElementById('currentDateTime');
+        const dateTimeElementProfesor = document.getElementById('currentDateTimeProfesor');
         if (dateTimeElement) {
             dateTimeElement.textContent = now.toLocaleDateString('es-ES', options);
+        }
+        if (dateTimeElementProfesor) {
+            dateTimeElementProfesor.textContent = now.toLocaleDateString('es-ES', options);
         }
     }
     

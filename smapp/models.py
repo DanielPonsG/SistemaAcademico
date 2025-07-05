@@ -244,6 +244,23 @@ class Asignatura(models.Model):
     def tiene_profesor(self):
         """Retorna True si la asignatura tiene al menos un profesor asignado"""
         return self.profesor_responsable is not None
+    
+    def get_total_estudiantes(self):
+        """Retorna el número total de estudiantes en todos los cursos de esta asignatura"""
+        total = 0
+        for curso in self.cursos.all():
+            total += curso.estudiantes.count()
+        return total
+    
+    def get_estudiantes_por_curso(self):
+        """Retorna una lista de diccionarios con el conteo de estudiantes por curso"""
+        resultado = []
+        for curso in self.cursos.all():
+            resultado.append({
+                'nombre_curso': f"{curso.get_nivel_display()}{curso.paralelo}",
+                'total_estudiantes': curso.estudiantes.count()
+            })
+        return resultado
 
 class Salon(models.Model):
     """
@@ -483,7 +500,7 @@ class Anotacion(models.Model):
         'neutra': 0,
     }
     
-    estudiante = models.ForeignKey(Estudiante, on_delete=models.CASCADE, related_name='anotaciones')
+    estudiante = models.ForeignKey(Estudiante, on_delete=models.CASCADE, related_name='anotaciones', null=True, blank=True)
     curso = models.ForeignKey(Curso, on_delete=models.CASCADE, related_name='anotaciones')
     asignatura = models.ForeignKey(Asignatura, on_delete=models.SET_NULL, null=True, blank=True, related_name='anotaciones')
     profesor_autor = models.ForeignKey(Profesor, on_delete=models.CASCADE, related_name='anotaciones_creadas')
@@ -525,7 +542,10 @@ class Anotacion(models.Model):
         super().save(*args, **kwargs)
     
     def __str__(self):
-        return f"{self.estudiante.get_nombre_completo()} - {self.get_tipo_display()}: {self.titulo}"
+        if self.estudiante:
+            return f"{self.estudiante.get_nombre_completo()} - {self.get_tipo_display()}: {self.titulo}"
+        else:
+            return f"{self.curso} (General) - {self.get_tipo_display()}: {self.titulo}"
     
     @property
     def color_tipo(self):

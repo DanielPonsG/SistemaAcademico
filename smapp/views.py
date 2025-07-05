@@ -1015,7 +1015,7 @@ def agregar_evento(request):
 # Funciones adicionales requeridas por urls.py
 @login_required
 def mis_horarios(request):
-    """Vista para mostrar horarios detallados del curso del estudiante"""
+    """Vista para mostrar horarios detallados del curso del estudiante o horarios del profesor"""
     from django.utils import timezone
     from collections import defaultdict
     
@@ -1023,8 +1023,17 @@ def mis_horarios(request):
         'user': request.user,
     }
     
-    # Verificar que el usuario sea estudiante
-    if hasattr(request.user, 'perfil') and request.user.perfil.tipo_usuario == 'alumno':
+    # Determinar tipo de usuario
+    user_type = 'otro'
+    if hasattr(request.user, 'perfil'):
+        user_type = request.user.perfil.tipo_usuario
+    elif hasattr(request.user, 'profesor'):
+        user_type = 'profesor'
+    elif hasattr(request.user, 'estudiante'):
+        user_type = 'alumno'
+    
+    # VISTA PARA ESTUDIANTES
+    if user_type == 'alumno':
         try:
             estudiante = request.user.estudiante
             anio_actual = timezone.now().year
@@ -1040,80 +1049,11 @@ def mis_horarios(request):
                 # Obtener horarios del curso
                 horarios_curso = HorarioCurso.objects.filter(curso=curso_actual).order_by('dia', 'hora_inicio')
                 
-                # Organizar horarios por día y hora
-                DIAS_SEMANA = ['LU', 'MA', 'MI', 'JU', 'VI']
-                DIAS_NOMBRES = {
-                    'LU': 'Lunes',
-                    'MA': 'Martes', 
-                    'MI': 'Miércoles',
-                    'JU': 'Jueves',
-                    'VI': 'Viernes'
-                }
+                # Organizar horarios y crear matriz
+                horario_semanal_matriz, dias_semana, total_clases_semana, clases_por_asignatura = organizar_horarios_matriz(horarios_curso)
                 
-                # Crear estructura de horarios por día y bloque horario
-                horarios_organizados = defaultdict(list)
-                bloques_horarios = set()
-                
-                for horario in horarios_curso:
-                    horarios_organizados[horario.dia].append(horario)
-                    bloques_horarios.add((horario.hora_inicio, horario.hora_fin))
-                
-                # Ordenar bloques horarios
-                bloques_horarios = sorted(list(bloques_horarios))
-                
-                # Crear matriz de horarios para la tabla
-                horario_semanal_matriz = []
-                for hora_inicio, hora_fin in bloques_horarios:
-                    fila = {
-                        'hora_inicio': hora_inicio,
-                        'hora_fin': hora_fin,
-                        'clases': {}
-                    }
-                    
-                    for dia in DIAS_SEMANA:
-                        # Buscar clase en este día y hora
-                        clase = None
-                        for horario in horarios_organizados[dia]:
-                            if horario.hora_inicio == hora_inicio and horario.hora_fin == hora_fin:
-                                clase = horario
-                                break
-                        fila['clases'][dia] = clase
-                    
-                    horario_semanal_matriz.append(fila)
-                
-                # Obtener estadísticas del horario
-                total_clases_semana = sum(len(clases) for clases in horarios_organizados.values())
+                # Estadísticas del curso
                 asignaturas_curso = curso_actual.asignaturas.all()
-                
-                # Contar clases por asignatura
-                clases_por_asignatura = defaultdict(int)
-                for horario in horarios_curso:
-                    if horario.asignatura:
-                        clases_por_asignatura[horario.asignatura] += 1
-                
-                # Próximas clases (siguientes 3 días)
-                from datetime import datetime, timedelta
-                hoy = datetime.now().date()
-                proximos_horarios = []
-                
-                for i in range(7):  # Buscar en los próximos 7 días
-                    fecha = hoy + timedelta(days=i)
-                    dia_semana_map = {
-                        0: 'LU', 1: 'MA', 2: 'MI', 3: 'JU', 4: 'VI', 5: 'SA', 6: 'DO'
-                    }
-                    dia_codigo = dia_semana_map.get(fecha.weekday())
-                    
-                    if dia_codigo in DIAS_SEMANA:  # Solo días de clases
-                        clases_del_dia = horarios_organizados.get(dia_codigo, [])
-                        if clases_del_dia:
-                            proximos_horarios.append({
-                                'fecha': fecha,
-                                'dia_nombre': DIAS_NOMBRES[dia_codigo],
-                                'clases': sorted(clases_del_dia, key=lambda x: x.hora_inicio)
-                            })
-                            
-                            if len(proximos_horarios) >= 3:  # Solo los próximos 3 días con clases
-                                break
                 
                 context.update({
                     'estudiante': estudiante,
@@ -1121,13 +1061,10 @@ def mis_horarios(request):
                     'es_alumno': True,
                     'horarios_curso': horarios_curso,
                     'horario_semanal_matriz': horario_semanal_matriz,
-                    'dias_semana': DIAS_SEMANA,
-                    'dias_nombres': DIAS_NOMBRES,
+                    'dias_semana': dias_semana,
                     'total_clases_semana': total_clases_semana,
                     'asignaturas_curso': asignaturas_curso,
                     'clases_por_asignatura': dict(clases_por_asignatura),
-                    'proximos_horarios': proximos_horarios,
-                    'bloques_horarios': bloques_horarios,
                 })
                 
             else:
@@ -1136,13 +1073,118 @@ def mis_horarios(request):
         except Exception as e:
             context['error_horarios'] = f"Error al cargar horarios: {str(e)}"
             import traceback
-            print(f"Error en mis_horarios: {traceback.format_exc()}")
+            print(f"Error en mis_horarios (estudiante): {traceback.format_exc()}")
+    
+    # VISTA PARA PROFESORES
+    elif user_type == 'profesor':
+        try:
+            profesor = request.user.profesor
+            anio_actual = timezone.now().year
+            
+            # Obtener asignaturas del profesor (solo como responsable)
+            asignaturas_profesor = Asignatura.objects.filter(
+                profesor_responsable=profesor
+            ).prefetch_related('cursos')
+            
+            if asignaturas_profesor.exists():
+                # Obtener horarios de las asignaturas del profesor
+                horarios_profesor = HorarioCurso.objects.filter(
+                    asignatura__in=asignaturas_profesor,
+                    curso__anio=anio_actual
+                ).select_related('curso', 'asignatura').order_by('dia', 'hora_inicio')
+                
+                # Organizar horarios y crear matriz
+                horario_semanal_matriz, dias_semana, total_clases_semana, clases_por_asignatura = organizar_horarios_matriz(horarios_profesor)
+                
+                # Obtener cursos donde enseña
+                cursos_profesor = Curso.objects.filter(
+                    horarios__asignatura__in=asignaturas_profesor,
+                    anio=anio_actual
+                ).distinct()
+                
+                # Estadísticas del profesor
+                total_estudiantes = sum(curso.estudiantes.count() for curso in cursos_profesor)
+                total_asignaturas = asignaturas_profesor.count()
+                total_horas_semanales = total_clases_semana
+                
+                context.update({
+                    'profesor': profesor,
+                    'es_profesor': True,
+                    'asignaturas_profesor': asignaturas_profesor,
+                    'horarios_profesor': horarios_profesor,
+                    'horario_semanal_matriz': horario_semanal_matriz,
+                    'horarios_matriz': horario_semanal_matriz,  # Alias para compatibilidad con template
+                    'dias_semana': dias_semana,
+                    'total_clases_semana': total_clases_semana,
+                    'clases_por_asignatura': dict(clases_por_asignatura),
+                    'cursos_profesor': cursos_profesor,
+                    'total_estudiantes': total_estudiantes,
+                    'total_cursos': cursos_profesor.count(),
+                    'total_asignaturas': total_asignaturas,
+                    'total_horas_semanales': total_horas_semanales,
+                })
+                
+            else:
+                context['error_profesor'] = "No tienes asignaturas asignadas actualmente."
+                
+        except Exception as e:
+            context['error_horarios'] = f"Error al cargar horarios del profesor: {str(e)}"
+            import traceback
+            print(f"Error en mis_horarios (profesor): {traceback.format_exc()}")
     
     else:
         # Para otros tipos de usuario, mostrar mensaje informativo
         context['no_es_alumno'] = True
     
     return render(request, 'mis_horarios.html', context)
+
+def organizar_horarios_matriz(horarios_queryset):
+    """Función auxiliar para organizar horarios en matriz para la tabla"""
+    from collections import defaultdict
+    
+    DIAS_SEMANA = ['LU', 'MA', 'MI', 'JU', 'VI']
+    
+    # Organizar horarios por día
+    horarios_organizados = defaultdict(list)
+    bloques_horarios = set()
+    
+    for horario in horarios_queryset:
+        horarios_organizados[horario.dia].append(horario)
+        bloques_horarios.add((horario.hora_inicio, horario.hora_fin))
+    
+    # Ordenar bloques horarios
+    bloques_horarios = sorted(list(bloques_horarios))
+    
+    # Crear matriz de horarios para la tabla
+    horario_semanal_matriz = []
+    for hora_inicio, hora_fin in bloques_horarios:
+        fila = {
+            'hora_inicio': hora_inicio,
+            'hora_fin': hora_fin,
+            'clases': {}
+        }
+        
+        for dia in DIAS_SEMANA:
+            # Buscar clase en este día y hora
+            clase = None
+            for horario in horarios_organizados[dia]:
+                if horario.hora_inicio == hora_inicio and horario.hora_fin == hora_fin:
+                    clase = horario
+                    break
+            fila['clases'][dia] = clase
+        
+        horario_semanal_matriz.append(fila)
+    
+    # Estadísticas
+    total_clases_semana = sum(len(clases) for clases in horarios_organizados.values())
+    
+    # Contar clases por asignatura
+    clases_por_asignatura = defaultdict(int)
+    for horario in horarios_queryset:
+        if horario.asignatura:
+            clases_por_asignatura[horario.asignatura] += 1
+    
+    return horario_semanal_matriz, DIAS_SEMANA, total_clases_semana, clases_por_asignatura
 
 @login_required  
 def mi_curso(request):
@@ -1214,7 +1256,18 @@ def listar_cursos(request):
     from django.contrib import messages
     from django.utils import timezone
     
-    # Manejar la asignación de estudiantes pendientes
+    # Determinar tipo de usuario
+    user_type = 'otro'
+    if request.user.is_superuser:
+        user_type = 'administrador'
+    elif hasattr(request.user, 'perfil'):
+        user_type = request.user.perfil.tipo_usuario
+    elif hasattr(request.user, 'profesor'):
+        user_type = 'profesor'
+    elif hasattr(request.user, 'estudiante'):
+        user_type = 'estudiante'
+    
+    # Manejar la asignación de estudiantes pendientes (solo para administradores)
     if request.method == 'POST' and 'asignar_estudiante' in request.POST:
         # Verificar permisos
         if not (hasattr(request.user, 'perfil') and 
@@ -1237,34 +1290,85 @@ def listar_cursos(request):
                 for error in form_asignar.errors.values():
                     messages.error(request, error[0])
     
-    # Obtener datos de cursos
-    cursos_queryset = Curso.objects.filter(anio=timezone.now().year)
-    total_cursos = cursos_queryset.count()
+    # Obtener datos de cursos según tipo de usuario
+    if user_type == 'profesor':
+        # Para profesores: solo cursos donde tiene asignaturas asignadas
+        try:
+            profesor = request.user.profesor
+            
+            # Obtener asignaturas del profesor
+            asignaturas_profesor = Asignatura.objects.filter(
+                profesor_responsable=profesor
+            )
+            
+            # Obtener cursos donde tiene asignaturas asignadas
+            cursos_queryset = Curso.objects.filter(
+                anio=timezone.now().year,
+                asignaturas__in=asignaturas_profesor
+            ).distinct().prefetch_related('estudiantes', 'asignaturas')
+            
+            # Filtrar solo las asignaturas del profesor para cada curso
+            cursos_con_asignaturas_profesor = []
+            for curso in cursos_queryset:
+                # Solo asignaturas del profesor en este curso
+                asignaturas_curso_profesor = curso.asignaturas.filter(
+                    profesor_responsable=profesor
+                )
+                # Agregar las asignaturas filtradas al curso
+                curso.asignaturas_profesor = asignaturas_curso_profesor
+                cursos_con_asignaturas_profesor.append(curso)
+            
+            cursos = sorted(cursos_con_asignaturas_profesor, key=lambda c: (c.orden_nivel, c.paralelo))
+            
+        except Exception as e:
+            cursos_queryset = Curso.objects.none()
+            cursos = []
+    else:
+        # Para administradores y otros: todos los cursos
+        cursos_queryset = Curso.objects.filter(anio=timezone.now().year)
+        # Ordenar correctamente: básica antes que media
+        cursos = sorted(cursos_queryset, key=lambda c: (c.orden_nivel, c.paralelo))
     
-    # Ordenar correctamente: básica antes que media
-    cursos = sorted(cursos_queryset, key=lambda c: (c.orden_nivel, c.paralelo))
+    total_cursos = len(cursos)
     
-    # Calcular estadísticas
-    total_estudiantes = Estudiante.objects.count()  # Total de estudiantes en el sistema
-    total_estudiantes_asignados = sum(curso.estudiantes.count() for curso in cursos)
-    profesores_jefe_asignados = len([curso for curso in cursos if curso.profesor_jefe])
-    total_asignaturas_asignadas = sum(curso.asignaturas.count() for curso in cursos)
+    # Calcular estadísticas según tipo de usuario
+    if user_type == 'profesor':
+        # Estadísticas específicas para el profesor
+        total_estudiantes = sum(curso.estudiantes.count() for curso in cursos)
+        total_estudiantes_asignados = total_estudiantes  # Para profesores son los mismos
+        total_asignaturas_profesor = sum(len(getattr(curso, 'asignaturas_profesor', [])) for curso in cursos)
+        
+        # Variables específicas para profesores
+        estudiantes_pendientes = []  # Los profesores no ven estudiantes pendientes
+        total_estudiantes_pendientes = 0
+        total_asignaturas_asignadas = total_asignaturas_profesor
+        total_asignaturas_disponibles = total_asignaturas_profesor
+        profesores_jefe_asignados = len([curso for curso in cursos if curso.profesor_jefe])
+        
+    else:
+        # Estadísticas para administradores
+        total_estudiantes = Estudiante.objects.count()  # Total de estudiantes en el sistema
+        total_estudiantes_asignados = sum(curso.estudiantes.count() for curso in cursos)
+        profesores_jefe_asignados = len([curso for curso in cursos if curso.profesor_jefe])
+        total_asignaturas_asignadas = sum(curso.asignaturas.count() for curso in cursos)
+        
+        # Obtener total de asignaturas disponibles en el sistema
+        total_asignaturas_disponibles = Asignatura.objects.count()
+        
+        # Obtener estudiantes pendientes (no asignados a ningún curso del año actual)
+        estudiantes_asignados_ids = set()
+        for curso in cursos_queryset:
+            estudiantes_curso = list(curso.estudiantes.values_list('id', flat=True))
+            estudiantes_asignados_ids.update(estudiantes_curso)
+        
+        estudiantes_pendientes = Estudiante.objects.exclude(
+            id__in=estudiantes_asignados_ids
+        ).order_by('primer_nombre', 'apellido_paterno')
+        
+        total_estudiantes_pendientes = estudiantes_pendientes.count()
     
-    # Obtener total de asignaturas disponibles en el sistema
-    total_asignaturas_disponibles = Asignatura.objects.count()
-    
-    # Obtener estudiantes pendientes (no asignados a ningún curso del año actual)
-    estudiantes_asignados_ids = set()
-    for curso in cursos_queryset:
-        estudiantes_curso = list(curso.estudiantes.values_list('id', flat=True))
-        estudiantes_asignados_ids.update(estudiantes_curso)
-    
-    estudiantes_pendientes = Estudiante.objects.exclude(
-        id__in=estudiantes_asignados_ids
-    ).order_by('primer_nombre', 'apellido_paterno')
-    
-    # Crear formulario para asignar estudiantes pendientes
-    form_asignar = AsignarEstudianteForm()
+    # Crear formulario para asignar estudiantes pendientes (solo para administradores)
+    form_asignar = AsignarEstudianteForm() if user_type != 'profesor' else None
     
     # Verificar permisos del usuario
     puede_editar = (hasattr(request.user, 'perfil') and 
@@ -1272,6 +1376,7 @@ def listar_cursos(request):
     
     context = {
         'cursos': cursos,
+        'tipo_usuario': user_type,
         'total_cursos': total_cursos,
         'total_estudiantes': total_estudiantes,
         'total_estudiantes_asignados': total_estudiantes_asignados,
@@ -1279,7 +1384,7 @@ def listar_cursos(request):
         'total_asignaturas_asignadas': total_asignaturas_asignadas,
         'total_asignaturas_disponibles': total_asignaturas_disponibles,
         'estudiantes_pendientes': estudiantes_pendientes,
-        'total_estudiantes_pendientes': estudiantes_pendientes.count(),
+        'total_estudiantes_pendientes': total_estudiantes_pendientes,
         'form_asignar': form_asignar,
         'puede_editar': puede_editar,
         'anio_actual': timezone.now().year,
@@ -1445,12 +1550,50 @@ def listar_asignaturas(request):
                 'error_estudiante': f'Error al cargar información del estudiante: {str(e)}'
             }
     elif user_type == 'profesor':
-        # Profesores ven sus asignaturas asignadas
+        # Asignaturas del profesor logueado
         try:
             profesor = request.user.profesor
-            asignaturas = profesor.asignaturas.all()
-        except:
+            
+            # Solo asignaturas donde es responsable (profesor_responsable)
+            asignaturas = Asignatura.objects.filter(
+                profesor_responsable=profesor
+            ).select_related('profesor_responsable').prefetch_related(
+                'cursos__estudiantes'
+            ).order_by('nombre')
+            
+            # Estadísticas específicas para el profesor
+            total_asignaturas = asignaturas.count()
+            asignaturas_como_responsable = total_asignaturas  # Todas las que ve son de su responsabilidad
+            
+            # Calcular total de cursos y estudiantes para este profesor
+            total_cursos_profesor = 0
+            total_estudiantes_profesor = 0
+            cursos_unicos = set()
+            
+            for asignatura in asignaturas:
+                cursos_asignatura = asignatura.cursos.all()
+                for curso in cursos_asignatura:
+                    if curso.id not in cursos_unicos:
+                        cursos_unicos.add(curso.id)
+                        # Solo contar estudiantes una vez por curso
+                        total_estudiantes_profesor += curso.estudiantes.count()
+            
+            total_cursos_profesor = len(cursos_unicos)
+            
+            # Variables para el contexto del profesor
+            asignaturas_con_profesor = total_asignaturas  # Todas las suyas tienen profesor (él mismo)
+            asignaturas_sin_profesor_count = 0
+            
+        except Exception as e:
+            print(f"ERROR en cálculo de profesor: {e}")
             asignaturas = Asignatura.objects.none()
+            total_asignaturas = 0
+            asignaturas_con_profesor = 0
+            asignaturas_sin_profesor_count = 0
+            total_cursos_profesor = 0
+            total_estudiantes_profesor = 0
+            asignaturas_como_responsable = 0
+            
         cursos_alumno_ids = []
     else:
         # Administradores y directores ven todas las asignaturas con información de cursos
@@ -1482,12 +1625,21 @@ def listar_asignaturas(request):
     
     # Estadísticas mejoradas para administradores/directores
     estadisticas = {}
-    total_asignaturas = 0
-    asignaturas_con_profesor = 0
-    asignaturas_sin_profesor_count = 0
-    asignaturas_sin_profesor = []
-    asignaturas_con_cursos = 0
-    asignaturas_sin_cursos = 0
+    # Inicializar variables solo si no son profesores
+    if user_type != 'profesor':
+        total_asignaturas = 0
+        asignaturas_con_profesor = 0
+        asignaturas_sin_profesor_count = 0
+        asignaturas_sin_profesor = []
+        asignaturas_con_cursos = 0
+        asignaturas_sin_cursos = 0
+        total_cursos_profesor = 0
+        total_estudiantes_profesor = 0
+    else:
+        # Para profesores, mantener las variables ya calculadas
+        asignaturas_sin_profesor = []
+        asignaturas_con_cursos = 0
+        asignaturas_sin_cursos = 0
     
     if user_type in ['administrador', 'director']:
         from django.db.models import Count
@@ -1554,9 +1706,13 @@ def listar_asignaturas(request):
         'total_asignaturas': total_asignaturas,
         'asignaturas_con_profesor': asignaturas_con_profesor,
         'asignaturas_sin_profesor_count': asignaturas_sin_profesor_count,
-        'asignaturas_sin_profesor': asignaturas_sin_profesor,
-        'asignaturas_con_cursos': asignaturas_con_cursos,
-        'asignaturas_sin_cursos': asignaturas_sin_cursos,
+        'asignaturas_sin_profesor': asignaturas_sin_profesor if user_type in ['administrador', 'director'] else [],
+        'asignaturas_con_cursos': asignaturas_con_cursos if user_type in ['administrador', 'director'] else 0,
+        'asignaturas_sin_cursos': asignaturas_sin_cursos if user_type in ['administrador', 'director'] else 0,
+        # Variables específicas para profesores
+        'total_cursos_profesor': total_cursos_profesor if user_type == 'profesor' else 0,
+        'total_estudiantes_profesor': total_estudiantes_profesor if user_type == 'profesor' else 0,
+        'asignaturas_como_responsable': asignaturas_como_responsable if user_type == 'profesor' else 0,
     }
     
     # Agregar contexto específico para estudiantes
@@ -3730,7 +3886,12 @@ def libro_anotaciones(request):
                 for curso in cursos_disponibles:
                     estudiantes_ids.update(curso.estudiantes.values_list('id', flat=True))
                 
-                anotaciones_base = Anotacion.objects.filter(estudiante_id__in=estudiantes_ids)
+                # Incluir anotaciones de estudiantes Y anotaciones generales de los cursos
+                cursos_ids = list(cursos_disponibles.values_list('id', flat=True))
+                anotaciones_base = Anotacion.objects.filter(
+                    Q(estudiante_id__in=estudiantes_ids) |  # Anotaciones de estudiantes
+                    Q(estudiante__isnull=True, curso_id__in=cursos_ids)  # Anotaciones generales del curso
+                )
                 puede_crear = True
             except:
                 messages.error(request, 'Error al obtener información del profesor.')
@@ -3877,10 +4038,16 @@ def crear_anotacion(request):
             
             anotacion.save()
             
-            messages.success(
-                request, 
-                f'Anotación {anotacion.get_tipo_display().lower()} creada para {anotacion.estudiante.get_nombre_completo()}'
-            )
+            if anotacion.estudiante:
+                messages.success(
+                    request, 
+                    f'Anotación {anotacion.get_tipo_display().lower()} creada para {anotacion.estudiante.get_nombre_completo()}'
+                )
+            else:
+                messages.success(
+                    request, 
+                    f'Anotación {anotacion.get_tipo_display().lower()} general creada para el curso {anotacion.curso}'
+                )
             return redirect('libro_anotaciones')
         else:
             messages.error(request, 'Por favor corrige los errores en el formulario.')

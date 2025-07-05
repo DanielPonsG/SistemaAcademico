@@ -79,7 +79,7 @@
                       No se puede cambiar el estudiante al editar una anotación
                     </div>
                   {% else %}
-                    <div class="form-text">Los estudiantes se cargarán automáticamente</div>
+                    <div class="form-text">Opcional: Deja en blanco para anotación general del curso</div>
                   {% endif %}
                 </div>
               </div>
@@ -275,74 +275,75 @@
 document.addEventListener('DOMContentLoaded', function() {
     const cursoSelect = document.querySelector('select[name="curso"]');
     const estudianteSelect = document.querySelector('select[name="estudiante"]');
+    const asignaturaSelect = document.querySelector('select[name="asignatura"]');
     const tipoSelect = document.querySelector('select[name="tipo"]');
     const puntosInput = document.querySelector('input[name="puntos"]');
     const esGraveCheck = document.querySelector('input[name="es_grave"]');
     
-    // Cargar estudiantes cuando cambia el curso
-    if (cursoSelect && estudianteSelect) {
-        cursoSelect.addEventListener('change', function() {
-            const cursoId = this.value;
-            
-            // Limpiar select de estudiantes
-            estudianteSelect.innerHTML = '<option value="">Seleccionar estudiante...</option>';
-            
-            if (cursoId) {
-                // Mostrar indicador de carga
-                estudianteSelect.innerHTML = '<option value="">Cargando estudiantes...</option>';
-                estudianteSelect.disabled = true;
-                
-                console.log('Cargando estudiantes para curso:', cursoId); // Debug
-                
-                fetch(`/ajax/obtener-estudiantes-curso/?curso_id=${cursoId}`)
-                    .then(response => {
-                        console.log('Respuesta recibida:', response.status); // Debug
-                        if (!response.ok) {
-                            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        console.log('Datos recibidos:', data); // Debug
-                        estudianteSelect.innerHTML = '<option value="">Seleccionar estudiante...</option>';
-                        
-                        if (data.estudiantes && data.estudiantes.length > 0) {
-                            data.estudiantes.forEach(estudiante => {
-                                const option = document.createElement('option');
-                                option.value = estudiante.id;
-                                option.textContent = `${estudiante.nombre} (${estudiante.rut})`;
-                                estudianteSelect.appendChild(option);
-                            });
-                            console.log(`${data.estudiantes.length} estudiantes cargados`); // Debug
-                        } else {
-                            estudianteSelect.innerHTML = '<option value="">No hay estudiantes en este curso</option>';
-                            console.log('No hay estudiantes en el curso'); // Debug
-                        }
-                        
-                        estudianteSelect.disabled = false;
-                    })
-                    .catch(error => {
-                        console.error('Error al cargar estudiantes:', error);
-                        estudianteSelect.innerHTML = '<option value="">Error al cargar estudiantes</option>';
-                        estudianteSelect.disabled = false;
-                        
-                        // Mostrar alerta al usuario
-                        alert(`Error al cargar estudiantes: ${error.message}`);
-                    });
-            } else {
-                estudianteSelect.disabled = false;
+    // Función para cargar estudiantes según el curso seleccionado
+    function cargarEstudiantes() {
+        if (!cursoSelect || !estudianteSelect) return;
+        
+        const cursoId = cursoSelect.value;
+        
+        if (!cursoId) {
+            // Limpiar opciones de estudiante y asignatura
+            estudianteSelect.innerHTML = '<option value="">-- Anotación general del curso --</option>';
+            if (asignaturaSelect) {
+                asignaturaSelect.innerHTML = '<option value="">---------</option>';
             }
-        });
+            return;
+        }
+        
+        // Mostrar indicador de carga
+        estudianteSelect.innerHTML = '<option value="">Cargando estudiantes...</option>';
+        estudianteSelect.disabled = true;
+        
+        // Realizar petición AJAX para cargar estudiantes
+        fetch(`/ajax/obtener-estudiantes-curso/?curso_id=${cursoId}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Limpiar y llenar select de estudiantes
+                estudianteSelect.innerHTML = '<option value="">-- Anotación general del curso --</option>';
+                
+                if (data.estudiantes && data.estudiantes.length > 0) {
+                    data.estudiantes.forEach(estudiante => {
+                        const option = document.createElement('option');
+                        option.value = estudiante.id;
+                        option.textContent = `${estudiante.nombre} (${estudiante.rut})`;
+                        estudianteSelect.appendChild(option);
+                    });
+                }
+                
+                estudianteSelect.disabled = false;
+            })
+            .catch(error => {
+                console.error('Error al cargar estudiantes:', error);
+                estudianteSelect.innerHTML = '<option value="">-- Anotación general del curso --</option>';
+                
+                // Agregar opción de error
+                const errorOption = document.createElement('option');
+                errorOption.value = "";
+                errorOption.textContent = "Error al cargar estudiantes";
+                errorOption.disabled = true;
+                estudianteSelect.appendChild(errorOption);
+                
+                estudianteSelect.disabled = false;
+            });
     }
     
-    // Actualizar puntos automáticamente según el tipo
+    // Función para actualizar puntos automáticamente
     function actualizarPuntos() {
-        const tipo = tipoSelect.value;
-        const esGrave = esGraveCheck.checked;
-        
-        if (puntosInput.value == 0 || puntosInput.value == '' || puntosInput.dataset.autoSet == 'true') {
-            let puntos = 0;
+        if (tipoSelect && puntosInput && (puntosInput.value == 0 || puntosInput.value == '' || puntosInput.dataset.autoSet == 'true')) {
+            const tipo = tipoSelect.value;
+            const esGrave = esGraveCheck ? esGraveCheck.checked : false;
             
+            let puntos = 0;
             if (tipo === 'positiva') {
                 puntos = 5;
             } else if (tipo === 'negativa') {
@@ -356,6 +357,16 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
+    // Configurar eventos
+    if (cursoSelect) {
+        cursoSelect.addEventListener('change', cargarEstudiantes);
+        
+        // Cargar estudiantes si ya hay un curso seleccionado
+        if (cursoSelect.value) {
+            cargarEstudiantes();
+        }
+    }
+    
     if (tipoSelect && puntosInput && esGraveCheck) {
         tipoSelect.addEventListener('change', actualizarPuntos);
         esGraveCheck.addEventListener('change', actualizarPuntos);
@@ -366,21 +377,23 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Validación del formulario
+    // Validación del formulario actualizada para permitir anotaciones sin estudiante
     document.getElementById('anotacionForm').addEventListener('submit', function(e) {
-        const curso = cursoSelect.value;
-        const estudiante = estudianteSelect.value;
+        const curso = cursoSelect ? cursoSelect.value : '';
         const titulo = document.querySelector('input[name="titulo"]').value.trim();
         const descripcion = document.querySelector('textarea[name="descripcion"]').value.trim();
         
-        if (!curso || !estudiante || !titulo || !descripcion) {
+        if (!curso || !titulo || !descripcion) {
             e.preventDefault();
-            alert('Por favor completa todos los campos obligatorios.');
+            alert('Por favor completa el curso, título y descripción de la anotación.');
             return false;
         }
         
         return true;
     });
+    
+    // Actualizar puntos iniciales
+    actualizarPuntos();
 });
 
 // Función global para actualizar puntos (llamada desde el template del form)
