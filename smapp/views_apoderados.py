@@ -221,9 +221,10 @@ def dashboard_apoderado(request):
     try:
         apoderado = request.user.apoderado
         return _preparar_contexto_apoderado(request, apoderado, es_profesor_apoderado=False)
-    except:
+    except AttributeError:
         messages.error(request, "No tienes permisos para acceder a esta sección.")
-        return redirect('inicio')
+        # Redirigir al login en lugar de inicio para evitar bucles
+        return redirect('login')
 
 @login_required
 def dashboard_profesor_apoderado(request):
@@ -232,17 +233,26 @@ def dashboard_profesor_apoderado(request):
     # Verificar que el usuario sea un profesor
     try:
         profesor = request.user.profesor
-    except:
+    except AttributeError:
         messages.error(request, "No tienes permisos para acceder a esta sección.")
-        return redirect('inicio')
+        # Redirigir al login en lugar de inicio para evitar bucles
+        return redirect('login')
     
     # Verificar que también sea apoderado
     try:
         apoderado = profesor.apoderado_profile
         return _preparar_contexto_profesor_apoderado(request, profesor, apoderado)
-    except:
+    except AttributeError:
         # Si no es apoderado, redirigir al dashboard normal de profesor
-        return redirect('inicio')
+        messages.info(request, "No tienes estudiantes a cargo como apoderado.")
+        # Crear un contexto básico para mostrar un mensaje
+        context = {
+            'user': request.user,
+            'es_profesor_apoderado': True,
+            'tiene_estudiantes': False,
+            'mensaje': 'No tienes estudiantes a cargo como apoderado.'
+        }
+        return render(request, 'inicio.html', context)
 
 @login_required
 def inicio_apoderado(request):
@@ -252,7 +262,7 @@ def inicio_apoderado(request):
     try:
         apoderado = request.user.apoderado
         return _preparar_contexto_apoderado(request, apoderado, es_profesor_apoderado=False)
-    except:
+    except AttributeError:
         pass
     
     # Verificar si es un profesor-apoderado
@@ -261,11 +271,12 @@ def inicio_apoderado(request):
             profesor = request.user.profesor
             if hasattr(profesor, 'apoderado_profile') and profesor.apoderado_profile:
                 return _preparar_contexto_profesor_apoderado(request, profesor, profesor.apoderado_profile)
-    except:
+    except AttributeError:
         pass
     
-    # Si no es apoderado, redirigir a inicio normal
-    return redirect('inicio')
+    # Si no es apoderado, mostrar mensaje y redirigir al login
+    messages.error(request, "No tienes permisos de apoderado.")
+    return redirect('login')
 
 def _preparar_contexto_apoderado(request, apoderado, es_profesor_apoderado=False):
     """Función auxiliar para preparar el contexto de un apoderado"""
@@ -291,21 +302,86 @@ def _preparar_contexto_apoderado(request, apoderado, es_profesor_apoderado=False
         # Obtener curso actual del estudiante
         curso_actual = estudiante.get_curso_actual()
         
+        # Obtener calificaciones recientes (últimas 5)
+        # Usando el modelo Calificacion a través de inscripcion
+        from .models import Calificacion, Inscripcion
+        notas_recientes = Calificacion.objects.filter(
+            inscripcion__estudiante=estudiante
+        ).select_related('inscripcion__grupo__asignatura').order_by('-fecha_evaluacion')[:5]
+        
+        # Obtener asistencia del mes actual
+        from django.utils import timezone
+        hoy = timezone.now().date()
+        inicio_mes = hoy.replace(day=1)
+        
+        from .models import AsistenciaAlumno
+        asistencias_mes = AsistenciaAlumno.objects.filter(
+            estudiante=estudiante,
+            fecha__gte=inicio_mes,
+            fecha__lte=hoy
+        )
+        
+        total_asistencias = asistencias_mes.count()
+        asistencias_presentes = asistencias_mes.filter(presente=True).count()
+        ausencias = total_asistencias - asistencias_presentes
+        porcentaje_asistencia = round((asistencias_presentes / total_asistencias * 100), 1) if total_asistencias > 0 else 0
+        
+        # Obtener anotaciones recientes (últimas 3)
+        from .models import Anotacion
+        anotaciones_recientes = Anotacion.objects.filter(
+            estudiante=estudiante
+        ).select_related('profesor_autor').order_by('-fecha_creacion')[:3]
+        
+        # Calcular promedio general
+        promedio_general = None
+        if notas_recientes.exists():
+            from django.db.models import Avg
+            promedio_obj = Calificacion.objects.filter(
+                inscripcion__estudiante=estudiante
+            ).aggregate(promedio=Avg('puntaje'))
+            promedio_general = round(promedio_obj['promedio'], 1) if promedio_obj['promedio'] else None
+        
         # Obtener información básica del estudiante
         estudiante_data = {
             'estudiante': estudiante,
             'parentesco': relacion.parentesco,
             'curso': curso_actual,
             'profesor_jefe': curso_actual.profesor_jefe if curso_actual else None,
+            'notas_recientes': notas_recientes,
+            'promedio_general': promedio_general,
+            'total_asistencias': total_asistencias,
+            'asistencias_presentes': asistencias_presentes,
+            'ausencias': ausencias,
+            'porcentaje_asistencia': porcentaje_asistencia,
+            'anotaciones_recientes': anotaciones_recientes,
         }
         
         estudiantes_info.append(estudiante_data)
     
+    # Calcular estadísticas de resumen para todos los estudiantes
+    total_promedio = 0
+    count_con_notas = 0
+    total_asistencia = 0
+    count_con_asistencia = 0
+    
+    for info in estudiantes_info:
+        if info.get('promedio_general'):
+            total_promedio += info['promedio_general']
+            count_con_notas += 1
+        if info.get('porcentaje_asistencia') is not None:
+            total_asistencia += info['porcentaje_asistencia']
+            count_con_asistencia += 1
+    
+    promedio_general_conjunto = round(total_promedio / count_con_notas, 1) if count_con_notas > 0 else None
+    promedio_asistencia_conjunto = round(total_asistencia / count_con_asistencia, 1) if count_con_asistencia > 0 else None
+
     context = {
         'apoderado': apoderado,
         'estudiantes_a_cargo': estudiantes_a_cargo,
         'estudiantes_info': estudiantes_info,
         'total_estudiantes': total_estudiantes,
+        'promedio_general_conjunto': promedio_general_conjunto,
+        'promedio_asistencia_conjunto': promedio_asistencia_conjunto,
         'tipo_usuario': 'apoderado',
         'es_profesor_apoderado': es_profesor_apoderado,
     }
@@ -333,13 +409,65 @@ def _preparar_contexto_profesor_apoderado(request, profesor, apoderado):
         # Obtener curso actual del estudiante
         curso_actual = estudiante.get_curso_actual()
         
+        # Obtener información académica básica
+        from .models import Calificacion, AsistenciaAlumno, Anotacion, Inscripcion
+        from django.utils import timezone
+        from django.db.models import Avg
+        
+        # Notas recientes
+        notas_recientes = Calificacion.objects.filter(
+            inscripcion__estudiante=estudiante
+        ).select_related('inscripcion__grupo__asignatura').order_by('-fecha_evaluacion')[:3]
+        
+        # Promedio general
+        promedio_obj = Calificacion.objects.filter(
+            inscripcion__estudiante=estudiante
+        ).aggregate(promedio=Avg('puntaje'))
+        promedio_general = round(promedio_obj['promedio'], 1) if promedio_obj['promedio'] else None
+        
+        # Asistencia del mes
+        hoy = timezone.now().date()
+        inicio_mes = hoy.replace(day=1)
+        asistencias_mes = AsistenciaAlumno.objects.filter(
+            estudiante=estudiante,
+            fecha__gte=inicio_mes,
+            fecha__lte=hoy
+        )
+        total_asistencias = asistencias_mes.count()
+        asistencias_presentes = asistencias_mes.filter(presente=True).count()
+        ausencias = total_asistencias - asistencias_presentes
+        porcentaje_asistencia = round((asistencias_presentes / total_asistencias * 100), 1) if total_asistencias > 0 else 0
+        
         estudiante_data = {
             'estudiante': estudiante,
             'parentesco': relacion.parentesco,
             'curso': curso_actual,
             'profesor_jefe': curso_actual.profesor_jefe if curso_actual else None,
+            'notas_recientes': notas_recientes,
+            'promedio_general': promedio_general,
+            'total_asistencias': total_asistencias,
+            'asistencias_presentes': asistencias_presentes,
+            'ausencias': ausencias,
+            'porcentaje_asistencia': porcentaje_asistencia,
         }
         estudiantes_info.append(estudiante_data)
+    
+    # Calcular estadísticas de resumen para todos los estudiantes
+    total_promedio = 0
+    count_con_notas = 0
+    total_asistencia = 0
+    count_con_asistencia = 0
+    
+    for info in estudiantes_info:
+        if info.get('promedio_general'):
+            total_promedio += info['promedio_general']
+            count_con_notas += 1
+        if info.get('porcentaje_asistencia') is not None:
+            total_asistencia += info['porcentaje_asistencia']
+            count_con_asistencia += 1
+    
+    promedio_general_conjunto = round(total_promedio / count_con_notas, 1) if count_con_notas > 0 else None
+    promedio_asistencia_conjunto = round(total_asistencia / count_con_asistencia, 1) if count_con_asistencia > 0 else None
     
     context = {
         'profesor': profesor,
@@ -347,6 +475,8 @@ def _preparar_contexto_profesor_apoderado(request, profesor, apoderado):
         'estudiantes_a_cargo': estudiantes_a_cargo,
         'estudiantes_info': estudiantes_info,
         'total_estudiantes': estudiantes_a_cargo.count(),
+        'promedio_general_conjunto': promedio_general_conjunto,
+        'promedio_asistencia_conjunto': promedio_asistencia_conjunto,
         'tipo_usuario': 'profesor',
         'es_profesor_apoderado': True,
         'mostrar_seccion_apoderado': True,

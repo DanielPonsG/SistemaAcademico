@@ -4,24 +4,35 @@ from django.urls import reverse
 class ApoderadoRedirectMiddleware:
     """
     Middleware para redirigir automáticamente a apoderados y profesor-apoderados 
-    a inicio.html cuando accedan a la página de inicio
+    a su dashboard correspondiente cuando accedan a la página de inicio
     """
     
     def __init__(self, get_response):
         self.get_response = get_response
 
     def __call__(self, request):
-        # Solo procesar si es la página de inicio y el usuario está autenticado
-        if (request.path == reverse('inicio') and 
+        # Lista de rutas que NO deben ser redirigidas para evitar bucles
+        excluded_paths = [
+            '/dashboard-apoderado/',
+            '/dashboard-profesor-apoderado/',
+            '/inicio-apoderado/',
+            '/logout/',
+            '/admin/',
+        ]
+        
+        # Solo procesar si es la página raíz/inicio y el usuario está autenticado
+        if (request.path == '/' and 
             request.user.is_authenticated and 
-            request.method == 'GET'):
+            request.method == 'GET' and
+            not any(request.path.startswith(path) for path in excluded_paths)):
             
             # Verificar si el usuario es un apoderado directo
             try:
-                apoderado = request.user.apoderado
-                if apoderado:
-                    return redirect('dashboard_apoderado')
-            except:
+                if hasattr(request.user, 'apoderado'):
+                    apoderado = request.user.apoderado
+                    if apoderado:
+                        return redirect('dashboard_apoderado')
+            except AttributeError:
                 pass
             
             # Verificar si es un profesor que también es apoderado
@@ -30,7 +41,7 @@ class ApoderadoRedirectMiddleware:
                     profesor = request.user.profesor
                     if hasattr(profesor, 'apoderado_profile') and profesor.apoderado_profile:
                         return redirect('dashboard_profesor_apoderado')
-            except:
+            except AttributeError:
                 pass
 
         response = self.get_response(request)
