@@ -1895,6 +1895,10 @@ class ApoderadoForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         
+        # Configurar el widget de fecha para usar formato ISO (YYYY-MM-DD)
+        self.fields['fecha_nacimiento'].widget.format = '%Y-%m-%d'
+        self.fields['fecha_nacimiento'].input_formats = ['%Y-%m-%d']
+        
         # Si es un apoderado existente, cargar los estudiantes actuales
         if self.instance and self.instance.pk:
             self.fields['estudiantes'].initial = [

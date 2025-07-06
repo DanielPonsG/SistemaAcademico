@@ -13,7 +13,7 @@
               <span>Gestión de Apoderados</span>
             </h4>
             <div>
-              <a href="{% url 'gestionar_apoderado' %}" class="btn btn-light btn-sm">
+              <a href="{% url 'agregar' %}?tipo=apoderado" class="btn btn-light btn-sm">
                 <i class="fas fa-plus me-1"></i> Nuevo Apoderado
               </a>
             </div>
@@ -34,11 +34,11 @@
                 </div>
                 
                 <div class="col-md-3">
-                  <label for="tipo_apoderado" class="form-label fw-bold">Tipo:</label>
-                  <select name="tipo_apoderado" id="tipo_apoderado" class="form-select">
-                    <option value="">Todos los tipos</option>
-                    {% for codigo, nombre in tipos_apoderado %}
-                      <option value="{{ codigo }}" {% if tipo_apoderado == codigo %}selected{% endif %}>
+                  <label for="parentesco" class="form-label fw-bold">Parentesco:</label>
+                  <select name="parentesco" id="parentesco" class="form-select">
+                    <option value="">Todos los parentescos</option>
+                    {% for codigo, nombre in parentesco_choices %}
+                      <option value="{{ codigo }}" {% if parentesco == codigo %}selected{% endif %}>
                         {{ nombre }}
                       </option>
                     {% endfor %}
@@ -91,7 +91,7 @@
                   <div class="d-flex align-items-center">
                     <i class="fas fa-user-graduate fa-2x me-3"></i>
                     <div>
-                      <h5 class="mb-0">{{ total_apoderados|add:"-"|add:apoderados_profesores }}</h5>
+                      <h5 class="mb-0">{{ apoderados_externos }}</h5>
                       <small>Apoderados Externos</small>
                     </div>
                   </div>
@@ -100,7 +100,7 @@
             </div>
 
             <!-- Tabla de apoderados -->
-            {% if apoderados_con_estudiantes %}
+            {% if page_obj %}
             <div class="table-responsive">
               <table class="table table-hover align-middle">
                 <thead class="table-light">
@@ -115,7 +115,7 @@
                   </tr>
                 </thead>
                 <tbody>
-                  {% for apoderado in apoderados_con_estudiantes %}
+                  {% for apoderado in page_obj %}
                   <tr>
                     <td>
                       <div class="d-flex align-items-center">
@@ -124,13 +124,13 @@
                         </div>
                         <div>
                           <strong>{{ apoderado.get_nombre_completo }}</strong>
-                          <br><small class="text-muted">{{ apoderado.get_tipo_apoderado_display }}</small>
+                          <br><small class="text-muted">{{ apoderado.get_parentesco_principal_display }}</small>
                         </div>
                       </div>
                     </td>
                     <td>{{ apoderado.numero_documento }}</td>
                     <td>
-                      <span class="badge bg-primary">{{ apoderado.get_tipo_apoderado_display }}</span>
+                      <span class="badge bg-primary">{{ apoderado.get_parentesco_principal_display }}</span>
                     </td>
                     <td>
                       <div>
@@ -141,29 +141,25 @@
                       </div>
                     </td>
                     <td>
-                      {% if apoderado.user %}
-                        {% if apoderado.user.perfil.tipo_usuario == 'profesor' %}
-                          <span class="badge bg-success">
-                            <i class="fas fa-chalkboard-teacher me-1"></i>
-                            Sí
-                          </span>
-                        {% else %}
-                          <span class="badge bg-secondary">No</span>
-                        {% endif %}
+                      {% if apoderado.profesor %}
+                        <span class="badge bg-success">
+                          <i class="fas fa-chalkboard-teacher me-1"></i>
+                          Sí
+                        </span>
                       {% else %}
-                        <span class="badge bg-secondary">Sin usuario</span>
+                        <span class="badge bg-secondary">No</span>
                       {% endif %}
                     </td>
                     <td>
                       <div class="estudiantes-info">
-                        {% with estudiantes=apoderado.get_estudiantes_actuales %}
-                          {% if estudiantes %}
+                        {% with relaciones=apoderado.get_estudiantes_a_cargo %}
+                          {% if relaciones %}
                             <ul class="list-unstyled mb-1">
-                              {% for estudiante in estudiantes %}
+                              {% for relacion in relaciones %}
                                 <li class="small">
                                   <i class="fas fa-user-graduate me-1"></i>
-                                  {{ estudiante.get_nombre_completo }}
-                                  {% with curso=estudiante.get_curso_actual %}
+                                  {{ relacion.estudiante.get_nombre_completo }}
+                                  {% with curso=relacion.estudiante.get_curso_actual %}
                                     {% if curso %}
                                       <span class="text-muted">({{ curso.nombre }})</span>
                                     {% endif %}
@@ -172,7 +168,7 @@
                               {% endfor %}
                             </ul>
                             <div class="mt-1">
-                              <span class="badge bg-info">{{ estudiantes.count }} estudiante{{ estudiantes.count|pluralize }}</span>
+                              <span class="badge bg-info">{{ relaciones.count }} estudiante{{ relaciones.count|pluralize }}</span>
                             </div>
                           {% else %}
                             <span class="text-muted small">Sin estudiantes asignados</span>
@@ -207,10 +203,41 @@
               <i class="fas fa-user-friends fa-3x text-muted mb-3"></i>
               <h5 class="text-muted">No se encontraron apoderados</h5>
               <p class="text-muted">No hay apoderados que coincidan con los filtros aplicados.</p>
-              <a href="{% url 'gestionar_apoderado' %}" class="btn btn-primary">
+              <a href="{% url 'agregar' %}?tipo=apoderado" class="btn btn-primary">
                 <i class="fas fa-plus me-1"></i> Crear Primer Apoderado
               </a>
             </div>
+            {% endif %}
+            
+            <!-- Paginación -->
+            {% if page_obj.has_other_pages %}
+            <nav aria-label="Navegación de páginas" class="mt-4">
+              <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                  <li class="page-item">
+                    <a class="page-link" href="?page=1{% if q_apoderado %}&q_apoderado={{ q_apoderado }}{% endif %}{% if parentesco %}&parentesco={{ parentesco }}{% endif %}{% if es_profesor %}&es_profesor={{ es_profesor }}{% endif %}">Primera</a>
+                  </li>
+                  <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if q_apoderado %}&q_apoderado={{ q_apoderado }}{% endif %}{% if parentesco %}&parentesco={{ parentesco }}{% endif %}{% if es_profesor %}&es_profesor={{ es_profesor }}{% endif %}">Anterior</a>
+                  </li>
+                {% endif %}
+                
+                <li class="page-item active">
+                  <span class="page-link">
+                    Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+                  </span>
+                </li>
+                
+                {% if page_obj.has_next %}
+                  <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if q_apoderado %}&q_apoderado={{ q_apoderado }}{% endif %}{% if parentesco %}&parentesco={{ parentesco }}{% endif %}{% if es_profesor %}&es_profesor={{ es_profesor }}{% endif %}">Siguiente</a>
+                  </li>
+                  <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if q_apoderado %}&q_apoderado={{ q_apoderado }}{% endif %}{% if parentesco %}&parentesco={{ parentesco }}{% endif %}{% if es_profesor %}&es_profesor={{ es_profesor }}{% endif %}">Última</a>
+                  </li>
+                {% endif %}
+              </ul>
+            </nav>
             {% endif %}
           </div>
         </div>

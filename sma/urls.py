@@ -39,6 +39,11 @@ from smapp.views import (
     libro_anotaciones, crear_anotacion, editar_anotacion, eliminar_anotacion,
     detalle_comportamiento_estudiante, ajax_obtener_estudiantes_curso, ajax_obtener_estudiantes_filtro
 )
+# Importaciones para vistas de apoderados
+from smapp.views_apoderados import (
+    listar_apoderados, gestionar_apoderado, eliminar_apoderado, detalle_apoderado,
+    dashboard_apoderado, dashboard_profesor_apoderado
+)
 
 
 urlpatterns = [
@@ -58,6 +63,17 @@ urlpatterns = [
     path('profesores/', listar_profesores, name='listar_profesores'),
     path('profesores/agregar/', gestionar_profesor, name='gestionar_profesor'),
     path('profesores/editar/<int:profesor_id>/', gestionar_profesor, name='gestionar_profesor'),
+    
+    # Gestión de Apoderados (solo administrador y director)
+    path('apoderados/', listar_apoderados, name='listar_apoderados'),
+    path('apoderados/agregar/', gestionar_apoderado, name='gestionar_apoderado'),
+    path('apoderados/editar/<int:apoderado_id>/', gestionar_apoderado, name='gestionar_apoderado'),
+    path('apoderados/eliminar/<int:apoderado_id>/', eliminar_apoderado, name='eliminar_apoderado'),
+    path('apoderados/detalle/<int:apoderado_id>/', detalle_apoderado, name='detalle_apoderado'),
+    
+    # Dashboards de Apoderados
+    path('dashboard-apoderado/', dashboard_apoderado, name='dashboard_apoderado'),
+    path('dashboard-profesor-apoderado/', dashboard_profesor_apoderado, name='dashboard_profesor_apoderado'),
     
     # Calendario
     path('calendario/', calendario, name='calendario'),

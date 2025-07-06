@@ -1192,6 +1192,121 @@
       </div>
     </div>
 
+    {% elif tipo_usuario == 'apoderado' %}
+    <!-- ################################################## -->
+    <!-- ########## PANEL PARA APODERADOS ################# -->
+    <!-- ################################################## -->
+    <div class="row">
+      <!-- Panel Principal: Estudiantes a Cargo -->
+      <div class="col-lg-8 mb-4">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-header bg-light border-0">
+            <h4 class="mb-0 text-dark"><i class="fas fa-users text-primary me-2"></i>Mis Estudiantes</h4>
+          </div>
+          <div class="card-body">
+            {% if estudiantes_info %}
+              {% for info in estudiantes_info %}
+              <div class="alert alert-info mb-3">
+                <div class="row align-items-center">
+                  <div class="col-md-8">
+                    <h5 class="mb-1"><i class="fas fa-user-graduate me-2"></i>{{ info.estudiante.get_nombre_completo }}</h5>
+                    <p class="mb-0">
+                      <strong>Parentesco:</strong> {{ info.parentesco|title }}
+                      {% if info.curso %}
+                      <br><strong>Curso:</strong> {{ info.curso.get_nivel_display }}{{ info.curso.paralelo }}
+                      {% endif %}
+                      {% if info.profesor_jefe %}
+                      <br><strong>Profesor Jefe:</strong> {{ info.profesor_jefe.get_nombre_completo }}
+                      {% endif %}
+                    </p>
+                  </div>
+                  <div class="col-md-4 text-end">
+                    <i class="fas fa-graduation-cap fa-3x text-primary opacity-25"></i>
+                  </div>
+                </div>
+              </div>
+              {% endfor %}
+            {% else %}
+              <div class="alert alert-warning">
+                <i class="fas fa-info-circle me-2"></i>
+                No tienes estudiantes asignados actualmente.
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel Lateral: Resumen -->
+      <div class="col-lg-4 mb-4">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-header bg-light border-0">
+            <h5 class="mb-0 text-dark"><i class="fas fa-chart-bar text-primary me-2"></i>Resumen</h5>
+          </div>
+          <div class="card-body">
+            <div class="row text-center">
+              <div class="col-12 mb-3">
+                <div class="profesor-stats-card card bg-primary text-white">
+                  <div class="card-body">
+                    <i class="fas fa-users fa-2x mb-2"></i>
+                    <h3 class="mb-0">{{ total_estudiantes }}</h3>
+                    <small>Estudiante{{ total_estudiantes|pluralize }}</small>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <hr class="my-3">
+            
+            <div class="d-grid gap-2">
+              <a href="{% url 'inicio' %}" class="btn btn-outline-primary">
+                <i class="fas fa-home me-2"></i>Volver al Inicio
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {% elif es_profesor_apoderado and mostrar_seccion_apoderado %}
+    <!-- ################################################## -->
+    <!-- ##### SECCIÓN ADICIONAL PARA PROFESOR-APODERADO ## -->
+    <!-- ################################################## -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="card border-0 shadow-sm">
+          <div class="card-header bg-warning text-dark border-0">
+            <h4 class="mb-0"><i class="fas fa-heart text-danger me-2"></i>Como Apoderado</h4>
+          </div>
+          <div class="card-body">
+            {% if estudiantes_info %}
+              <div class="row">
+                {% for info in estudiantes_info %}
+                <div class="col-md-6 mb-3">
+                  <div class="card bg-light">
+                    <div class="card-body">
+                      <h6 class="card-title"><i class="fas fa-user-graduate me-2"></i>{{ info.estudiante.get_nombre_completo }}</h6>
+                      <p class="card-text small">
+                        <strong>Parentesco:</strong> {{ info.parentesco|title }}<br>
+                        {% if info.curso %}
+                        <strong>Curso:</strong> {{ info.curso.get_nivel_display }}{{ info.curso.paralelo }}
+                        {% endif %}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                {% endfor %}
+              </div>
+            {% else %}
+              <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>
+                No tienes estudiantes bajo tu cuidado como apoderado.
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
     {% else %}
     <!-- ################################################## -->
     <!-- ####### VISTA NORMAL PARA OTROS USUARIOS ######### -->

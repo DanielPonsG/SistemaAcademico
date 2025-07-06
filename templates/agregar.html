@@ -9,8 +9,8 @@
         <div class="card border-0 shadow-sm p-4">
           <div class="card-header bg-light border-0 mb-3 px-4 py-4 bg-gradient-header text-white" style="border-radius: 18px 18px 0 0; background: linear-gradient(90deg, #3a8dde 0%, #6a5af9 100%); box-shadow: 0 2px 8px rgba(58,141,222,0.08);">
             <h4 class="mb-0 fw-bold d-flex align-items-center" style="font-size: 2rem;">
-              <i class="fas fa-user-plus me-3" style="font-size: 2.2rem; color: #fff;"></i>
-              <span style="color: #fff;">Agregar Usuario</span>
+              <i class="fas {% if es_edicion %}fa-user-edit{% else %}fa-user-plus{% endif %} me-3" style="font-size: 2.2rem; color: #fff;"></i>
+              <span style="color: #fff;">{% if es_edicion %}Editar Usuario{% else %}Agregar Usuario{% endif %}</span>
             </h4>
           </div>
           <div class="card-body px-4 py-4">
@@ -21,6 +21,7 @@
               </div>
             {% endif %}
             
+            {% if not es_edicion %}
             <form id="tipoUsuarioForm" method="get" class="mb-4" action="{% url 'agregar' %}">
               <div class="row align-items-center">
                 <div class="col-md-6">
@@ -33,6 +34,7 @@
                 </div>
               </div>
             </form>
+            {% endif %}
 
             <form id="registroForm" method="post" autocomplete="off">
               {% csrf_token %}
@@ -431,6 +433,7 @@
                     </div>
                   </div>
                 </div>
+                {% if not es_edicion %}
                 <div class="row">
                   <div class="col-md-6">
                     <div class="mb-3">
@@ -456,6 +459,7 @@
                     </div>
                   </div>
                 </div>
+                {% endif %}
               {% else %}
                 <!-- Campos para alumno -->
                 <div class="row">
@@ -646,18 +650,30 @@
                 <div class="col-md-12 text-center">
                   <button type="submit" class="btn btn-gradient btn-lg px-5 shadow-sm">
                     <i class="fas fa-save me-2"></i> 
-                    {% if tipo == 'profesor' %}
-                      Guardar Profesor
-                    {% elif tipo == 'apoderado' %}
-                      Guardar Apoderado
+                    {% if es_edicion %}
+                      {% if tipo == 'profesor' %}
+                        Actualizar Profesor
+                      {% elif tipo == 'apoderado' %}
+                        Actualizar Apoderado
+                      {% else %}
+                        Actualizar Estudiante
+                      {% endif %}
                     {% else %}
-                      Guardar Estudiante
+                      {% if tipo == 'profesor' %}
+                        Guardar Profesor
+                      {% elif tipo == 'apoderado' %}
+                        Guardar Apoderado
+                      {% else %}
+                        Guardar Estudiante
+                      {% endif %}
                     {% endif %}
                   </button>
+                  {% if not es_edicion %}
                   <button type="button" class="btn btn-outline-light btn-lg ml-2 px-5" style="background: #f5f7fa; color: #6a5af9; border: 2px solid #6a5af9;" onclick="limpiarFormulario()">
                     <i class="fas fa-eraser me-2"></i> Limpiar
                   </button>
-                  <a href="{% url 'listar_estudiantes' %}" class="btn btn-outline-secondary btn-lg ml-2 px-5">
+                  {% endif %}
+                  <a href="{% if tipo == 'apoderado' %}{% url 'listar_apoderados' %}{% elif tipo == 'profesor' %}{% url 'listar_profesores' %}{% else %}{% url 'listar_estudiantes' %}{% endif %}" class="btn btn-outline-secondary btn-lg ml-2 px-5">
                     <i class="fas fa-arrow-left me-2"></i> Volver
                   </a>
                 </div>
@@ -777,6 +793,23 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Calcular edad en tiempo real
   if (fechaField) {
+    // Calcular edad inicial si hay fecha (para modo edición)
+    if (fechaField.value) {
+      const fecha = new Date(fechaField.value);
+      const hoy = new Date();
+      let edad = hoy.getFullYear() - fecha.getFullYear();
+      const mes = hoy.getMonth() - fecha.getMonth();
+      
+      if (mes < 0 || (mes === 0 && hoy.getDate() < fecha.getDate())) {
+        edad--;
+      }
+      
+      if (edad >= 0) {
+        edadSpan.textContent = edad + ' años';
+        edadSpan.className = 'fw-bold text-success';
+      }
+    }
+    
     fechaField.addEventListener('change', function() {
       const fecha = new Date(this.value);
       const hoy = new Date();
@@ -826,7 +859,8 @@ document.addEventListener('DOMContentLoaded', function() {
       // Mostrar loading
       const submitBtn = form.querySelector('button[type="submit"]');
       const originalText = submitBtn.innerHTML;
-      submitBtn.innerHTML = '<i class="fa fa-spinner fa-spin me-1"></i> Registrando...';
+      const esEdicion = {{ es_edicion|yesno:"true,false" }};
+      submitBtn.innerHTML = '<i class="fa fa-spinner fa-spin me-1"></i> ' + (esEdicion ? 'Actualizando...' : 'Registrando...');
       submitBtn.disabled = true;
       
       // Enviar formulario
