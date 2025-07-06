@@ -28,6 +28,7 @@
                   <select name="tipo" id="tipo" class="form-select" style="border-radius: 8px;">
                     <option value="estudiante" {% if tipo == 'estudiante' %}selected{% endif %}>Alumno</option>
                     <option value="profesor" {% if tipo == 'profesor' %}selected{% endif %}>Profesor</option>
+                    <option value="apoderado" {% if tipo == 'apoderado' %}selected{% endif %}>Apoderado</option>
                   </select>
                 </div>
               </div>
@@ -230,6 +231,231 @@
                     </div>
                   </div>
                 </div>
+              {% elif tipo == 'apoderado' %}
+                <!-- Campos para apoderado -->
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="{{ form.primer_nombre.id_for_label }}" class="form-label">
+                        <i class="fa fa-user"></i> {{ form.primer_nombre.label }} <span class="text-danger">*</span>
+                      </label>
+                      {{ form.primer_nombre|add_class:"form-control" }}
+                      {% if form.primer_nombre.errors %}
+                        <div class="text-danger">{{ form.primer_nombre.errors }}</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="{{ form.segundo_nombre.id_for_label }}" class="form-label">
+                        <i class="fa fa-user"></i> {{ form.segundo_nombre.label }}
+                      </label>
+                      {{ form.segundo_nombre|add_class:"form-control" }}
+                      {% if form.segundo_nombre.errors %}
+                        <div class="text-danger">{{ form.segundo_nombre.errors }}</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="{{ form.apellido_paterno.id_for_label }}" class="form-label">
+                        <i class="fa fa-user"></i> {{ form.apellido_paterno.label }} <span class="text-danger">*</span>
+                      </label>
+                      {{ form.apellido_paterno|add_class:"form-control" }}
+                      {% if form.apellido_paterno.errors %}
+                        <div class="text-danger">{{ form.apellido_paterno.errors }}</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="{{ form.apellido_materno.id_for_label }}" class="form-label">
+                        <i class="fa fa-user"></i> {{ form.apellido_materno.label }}
+                      </label>
+                      {{ form.apellido_materno|add_class:"form-control" }}
+                      {% if form.apellido_materno.errors %}
+                        <div class="text-danger">{{ form.apellido_materno.errors }}</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-md-4">
+                    <div class="mb-3">
+                      <label for="{{ form.tipo_documento.id_for_label }}" class="form-label">
+                        <i class="fa fa-id-card"></i> {{ form.tipo_documento.label }}
+                      </label>
+                      {{ form.tipo_documento|add_class:"form-control" }}
+                      {% if form.tipo_documento.errors %}
+                        <div class="text-danger">{{ form.tipo_documento.errors }}</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                  <div class="col-md-8">
+                    <div class="mb-3">
+                      <label for="{{ form.numero_documento.id_for_label }}" class="form-label">
+                        <i class="fa fa-id-card-alt"></i> {{ form.numero_documento.label }} <span class="text-danger">*</span>
+                        <i id="rut-valid" class="fa fa-check-circle text-success d-none"></i>
+                        <i id="rut-invalid" class="fa fa-times-circle text-danger d-none"></i>
+                      </label>
+                      {{ form.numero_documento|add_class:"form-control" }}
+                      {% if form.numero_documento.errors %}
+                        <div class="text-danger">{{ form.numero_documento.errors }}</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="{{ form.fecha_nacimiento.id_for_label }}" class="form-label">
+                        <i class="fa fa-calendar-alt"></i> {{ form.fecha_nacimiento.label }} <span class="text-danger">*</span>
+                        <span id="edad-calculada" class="fw-bold text-success"></span>
+                      </label>
+                      {{ form.fecha_nacimiento|add_class:"form-control" }}
+                      {% if form.fecha_nacimiento.errors %}
+                        <div class="text-danger">{{ form.fecha_nacimiento.errors }}</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="{{ form.genero.id_for_label }}" class="form-label">
+                        <i class="fa fa-venus-mars"></i> {{ form.genero.label }} <span class="text-danger">*</span>
+                      </label>
+                      {{ form.genero|add_class:"form-control" }}
+                      {% if form.genero.errors %}
+                        <div class="text-danger">{{ form.genero.errors }}</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="{{ form.email.id_for_label }}" class="form-label">
+                        <i class="fa fa-envelope"></i> {{ form.email.label }} <span class="text-danger">*</span>
+                      </label>
+                      {{ form.email|add_class:"form-control" }}
+                      {% if form.email.errors %}
+                        <div class="text-danger">{{ form.email.errors }}</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="{{ form.telefono.id_for_label }}" class="form-label">
+                        <i class="fa fa-phone"></i> {{ form.telefono.label }}
+                      </label>
+                      {{ form.telefono|add_class:"form-control" }}
+                      {% if form.telefono.errors %}
+                        <div class="text-danger">{{ form.telefono.errors }}</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-md-12">
+                    <div class="mb-3">
+                      <label for="{{ form.direccion.id_for_label }}" class="form-label">
+                        <i class="fa fa-map-marker-alt"></i> {{ form.direccion.label }}
+                      </label>
+                      {{ form.direccion|add_class:"form-control" }}
+                      {% if form.direccion.errors %}
+                        <div class="text-danger">{{ form.direccion.errors }}</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="{{ form.codigo_apoderado.id_for_label }}" class="form-label">
+                        <i class="fa fa-id-badge"></i> {{ form.codigo_apoderado.label }} <span class="text-danger">*</span>
+                      </label>
+                      {{ form.codigo_apoderado|add_class:"form-control" }}
+                      {% if form.codigo_apoderado.errors %}
+                        <div class="text-danger">{{ form.codigo_apoderado.errors }}</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="{{ form.parentesco_principal.id_for_label }}" class="form-label">
+                        <i class="fa fa-users"></i> {{ form.parentesco_principal.label }} <span class="text-danger">*</span>
+                      </label>
+                      {{ form.parentesco_principal|add_class:"form-control" }}
+                      {% if form.parentesco_principal.errors %}
+                        <div class="text-danger">{{ form.parentesco_principal.errors }}</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="{{ form.ocupacion.id_for_label }}" class="form-label">
+                        <i class="fa fa-briefcase"></i> {{ form.ocupacion.label }}
+                      </label>
+                      {{ form.ocupacion|add_class:"form-control" }}
+                      {% if form.ocupacion.errors %}
+                        <div class="text-danger">{{ form.ocupacion.errors }}</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="{{ form.telefono_emergencia.id_for_label }}" class="form-label">
+                        <i class="fa fa-phone-alt"></i> {{ form.telefono_emergencia.label }}
+                      </label>
+                      {{ form.telefono_emergencia|add_class:"form-control" }}
+                      {% if form.telefono_emergencia.errors %}
+                        <div class="text-danger">{{ form.telefono_emergencia.errors }}</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-md-12">
+                    <div class="mb-3">
+                      <label for="{{ form.estudiantes.id_for_label }}" class="form-label">
+                        <i class="fa fa-graduation-cap"></i> {{ form.estudiantes.label }}
+                      </label>
+                      {{ form.estudiantes|add_class:"form-select" }}
+                      {% if form.estudiantes.errors %}
+                        <div class="text-danger">{{ form.estudiantes.errors }}</div>
+                      {% endif %}
+                      <small class="form-text text-muted">{{ form.estudiantes.help_text }}</small>
+                    </div>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="{{ form.username.id_for_label }}" class="form-label">
+                        <i class="fa fa-user-circle"></i> {{ form.username.label }}
+                      </label>
+                      {{ form.username|add_class:"form-control" }}
+                      {% if form.username.errors %}
+                        <div class="text-danger">{{ form.username.errors }}</div>
+                      {% endif %}
+                      <small class="form-text text-muted">{{ form.username.help_text }}</small>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="{{ form.password.id_for_label }}" class="form-label">
+                        <i class="fa fa-lock"></i> {{ form.password.label }}
+                      </label>
+                      {{ form.password|add_class:"form-control" }}
+                      {% if form.password.errors %}
+                        <div class="text-danger">{{ form.password.errors }}</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
               {% else %}
                 <!-- Campos para alumno -->
                 <div class="row">
@@ -419,7 +645,14 @@
               <div class="row mt-4">
                 <div class="col-md-12 text-center">
                   <button type="submit" class="btn btn-gradient btn-lg px-5 shadow-sm">
-                    <i class="fas fa-save me-2"></i> Guardar
+                    <i class="fas fa-save me-2"></i> 
+                    {% if tipo == 'profesor' %}
+                      Guardar Profesor
+                    {% elif tipo == 'apoderado' %}
+                      Guardar Apoderado
+                    {% else %}
+                      Guardar Estudiante
+                    {% endif %}
                   </button>
                   <button type="button" class="btn btn-outline-light btn-lg ml-2 px-5" style="background: #f5f7fa; color: #6a5af9; border: 2px solid #6a5af9;" onclick="limpiarFormulario()">
                     <i class="fas fa-eraser me-2"></i> Limpiar

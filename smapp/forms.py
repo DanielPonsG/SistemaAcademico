@@ -1,5 +1,5 @@
 from django import forms
-from .models import Estudiante, Profesor, EventoCalendario, Curso, HorarioCurso, Asignatura, Inscripcion, Calificacion, Grupo, PeriodoAcademico, AsistenciaAlumno, AsistenciaProfesor, Anotacion
+from .models import Estudiante, Profesor, Apoderado, RelacionApoderadoEstudiante, EventoCalendario, Curso, HorarioCurso, Asignatura, Inscripcion, Calificacion, Grupo, PeriodoAcademico, AsistenciaAlumno, AsistenciaProfesor, Anotacion
 from datetime import date, timedelta
 from django.utils import timezone
 
@@ -1383,7 +1383,7 @@ class AnotacionForm(forms.ModelForm):
                     'estudiante': 'El estudiante seleccionado no pertenece al curso indicado.'
                 })
         
-        # Si no hay estudiante, debe ser una anotación general del curso
+        # Si no hay estudiante, debe ser una anotión general del curso
         if not estudiante and not curso:
             raise forms.ValidationError({
                 'curso': 'Debes seleccionar al menos un curso para la anotación.'
@@ -1510,17 +1510,11 @@ class AnotacionForm(forms.ModelForm):
     
     def clean(self):
         cleaned_data = super().clean()
-        tipo = cleaned_data.get('tipo')
-        es_grave = cleaned_data.get('es_grave')
-        estudiante = cleaned_data.get('estudiante')
-        
-        # Si estamos editando, preservar los valores originales de curso y estudiante
-        if self.instance.pk:
-            cleaned_data['curso'] = self.instance.curso
-            cleaned_data['estudiante'] = self.instance.estudiante
-        curso = cleaned_data.get('curso')
         
         # Validar que el estudiante pertenezca al curso seleccionado
+        estudiante = cleaned_data.get('estudiante')
+        curso = cleaned_data.get('curso')
+        
         if estudiante and curso:
             if not curso.estudiantes.filter(id=estudiante.id).exists():
                 raise forms.ValidationError(
@@ -1530,6 +1524,9 @@ class AnotacionForm(forms.ModelForm):
         
         # Ajustar puntos automáticamente si no se especificaron
         puntos = cleaned_data.get('puntos')
+        tipo = cleaned_data.get('tipo')
+        es_grave = cleaned_data.get('es_grave')
+        
         if puntos == 0 and tipo:
             if tipo == 'positiva':
                 cleaned_data['puntos'] = 5
@@ -1785,3 +1782,227 @@ class EventoCalendarioForm(forms.ModelForm):
             self.save_m2m()
             
         return evento
+
+class ApoderadoForm(forms.ModelForm):
+    """Formulario para crear y editar apoderados"""
+    
+    username = forms.CharField(
+        label="Nombre de usuario",
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Nombre de usuario (opcional)'
+        }),
+        help_text='Si desea que el apoderado tenga acceso al sistema'
+    )
+    password = forms.CharField(
+        label="Contraseña",
+        required=False,
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Contraseña (opcional)'
+        })
+    )
+    
+    # Campo para seleccionar estudiantes a cargo
+    estudiantes = forms.ModelMultipleChoiceField(
+        queryset=Estudiante.objects.all(),
+        widget=forms.SelectMultiple(attrs={
+            'class': 'form-select',
+            'multiple': True,
+            'size': '6'
+        }),
+        label='Estudiantes a cargo',
+        required=False,
+        help_text='Selecciona los estudiantes que estará a cargo de este apoderado'
+    )
+    
+    class Meta:
+        model = Apoderado
+        fields = [
+            'primer_nombre', 'segundo_nombre', 'apellido_paterno', 'apellido_materno',
+            'tipo_documento', 'numero_documento', 'fecha_nacimiento', 'genero',
+            'direccion', 'telefono', 'email', 'codigo_apoderado', 'ocupacion',
+            'telefono_emergencia', 'parentesco_principal'
+        ]
+        widgets = {
+            'primer_nombre': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Primer nombre'
+            }),
+            'segundo_nombre': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Segundo nombre (opcional)'
+            }),
+            'apellido_paterno': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Apellido paterno'
+            }),
+            'apellido_materno': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Apellido materno (opcional)'
+            }),
+            'tipo_documento': forms.Select(attrs={
+                'class': 'form-control'
+            }),
+            'numero_documento': forms.TextInput(attrs={
+                'class': 'form-control rut-input',
+                'placeholder': '12.345.678-9',
+                'maxlength': '12'
+            }),
+            'fecha_nacimiento': forms.DateInput(attrs={
+                'class': 'form-control',
+                'type': 'date'
+            }),
+            'genero': forms.Select(attrs={
+                'class': 'form-control'
+            }),
+            'direccion': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Dirección completa'
+            }),
+            'telefono': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': '+56912345678'
+            }),
+            'email': forms.EmailInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'correo@ejemplo.com'
+            }),
+            'codigo_apoderado': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'APO001'
+            }),
+            'ocupacion': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Profesión u ocupación'
+            }),
+            'telefono_emergencia': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': '+56987654321'
+            }),
+            'parentesco_principal': forms.Select(attrs={
+                'class': 'form-control'
+            })
+        }
+        labels = {
+            'numero_documento': 'RUT',
+            'codigo_apoderado': 'Código de Apoderado',
+            'parentesco_principal': 'Parentesco Principal',
+            'telefono_emergencia': 'Teléfono de Emergencia'
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        # Si es un apoderado existente, cargar los estudiantes actuales
+        if self.instance and self.instance.pk:
+            self.fields['estudiantes'].initial = [
+                rel.estudiante.pk for rel in self.instance.estudiantes_a_cargo.filter(activa=True)
+            ]
+        
+        # Filtrar estudiantes disponibles (no obligatorio asignar en creación)
+        self.fields['estudiantes'].queryset = Estudiante.objects.all().order_by('apellido_paterno', 'primer_nombre')
+
+    def clean_numero_documento(self):
+        rut = self.cleaned_data.get('numero_documento')
+        if rut:
+            if not validar_rut(rut):
+                raise forms.ValidationError('El RUT ingresado no es válido.')
+            # Formatear el RUT
+            rut = formatear_rut(rut)
+        return rut
+
+    def clean_fecha_nacimiento(self):
+        fecha_nacimiento = self.cleaned_data.get('fecha_nacimiento')
+        if fecha_nacimiento:
+            edad = calcular_edad(fecha_nacimiento)
+            if edad < 18:
+                raise forms.ValidationError('El apoderado debe ser mayor de 18 años.')
+            if edad > 100:
+                raise forms.ValidationError('Por favor, verifique la fecha de nacimiento.')
+        return fecha_nacimiento
+    
+    def clean_codigo_apoderado(self):
+        codigo = self.cleaned_data.get('codigo_apoderado')
+        if codigo:
+            # Verificar que no exista otro apoderado con el mismo código
+            queryset = Apoderado.objects.filter(codigo_apoderado=codigo)
+            if self.instance.pk:
+                queryset = queryset.exclude(pk=self.instance.pk)
+            if queryset.exists():
+                raise forms.ValidationError('Ya existe un apoderado con este código.')
+        return codigo
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        username = cleaned_data.get('username')
+        password = cleaned_data.get('password')
+        
+        # Si se proporciona username, debe proporcionarse password
+        if username and not password:
+            raise forms.ValidationError('Debe proporcionar una contraseña si especifica un nombre de usuario.')
+        
+        if password and not username:
+            raise forms.ValidationError('Debe proporcionar un nombre de usuario si especifica una contraseña.')
+        
+        return cleaned_data
+    
+    def save(self, commit=True):
+        apoderado = super().save(commit=False)
+        
+        if commit:
+            apoderado.save()
+            
+            # Crear usuario si se proporcionaron credenciales
+            username = self.cleaned_data.get('username')
+            password = self.cleaned_data.get('password')
+            
+            if username and password:
+                from django.contrib.auth.models import User
+                from .models import Perfil
+                
+                # Crear usuario
+                user = User.objects.create_user(
+                    username=username,
+                    email=apoderado.email,
+                    password=password,
+                    first_name=apoderado.primer_nombre,
+                    last_name=apoderado.apellido_paterno
+                )
+                
+                # Crear perfil
+                Perfil.objects.create(
+                    user=user,
+                    tipo_usuario='apoderado'
+                )
+                
+                # Asociar usuario al apoderado
+                apoderado.user = user
+                apoderado.save()
+            
+            # Manejar relaciones con estudiantes
+            estudiantes_seleccionados = self.cleaned_data.get('estudiantes', [])
+            
+            # Eliminar relaciones existentes que no están en la nueva selección
+            RelacionApoderadoEstudiante.objects.filter(
+                apoderado=apoderado
+            ).exclude(
+                estudiante__in=estudiantes_seleccionados
+            ).delete()
+            
+            # Crear nuevas relaciones
+            for estudiante in estudiantes_seleccionados:
+                RelacionApoderadoEstudiante.objects.get_or_create(
+                    apoderado=apoderado,
+                    estudiante=estudiante,
+                    defaults={
+                        'parentesco': apoderado.parentesco_principal,
+                        'es_apoderado_principal': True,
+                        'puede_autorizar': True,
+                        'puede_retirar': True,
+                        'activa': True
+                    }
+                )
+        
+        return apoderado

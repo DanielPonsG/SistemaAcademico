@@ -639,4 +639,146 @@ def calcular_puntaje_comportamiento(estudiante, curso=None, fecha_desde=None, fe
     
     return stats
 
+class Apoderado(Persona):
+    """
+    Modelo para los apoderados de estudiantes. Hereda de Persona.
+    Un apoderado puede tener múltiples estudiantes a cargo.
+    También puede ser un profesor que tiene estudiantes bajo su cuidado.
+    """
+    PARENTESCO_CHOICES = [
+        ('padre', 'Padre'),
+        ('madre', 'Madre'),
+        ('abuelo', 'Abuelo'),
+        ('abuela', 'Abuela'),
+        ('tio', 'Tío'),
+        ('tia', 'Tía'),
+        ('hermano', 'Hermano'),
+        ('hermana', 'Hermana'),
+        ('tutor', 'Tutor Legal'),
+        ('otro', 'Otro'),
+    ]
+    
+    codigo_apoderado = models.CharField(max_length=20, unique=True)
+    ocupacion = models.CharField(max_length=100, blank=True, null=True)
+    telefono_emergencia = models.CharField(
+        max_length=20, 
+        blank=True, 
+        null=True, 
+        help_text="Teléfono de emergencia (puede ser diferente al principal)"
+    )
+    parentesco_principal = models.CharField(
+        max_length=10, 
+        choices=PARENTESCO_CHOICES, 
+        default='padre',
+        help_text="Parentesco principal con los estudiantes"
+    )
+    
+    # Relación con profesor si también es profesor del colegio
+    profesor = models.OneToOneField(
+        'Profesor', 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True,
+        related_name='apoderado_profile',
+        help_text="Si este apoderado también es profesor del colegio"
+    )
+    
+    # Usuario para acceso al sistema (opcional)
+    user = models.OneToOneField(
+        User, 
+        on_delete=models.CASCADE, 
+        null=True, 
+        blank=True,
+        related_name='apoderado'
+    )
+    
+    # Campos de control
+    activo = models.BooleanField(default=True)
+    fecha_registro = models.DateField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"{self.codigo_apoderado} - {self.primer_nombre} {self.apellido_paterno}"
+    
+    def get_nombre_completo(self):
+        """Retorna el nombre completo del apoderado"""
+        nombres = [self.primer_nombre]
+        if self.segundo_nombre:
+            nombres.append(self.segundo_nombre)
+        nombres.append(self.apellido_paterno)
+        if self.apellido_materno:
+            nombres.append(self.apellido_materno)
+        return ' '.join(nombres)
+    
+    def get_telefono_principal(self):
+        """Retorna el teléfono principal (celular o emergencia)"""
+        return self.telefono if self.telefono else self.telefono_emergencia
+    
+    def get_estudiantes_a_cargo(self):
+        """Retorna los estudiantes que tiene a cargo actualmente"""
+        return self.estudiantes_a_cargo.filter(activa=True).select_related('estudiante')
+    
+    def get_numero_estudiantes(self):
+        """Retorna el número de estudiantes a cargo"""
+        return self.get_estudiantes_a_cargo().count()
+    
+    def es_profesor(self):
+        """Retorna True si este apoderado también es profesor"""
+        return self.profesor is not None
+
+class RelacionApoderadoEstudiante(models.Model):
+    """
+    Modelo intermedio para la relación entre Apoderado y Estudiante.
+    Permite múltiples apoderados por estudiante con diferentes roles.
+    """
+    PARENTESCO_CHOICES = [
+        ('padre', 'Padre'),
+        ('madre', 'Madre'),
+        ('abuelo', 'Abuelo'),
+        ('abuela', 'Abuela'),
+        ('tio', 'Tío'),
+        ('tia', 'Tía'),
+        ('hermano', 'Hermano'),
+        ('hermana', 'Hermana'),
+        ('tutor', 'Tutor Legal'),
+        ('otro', 'Otro'),
+    ]
+    
+    apoderado = models.ForeignKey(
+        Apoderado, 
+        on_delete=models.CASCADE, 
+        related_name='estudiantes_a_cargo'
+    )
+    estudiante = models.ForeignKey(
+        Estudiante, 
+        on_delete=models.CASCADE, 
+        related_name='apoderados'
+    )
+    parentesco = models.CharField(
+        max_length=10, 
+        choices=PARENTESCO_CHOICES,
+        help_text="Parentesco específico con este estudiante"
+    )
+    es_apoderado_principal = models.BooleanField(
+        default=False,
+        help_text="Indica si es el apoderado principal del estudiante"
+    )
+    puede_autorizar = models.BooleanField(
+        default=True,
+        help_text="Puede autorizar salidas, actividades, etc."
+    )
+    puede_retirar = models.BooleanField(
+        default=True,
+        help_text="Puede retirar al estudiante del colegio"
+    )
+    activa = models.BooleanField(default=True)
+    fecha_asignacion = models.DateField(auto_now_add=True)
+    
+    class Meta:
+        verbose_name = "Relación Apoderado-Estudiante"
+        verbose_name_plural = "Relaciones Apoderado-Estudiante"
+        unique_together = [['apoderado', 'estudiante']]
+    
+    def __str__(self):
+        return f"{self.apoderado.get_nombre_completo()} - {self.estudiante.get_nombre_completo()} ({self.get_parentesco_display()})"
+
 

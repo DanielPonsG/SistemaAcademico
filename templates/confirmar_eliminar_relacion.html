@@ -1,0 +1,114 @@
+{% extends "index_master.html" %}
+
+{% block content %}
+<div class="right_col" role="main">
+  <div class="container-fluid">
+    <div class="row justify-content-center">
+      <div class="col-md-6">
+        <div class="card border-0 shadow-sm">
+          <div class="card-header bg-danger text-white" style="border-radius: 18px 18px 0 0;">
+            <h4 class="mb-0 fw-bold d-flex align-items-center">
+              <i class="fas fa-exclamation-triangle me-3" style="font-size: 1.8rem;"></i>
+              <span>Confirmar Eliminación</span>
+            </h4>
+          </div>
+          
+          <div class="card-body text-center">
+            <div class="alert alert-warning">
+              <h5 class="alert-heading">
+                <i class="fas fa-question-circle"></i> ¿Está seguro?
+              </h5>
+              <p class="mb-0">
+                Está a punto de eliminar la relación entre el apoderado 
+                <strong>{{ relacion.apoderado.primer_nombre }} {{ relacion.apoderado.apellido_paterno }}</strong>
+                y el estudiante 
+                <strong>{{ relacion.estudiante.primer_nombre }} {{ relacion.estudiante.apellido_paterno }}</strong>.
+              </p>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6">
+                <div class="card">
+                  <div class="card-header">
+                    <h6 class="mb-0">Información de la Relación</h6>
+                  </div>
+                  <div class="card-body">
+                    <p><strong>Parentesco:</strong> {{ relacion.get_parentesco_display }}</p>
+                    <p><strong>Apoderado Principal:</strong> 
+                      {% if relacion.es_apoderado_principal %}
+                        <span class="badge bg-primary">Sí</span>
+                      {% else %}
+                        <span class="badge bg-secondary">No</span>
+                      {% endif %}
+                    </p>
+                    <p><strong>Puede Autorizar:</strong> 
+                      {% if relacion.puede_autorizar %}
+                        <span class="badge bg-success">Sí</span>
+                      {% else %}
+                        <span class="badge bg-secondary">No</span>
+                      {% endif %}
+                    </p>
+                    <p><strong>Puede Retirar:</strong> 
+                      {% if relacion.puede_retirar %}
+                        <span class="badge bg-warning">Sí</span>
+                      {% else %}
+                        <span class="badge bg-secondary">No</span>
+                      {% endif %}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="card">
+                  <div class="card-header">
+                    <h6 class="mb-0">Consecuencias</h6>
+                  </div>
+                  <div class="card-body">
+                    <ul class="list-unstyled">
+                      <li><i class="fas fa-times text-danger"></i> Se perderá el vínculo entre apoderado y estudiante</li>
+                      <li><i class="fas fa-times text-danger"></i> El apoderado no podrá autorizar actividades</li>
+                      <li><i class="fas fa-times text-danger"></i> Se perderán los permisos especiales</li>
+                      <li><i class="fas fa-info text-info"></i> Esta acción no se puede deshacer</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <form method="post" class="mt-4">
+              {% csrf_token %}
+              <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                <button type="submit" class="btn btn-danger me-md-2">
+                  <i class="fas fa-trash"></i> Sí, Eliminar Relación
+                </button>
+                <a href="{% url 'asignar_estudiantes_apoderado' relacion.apoderado.id %}" class="btn btn-secondary">
+                  <i class="fas fa-arrow-left"></i> Cancelar
+                </a>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.card {
+  border-radius: 18px;
+  border: none;
+}
+
+.btn {
+  border-radius: 10px;
+}
+
+.badge {
+  font-size: 0.75em;
+}
+
+.list-unstyled li {
+  margin-bottom: 0.5rem;
+}
+</style>
+{% endblock %}

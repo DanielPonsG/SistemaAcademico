@@ -1,0 +1,193 @@
+{% extends "index_master.html" %}
+{% load widget_tweaks %}
+
+{% block content %}
+<div class="right_col" role="main">
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-md-12">
+        <div class="card border-0 shadow-sm">
+          <div class="card-header bg-gradient-header text-white" style="border-radius: 18px 18px 0 0; background: linear-gradient(90deg, #3a8dde 0%, #6a5af9 100%);">
+            <h4 class="mb-0 fw-bold d-flex align-items-center">
+              <i class="fas fa-user-friends me-3" style="font-size: 1.8rem;"></i>
+              <span>Asignar Estudiantes a Apoderado</span>
+            </h4>
+          </div>
+          
+          <div class="card-body">
+            <!-- Información del apoderado -->
+            <div class="row mb-4">
+              <div class="col-md-12">
+                <div class="alert alert-info">
+                  <h5 class="alert-heading">
+                    <i class="fas fa-user-tag"></i> Apoderado: {{ apoderado.primer_nombre }} {{ apoderado.apellido_paterno }}
+                  </h5>
+                  <p class="mb-1"><strong>Código:</strong> {{ apoderado.codigo_apoderado }}</p>
+                  <p class="mb-1"><strong>Email:</strong> {{ apoderado.email }}</p>
+                  <p class="mb-0"><strong>Parentesco Principal:</strong> {{ apoderado.get_parentesco_principal_display }}</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Formulario para asignar nuevo estudiante -->
+            <div class="row">
+              <div class="col-md-6">
+                <div class="card">
+                  <div class="card-header">
+                    <h5 class="mb-0">
+                      <i class="fas fa-plus-circle text-success"></i> Asignar Nuevo Estudiante
+                    </h5>
+                  </div>
+                  <div class="card-body">
+                    <form method="post">
+                      {% csrf_token %}
+                      
+                      <div class="form-group mb-3">
+                        <label for="{{ form.estudiante.id_for_label }}" class="form-label">Estudiante:</label>
+                        {{ form.estudiante|add_class:"form-select" }}
+                        {% if form.estudiante.errors %}
+                          <div class="text-danger small">{{ form.estudiante.errors.0 }}</div>
+                        {% endif %}
+                      </div>
+
+                      <div class="form-group mb-3">
+                        <label for="{{ form.parentesco.id_for_label }}" class="form-label">Parentesco:</label>
+                        {{ form.parentesco|add_class:"form-select" }}
+                        {% if form.parentesco.errors %}
+                          <div class="text-danger small">{{ form.parentesco.errors.0 }}</div>
+                        {% endif %}
+                      </div>
+
+                      <div class="row">
+                        <div class="col-md-6">
+                          <div class="form-check mb-3">
+                            {{ form.es_apoderado_principal|add_class:"form-check-input" }}
+                            <label for="{{ form.es_apoderado_principal.id_for_label }}" class="form-check-label">
+                              Apoderado Principal
+                            </label>
+                          </div>
+                        </div>
+                        <div class="col-md-6">
+                          <div class="form-check mb-3">
+                            {{ form.puede_autorizar|add_class:"form-check-input" }}
+                            <label for="{{ form.puede_autorizar.id_for_label }}" class="form-check-label">
+                              Puede Autorizar
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="form-check mb-3">
+                        {{ form.puede_retirar|add_class:"form-check-input" }}
+                        <label for="{{ form.puede_retirar.id_for_label }}" class="form-check-label">
+                          Puede Retirar al Estudiante
+                        </label>
+                      </div>
+
+                      <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-success">
+                          <i class="fas fa-save"></i> Asignar Estudiante
+                        </button>
+                        <a href="{% url 'listar_apoderados' %}" class="btn btn-secondary">
+                          <i class="fas fa-arrow-left"></i> Volver a Lista de Apoderados
+                        </a>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Lista de estudiantes ya asignados -->
+              <div class="col-md-6">
+                <div class="card">
+                  <div class="card-header">
+                    <h5 class="mb-0">
+                      <i class="fas fa-users text-primary"></i> Estudiantes Asignados ({{ estudiantes_asignados.count }})
+                    </h5>
+                  </div>
+                  <div class="card-body">
+                    {% if estudiantes_asignados %}
+                      <div class="list-group">
+                        {% for relacion in estudiantes_asignados %}
+                        <div class="list-group-item d-flex justify-content-between align-items-start">
+                          <div class="ms-2 me-auto">
+                            <div class="fw-bold">
+                              {{ relacion.estudiante.primer_nombre }} {{ relacion.estudiante.apellido_paterno }}
+                              {% if relacion.es_apoderado_principal %}
+                                <span class="badge bg-primary rounded-pill ms-1">Principal</span>
+                              {% endif %}
+                            </div>
+                            <small class="text-muted">
+                              <strong>Parentesco:</strong> {{ relacion.get_parentesco_display }}<br>
+                              <strong>Permisos:</strong>
+                              {% if relacion.puede_autorizar %}
+                                <span class="badge bg-success">Autorizar</span>
+                              {% endif %}
+                              {% if relacion.puede_retirar %}
+                                <span class="badge bg-warning">Retirar</span>
+                              {% endif %}
+                            </small>
+                          </div>
+                          <div class="btn-group btn-group-sm" role="group">
+                            <a href="{% url 'eliminar_relacion_apoderado_estudiante' relacion.id %}" 
+                               class="btn btn-outline-danger btn-sm" 
+                               title="Eliminar relación">
+                              <i class="fas fa-trash"></i>
+                            </a>
+                          </div>
+                        </div>
+                        {% endfor %}
+                      </div>
+                    {% else %}
+                      <div class="text-center text-muted py-4">
+                        <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                        <p>No hay estudiantes asignados a este apoderado.</p>
+                        <p class="small">Use el formulario de la izquierda para asignar estudiantes.</p>
+                      </div>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.bg-gradient-header {
+  background: linear-gradient(90deg, #3a8dde 0%, #6a5af9 100%) !important;
+}
+
+.card {
+  border-radius: 18px;
+  border: none;
+}
+
+.btn {
+  border-radius: 10px;
+}
+
+.form-select, .form-control {
+  border-radius: 8px;
+  border: 1px solid #ddd;
+}
+
+.form-select:focus, .form-control:focus {
+  border-color: #6a5af9;
+  box-shadow: 0 0 0 0.2rem rgba(106, 90, 249, 0.25);
+}
+
+.list-group-item {
+  border-radius: 10px !important;
+  border: 1px solid #e9ecef;
+  margin-bottom: 0.5rem;
+}
+
+.badge {
+  font-size: 0.75em;
+}
+</style>
+{% endblock %}

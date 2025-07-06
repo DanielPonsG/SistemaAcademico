@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
-from .models import Estudiante, Profesor, EventoCalendario, Curso, HorarioCurso, Asignatura, PeriodoAcademico, Anotacion
-from .forms import EstudianteForm, ProfesorForm, EventoCalendarioForm, CursoForm, HorarioCursoForm, AsignaturaForm, AsignaturaCompletaForm, SeleccionCursoAlumnoForm, CalificacionForm, AsistenciaAlumnoForm, AsistenciaProfesorForm, RegistroMasivoAsistenciaForm, AnotacionForm, FiltroAnotacionesForm
+from .models import Estudiante, Profesor, Apoderado, RelacionApoderadoEstudiante, EventoCalendario, Curso, HorarioCurso, Asignatura, PeriodoAcademico, Anotacion
+from .forms import EstudianteForm, ProfesorForm, ApoderadoForm, EventoCalendarioForm, CursoForm, HorarioCursoForm, AsignaturaForm, AsignaturaCompletaForm, SeleccionCursoAlumnoForm, CalificacionForm, AsistenciaAlumnoForm, AsistenciaProfesorForm, RegistroMasivoAsistenciaForm, AnotacionForm, FiltroAnotacionesForm
 from django.db import models
 from django.db.models import Q, Avg
 from django.contrib.auth import authenticate, login, logout
@@ -42,6 +42,8 @@ def agregar(request):
     if request.method == 'GET':
         if tipo == 'profesor':
             form = ProfesorForm()
+        elif tipo == 'apoderado':
+            form = ApoderadoForm()
         else:
             form = EstudianteForm()
     else:
@@ -65,6 +67,13 @@ def agregar(request):
                     profesor.asignaturas.set(form.cleaned_data['asignaturas'])
                 mensaje = "Profesor agregado correctamente."
                 form = ProfesorForm()  # Limpiar formulario
+        elif tipo == 'apoderado':
+            form = ApoderadoForm(request.POST)
+            if form.is_valid():
+                # El formulario maneja la creación del usuario y las relaciones
+                apoderado = form.save()
+                mensaje = f"Apoderado {apoderado.get_nombre_completo()} agregado correctamente."
+                form = ApoderadoForm()  # Limpiar formulario
         else:
             form = EstudianteForm(request.POST)
             if form.is_valid():
