@@ -203,7 +203,7 @@ def detalle_apoderado(request, apoderado_id):
     # Obtener estudiantes asociados
     relaciones = RelacionApoderadoEstudiante.objects.filter(
         apoderado=apoderado
-    ).select_related('estudiante', 'estudiante__curso')
+    ).select_related('estudiante').prefetch_related('estudiante__cursos')
     
     context = {
         'apoderado': apoderado,
@@ -215,59 +215,19 @@ def detalle_apoderado(request, apoderado_id):
 
 @login_required
 def dashboard_apoderado(request):
-    """Vista de dashboard para apoderados normales"""
+    """Vista de dashboard para apoderados normales - redirige a inicio.html"""
     
     # Verificar que el usuario sea un apoderado
     try:
         apoderado = request.user.apoderado
+        return _preparar_contexto_apoderado(request, apoderado, es_profesor_apoderado=False)
     except:
         messages.error(request, "No tienes permisos para acceder a esta sección.")
         return redirect('inicio')
-    
-    # Obtener estudiantes a cargo
-    estudiantes_a_cargo = RelacionApoderadoEstudiante.objects.filter(
-        apoderado=apoderado
-    ).select_related(
-        'estudiante',
-        'estudiante__curso',
-        'estudiante__curso__profesor_jefe'
-    ).prefetch_related(
-        'estudiante__notas_set',
-        'estudiante__asistencias_set'
-    )
-    
-    # Estadísticas básicas
-    total_estudiantes = estudiantes_a_cargo.count()
-    
-    # Información para cada estudiante
-    estudiantes_info = []
-    for relacion in estudiantes_a_cargo:
-        estudiante = relacion.estudiante
-        
-        # Obtener información básica del estudiante
-        estudiante_data = {
-            'estudiante': estudiante,
-            'parentesco': relacion.parentesco,
-            'curso': estudiante.curso if hasattr(estudiante, 'curso') else None,
-            'profesor_jefe': estudiante.curso.profesor_jefe if hasattr(estudiante, 'curso') and estudiante.curso else None,
-        }
-        
-        estudiantes_info.append(estudiante_data)
-    
-    context = {
-        'apoderado': apoderado,
-        'estudiantes_a_cargo': estudiantes_a_cargo,
-        'estudiantes_info': estudiantes_info,
-        'total_estudiantes': total_estudiantes,
-        'tipo_usuario': 'apoderado',
-        'es_profesor_apoderado': bool(apoderado.profesor),
-    }
-    
-    return render(request, 'inicio.html', context)
 
 @login_required
 def dashboard_profesor_apoderado(request):
-    """Vista especial para profesores que también son apoderados"""
+    """Vista especial para profesores que también son apoderados - redirige a inicio.html"""
     
     # Verificar que el usuario sea un profesor
     try:
@@ -279,42 +239,105 @@ def dashboard_profesor_apoderado(request):
     # Verificar que también sea apoderado
     try:
         apoderado = profesor.apoderado_profile
+        return _preparar_contexto_profesor_apoderado(request, profesor, apoderado)
     except:
         # Si no es apoderado, redirigir al dashboard normal de profesor
         return redirect('inicio')
+
+@login_required
+def inicio_apoderado(request):
+    """Vista para manejar el inicio de apoderados usando inicio.html"""
+    
+    # Verificar si es un apoderado directo
+    try:
+        apoderado = request.user.apoderado
+        return _preparar_contexto_apoderado(request, apoderado, es_profesor_apoderado=False)
+    except:
+        pass
+    
+    # Verificar si es un profesor-apoderado
+    try:
+        if hasattr(request.user, 'profesor'):
+            profesor = request.user.profesor
+            if hasattr(profesor, 'apoderado_profile') and profesor.apoderado_profile:
+                return _preparar_contexto_profesor_apoderado(request, profesor, profesor.apoderado_profile)
+    except:
+        pass
+    
+    # Si no es apoderado, redirigir a inicio normal
+    return redirect('inicio')
+
+def _preparar_contexto_apoderado(request, apoderado, es_profesor_apoderado=False):
+    """Función auxiliar para preparar el contexto de un apoderado"""
+    
+    # Obtener estudiantes a cargo
+    estudiantes_a_cargo = RelacionApoderadoEstudiante.objects.filter(
+        apoderado=apoderado
+    ).select_related(
+        'estudiante'
+    ).prefetch_related(
+        'estudiante__cursos',
+        'estudiante__cursos__profesor_jefe'
+    )
+    
+    # Estadísticas básicas
+    total_estudiantes = estudiantes_a_cargo.count()
+    
+    # Información para cada estudiante
+    estudiantes_info = []
+    for relacion in estudiantes_a_cargo:
+        estudiante = relacion.estudiante
+        
+        # Obtener curso actual del estudiante
+        curso_actual = estudiante.get_curso_actual()
+        
+        # Obtener información básica del estudiante
+        estudiante_data = {
+            'estudiante': estudiante,
+            'parentesco': relacion.parentesco,
+            'curso': curso_actual,
+            'profesor_jefe': curso_actual.profesor_jefe if curso_actual else None,
+        }
+        
+        estudiantes_info.append(estudiante_data)
+    
+    context = {
+        'apoderado': apoderado,
+        'estudiantes_a_cargo': estudiantes_a_cargo,
+        'estudiantes_info': estudiantes_info,
+        'total_estudiantes': total_estudiantes,
+        'tipo_usuario': 'apoderado',
+        'es_profesor_apoderado': es_profesor_apoderado,
+    }
+    
+    return render(request, 'inicio.html', context)
+
+def _preparar_contexto_profesor_apoderado(request, profesor, apoderado):
+    """Función auxiliar para preparar el contexto de un profesor-apoderado"""
     
     # Obtener estudiantes a cargo como apoderado
     estudiantes_a_cargo = RelacionApoderadoEstudiante.objects.filter(
         apoderado=apoderado
     ).select_related(
-        'estudiante',
-        'estudiante__curso',
-        'estudiante__curso__profesor_jefe'
+        'estudiante'
+    ).prefetch_related(
+        'estudiante__cursos',
+        'estudiante__cursos__profesor_jefe'
     )
-    
-    # Obtener información básica del profesor
-    from .models import HorarioCurso, Asignatura
-    
-    # Obtener cursos donde el profesor enseña
-    cursos_con_asignaturas = profesor.get_cursos_asignados() if hasattr(profesor, 'get_cursos_asignados') else []
-    
-    # Horarios del profesor
-    horarios_profesor = HorarioCurso.objects.filter(
-        asignatura__in=profesor.asignaturas.all()
-    ).select_related('asignatura', 'curso').order_by('dia', 'hora_inicio')
-    
-    # Asignaturas que enseña
-    asignaturas_profesor = profesor.asignaturas.all()
     
     # Información para estudiantes a cargo
     estudiantes_info = []
     for relacion in estudiantes_a_cargo:
         estudiante = relacion.estudiante
+        
+        # Obtener curso actual del estudiante
+        curso_actual = estudiante.get_curso_actual()
+        
         estudiante_data = {
             'estudiante': estudiante,
             'parentesco': relacion.parentesco,
-            'curso': estudiante.curso if hasattr(estudiante, 'curso') else None,
-            'profesor_jefe': estudiante.curso.profesor_jefe if hasattr(estudiante, 'curso') and estudiante.curso else None,
+            'curso': curso_actual,
+            'profesor_jefe': curso_actual.profesor_jefe if curso_actual else None,
         }
         estudiantes_info.append(estudiante_data)
     
@@ -324,8 +347,6 @@ def dashboard_profesor_apoderado(request):
         'estudiantes_a_cargo': estudiantes_a_cargo,
         'estudiantes_info': estudiantes_info,
         'total_estudiantes': estudiantes_a_cargo.count(),
-        'horarios_profesor': horarios_profesor,
-        'asignaturas_profesor': asignaturas_profesor,
         'tipo_usuario': 'profesor',
         'es_profesor_apoderado': True,
         'mostrar_seccion_apoderado': True,

@@ -42,7 +42,7 @@ from smapp.views import (
 # Importaciones para vistas de apoderados
 from smapp.views_apoderados import (
     listar_apoderados, gestionar_apoderado, eliminar_apoderado, detalle_apoderado,
-    dashboard_apoderado, dashboard_profesor_apoderado
+    dashboard_apoderado, dashboard_profesor_apoderado, inicio_apoderado
 )
 
 
@@ -74,6 +74,7 @@ urlpatterns = [
     # Dashboards de Apoderados
     path('dashboard-apoderado/', dashboard_apoderado, name='dashboard_apoderado'),
     path('dashboard-profesor-apoderado/', dashboard_profesor_apoderado, name='dashboard_profesor_apoderado'),
+    path('inicio-apoderado/', inicio_apoderado, name='inicio_apoderado'),
     
     # Calendario
     path('calendario/', calendario, name='calendario'),
