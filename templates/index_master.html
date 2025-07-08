@@ -350,6 +350,16 @@
                     </li>
                   </ul>
                 </div>
+              {% elif user.is_authenticated and user.apoderado %}
+                <!-- MENÚ SIMPLIFICADO PARA APODERADOS -->
+                <div class="menu_section">
+                  <h3><i class="fas fa-users"></i> MIS ESTUDIANTES</h3>
+                  <ul class="nav side-menu">
+                    <li style="--delay: 1">
+                      <a href="{% url 'inicio' %}"><i class="fas fa-user-graduate"></i> Ver Mis Estudiantes</a>
+                    </li>
+                  </ul>
+                </div>
               {% elif user.is_authenticated and user.perfil.tipo_usuario == 'profesor' %}
                 <!-- MENÚ PARA PROFESORES -->
                 <div class="menu_section">
@@ -423,6 +433,18 @@
                     </li>
                   </ul>
                 </div>
+                
+                <!-- SECCIÓN ADICIONAL PARA PROFESORES QUE TAMBIÉN SON APODERADOS -->
+                {% if user.apoderado %}
+                <div class="menu_section">
+                  <h3><i class="fas fa-heart"></i> MIS ESTUDIANTES A CARGO</h3>
+                  <ul class="nav side-menu">
+                    <li style="--delay: 13">
+                      <a href="{% url 'inicio' %}?view=apoderado"><i class="fas fa-user-graduate"></i> Ver Mis Estudiantes</a>
+                    </li>
+                  </ul>
+                </div>
+                {% endif %}
               {% else %}
                 <!-- MENÚ PARA ADMINISTRADORES/DIRECTORES -->
                 <div class="menu_section">
@@ -451,15 +473,18 @@
                     <li style="--delay: 6">
                       <a href="{% url 'listar_profesores' %}"><i class="fas fa-chalkboard-teacher"></i> Gestionar Profesores</a>
                     </li>
+                    <li style="--delay: 7">
+                      <a href="{% url 'listar_apoderados' %}"><i class="fas fa-users"></i> Gestionar Apoderados</a>
+                    </li>
                   </ul>
                 </div>
                 <div class="menu_section">
                   <h3><i class="fas fa-calendar-plus"></i> GESTIÓN DE EVENTOS</h3>
                   <ul class="nav side-menu">
-                    <li style="--delay: 7">
+                    <li style="--delay: 8">
                       <a href="{% url 'calendario' %}"><i class="fas fa-calendar-check"></i> Ver Calendario</a>
                     </li>
-                    <li style="--delay: 8">
+                    <li style="--delay: 9">
                       <a href="{% url 'agregar_evento' %}"><i class="fas fa-calendar-plus"></i> Agregar Evento</a>
                     </li>
                   </ul>
@@ -467,19 +492,19 @@
                  <div class="menu_section">
                   <h3><i class="fas fa-graduation-cap"></i> GESTIÓN ACADÉMICA</h3>
                   <ul class="nav side-menu">
-                    <li style="--delay: 8">
+                    <li style="--delay: 10">
                       <a href="{% url 'listar_cursos' %}"><i class="fas fa-chalkboard"></i> Gestionar Cursos</a>
                     </li>
-                    <li style="--delay: 9">
+                    <li style="--delay: 11">
                       <a href="{% url 'listar_asignaturas' %}"><i class="fas fa-book-open"></i> Gestionar Asignaturas</a>
                     </li>
-                    <li style="--delay: 10">
+                    <li style="--delay: 12">
                       <a href="{% url 'agregar_curso' %}"><i class="fas fa-plus-square"></i> Nuevo Curso</a>
                     </li>
-                     <li style="--delay: 11">
+                     <li style="--delay: 13">
                       <a href="{% url 'agregar_asignatura_completa' %}"><i class="fas fa-plus-circle"></i> Nueva Asignatura</a>
                     </li>
-                    <li style="--delay: 12">
+                    <li style="--delay: 14">
                       <a href="{% url 'seleccionar_curso_horarios' %}"><i class="fas fa-clock"></i> Gestionar Horarios</a>
                     </li>
                   </ul>
@@ -487,10 +512,10 @@
                 <div class="menu_section">
                   <h3><i class="fas fa-chart-bar"></i> CALIFICACIONES</h3>
                   <ul class="nav side-menu">
-                    <li style="--delay: 13">
+                    <li style="--delay: 15">
                       <a href="{% url 'ingresar_notas' %}"><i class="fas fa-pencil-alt"></i> Gestionar Notas</a>
                     </li>
-                    <li style="--delay: 14">
+                    <li style="--delay: 16">
                       <a href="{% url 'ver_notas_curso' %}"><i class="fas fa-chart-pie"></i> Reportes de Notas</a>
                     </li>
                   </ul>
@@ -498,16 +523,16 @@
                 <div class="menu_section">
                   <h3><i class="fas fa-clipboard-check"></i> CONTROL DE ASISTENCIA</h3>
                   <ul class="nav side-menu">
-                    <li style="--delay: 15">
+                    <li style="--delay: 17">
                       <a href="{% url 'registrar_asistencia_alumno' %}"><i class="fas fa-user-check"></i> Asistencia Estudiantes</a>
                     </li>
-                    <li style="--delay: 16">
+                    <li style="--delay: 18">
                       <a href="{% url 'ver_asistencia_alumno' %}"><i class="fas fa-chart-area"></i> Reportes Estudiantes</a>
                     </li>
-                    <li style="--delay: 17">
+                    <li style="--delay: 19">
                       <a href="{% url 'registrar_asistencia_profesor' %}"><i class="fas fa-chalkboard-teacher"></i> Asistencia Profesores</a>
                     </li>
-                    <li style="--delay: 18">
+                    <li style="--delay: 20">
                       <a href="{% url 'ver_asistencia_profesor' %}"><i class="fas fa-chart-column"></i> Reportes Profesores</a>
                     </li>
                   </ul>
@@ -515,10 +540,10 @@
                 <div class="menu_section">
                   <h3><i class="fas fa-book"></i> LIBRO DE ANOTACIONES</h3>
                   <ul class="nav side-menu">
-                    <li style="--delay: 19">
+                    <li style="--delay: 21">
                       <a href="{% url 'libro_anotaciones' %}"><i class="fas fa-book-open"></i> Ver Anotaciones</a>
                     </li>
-                    <li style="--delay: 20">
+                    <li style="--delay: 22">
                       <a href="{% url 'crear_anotacion' %}"><i class="fas fa-pen"></i> Nueva Anotación</a>
                     </li>
                   </ul>

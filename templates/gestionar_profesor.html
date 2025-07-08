@@ -1,5 +1,6 @@
 {% extends 'index_master.html' %}
 {% load static %}
+{% load custom_filters %}
 
 {% block titulo %}{{ action }} Profesor{% endblock %}
 
@@ -27,6 +28,29 @@
         min-height: 38px;
         border: 1px solid #ced4da;
         border-radius: 4px;
+    }
+    
+    .is-invalid {
+        border-color: #dc3545;
+    }
+    
+    .invalid-feedback {
+        display: block;
+        width: 100%;
+        margin-top: 0.25rem;
+        font-size: 0.875em;
+        color: #dc3545;
+    }
+    
+    .readonly-field {
+        background-color: #e9ecef;
+        opacity: 1;
+    }
+    
+    .form-section h5 {
+        color: #007bff;
+        margin-bottom: 15px;
+        font-weight: 600;
     }
 </style>
 {% endblock %}
@@ -124,6 +148,77 @@
                                             </div>
                                         </div>
                                     </div>
+                                    
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="numero_documento" class="required-field">RUT</label>
+                                                <input type="text" 
+                                                       class="form-control" 
+                                                       id="numero_documento" 
+                                                       name="numero_documento" 
+                                                       value="{% if rut_formateado %}{{ rut_formateado }}{% elif profesor.numero_documento %}{{ profesor.numero_documento|format_rut }}{% endif %}" 
+                                                       placeholder="12.345.678-9"
+                                                       required>
+                                                <small class="form-text text-muted">Formato: 12.345.678-9</small>
+                                                <div class="invalid-feedback" id="rut-error"></div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="especialidad">Especialidad</label>
+                                                <input type="text" 
+                                                       class="form-control" 
+                                                       id="especialidad" 
+                                                       name="especialidad" 
+                                                       value="{{ profesor.especialidad|default:'' }}"
+                                                       placeholder="Ej: Matemáticas, Lenguaje, Historia">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    {% if profesor %}
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="fecha_contratacion">Fecha de Contratación</label>
+                                                <input type="date" 
+                                                       class="form-control readonly-field" 
+                                                       id="fecha_contratacion" 
+                                                       name="fecha_contratacion" 
+                                                       value="{% if profesor.fecha_contratacion %}{{ profesor.fecha_contratacion|date:'Y-m-d' }}{% endif %}"
+                                                       readonly>
+                                                <small class="form-text text-muted">Fecha de ingreso al establecimiento</small>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="fecha_nacimiento">Fecha de Nacimiento</label>
+                                                <input type="date" 
+                                                       class="form-control" 
+                                                       id="fecha_nacimiento" 
+                                                       name="fecha_nacimiento" 
+                                                       value="{% if profesor.fecha_nacimiento %}{{ profesor.fecha_nacimiento|date:'Y-m-d' }}{% endif %}">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% else %}
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="fecha_nacimiento">Fecha de Nacimiento</label>
+                                                <input type="date" 
+                                                       class="form-control" 
+                                                       id="fecha_nacimiento" 
+                                                       name="fecha_nacimiento">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endif %}
                                 </div>
 
                                 <!-- Información de Contacto -->
@@ -235,9 +330,85 @@ $(document).ready(function() {
         width: '100%'
     });
     
+    // Función para formatear RUT
+    function formatearRUT(rut) {
+        if (!rut) return '';
+        
+        var rutLimpio = rut.replace(/[^0-9kK]/g, '');
+        if (rutLimpio.length < 2) return rut;
+        
+        var numero = rutLimpio.slice(0, -1);
+        var dv = rutLimpio.slice(-1).toUpperCase();
+        
+        // Formatear número con puntos
+        var numeroFormateado = '';
+        for (var i = numero.length - 1; i >= 0; i--) {
+            var pos = numero.length - 1 - i;
+            if (pos > 0 && pos % 3 === 0) {
+                numeroFormateado = '.' + numeroFormateado;
+            }
+            numeroFormateado = numero[i] + numeroFormateado;
+        }
+        
+        return numeroFormateado + '-' + dv;
+    }
+    
+    // Formatear RUT al cargar la página si ya existe un valor
+    var rutInput = $('#numero_documento');
+    var rutValue = rutInput.val();
+    if (rutValue && rutValue.indexOf('-') === -1) {
+        // Si el RUT no está formateado, formatearlo
+        rutInput.val(formatearRUT(rutValue));
+    }
+    
+    // Formateo automático de RUT en tiempo real
+    rutInput.on('input', function() {
+        var rut = $(this).val().replace(/[^0-9kK]/g, '');
+        if (rut.length > 1) {
+            $(this).val(formatearRUT(rut));
+        }
+    });
+    
+    // Validación del RUT
+    function validarRUT(rut) {
+        if (!rut) return false;
+        
+        var rutLimpio = rut.replace(/[^0-9kK]/g, '');
+        if (rutLimpio.length < 2) return false;
+        
+        var numero = rutLimpio.slice(0, -1);
+        var dv = rutLimpio.slice(-1).toUpperCase();
+        
+        var suma = 0;
+        var multiplo = 2;
+        
+        for (var i = numero.length - 1; i >= 0; i--) {
+            suma += parseInt(numero[i]) * multiplo;
+            multiplo = multiplo < 7 ? multiplo + 1 : 2;
+        }
+        
+        var resto = suma % 11;
+        var dvCalculado = resto < 2 ? resto.toString() : (11 - resto === 10 ? 'K' : (11 - resto).toString());
+        
+        return dv === dvCalculado;
+    }
+    
+    $('#numero_documento').on('blur', function() {
+        var rut = $(this).val();
+        var errorDiv = $('#rut-error');
+        
+        if (rut && !validarRUT(rut)) {
+            $(this).addClass('is-invalid');
+            errorDiv.text('RUT inválido').show();
+        } else {
+            $(this).removeClass('is-invalid');
+            errorDiv.text('').hide();
+        }
+    });
+    
     // Validación del formulario
     $('form').on('submit', function(e) {
-        var requiredFields = ['primer_nombre', 'apellido_paterno', 'email', 'codigo_profesor'];
+        var requiredFields = ['primer_nombre', 'apellido_paterno', 'email', 'codigo_profesor', 'numero_documento'];
         var valid = true;
         
         requiredFields.forEach(function(field) {
@@ -250,9 +421,17 @@ $(document).ready(function() {
             }
         });
         
+        // Validar RUT específicamente
+        var rut = $('#numero_documento').val();
+        if (rut && !validarRUT(rut)) {
+            valid = false;
+            $('#numero_documento').addClass('is-invalid');
+            alert('El RUT ingresado no es válido');
+        }
+        
         if (!valid) {
             e.preventDefault();
-            alert('Por favor complete todos los campos obligatorios marcados con *');
+            alert('Por favor complete todos los campos obligatorios marcados con * y verifique que el RUT sea válido');
         }
     });
     

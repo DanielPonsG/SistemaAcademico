@@ -96,3 +96,15 @@ def get_asignaturas_no_asignadas_curso(curso):
     )
     
     return asignaturas_no_asignadas
+
+@register.filter
+def format_rut(value):
+    """Filtro para formatear RUT con puntos y guión"""
+    from smapp.forms import formatear_rut
+    
+    if value:
+        try:
+            return formatear_rut(str(value))
+        except:
+            return value
+    return value

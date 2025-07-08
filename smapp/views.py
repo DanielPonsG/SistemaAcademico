@@ -354,16 +354,33 @@ def gestionar_profesor(request, profesor_id=None):
             telefono = request.POST.get('telefono', '')
             direccion = request.POST.get('direccion', '')
             codigo_profesor = request.POST.get('codigo_profesor')
+            numero_documento = request.POST.get('numero_documento', '')
+            especialidad = request.POST.get('especialidad', '')
+            fecha_nacimiento = request.POST.get('fecha_nacimiento')
             asignaturas_ids = request.POST.getlist('asignaturas')
             
             # Validaciones básicas
-            if not all([primer_nombre, apellido_paterno, email, codigo_profesor]):
+            if not all([primer_nombre, apellido_paterno, email, codigo_profesor, numero_documento]):
                 messages.error(request, 'Todos los campos obligatorios deben ser completados.')
                 return render(request, 'gestionar_profesor.html', {
                     'profesor': profesor,
                     'asignaturas': Asignatura.objects.all(),
                     'action': 'Editar' if profesor else 'Agregar',
                 })
+            
+            # Validar RUT
+            from smapp.forms import validar_rut, formatear_rut
+            rut_limpio = numero_documento.replace(".", "").replace("-", "").upper()
+            if not validar_rut(rut_limpio):
+                messages.error(request, 'El RUT ingresado no es válido.')
+                return render(request, 'gestionar_profesor.html', {
+                    'profesor': profesor,
+                    'asignaturas': Asignatura.objects.all(),
+                    'action': 'Editar' if profesor else 'Agregar',
+                })
+            
+            # Formatear RUT para almacenamiento consistente
+            numero_documento = rut_limpio
             
             if profesor:
                 # Editar profesor existente
@@ -374,6 +391,17 @@ def gestionar_profesor(request, profesor_id=None):
                 profesor.telefono = telefono
                 profesor.direccion = direccion
                 profesor.codigo_profesor = codigo_profesor
+                profesor.numero_documento = numero_documento
+                profesor.especialidad = especialidad
+                
+                # Actualizar fecha de nacimiento si se proporciona
+                if fecha_nacimiento:
+                    from datetime import datetime
+                    try:
+                        profesor.fecha_nacimiento = datetime.strptime(fecha_nacimiento, '%Y-%m-%d').date()
+                    except ValueError:
+                        pass  # Mantener fecha existente si hay error
+                
                 profesor.save()
                 
                 # Actualizar asignaturas
@@ -417,6 +445,19 @@ def gestionar_profesor(request, profesor_id=None):
                 )
                 
                 # Crear profesor
+                fecha_nacimiento_obj = None
+                if fecha_nacimiento:
+                    from datetime import datetime
+                    try:
+                        fecha_nacimiento_obj = datetime.strptime(fecha_nacimiento, '%Y-%m-%d').date()
+                    except ValueError:
+                        fecha_nacimiento_obj = None
+                
+                # Si no se proporciona fecha de nacimiento, usar una fecha por defecto
+                if not fecha_nacimiento_obj:
+                    from datetime import date
+                    fecha_nacimiento_obj = date(1980, 1, 1)  # Fecha por defecto
+                
                 profesor = Profesor.objects.create(
                     user=user,
                     primer_nombre=primer_nombre,
@@ -425,7 +466,11 @@ def gestionar_profesor(request, profesor_id=None):
                     email=email,
                     telefono=telefono,
                     direccion=direccion,
-                    codigo_profesor=codigo_profesor
+                    codigo_profesor=codigo_profesor,
+                    numero_documento=numero_documento,
+                    especialidad=especialidad,
+                    fecha_nacimiento=fecha_nacimiento_obj,
+                    genero='M'  # Valor por defecto, se puede agregar al formulario después
                 )
                 
                 # Asignar asignaturas
@@ -444,6 +489,11 @@ def gestionar_profesor(request, profesor_id=None):
         'asignaturas': Asignatura.objects.all(),
         'action': 'Editar' if profesor else 'Agregar',
     }
+    
+    # Si estamos editando, formatear el RUT para mostrarlo
+    if profesor and profesor.numero_documento:
+        from smapp.forms import formatear_rut
+        context['rut_formateado'] = formatear_rut(profesor.numero_documento)
     
     return render(request, 'gestionar_profesor.html', context)
 
