@@ -1,0 +1,393 @@
+{% extends "index_master.html" %}
+
+{% block extra_css %}
+<style>
+/* ESTILOS ULTRA FORZADOS PARA SELECTOR DE ESTUDIANTES */
+.estudiante-selector {
+  background: linear-gradient(135deg, #FF0000, #AA0000) !important;
+  color: white !important;
+  font-weight: bold !important;
+  font-size: 18px !important;
+  border: 4px solid #000000 !important;
+  border-radius: 15px !important;
+  transform: scale(1.05) !important;
+  box-shadow: 0 15px 40px rgba(255,0,0,0.7) !important;
+  transition: all 0.3s ease !important;
+  min-height: 140px !important;
+  padding: 1rem !important;
+}
+
+.estudiante-selector:hover {
+  background: linear-gradient(135deg, #FF3333, #CC0000) !important;
+  transform: scale(1.1) !important;
+  box-shadow: 0 20px 50px rgba(255,0,0,0.8) !important;
+}
+
+.estudiante-selector.active {
+  background: linear-gradient(135deg, #0000FF, #000088) !important;
+  color: yellow !important;
+  border: 4px solid #FFFF00 !important;
+  transform: scale(1.15) !important;
+  box-shadow: 0 25px 60px rgba(0,0,255,0.8) !important;
+}
+
+.estudiante-selector * {
+  color: inherit !important;
+  font-weight: bold !important;
+}
+
+.estudiante-selector.active * {
+  color: yellow !important;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.8) !important;
+}
+
+/* Estilos para las tarjetas de estadísticas */
+.apoderado-stat-card {
+  border-radius: 15px !important;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2) !important;
+  transition: all 0.4s ease !important;
+  overflow: hidden !important;
+}
+
+.apoderado-stat-card:hover {
+  transform: translateY(-10px) scale(1.05) !important;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.3) !important;
+}
+
+.apoderado-stat-success {
+  background: linear-gradient(135deg, #28a745, #1e7e34) !important;
+  color: white !important;
+}
+
+.apoderado-stat-info {
+  background: linear-gradient(135deg, #17a2b8, #117a8b) !important;
+  color: white !important;
+}
+
+.apoderado-stat-warning {
+  background: linear-gradient(135deg, #ffc107, #e0a800) !important;
+  color: #212529 !important;
+}
+
+.apoderado-stat-purple {
+  background: linear-gradient(135deg, #6f42c1, #59359a) !important;
+  color: white !important;
+}
+
+.apoderado-stat-card h2,
+.apoderado-stat-card h3,
+.apoderado-stat-card p,
+.apoderado-stat-card i {
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3) !important;
+  font-weight: 600 !important;
+}
+
+/* Animaciones */
+.estudiante-fade-in {
+  animation: fadeInUp 0.6s ease !important;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="right_col" role="main">
+  <div class="container-fluid">
+    
+    <!-- MENSAJE DE VERIFICACIÓN ULTRA VISIBLE -->
+    <div style="background: linear-gradient(45deg, #FF0000, #0000FF) !important; 
+                color: white !important; 
+                padding: 30px !important; 
+                font-size: 24px !important; 
+                text-align: center !important; 
+                margin: 20px 0 !important; 
+                border: 5px solid #000000 !important;
+                border-radius: 15px !important;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.5) !important;
+                animation: pulse 2s infinite !important;">
+      🔥 TEMPLATE FORZADO FUNCIONANDO 🔥
+      <br>
+      Usuario: {{ user.username }} | Tipo: {{ tipo_usuario }}
+      <br>
+      Estudiantes: {{ total_estudiantes }}
+    </div>
+
+    {% if tipo_usuario == 'apoderado' %}
+    
+    <!-- Selector de Estudiantes -->
+    {% if total_estudiantes > 1 %}
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="card shadow-lg border-0">
+          <div class="card-header bg-primary text-white" style="background: linear-gradient(135deg, #007bff, #0056b3) !important;">
+            <h5 class="mb-0"><i class="fas fa-user-friends me-2"></i>Seleccionar Estudiante ({{ total_estudiantes }} estudiantes)</h5>
+          </div>
+          <div class="card-body p-4">
+            <div class="row g-4">
+              {% for info in estudiantes_info %}
+              <div class="col-md-6 col-lg-4">
+                <button type="button" 
+                        class="btn estudiante-selector w-100" 
+                        data-estudiante-id="{{ info.estudiante.id }}"
+                        {% if forloop.first %}data-active="true"{% endif %}>
+                  <div class="text-center">
+                    <i class="fas fa-user-graduate fa-3x mb-3"></i>
+                    <h6 class="mb-2">{{ info.estudiante.get_nombre_completo }}</h6>
+                    <p class="mb-2">{{ info.parentesco|title }}</p>
+                    {% if info.curso %}
+                    <small class="d-block mb-2">{{ info.curso.get_nivel_display }}{{ info.curso.paralelo }}</small>
+                    {% endif %}
+                    <div class="mt-3">
+                      <span class="badge bg-success me-2" style="background: rgba(255,255,255,0.3) !important; border: 1px solid rgba(255,255,255,0.5) !important;">
+                        Promedio: {{ info.promedio_general|default:"S/N" }}
+                      </span>
+                      <span class="badge bg-info" style="background: rgba(255,255,255,0.3) !important; border: 1px solid rgba(255,255,255,0.5) !important;">
+                        Asistencia: {{ info.porcentaje_asistencia|default:"0" }}%
+                      </span>
+                    </div>
+                  </div>
+                </button>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Información de Estudiantes -->
+    {% for info in estudiantes_info %}
+    <div class="estudiante-info" 
+         data-estudiante-id="{{ info.estudiante.id }}"
+         id="panel-estudiante-{{ info.estudiante.id }}"
+         {% if total_estudiantes > 1 and not forloop.first %}style="display: none;"{% endif %}>
+      
+      <!-- Header del Estudiante -->
+      <div class="row mb-4">
+        <div class="col-12">
+          <div class="card shadow-lg border-0">
+            <div class="card-header text-white" style="background: linear-gradient(135deg, #28a745, #1e7e34) !important;">
+              <h4 class="mb-0">
+                <i class="fas fa-user-graduate me-2"></i>
+                {{ info.estudiante.get_nombre_completo }}
+                <small class="ms-3">{{ info.parentesco|title }}</small>
+              </h4>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Estadísticas del Estudiante -->
+      <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+          <div class="card apoderado-stat-card apoderado-stat-info text-center">
+            <div class="card-body">
+              <i class="fas fa-chart-line fa-2x mb-3"></i>
+              <h2 class="mb-2">{{ info.promedio_general|default:"S/N" }}</h2>
+              <p class="mb-0">Promedio General</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3 mb-3">
+          <div class="card apoderado-stat-card apoderado-stat-success text-center">
+            <div class="card-body">
+              <i class="fas fa-calendar-check fa-2x mb-3"></i>
+              <h2 class="mb-2">{{ info.porcentaje_asistencia|default:"0" }}%</h2>
+              <p class="mb-0">Asistencia del Mes</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3 mb-3">
+          <div class="card apoderado-stat-card apoderado-stat-warning text-center">
+            <div class="card-body">
+              <i class="fas fa-calendar-times fa-2x mb-3"></i>
+              <h2 class="mb-2">{{ info.ausencias|default:"0" }}</h2>
+              <p class="mb-0">Ausencias</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3 mb-3">
+          <div class="card apoderado-stat-card apoderado-stat-purple text-center">
+            <div class="card-body">
+              <i class="fas fa-clipboard-list fa-2x mb-3"></i>
+              <h2 class="mb-2">{{ info.anotaciones_recientes|length }}</h2>
+              <p class="mb-0">Anotaciones</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Notas Recientes -->
+      <div class="row mb-4">
+        <div class="col-lg-6 mb-4">
+          <div class="card shadow border-0">
+            <div class="card-header bg-warning text-dark">
+              <h6 class="mb-0"><i class="fas fa-star me-2"></i>Notas Recientes</h6>
+            </div>
+            <div class="card-body">
+              {% if info.notas_recientes %}
+                <div class="table-responsive">
+                  <table class="table table-hover">
+                    <thead>
+                      <tr>
+                        <th>Asignatura</th>
+                        <th>Nota</th>
+                        <th>Fecha</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for nota in info.notas_recientes %}
+                      <tr>
+                        <td>{{ nota.inscripcion.grupo.asignatura.nombre }}</td>
+                        <td>
+                          <span class="badge {% if nota.puntaje >= 4.0 %}bg-success{% elif nota.puntaje >= 3.0 %}bg-warning text-dark{% else %}bg-danger{% endif %}">
+                            {{ nota.puntaje }}
+                          </span>
+                        </td>
+                        <td>{{ nota.fecha_evaluacion|date:"d/m/Y" }}</td>
+                      </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
+              {% else %}
+                <p class="text-muted text-center mb-0">No hay notas registradas aún.</p>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <!-- Anotaciones Recientes -->
+        <div class="col-lg-6 mb-4">
+          <div class="card shadow border-0">
+            <div class="card-header bg-info text-white">
+              <h6 class="mb-0"><i class="fas fa-comments me-2"></i>Anotaciones Recientes</h6>
+            </div>
+            <div class="card-body">
+              {% if info.anotaciones_recientes %}
+                {% for anotacion in info.anotaciones_recientes %}
+                <div class="border-bottom pb-2 mb-2">
+                  <div class="d-flex justify-content-between">
+                    <strong class="text-{% if anotacion.tipo == 'positiva' %}success{% elif anotacion.tipo == 'negativa' %}danger{% else %}warning{% endif %}">
+                      {{ anotacion.get_tipo_display }}
+                    </strong>
+                    <small class="text-muted">{{ anotacion.fecha_creacion|date:"d/m/Y" }}</small>
+                  </div>
+                  <p class="mb-1">{{ anotacion.descripcion }}</p>
+                  <small class="text-muted">Por: {{ anotacion.profesor_autor.get_nombre_completo }}</small>
+                </div>
+                {% endfor %}
+              {% else %}
+                <p class="text-muted text-center mb-0">No hay anotaciones registradas.</p>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    {% endfor %}
+
+    {% endif %}
+  </div>
+</div>
+
+<style>
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  console.log("🔥🔥🔥 TEMPLATE FORZADO CARGADO EXITOSAMENTE 🔥🔥🔥");
+  console.log("Usuario:", "{{ user.username }}");
+  console.log("Tipo:", "{{ tipo_usuario }}");
+  console.log("Total estudiantes:", {{ total_estudiantes }});
+  
+  // Selector de estudiantes
+  const selectores = document.querySelectorAll('.estudiante-selector');
+  const paneles = document.querySelectorAll('.estudiante-info');
+  
+  console.log("🎯 Selectores encontrados:", selectores.length);
+  console.log("📋 Paneles encontrados:", paneles.length);
+  
+  function activarEstudiante(estudianteId) {
+    console.log("🚀 Activando estudiante:", estudianteId);
+    
+    // Desactivar todos los selectores
+    selectores.forEach(selector => {
+      selector.classList.remove('active');
+    });
+    
+    // Activar el selector clickeado
+    const selectorActivo = document.querySelector(`[data-estudiante-id="${estudianteId}"]`);
+    if (selectorActivo) {
+      selectorActivo.classList.add('active');
+      console.log("✅ Selector activado");
+    }
+    
+    // Ocultar todos los paneles
+    paneles.forEach(panel => {
+      panel.style.display = 'none';
+    });
+    
+    // Mostrar el panel correspondiente
+    const panelActivo = document.querySelector(`#panel-estudiante-${estudianteId}`);
+    if (panelActivo) {
+      panelActivo.style.display = 'block';
+      panelActivo.classList.add('estudiante-fade-in');
+      console.log("✅ Panel mostrado para estudiante:", estudianteId);
+      
+      // Scroll suave
+      setTimeout(() => {
+        panelActivo.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+    } else {
+      console.error("❌ No se encontró panel para estudiante:", estudianteId);
+    }
+  }
+  
+  // Agregar event listeners
+  selectores.forEach((selector, index) => {
+    const estudianteId = selector.getAttribute('data-estudiante-id');
+    console.log(`📝 Configurando selector ${index} para estudiante ${estudianteId}`);
+    
+    selector.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log("🖱️ CLICK en selector, estudiante:", estudianteId);
+      activarEstudiante(estudianteId);
+    });
+  });
+  
+  // Activar el primer estudiante automáticamente
+  if (selectores.length > 0) {
+    setTimeout(() => {
+      const primerSelector = document.querySelector('[data-active="true"]');
+      if (primerSelector) {
+        const primerEstudianteId = primerSelector.getAttribute('data-estudiante-id');
+        console.log("🎯 Activando primer estudiante automáticamente:", primerEstudianteId);
+        activarEstudiante(primerEstudianteId);
+      }
+    }, 500);
+  }
+  
+  console.log("🎉 Configuración del selector completada");
+});
+</script>
+
+{% endblock %}

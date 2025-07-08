@@ -1,0 +1,1134 @@
+{% extends "index_master.html" %}
+
+{% block extra_css %}
+<style>
+/* Estilos específicos para el dashboard de apoderados */
+.apoderado-container {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+  min-height: 100vh;
+  padding: 20px;
+  position: relative;
+}
+
+/* Ajuste para el contenedor right_col cuando el menú lateral está presente */
+.nav-md .right_col {
+  margin-left: 230px; /* Ancho del menú lateral */
+  width: calc(100% - 230px);
+  padding: 0; /* Remover padding para que el apoderado-container maneje el espaciado */
+}
+
+/* Ajuste adicional para el contenedor del dashboard */
+.nav-md .apoderado-container {
+  margin-left: 0; /* Ya manejado por right_col */
+  width: 100%;
+}
+
+/* Responsive: ajustar para pantallas pequeñas */
+@media (max-width: 991px) {
+  .nav-md .right_col {
+    margin-left: 0;
+    width: 100%;
+    padding: 15px; /* Restaurar padding en móvil */
+  }
+  
+  .nav-md .apoderado-container {
+    margin-left: 0;
+    width: 100%;
+  }
+}
+
+.welcome-card {
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  border-radius: 20px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+}
+
+.student-selector {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  border-radius: 20px;
+  padding: 30px;
+  margin-bottom: 30px;
+  box-shadow: 0 15px 35px rgba(79, 172, 254, 0.3);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.student-selector h4 {
+  color: #ffffff !important;
+  font-weight: 700;
+  margin-bottom: 25px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.student-card {
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  border-radius: 15px;
+  padding: 25px;
+  margin: 10px 5px;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 2px solid rgba(79, 172, 254, 0.2);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+  backdrop-filter: blur(10px);
+}
+
+.student-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 20px 40px rgba(79, 172, 254, 0.3);
+  border-color: #4facfe;
+}
+
+.student-card.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-color: #667eea;
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 25px 50px rgba(102, 126, 234, 0.4);
+}
+
+.student-card h5 {
+  color: #212529;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.student-card.active h5 {
+  color: white;
+}
+
+.student-card p {
+  color: #6c757d;
+  margin-bottom: 5px;
+}
+
+.student-card.active p {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.student-card small {
+  color: #6c757d;
+}
+
+.student-card.active small {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.student-card i {
+  color: #007bff;
+  margin-bottom: 10px;
+}
+
+.student-card.active i {
+  color: white;
+}
+
+.info-panel {
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  border-radius: 20px;
+  padding: 30px;
+  margin-bottom: 25px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08);
+  border: 2px solid rgba(79, 172, 254, 0.1);
+  transition: all 0.4s ease;
+  opacity: 0;
+  transform: translateY(20px);
+  position: relative;
+  overflow: hidden;
+}
+
+.info-panel::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+}
+
+.info-panel.active {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.info-panel h4 {
+  color: #2d3748;
+  font-weight: 700;
+  margin-bottom: 25px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #e2e8f0;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.info-panel h5 {
+  color: #4a5568;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+
+.stat-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 15px;
+  padding: 25px;
+  text-align: center;
+  margin-bottom: 20px;
+  box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+  transition: all 0.4s ease;
+  border: none;
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  transform: rotate(45deg);
+  transition: all 0.6s ease;
+  opacity: 0;
+}
+
+.stat-card:hover::before {
+  animation: shimmer 1.5s ease-in-out;
+}
+
+.stat-card:hover {
+  transform: translateY(-5px) scale(1.05);
+  box-shadow: 0 20px 40px rgba(102, 126, 234, 0.4);
+}
+
+.stat-card:nth-child(1) { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+.stat-card:nth-child(2) { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+.stat-card:nth-child(3) { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+.stat-card:nth-child(4) { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); opacity: 0; }
+  50% { opacity: 1; }
+  100% { transform: translateX(100%) translateY(100%) rotate(45deg); opacity: 0; }
+}
+
+.stat-card i {
+  font-size: 2.5rem;
+  margin-bottom: 10px;
+  opacity: 0.9;
+}
+
+.stat-card h3 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 5px;
+}
+
+.subject-card {
+  background: linear-gradient(135deg, #ffffff 0%, #f7fafc 100%);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 15px;
+  border-left: 5px solid #667eea;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  border-top: 1px solid #e2e8f0;
+  border-right: 1px solid #e2e8f0;
+  border-bottom: 1px solid #e2e8f0;
+  position: relative;
+  overflow: hidden;
+}
+
+.subject-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.subject-card:hover::before {
+  opacity: 1;
+}
+
+.subject-card:hover {
+  transform: translateX(8px) translateY(-2px);
+  box-shadow: 0 10px 25px rgba(102, 126, 234, 0.15);
+  border-left-color: #f093fb;
+}
+
+.subject-card:nth-child(odd) {
+  border-left-color: #667eea;
+}
+
+.subject-card:nth-child(even) {
+  border-left-color: #f093fb;
+}
+
+.subject-card:nth-child(3n) {
+  border-left-color: #4facfe;
+}
+
+.subject-card:nth-child(4n) {
+  border-left-color: #43e97b;
+}
+
+.subject-card h6 {
+  color: #212529;
+  font-weight: 600;
+  margin-bottom: 5px;
+}
+
+.subject-card small {
+  color: #6c757d;
+}
+
+.annotation-card {
+  background: linear-gradient(135deg, #ffffff 0%, #f7fafc 100%);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 15px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  border: 2px solid #e2e8f0;
+  position: relative;
+  overflow: hidden;
+}
+
+.annotation-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 6px;
+  height: 100%;
+  transition: all 0.3s ease;
+}
+
+.annotation-card.positiva::before {
+  background: linear-gradient(180deg, #43e97b 0%, #38f9d7 100%);
+}
+
+.annotation-card.negativa::before {
+  background: linear-gradient(180deg, #f093fb 0%, #f5576c 100%);
+}
+
+.annotation-card.neutra::before {
+  background: linear-gradient(180deg, #ffecd2 0%, #fcb69f 100%);
+}
+
+.annotation-card:hover {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.12);
+}
+
+.annotation-card.positiva:hover {
+  border-color: #43e97b;
+  box-shadow: 0 15px 30px rgba(67, 233, 123, 0.2);
+}
+
+.annotation-card.negativa:hover {
+  border-color: #f093fb;
+  box-shadow: 0 15px 30px rgba(240, 147, 251, 0.2);
+}
+
+.annotation-card.neutra:hover {
+  border-color: #fcb69f;
+  box-shadow: 0 15px 30px rgba(252, 182, 159, 0.2);
+}
+
+.quick-actions {
+  background: linear-gradient(135deg, #ffffff 0%, #f7fafc 100%);
+  border-radius: 20px;
+  padding: 25px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08);
+  border: 2px solid rgba(102, 126, 234, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.quick-actions::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #43e97b 0%, #38f9d7 100%);
+}
+
+.quick-actions h5 {
+  color: #2d3748;
+  font-weight: 700;
+  margin-bottom: 20px;
+  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.action-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 15px 20px;
+  margin: 8px 0;
+  text-decoration: none;
+  display: block;
+  transition: all 0.4s ease;
+  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+  font-weight: 600;
+  position: relative;
+  overflow: hidden;
+}
+
+.action-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: all 0.6s ease;
+}
+
+.action-btn:hover::before {
+  left: 100%;
+}
+
+.action-btn:hover {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 12px 25px rgba(102, 126, 234, 0.4);
+  color: white;
+  text-decoration: none;
+}
+
+.action-btn:nth-child(2) { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+.action-btn:nth-child(3) { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+.action-btn:nth-child(4) { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+.action-btn:nth-child(5) { background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%); }
+
+.grade-badge {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 8px 15px;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  box-shadow: 0 3px 10px rgba(102, 126, 234, 0.3);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.attendance-indicator {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  border: 2px solid white;
+}
+
+.presente { 
+  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+}
+.ausente { 
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+.justificado { 
+  background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+}
+
+/* Mejoras en la tabla de horarios */
+.table {
+  background: linear-gradient(135deg, #ffffff 0%, #f7fafc 100%);
+  border-radius: 15px;
+  overflow: hidden;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+  border: 2px solid rgba(102, 126, 234, 0.1);
+}
+
+.table th {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  font-weight: 700;
+  border: none;
+  padding: 15px 10px;
+  text-align: center;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.table td {
+  border: 1px solid #e2e8f0;
+  padding: 12px 8px;
+  vertical-align: middle;
+  background: rgba(255, 255, 255, 0.8);
+  transition: all 0.3s ease;
+}
+
+.table td:hover {
+  background: rgba(102, 126, 234, 0.05);
+  transform: scale(1.02);
+}
+
+.table-secondary {
+  background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%) !important;
+  color: #2d3748 !important;
+  font-weight: 700;
+  border-right: 3px solid #667eea !important;
+}
+
+/* Mejoras de texto */
+.text-muted {
+  color: #6c757d !important;
+}
+
+/* Asegurar legibilidad en todos los textos */
+h1, h2, h3, h4, h5, h6 {
+  color: #212529;
+}
+
+p {
+  color: #495057;
+}
+
+/* Mejorar contraste en elementos pequeños */
+small {
+  color: #6c757d;
+}
+
+/* Estados de anotaciones con mejor contraste */
+.annotation-card.positiva {
+  border-left: 4px solid #28a745;
+  background: #ffffff;
+}
+
+.annotation-card.negativa {
+  border-left: 4px solid #dc3545;
+  background: #ffffff;
+}
+
+.annotation-card.neutra {
+  border-left: 4px solid #ffc107;
+  background: #ffffff;
+}
+
+/* Mensaje cuando no hay datos */
+.text-center.text-muted i {
+  color: #adb5bd;
+}
+
+.text-center.text-muted p {
+  color: #6c757d;
+}
+
+/* Responsive mejoras */
+@media (max-width: 768px) {
+  .apoderado-container {
+    padding: 10px 0;
+  }
+  
+  .student-selector {
+    padding: 20px 15px;
+  }
+  
+  .student-card {
+    margin: 8px 0;
+    padding: 15px;
+  }
+  
+  .info-panel {
+    padding: 20px 15px;
+  }
+  
+  .stat-card {
+    margin-bottom: 10px;
+  }
+  
+  .action-btn {
+    margin: 8px 0;
+    text-align: center;
+  }
+  
+  .welcome-card {
+    padding: 20px 15px;
+  }
+}
+
+/* Animaciones */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in-up {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.slide-in-left {
+  animation: slideInLeft 0.6s ease-out;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .apoderado-container {
+    padding: 10px 0;
+  }
+  
+  .student-selector {
+    padding: 15px;
+  }
+  
+  .student-card {
+    margin: 5px 0;
+  }
+  
+  .info-panel {
+    padding: 20px;
+  }
+  
+  .stat-card {
+    margin-bottom: 10px;
+  }
+  
+  .action-btn {
+    display: block;
+    margin: 10px 0;
+    text-align: center;
+  }
+}
+
+/* Loading spinner */
+.loading-spinner {
+  display: none;
+  text-align: center;
+  padding: 20px;
+}
+
+.spinner {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #667eea;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+  margin: 0 auto;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="right_col" role="main">
+  <div class="apoderado-container">
+    <!-- Header de bienvenida -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="welcome-card p-4 fade-in-up">
+          <div class="row align-items-center">
+            <div class="col-md-8">
+              <h2 class="mb-2" style="color: #212529;">
+                <i class="fas fa-heart text-danger me-2"></i>
+                ¡Bienvenido/a, {{ user.get_full_name|default:user.username }}!
+              </h2>
+              <p class="mb-0 text-muted lead">
+                <i class="fas fa-calendar-check me-2"></i>
+                Hoy es {{ fecha_actual|date:"l, j \d\e F \d\e Y"|capfirst }}
+              </p>
+            </div>
+            <div class="col-md-4 text-end d-none d-md-block">
+              <i class="fas fa-user-friends fa-3x" style="color: #007bff; opacity: 0.2;"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Selector de estudiantes -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="student-selector slide-in-left">
+          <h4 class="text-white mb-3">
+            <i class="fas fa-users me-2"></i>
+            Selecciona un estudiante para ver su información
+          </h4>
+          
+          {% if estudiantes_info %}
+          <div class="row">
+            {% for info in estudiantes_info %}
+            <div class="col-lg-3 col-md-4 col-sm-6">
+              <div class="student-card" 
+                   data-student-id="{{ info.estudiante.id }}"
+                   onclick="showStudentInfo({{ info.estudiante.id }})">
+                <div class="text-center">
+                  <i class="fas fa-user-graduate fa-2x mb-2" style="color: #667eea;"></i>
+                  <h5 class="mb-1">{{ info.estudiante.get_nombre_completo }}</h5>
+                  <p class="mb-1 text-muted">
+                    <i class="fas fa-school me-1"></i>
+                    {{ info.curso.get_nivel_display }}{{ info.curso.paralelo }}
+                  </p>
+                  <small class="text-muted">
+                    <i class="fas fa-id-card me-1"></i>
+                    RUT: {{ info.estudiante.rut }}
+                  </small>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div class="alert alert-warning text-center">
+            <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+            <h5>No se encontraron estudiantes asociados</h5>
+            <p class="mb-0">Por favor, contacta con el administrador para resolver este problema.</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading spinner -->
+    <div class="loading-spinner" id="loadingSpinner">
+      <div class="spinner"></div>
+      <p class="mt-2">Cargando información del estudiante...</p>
+    </div>
+
+    <!-- Información del estudiante seleccionado -->
+    {% if estudiantes_info %}
+    {% for info in estudiantes_info %}
+    <div class="student-info-panel" id="student-{{ info.estudiante.id }}" style="display: none;">
+      <div class="row">
+        <!-- Panel principal: Información académica -->
+        <div class="col-lg-8 mb-4">
+          <div class="info-panel">
+            <h4>
+              <i class="fas fa-graduation-cap me-2"></i>
+              Información Académica de {{ info.estudiante.get_nombre_completo }}
+            </h4>
+            
+            <!-- Estadísticas principales -->
+            <div class="row mb-4">
+              <div class="col-md-3">
+                <div class="stat-card">
+                  <i class="fas fa-chart-line"></i>
+                  <h3>{{ info.promedio_general|floatformat:1|default:"N/A" }}</h3>
+                  <p class="mb-0">Promedio General</p>
+                </div>
+              </div>
+              <div class="col-md-3">
+                <div class="stat-card">
+                  <i class="fas fa-percentage"></i>
+                  <h3>{{ info.porcentaje_asistencia|floatformat:0|default:"N/A" }}%</h3>
+                  <p class="mb-0">Asistencia</p>
+                </div>
+              </div>
+              <div class="col-md-3">
+                <div class="stat-card">
+                  <i class="fas fa-book"></i>
+                  <h3>{{ info.total_asignaturas|default:"0" }}</h3>
+                  <p class="mb-0">Asignaturas</p>
+                </div>
+              </div>
+              <div class="col-md-3">
+                <div class="stat-card">
+                  <i class="fas fa-sticky-note"></i>
+                  <h3>{{ info.total_anotaciones|default:"0" }}</h3>
+                  <p class="mb-0">Anotaciones</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Asignaturas y notas -->
+            <div class="mb-4">
+              <h5 class="mb-3">
+                <i class="fas fa-books me-2"></i>
+                Asignaturas y Calificaciones
+              </h5>
+              
+              {% if info.asignaturas_con_notas %}
+              <div class="row">
+                {% for asignatura_data in info.asignaturas_con_notas %}
+                <div class="col-md-6 mb-3">
+                  <div class="subject-card">
+                    <div class="d-flex justify-content-between align-items-center">
+                      <div>
+                        <h6 class="mb-1">{{ asignatura_data.asignatura.nombre }}</h6>
+                        <small class="text-muted">
+                          Prof. {{ asignatura_data.profesor.get_nombre_completo|default:"No asignado" }}
+                        </small>
+                      </div>
+                      <div class="text-end">
+                        <span class="grade-badge">
+                          {{ asignatura_data.promedio|floatformat:1|default:"S/N" }}
+                        </span>
+                        <br>
+                        <small class="text-muted">
+                          {{ asignatura_data.total_notas }} nota{{ asignatura_data.total_notas|pluralize:",s" }}
+                        </small>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                {% endfor %}
+              </div>
+              {% else %}
+              <div class="alert alert-info text-center">
+                <i class="fas fa-info-circle me-2"></i>
+                No hay asignaturas registradas para este estudiante.
+              </div>
+              {% endif %}
+            </div>
+
+            <!-- Horarios de la semana -->
+            {% if info.horarios_semana %}
+            <div class="mb-4">
+              <h5 class="mb-3">
+                <i class="fas fa-clock me-2"></i>
+                Horario de Clases
+              </h5>
+              <div class="table-responsive">
+                <table class="table table-bordered table-sm">
+                  <thead class="table-light">
+                    <tr>
+                      <th>Hora</th>
+                      <th>Lunes</th>
+                      <th>Martes</th>
+                      <th>Miércoles</th>
+                      <th>Jueves</th>
+                      <th>Viernes</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for hora, clases in info.horarios_semana.items %}
+                    <tr>
+                      <td class="table-secondary"><strong>{{ hora }}</strong></td>
+                      <td>
+                        {% for clase in clases %}
+                        {% if clase.dia == 'LU' %}
+                        <div class="small">
+                          <strong>{{ clase.asignatura.nombre|truncatechars:15|default:"Sin asignatura" }}</strong>
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                      </td>
+                      <td>
+                        {% for clase in clases %}
+                        {% if clase.dia == 'MA' %}
+                        <div class="small">
+                          <strong>{{ clase.asignatura.nombre|truncatechars:15|default:"Sin asignatura" }}</strong>
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                      </td>
+                      <td>
+                        {% for clase in clases %}
+                        {% if clase.dia == 'MI' %}
+                        <div class="small">
+                          <strong>{{ clase.asignatura.nombre|truncatechars:15|default:"Sin asignatura" }}</strong>
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                      </td>
+                      <td>
+                        {% for clase in clases %}
+                        {% if clase.dia == 'JU' %}
+                        <div class="small">
+                          <strong>{{ clase.asignatura.nombre|truncatechars:15|default:"Sin asignatura" }}</strong>
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                      </td>
+                      <td>
+                        {% for clase in clases %}
+                        {% if clase.dia == 'VI' %}
+                        <div class="small">
+                          <strong>{{ clase.asignatura.nombre|truncatechars:15|default:"Sin asignatura" }}</strong>
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                      </td>
+                    </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            {% endif %}
+        </div>
+      </div>
+
+        <!-- Panel lateral: Anotaciones y accesos rápidos -->
+        <div class="col-lg-4 mb-4">
+          <!-- Anotaciones recientes -->
+          <div class="info-panel mb-4">
+            <h5 class="mb-3">
+              <i class="fas fa-comment-alt me-2"></i>
+              Anotaciones Recientes
+            </h5>
+            
+            {% if info.anotaciones_recientes %}
+            {% for anotacion in info.anotaciones_recientes %}
+            <div class="annotation-card {{ anotacion.tipo }}">
+              <div class="d-flex align-items-start">
+                <div class="me-2 mt-1">
+                  {% if anotacion.tipo == 'positiva' %}
+                    <i class="fas fa-thumbs-up text-success"></i>
+                  {% elif anotacion.tipo == 'negativa' %}
+                    <i class="fas fa-thumbs-down text-danger"></i>
+                  {% else %}
+                    <i class="fas fa-minus text-warning"></i>
+                  {% endif %}
+                </div>
+                <div class="flex-grow-1">
+                  <p class="mb-1" style="color: #212529;">{{ anotacion.contenido|truncatechars:100 }}</p>
+                  <small class="text-muted">
+                    <i class="fas fa-user me-1"></i>
+                    {{ anotacion.profesor_autor.get_nombre_completo }}
+                    <br>
+                    <i class="fas fa-calendar me-1"></i>
+                    {{ anotacion.fecha_creacion|date:"d/m/Y H:i" }}
+                  </small>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+            {% else %}
+            <div class="text-center text-muted">
+              <i class="fas fa-smile fa-2x mb-2"></i>
+              <p class="mb-0">¡Sin anotaciones recientes!</p>
+            </div>
+            {% endif %}
+          </div>
+
+          <!-- Asistencia reciente -->
+          <div class="info-panel mb-4">
+            <h5 class="mb-3">
+              <i class="fas fa-calendar-check me-2"></i>
+              Asistencia de los Últimos Días
+            </h5>
+            
+            {% if info.asistencia_reciente %}
+            {% for asistencia in info.asistencia_reciente %}
+            <div class="d-flex align-items-center mb-2 p-2 rounded" style="background: #f8f9fa;">
+              <span class="attendance-indicator {{ asistencia.estado }}"></span>
+              <div class="flex-grow-1">
+                <strong style="color: #212529;">{{ asistencia.fecha|date:"d/m/Y" }}</strong>
+                <br>
+                <small class="text-muted">
+                  {% if asistencia.estado == 'presente' %}
+                    Presente
+                  {% elif asistencia.estado == 'ausente' %}
+                    Ausente
+                  {% else %}
+                    Ausencia Justificada
+                  {% endif %}
+                </small>
+              </div>
+            </div>
+            {% endfor %}
+            {% else %}
+            <div class="text-center text-muted">
+              <i class="fas fa-calendar fa-2x mb-2"></i>
+              <p class="mb-0">No hay registros de asistencia</p>
+            </div>
+            {% endif %}
+          </div>
+
+          <!-- Accesos rápidos -->
+          <div class="quick-actions">
+            <h5 class="mb-3">
+              <i class="fas fa-external-link-alt me-2"></i>
+              Accesos Rápidos
+            </h5>
+            
+            <a href="{% url 'ver_notas_curso' %}" class="action-btn">
+              <i class="fas fa-chart-bar me-2"></i>
+              Ver Todas las Notas
+            </a>
+            
+            <a href="{% url 'calendario' %}" class="action-btn">
+              <i class="fas fa-calendar-alt me-2"></i>
+              Ver Calendario Académico
+            </a>
+            
+            <a href="{% url 'libro_anotaciones' %}" class="action-btn">
+              <i class="fas fa-book me-2"></i>
+              Ver Todas las Anotaciones
+            </a>
+            
+            <a href="{% url 'ver_horario_curso' %}" class="action-btn">
+              <i class="fas fa-clock me-2"></i>
+              Ver Horarios
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+    {% endif %}
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  let currentStudentId = null;
+  
+  // Función para mostrar información del estudiante
+  window.showStudentInfo = function(studentId) {
+    // Mostrar loading
+    showLoading();
+    
+    // Ocultar todos los paneles
+    document.querySelectorAll('.student-info-panel').forEach(panel => {
+      panel.style.display = 'none';
+    });
+    
+    // Quitar clase active de todas las tarjetas
+    document.querySelectorAll('.student-card').forEach(card => {
+      card.classList.remove('active');
+    });
+    
+    // Agregar clase active a la tarjeta seleccionada
+    const selectedCard = document.querySelector(`[data-student-id="${studentId}"]`);
+    if (selectedCard) {
+      selectedCard.classList.add('active');
+    }
+    
+    // Simular carga de datos
+    setTimeout(() => {
+      // Ocultar loading
+      hideLoading();
+      
+      // Mostrar panel del estudiante seleccionado
+      const studentPanel = document.getElementById(`student-${studentId}`);
+      if (studentPanel) {
+        studentPanel.style.display = 'block';
+        
+        // Añadir animación al panel
+        const infoPanels = studentPanel.querySelectorAll('.info-panel');
+        infoPanels.forEach((panel, index) => {
+          panel.classList.remove('active');
+          setTimeout(() => {
+            panel.classList.add('active');
+          }, index * 200);
+        });
+        
+        // Scroll suave al panel
+        studentPanel.scrollIntoView({ 
+          behavior: 'smooth',
+          block: 'start'
+        });
+      }
+      
+      currentStudentId = studentId;
+    }, 800);
+  };
+  
+  function showLoading() {
+    document.getElementById('loadingSpinner').style.display = 'block';
+  }
+  
+  function hideLoading() {
+    document.getElementById('loadingSpinner').style.display = 'none';
+  }
+  
+  // Seleccionar automáticamente el primer estudiante si existe
+  const firstStudentCard = document.querySelector('.student-card');
+  if (firstStudentCard) {
+    const firstStudentId = firstStudentCard.getAttribute('data-student-id');
+    setTimeout(() => {
+      showStudentInfo(firstStudentId);
+    }, 1000);
+  }
+  
+  // Efecto hover mejorado para las tarjetas
+  document.querySelectorAll('.student-card').forEach(card => {
+    card.addEventListener('mouseenter', function() {
+      if (!this.classList.contains('active')) {
+        this.style.transform = 'translateY(-8px) scale(1.02)';
+      }
+    });
+    
+    card.addEventListener('mouseleave', function() {
+      if (!this.classList.contains('active')) {
+        this.style.transform = 'translateY(0) scale(1)';
+      }
+    });
+  });
+  
+  // Animación de entrada inicial
+  setTimeout(() => {
+    document.querySelectorAll('.student-card').forEach((card, index) => {
+      card.style.opacity = '0';
+      card.style.transform = 'translateY(20px)';
+      
+      setTimeout(() => {
+        card.style.transition = 'all 0.6s ease';
+        card.style.opacity = '1';
+        card.style.transform = 'translateY(0)';
+      }, index * 150);
+    });
+  }, 500);
+});
+
+// Función para actualizar datos en tiempo real (opcional)
+function refreshStudentData(studentId) {
+  if (currentStudentId === studentId) {
+    showLoading();
+    
+    // Aquí podrías hacer una llamada AJAX para obtener datos actualizados
+    // Por ahora solo simulamos la actualización
+    setTimeout(() => {
+      hideLoading();
+      console.log(`Datos del estudiante ${studentId} actualizados`);
+    }, 1000);
+  }
+}
+
+// Event listeners para responsive
+window.addEventListener('resize', function() {
+  // Ajustar layout en dispositivos móviles
+  if (window.innerWidth < 768) {
+    document.querySelectorAll('.student-card').forEach(card => {
+      card.style.margin = '5px 0';
+    });
+  } else {
+    document.querySelectorAll('.student-card').forEach(card => {
+      card.style.margin = '10px 5px';
+    });
+  }
+});
+</script>
+{% endblock %}

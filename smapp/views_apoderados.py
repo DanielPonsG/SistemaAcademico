@@ -342,6 +342,54 @@ def _preparar_contexto_apoderado(request, apoderado, es_profesor_apoderado=False
             promedio_general = round(promedio_obj['promedio'], 1) if promedio_obj['promedio'] else None
         
         # Obtener información básica del estudiante
+        
+        # Obtener asignaturas con notas del estudiante
+        from .models import Grupo
+        asignaturas_con_notas = []
+        inscripciones = Inscripcion.objects.filter(estudiante=estudiante).select_related(
+            'grupo__asignatura',
+            'grupo__profesor'
+        )
+        
+        for inscripcion in inscripciones:
+            calificaciones = Calificacion.objects.filter(inscripcion=inscripcion)
+            promedio_asignatura = None
+            if calificaciones.exists():
+                from django.db.models import Avg
+                promedio_obj = calificaciones.aggregate(promedio=Avg('puntaje'))
+                promedio_asignatura = round(promedio_obj['promedio'], 1) if promedio_obj['promedio'] else None
+            
+            asignaturas_con_notas.append({
+                'asignatura': inscripcion.grupo.asignatura,
+                'profesor': inscripcion.grupo.profesor,
+                'promedio': promedio_asignatura,
+                'total_notas': calificaciones.count()
+            })
+        
+        # Obtener horarios de la semana
+        from .models import HorarioCurso
+        horarios_semana = {}
+        if curso_actual:
+            horarios = HorarioCurso.objects.filter(
+                curso=curso_actual
+            ).select_related('asignatura').order_by('hora_inicio', 'dia')
+            
+            # Organizar horarios por bloque de tiempo
+            for horario in horarios:
+                hora_key = f"{horario.hora_inicio.strftime('%H:%M')} - {horario.hora_fin.strftime('%H:%M')}"
+                if hora_key not in horarios_semana:
+                    horarios_semana[hora_key] = []
+                horarios_semana[hora_key].append(horario)
+        
+        # Obtener asistencia reciente (últimos 7 días)
+        from datetime import timedelta
+        fecha_limite = hoy - timedelta(days=7)
+        asistencia_reciente = AsistenciaAlumno.objects.filter(
+            estudiante=estudiante,
+            fecha__gte=fecha_limite,
+            fecha__lte=hoy
+        ).order_by('-fecha')[:7]
+        
         estudiante_data = {
             'estudiante': estudiante,
             'parentesco': relacion.parentesco,
@@ -354,6 +402,11 @@ def _preparar_contexto_apoderado(request, apoderado, es_profesor_apoderado=False
             'ausencias': ausencias,
             'porcentaje_asistencia': porcentaje_asistencia,
             'anotaciones_recientes': anotaciones_recientes,
+            'asignaturas_con_notas': asignaturas_con_notas,
+            'total_asignaturas': len(asignaturas_con_notas),
+            'total_anotaciones': anotaciones_recientes.count() if hasattr(anotaciones_recientes, 'count') else len(anotaciones_recientes),
+            'horarios_semana': horarios_semana,
+            'asistencia_reciente': asistencia_reciente,
         }
         
         estudiantes_info.append(estudiante_data)
@@ -384,9 +437,10 @@ def _preparar_contexto_apoderado(request, apoderado, es_profesor_apoderado=False
         'promedio_asistencia_conjunto': promedio_asistencia_conjunto,
         'tipo_usuario': 'apoderado',
         'es_profesor_apoderado': es_profesor_apoderado,
+        'fecha_actual': timezone.now().date(),
     }
     
-    return render(request, 'inicio.html', context)
+    return render(request, 'dashboard_apoderado.html', context)
 
 def _preparar_contexto_profesor_apoderado(request, profesor, apoderado):
     """Función auxiliar para preparar el contexto de un profesor-apoderado"""

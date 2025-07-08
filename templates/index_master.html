@@ -423,45 +423,6 @@
                     </li>
                   </ul>
                 </div>
-                
-                {% if user.profesor.apoderado_profile %}
-                <div class="menu_section">
-                  <h3><i class="fas fa-heart"></i> MI ROL DE APODERADO</h3>
-                  <ul class="nav side-menu">
-                    <li style="--delay: 13">
-                      <a href="{% url 'dashboard_profesor_apoderado' %}"><i class="fas fa-users"></i> Mis Estudiantes</a>
-                    </li>
-                  </ul>
-                </div>
-                {% endif %}
-              {% elif user.is_authenticated and user.apoderado %}
-                <!-- MENÚ PARA APODERADOS -->
-                <div class="menu_section">
-                  <h3><i class="fas fa-home"></i> MI PANEL</h3>
-                  <ul class="nav side-menu">
-                    <li style="--delay: 1">
-                      <a href="{% url 'dashboard_apoderado' %}"><i class="fas fa-tachometer-alt"></i> Panel de Apoderado</a>
-                    </li>
-                  </ul>
-                </div>
-                
-                <div class="menu_section">
-                  <h3><i class="fas fa-users"></i> MIS ESTUDIANTES</h3>
-                  <ul class="nav side-menu">
-                    <li style="--delay: 2">
-                      <a href="{% url 'dashboard_apoderado' %}"><i class="fas fa-user-graduate"></i> Ver Mis Estudiantes</a>
-                    </li>
-                  </ul>
-                </div>
-                
-                <div class="menu_section">
-                  <h3><i class="fas fa-calendar-alt"></i> CALENDARIO</h3>
-                  <ul class="nav side-menu">
-                    <li style="--delay: 3">
-                      <a href="{% url 'calendario' %}"><i class="fas fa-calendar-check"></i> Calendario Académico</a>
-                    </li>
-                  </ul>
-                </div>
               {% else %}
                 <!-- MENÚ PARA ADMINISTRADORES/DIRECTORES -->
                 <div class="menu_section">
@@ -489,9 +450,6 @@
                     </li>
                     <li style="--delay: 6">
                       <a href="{% url 'listar_profesores' %}"><i class="fas fa-chalkboard-teacher"></i> Gestionar Profesores</a>
-                    </li>
-                    <li style="--delay: 7">
-                      <a href="{% url 'listar_apoderados' %}"><i class="fas fa-users"></i> Gestionar Apoderados</a>
                     </li>
                   </ul>
                 </div>

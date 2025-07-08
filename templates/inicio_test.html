@@ -1,0 +1,167 @@
+{% extends "index_master.html" %}
+
+{% block content %}
+<div class="right_col" role="main">
+  <div class="container-fluid">
+    
+    <!-- MENSAJE DE PRUEBA ULTRA VISIBLE -->
+    <div style="background: red !important; color: white !important; padding: 50px !important; font-size: 30px !important; text-align: center !important; margin: 20px 0 !important; border: 10px solid black !important;">
+      🔥 TEMPLATE DE PRUEBA FUNCIONANDO 🔥
+      <br>
+      SI VES ESTO, DJANGO ESTÁ CARGANDO EL TEMPLATE CORRECTO
+      <br>
+      Usuario: {{ user.username }}
+      <br>
+      Tipo: {{ tipo_usuario }}
+    </div>
+
+    {% if tipo_usuario == 'apoderado' %}
+    
+    <!-- Selector de Estudiantes -->
+    {% if total_estudiantes > 1 %}
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header bg-primary text-white">
+            <h5 class="mb-0"><i class="fas fa-user-friends me-2"></i>Seleccionar Estudiante ({{ total_estudiantes }} estudiantes)</h5>
+          </div>
+          <div class="card-body">
+            <div class="row g-3">
+              {% for info in estudiantes_info %}
+              <div class="col-md-6 col-lg-4">
+                <button type="button" 
+                        class="btn btn-outline-primary estudiante-selector w-100 p-3" 
+                        data-estudiante-id="{{ info.estudiante.id }}"
+                        style="background: red !important; color: white !important; font-size: 18px !important; font-weight: bold !important; border: 3px solid black !important;"
+                        {% if forloop.first %}data-active="true"{% endif %}>
+                  <div class="text-center">
+                    <i class="fas fa-user-graduate fa-2x mb-2"></i>
+                    <br>
+                    <strong>{{ info.estudiante.get_nombre_completo }}</strong>
+                    <br>
+                    <small>{{ info.parentesco|title }}</small>
+                    {% if info.curso %}
+                    <br>
+                    <small>{{ info.curso.get_nivel_display }}{{ info.curso.paralelo }}</small>
+                    {% endif %}
+                  </div>
+                </button>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Información de Estudiantes -->
+    {% for info in estudiantes_info %}
+    <div class="estudiante-info" 
+         data-estudiante-id="{{ info.estudiante.id }}"
+         {% if total_estudiantes > 1 and not forloop.first %}style="display: none;"{% endif %}>
+      
+      <div class="row mb-4">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-header bg-success text-white">
+              <h4><i class="fas fa-user-graduate me-2"></i>{{ info.estudiante.get_nombre_completo }}</h4>
+            </div>
+            <div class="card-body">
+              
+              <!-- Estadísticas del Estudiante -->
+              <div class="row">
+                <div class="col-md-3">
+                  <div class="card text-center" style="background: blue !important; color: white !important;">
+                    <div class="card-body">
+                      <h2>{{ info.promedio_general|default:"S/N" }}</h2>
+                      <p>Promedio General</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-3">
+                  <div class="card text-center" style="background: green !important; color: white !important;">
+                    <div class="card-body">
+                      <h2>{{ info.porcentaje_asistencia|default:"0" }}%</h2>
+                      <p>Asistencia del Mes</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-3">
+                  <div class="card text-center" style="background: orange !important; color: white !important;">
+                    <div class="card-body">
+                      <h2>{{ info.ausencias|default:"0" }}</h2>
+                      <p>Ausencias</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-3">
+                  <div class="card text-center" style="background: purple !important; color: white !important;">
+                    <div class="card-body">
+                      <h2>{{ info.anotaciones_recientes|length }}</h2>
+                      <p>Anotaciones</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+
+    {% endif %}
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  console.log("🔥🔥🔥 TEMPLATE DE PRUEBA CARGADO 🔥🔥🔥");
+  console.log("Usuario:", "{{ user.username }}");
+  console.log("Tipo usuario:", "{{ tipo_usuario }}");
+  
+  const selectores = document.querySelectorAll('.estudiante-selector');
+  const paneles = document.querySelectorAll('.estudiante-info');
+  
+  console.log("Selectores encontrados:", selectores.length);
+  console.log("Paneles encontrados:", paneles.length);
+  
+  selectores.forEach((selector, index) => {
+    selector.addEventListener('click', function() {
+      const estudianteId = this.getAttribute('data-estudiante-id');
+      console.log("🎯 CLICK EN SELECTOR - Estudiante ID:", estudianteId);
+      
+      // Desactivar todos los selectores
+      selectores.forEach(s => {
+        s.style.background = 'red';
+        s.style.color = 'white';
+      });
+      
+      // Activar el selector clickeado
+      this.style.background = 'blue';
+      this.style.color = 'yellow';
+      
+      // Ocultar todos los paneles
+      paneles.forEach(p => p.style.display = 'none');
+      
+      // Mostrar el panel correspondiente
+      const panelActivo = document.querySelector(`[data-estudiante-id="${estudianteId}"].estudiante-info`);
+      if (panelActivo) {
+        panelActivo.style.display = 'block';
+        console.log("✅ Panel mostrado para estudiante:", estudianteId);
+      } else {
+        console.error("❌ No se encontró panel para estudiante:", estudianteId);
+      }
+    });
+  });
+  
+  // Activar el primer estudiante automáticamente
+  if (selectores.length > 0) {
+    selectores[0].click();
+  }
+});
+</script>
+
+{% endblock %}
