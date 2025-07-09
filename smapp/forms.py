@@ -88,14 +88,16 @@ class EstudianteForm(forms.ModelForm):
         widget=forms.TextInput(attrs={
             'class': 'form-control',
             'placeholder': 'Ingrese nombre de usuario'
-        })
+        }),
+        required=False
     )
     password = forms.CharField(
         label="Contraseña",
         widget=forms.PasswordInput(attrs={
             'class': 'form-control',
-            'placeholder': 'Ingrese contraseña'
-        })
+            'placeholder': 'Ingrese contraseña (dejar vacío para mantener actual)'
+        }),
+        required=False
     )
 
     class Meta:
@@ -208,20 +210,73 @@ class EstudianteForm(forms.ModelForm):
                 
         return fecha_nacimiento
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        # Si es una edición (instance existe)
+        if self.instance and self.instance.pk:
+            # Si tiene usuario, llenar los campos de usuario
+            if self.instance.user:
+                self.fields['username'].initial = self.instance.user.username
+                self.fields['password'].widget.attrs['placeholder'] = 'Dejar vacío para mantener contraseña actual'
+
 class ProfesorForm(forms.ModelForm):
     username = forms.CharField(
         label="Nombre de usuario",
         widget=forms.TextInput(attrs={
             'class': 'form-control',
             'placeholder': 'Ingrese nombre de usuario'
-        })
+        }),
+        required=False
     )
     password = forms.CharField(
         label="Contraseña",
         widget=forms.PasswordInput(attrs={
             'class': 'form-control',
-            'placeholder': 'Ingrese contraseña'
-        })
+            'placeholder': 'Ingrese contraseña (dejar vacío para mantener actual)'
+        }),
+        required=False
+    )
+    
+    # Campo para indicar si también es apoderado
+    es_apoderado = forms.BooleanField(
+        label="¿Es también apoderado?",
+        widget=forms.CheckboxInput(attrs={
+            'class': 'form-check-input'
+        }),
+        required=False,
+        help_text="Marcar si este profesor también actúa como apoderado de estudiantes"
+    )
+    
+    # Campos adicionales para apoderado
+    parentesco_principal = forms.ChoiceField(
+        label="Parentesco principal",
+        choices=Apoderado.PARENTESCO_CHOICES,
+        widget=forms.Select(attrs={
+            'class': 'form-control'
+        }),
+        required=False,
+        help_text="Solo si es apoderado"
+    )
+    
+    ocupacion = forms.CharField(
+        label="Ocupación (como apoderado)",
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Ej: Profesor, Docente'
+        }),
+        required=False,
+        help_text="Solo si es apoderado"
+    )
+    
+    telefono_emergencia = forms.CharField(
+        label="Teléfono de emergencia",
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': '+56987654321'
+        }),
+        required=False,
+        help_text="Solo si es apoderado (puede ser diferente al teléfono principal)"
     )
 
     class Meta:
@@ -288,6 +343,27 @@ class ProfesorForm(forms.ModelForm):
             'numero_documento': 'RUT',
             'codigo_profesor': 'Código de Profesor'
         }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        # Si es una edición (instance existe)
+        if self.instance and self.instance.pk:
+            # Verificar si ya tiene perfil de apoderado
+            try:
+                apoderado = self.instance.apoderado_profile
+                if apoderado:
+                    self.fields['es_apoderado'].initial = True
+                    self.fields['parentesco_principal'].initial = apoderado.parentesco_principal
+                    self.fields['ocupacion'].initial = apoderado.ocupacion
+                    self.fields['telefono_emergencia'].initial = apoderado.telefono_emergencia
+            except Apoderado.DoesNotExist:
+                self.fields['es_apoderado'].initial = False
+            
+            # Si tiene usuario, llenar los campos de usuario
+            if self.instance.user:
+                self.fields['username'].initial = self.instance.user.username
+                self.fields['password'].widget.attrs['placeholder'] = 'Dejar vacío para mantener contraseña actual'
 
     def clean_numero_documento(self):
         rut = self.cleaned_data.get('numero_documento')
@@ -312,12 +388,22 @@ class ProfesorForm(forms.ModelForm):
             # Verificar que no existe otro profesor con el mismo RUT
             if self.instance and self.instance.pk:
                 # Editando profesor existente
-                if Profesor.objects.filter(numero_documento=rut_formateado).exclude(pk=self.instance.pk).exists():
+                profesores_existentes = Profesor.objects.filter(numero_documento=rut_formateado).exclude(pk=self.instance.pk)
+                if profesores_existentes.exists():
                     raise forms.ValidationError('Ya existe un profesor con este RUT.')
             else:
                 # Creando nuevo profesor
                 if Profesor.objects.filter(numero_documento=rut_formateado).exists():
                     raise forms.ValidationError('Ya existe un profesor con este RUT.')
+            
+            # Verificar que no existe un estudiante con el mismo RUT
+            estudiantes_existentes = Estudiante.objects.filter(numero_documento=rut_formateado)
+            if estudiantes_existentes.exists():
+                estudiante = estudiantes_existentes.first()
+                raise forms.ValidationError(
+                    f'Ya existe un estudiante con este RUT: {estudiante.get_nombre_completo()}. '
+                    'Una persona no puede ser profesor y estudiante al mismo tiempo.'
+                )
             
             return rut_formateado
         return rut
@@ -341,6 +427,158 @@ class ProfesorForm(forms.ModelForm):
                 raise forms.ValidationError("La fecha de nacimiento no puede ser en el futuro.")
                 
         return fecha_nacimiento
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        es_apoderado = cleaned_data.get('es_apoderado')
+        parentesco_principal = cleaned_data.get('parentesco_principal')
+        numero_documento = cleaned_data.get('numero_documento')
+        
+        # Si es apoderado, validar campos requeridos
+        if es_apoderado and not parentesco_principal:
+            raise forms.ValidationError('Si es apoderado, debe especificar el parentesco principal.')
+        
+        # Si es apoderado, verificar que no exista otro apoderado con el mismo RUT
+        if es_apoderado and numero_documento:
+            # Buscar apoderados existentes con el mismo RUT
+            apoderados_existentes = Apoderado.objects.filter(numero_documento=numero_documento)
+            
+            # Si estamos editando un profesor existente, excluir su propio apoderado
+            if self.instance and self.instance.pk:
+                apoderados_existentes = apoderados_existentes.exclude(profesor=self.instance)
+            
+            # Verificar si hay conflictos reales
+            conflicto = False
+            for apoderado_existente in apoderados_existentes:
+                # Solo es conflicto si el apoderado existente:
+                # 1. Está relacionado con otro profesor diferente, O
+                # 2. Es un apoderado independiente (sin profesor) que no podemos modificar
+                if apoderado_existente.profesor and apoderado_existente.profesor != self.instance:
+                    # Está relacionado con otro profesor
+                    conflicto = True
+                    nombre_conflicto = apoderado_existente.get_nombre_completo()
+                    break
+                elif not apoderado_existente.profesor:
+                    # Es un apoderado independiente - esto podría convertirse en problema
+                    # Pero lo permitiremos y manejaremos en el save()
+                    pass
+            
+            if conflicto:
+                raise forms.ValidationError(
+                    f'Ya existe un apoderado con el RUT {numero_documento} relacionado con otro profesor. '
+                    f'Nombre: {nombre_conflicto}. '
+                    f'No se puede crear un perfil de apoderado duplicado.'
+                )
+        
+        return cleaned_data
+    
+    def save(self, commit=True):
+        profesor = super().save(commit=commit)
+        
+        if commit:
+            es_apoderado = self.cleaned_data.get('es_apoderado', False)
+            
+            # Manejar perfil de apoderado
+            if es_apoderado:
+                # Verificar si ya existe un apoderado con el mismo RUT
+                apoderados_existentes = Apoderado.objects.filter(numero_documento=profesor.numero_documento)
+                
+                # Excluir el apoderado actual del profesor si existe
+                apoderado_del_profesor = None
+                try:
+                    apoderado_del_profesor = Apoderado.objects.get(profesor=profesor)
+                    apoderados_existentes = apoderados_existentes.exclude(id=apoderado_del_profesor.id)
+                except Apoderado.DoesNotExist:
+                    pass
+                
+                # Verificar conflictos reales
+                apoderado_independiente = None
+                for apoderado in apoderados_existentes:
+                    if apoderado.profesor and apoderado.profesor != profesor:
+                        # Conflicto real: hay un apoderado relacionado con otro profesor
+                        raise forms.ValidationError(
+                            f'Ya existe un apoderado con el RUT {profesor.numero_documento} '
+                            f'relacionado con otro profesor. No se puede crear un perfil duplicado.'
+                        )
+                    elif not apoderado.profesor:
+                        # Apoderado independiente - lo reutilizaremos
+                        apoderado_independiente = apoderado
+                        break
+                
+                # Determinar qué apoderado usar
+                if apoderado_del_profesor:
+                    # Ya tiene apoderado - actualizar
+                    apoderado = apoderado_del_profesor
+                elif apoderado_independiente:
+                    # Hay un apoderado independiente - convertirlo en apoderado del profesor
+                    apoderado = apoderado_independiente
+                    apoderado.profesor = profesor
+                else:
+                    # No hay apoderado - crear nuevo
+                    apoderado = None
+                
+                if apoderado:
+                    # Actualizar datos existentes
+                    apoderado.primer_nombre = profesor.primer_nombre
+                    apoderado.segundo_nombre = profesor.segundo_nombre
+                    apoderado.apellido_paterno = profesor.apellido_paterno
+                    apoderado.apellido_materno = profesor.apellido_materno
+                    apoderado.tipo_documento = profesor.tipo_documento
+                    apoderado.numero_documento = profesor.numero_documento
+                    apoderado.fecha_nacimiento = profesor.fecha_nacimiento
+                    apoderado.genero = profesor.genero
+                    apoderado.direccion = profesor.direccion
+                    apoderado.telefono = profesor.telefono
+                    apoderado.email = profesor.email
+                    apoderado.parentesco_principal = self.cleaned_data.get('parentesco_principal', apoderado.parentesco_principal)
+                    apoderado.ocupacion = self.cleaned_data.get('ocupacion') or apoderado.ocupacion or 'Profesor'
+                    apoderado.telefono_emergencia = self.cleaned_data.get('telefono_emergencia') or apoderado.telefono_emergencia
+                    apoderado.profesor = profesor  # Asegurar la relación
+                    apoderado.save()
+                else:
+                    # Crear nuevo perfil de apoderado
+                    # Generar código único para apoderado
+                    codigo_base = f"APO-{profesor.codigo_profesor}"
+                    codigo_apoderado = codigo_base
+                    contador = 1
+                    
+                    # Asegurar que el código sea único
+                    while Apoderado.objects.filter(codigo_apoderado=codigo_apoderado).exists():
+                        contador += 1
+                        codigo_apoderado = f"{codigo_base}-{contador}"
+                    
+                    apoderado = Apoderado.objects.create(
+                        primer_nombre=profesor.primer_nombre,
+                        segundo_nombre=profesor.segundo_nombre,
+                        apellido_paterno=profesor.apellido_paterno,
+                        apellido_materno=profesor.apellido_materno,
+                        tipo_documento=profesor.tipo_documento,
+                        numero_documento=profesor.numero_documento,
+                        fecha_nacimiento=profesor.fecha_nacimiento,
+                        genero=profesor.genero,
+                        direccion=profesor.direccion,
+                        telefono=profesor.telefono,
+                        email=profesor.email,
+                        codigo_apoderado=codigo_apoderado,
+                        parentesco_principal=self.cleaned_data.get('parentesco_principal', 'otro'),
+                        ocupacion=self.cleaned_data.get('ocupacion') or 'Profesor',
+                        telefono_emergencia=self.cleaned_data.get('telefono_emergencia'),
+                        profesor=profesor
+                    )
+            else:
+                # Si no es apoderado, eliminar perfil si existe
+                try:
+                    # Buscar apoderado relacionado con este profesor
+                    apoderado = Apoderado.objects.get(profesor=profesor)
+                    if apoderado:
+                        # Desconectar del profesor (no eliminar completamente)
+                        # por si tiene estudiantes asociados
+                        apoderado.profesor = None
+                        apoderado.save()
+                except Apoderado.DoesNotExist:
+                    pass
+        
+        return profesor
 
 class EventoCalendarioForm(forms.ModelForm):
     # Campo para seleccionar cursos específicos
@@ -850,7 +1088,7 @@ class AsignaturaForm(forms.ModelForm):
         }),
         label='Cursos Asociados',
         required=False,
-        help_text='Mantén presionada Ctrl (o Cmd en Mac) para seleccionar varios cursos'
+        help_text='Mantén presionado Ctrl (o Cmd en Mac) para seleccionar varios cursos'
     )
     
     class Meta:
@@ -1712,6 +1950,7 @@ class EventoCalendarioForm(forms.ModelForm):
         labels = {
             'titulo': 'Título del evento',
             'descripcion': 'Descripción',
+
             'fecha': 'Fecha',
             'hora_inicio': 'Hora de inicio',
             'hora_fin': 'Hora de fin',

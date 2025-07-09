@@ -100,49 +100,129 @@ def agregar(request):
 def modificar(request):
     tipo = request.GET.get('tipo', 'estudiante')
     query = request.GET.get('q', '')
+    codigo = request.GET.get('codigo', '')
     seleccionado_id = request.GET.get('id')
     mensaje = ""
     form = None
     resultados = []
 
     if tipo == 'profesor':
+        # Construir filtros para la búsqueda
+        filtros = Q()
         if query:
-            resultados = Profesor.objects.filter(
+            filtros |= (
                 Q(primer_nombre__icontains=query) |
+                Q(segundo_nombre__icontains=query) |
                 Q(apellido_paterno__icontains=query) |
-                Q(codigo_profesor__icontains=query) |
-                Q(id__iexact=query)  # Permite buscar por ID exacto
+                Q(apellido_materno__icontains=query) |
+                Q(email__icontains=query)
             )
+        if codigo:
+            filtros |= Q(codigo_profesor__icontains=codigo)
+        if seleccionado_id:
+            filtros |= Q(id__exact=seleccionado_id)
+        
+        # Aplicar filtros solo si hay criterios de búsqueda
+        if query or codigo or seleccionado_id:
+            resultados = Profesor.objects.filter(filtros).distinct()
         else:
             resultados = Profesor.objects.none()
+            
+        # Si hay un profesor seleccionado para modificar
         if seleccionado_id:
-            seleccionado = Profesor.objects.get(id=seleccionado_id)
-            if request.method == 'POST':
-                form = ProfesorForm(request.POST, instance=seleccionado)
-                if form.is_valid():
-                    form.save()
-                    mensaje = "Profesor modificado correctamente."
-            else:
-                form = ProfesorForm(instance=seleccionado)
-    else:
+            try:
+                seleccionado = Profesor.objects.get(id=seleccionado_id)
+                if request.method == 'POST':
+                    form = ProfesorForm(request.POST, instance=seleccionado)
+                    if form.is_valid():
+                        profesor_guardado = form.save()
+                        
+                        # Manejar usuario del profesor si se proporcionaron datos
+                        username = form.cleaned_data.get('username')
+                        password = form.cleaned_data.get('password')
+                        
+                        if username:
+                            if profesor_guardado.user:
+                                # Actualizar usuario existente
+                                user = profesor_guardado.user
+                                user.username = username
+                                user.first_name = profesor_guardado.primer_nombre
+                                user.last_name = profesor_guardado.apellido_paterno
+                                user.email = profesor_guardado.email
+                                if password:  # Solo actualizar contraseña si se proporcionó una nueva
+                                    user.set_password(password)
+                                user.save()
+                            else:
+                                # Crear nuevo usuario
+                                from django.contrib.auth.models import User
+                                user = User.objects.create_user(
+                                    username=username,
+                                    email=profesor_guardado.email,
+                                    password=password or 'temp123',
+                                    first_name=profesor_guardado.primer_nombre,
+                                    last_name=profesor_guardado.apellido_paterno
+                                )
+                                profesor_guardado.user = user
+                                profesor_guardado.save()
+                        
+                        # Verificar si ahora es apoderado
+                        try:
+                            apoderado = profesor_guardado.apoderado_profile
+                            if apoderado:
+                                messages.success(request, f"Profesor modificado correctamente. También se actualizó su perfil de apoderado (Código: {apoderado.codigo_apoderado}).")
+                            else:
+                                messages.success(request, "Profesor modificado correctamente.")
+                        except:
+                            messages.success(request, "Profesor modificado correctamente.")
+                        
+                        # Redireccionar para evitar reenvío del formulario
+                        return redirect(f'/modificar?tipo=profesor&id={profesor_guardado.id}')
+                            
+                else:
+                    form = ProfesorForm(instance=seleccionado)
+            except Profesor.DoesNotExist:
+                mensaje = "El profesor seleccionado no existe."
+                seleccionado_id = None
+                
+    else:  # estudiante
+        # Construir filtros para la búsqueda
+        filtros = Q()
         if query:
-            resultados = Estudiante.objects.filter(
+            filtros |= (
                 Q(primer_nombre__icontains=query) |
+                Q(segundo_nombre__icontains=query) |
                 Q(apellido_paterno__icontains=query) |
-                Q(codigo_estudiante__icontains=query) |
-                Q(id__iexact=query)  # Permite buscar por ID exacto
+                Q(apellido_materno__icontains=query) |
+                Q(email__icontains=query)
             )
+        if codigo:
+            filtros |= Q(codigo_estudiante__icontains=codigo)
+        if seleccionado_id:
+            filtros |= Q(id__exact=seleccionado_id)
+        
+        # Aplicar filtros solo si hay criterios de búsqueda
+        if query or codigo or seleccionado_id:
+            resultados = Estudiante.objects.filter(filtros).distinct()
         else:
             resultados = Estudiante.objects.none()
+            
+        # Si hay un estudiante seleccionado para modificar
         if seleccionado_id:
-            seleccionado = Estudiante.objects.get(id=seleccionado_id)
-            if request.method == 'POST':
-                form = EstudianteForm(request.POST, instance=seleccionado)
-                if form.is_valid():
-                    form.save()
-                    mensaje = "Estudiante modificado correctamente."
-            else:
-                form = EstudianteForm(instance=seleccionado)
+            try:
+                seleccionado = Estudiante.objects.get(id=seleccionado_id)
+                if request.method == 'POST':
+                    form = EstudianteForm(request.POST, instance=seleccionado)
+                    if form.is_valid():
+                        estudiante_guardado = form.save()
+                        messages.success(request, "Estudiante modificado correctamente.")
+                        
+                        # Redireccionar para evitar reenvío del formulario
+                        return redirect(f'/modificar?tipo=estudiante&id={estudiante_guardado.id}')
+                else:
+                    form = EstudianteForm(instance=seleccionado)
+            except Estudiante.DoesNotExist:
+                mensaje = "El estudiante seleccionado no existe."
+                seleccionado_id = None
 
     return render(request, 'modificar.html', {
         'tipo': tipo,

@@ -237,9 +237,27 @@
             {% if form %}
               <div class="card">
                 <div class="card-header bg-success text-white">
-                  <h5 class="mb-0"><i class="fa fa-edit"></i> Modificar Datos del {{ tipo|title }}</h5>
+                  <h5 class="mb-0">
+                    <i class="fa fa-edit"></i> Modificar Datos del {{ tipo|title }}
+                    {% if tipo == 'profesor' %}
+                      <span class="badge bg-light text-dark ms-2">
+                        <i class="fa fa-info-circle"></i> Incluye opciones de apoderado
+                      </span>
+                    {% endif %}
+                  </h5>
                 </div>
                 <div class="card-body">
+                  <!-- Mostrar mensajes de Django -->
+                  {% if messages %}
+                    {% for message in messages %}
+                      <div class="alert alert-{% if message.tags == 'success' %}success{% elif message.tags == 'error' %}danger{% else %}info{% endif %} alert-dismissible fade show" role="alert">
+                        <i class="fa fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}exclamation-triangle{% else %}info-circle{% endif %}"></i> {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                      </div>
+                    {% endfor %}
+                  {% endif %}
+                  
+                  <!-- Mensajes antiguos (mantener por compatibilidad) -->
                   {% if mensaje %}
                     <div class="alert alert-success alert-dismissible fade show" role="alert">
                       <i class="fa fa-check-circle"></i> {{ mensaje }}
@@ -251,71 +269,240 @@
 
                   <form method="post" novalidate id="modificar-form">
                     {% csrf_token %}
-                    <div class="row">
-                      <!-- Columna izquierda -->
-                      <div class="col-md-6">
-                        {% for field in form %}
-                          {% if forloop.counter0 < 6 %}
-                            <div class="form-group mb-3">
-                              <label class="form-label font-weight-bold">
-                                {% if field.name == 'primer_nombre' %}<i class="fa fa-user"></i>
-                                {% elif field.name == 'segundo_nombre' %}<i class="fa fa-user"></i>
-                                {% elif field.name == 'apellido_paterno' %}<i class="fa fa-user"></i>
-                                {% elif field.name == 'apellido_materno' %}<i class="fa fa-user"></i>
-                                {% elif field.name == 'tipo_documento' %}<i class="fa fa-id-card"></i>
-                                {% elif field.name == 'numero_documento' %}<i class="fa fa-id-card-alt"></i>
-                                {% elif field.name == 'fecha_nacimiento' %}<i class="fa fa-calendar"></i>
-                                {% elif field.name == 'genero' %}<i class="fa fa-venus-mars"></i>
-                                {% elif field.name == 'username' %}<i class="fa fa-user-circle"></i>
-                                {% elif field.name == 'password' %}<i class="fa fa-lock"></i>
-                                {% else %}<i class="fa fa-info-circle"></i>{% endif %}
-                                {{ field.label }}
-                                {% if field.field.required %} <span class="text-danger">*</span>{% endif %}
-                              </label>
-                              {{ field }}
-                              {% if field.help_text %}
-                                <small class="form-text text-muted">{{ field.help_text }}</small>
-                              {% endif %}
-                              {% for error in field.errors %}
-                                <div class="text-danger small">
-                                  <i class="fa fa-exclamation-circle"></i> {{ error }}
-                                </div>
-                              {% endfor %}
-                            </div>
-                          {% endif %}
-                        {% endfor %}
+                    
+                    <!-- Información Personal -->
+                    <div class="card mb-4">
+                      <div class="card-header bg-primary text-white">
+                        <h6 class="mb-0"><i class="fa fa-user"></i> Información Personal</h6>
                       </div>
-
-                      <!-- Columna derecha -->
-                      <div class="col-md-6">
-                        {% for field in form %}
-                          {% if forloop.counter0 >= 6 %}
-                            <div class="form-group mb-3">
-                              <label class="form-label font-weight-bold">
-                                {% if field.name == 'direccion' %}<i class="fa fa-map-marker-alt"></i>
-                                {% elif field.name == 'telefono' %}<i class="fa fa-phone"></i>
-                                {% elif field.name == 'email' %}<i class="fa fa-envelope"></i>
-                                {% elif field.name == 'codigo_estudiante' %}<i class="fa fa-barcode"></i>
-                                {% elif field.name == 'codigo_profesor' %}<i class="fa fa-barcode"></i>
-                                {% elif field.name == 'especialidad' %}<i class="fa fa-graduation-cap"></i>
-                                {% else %}<i class="fa fa-info-circle"></i>{% endif %}
-                                {{ field.label }}
-                                {% if field.field.required %} <span class="text-danger">*</span>{% endif %}
-                              </label>
-                              {{ field }}
-                              {% if field.help_text %}
-                                <small class="form-text text-muted">{{ field.help_text }}</small>
-                              {% endif %}
-                              {% for error in field.errors %}
-                                <div class="text-danger small">
-                                  <i class="fa fa-exclamation-circle"></i> {{ error }}
+                      <div class="card-body">
+                        <div class="row">
+                          <!-- Primera columna -->
+                          <div class="col-md-6">
+                            {% for field in form %}
+                              {% if field.name in 'primer_nombre,segundo_nombre,apellido_paterno,apellido_materno,tipo_documento,numero_documento' %}
+                                <div class="form-group mb-3">
+                                  <label class="form-label font-weight-bold">
+                                    {% if field.name == 'primer_nombre' %}<i class="fa fa-user text-primary"></i>
+                                    {% elif field.name == 'segundo_nombre' %}<i class="fa fa-user text-primary"></i>
+                                    {% elif field.name == 'apellido_paterno' %}<i class="fa fa-user text-primary"></i>
+                                    {% elif field.name == 'apellido_materno' %}<i class="fa fa-user text-primary"></i>
+                                    {% elif field.name == 'tipo_documento' %}<i class="fa fa-id-card text-info"></i>
+                                    {% elif field.name == 'numero_documento' %}<i class="fa fa-id-card-alt text-info"></i>
+                                    {% endif %}
+                                    {{ field.label }}
+                                    {% if field.field.required %} <span class="text-danger">*</span>{% endif %}
+                                  </label>
+                                  {{ field }}
+                                  {% if field.help_text %}
+                                    <small class="form-text text-muted">{{ field.help_text }}</small>
+                                  {% endif %}
+                                  {% for error in field.errors %}
+                                    <div class="text-danger small">
+                                      <i class="fa fa-exclamation-circle"></i> {{ error }}
+                                    </div>
+                                  {% endfor %}
                                 </div>
-                              {% endfor %}
-                            </div>
-                          {% endif %}
-                        {% endfor %}
+                              {% endif %}
+                            {% endfor %}
+                          </div>
+                          
+                          <!-- Segunda columna -->
+                          <div class="col-md-6">
+                            {% for field in form %}
+                              {% if field.name in 'fecha_nacimiento,genero,direccion,telefono,email' %}
+                                <div class="form-group mb-3">
+                                  <label class="form-label font-weight-bold">
+                                    {% if field.name == 'fecha_nacimiento' %}<i class="fa fa-calendar text-warning"></i>
+                                    {% elif field.name == 'genero' %}<i class="fa fa-venus-mars text-success"></i>
+                                    {% elif field.name == 'direccion' %}<i class="fa fa-map-marker-alt text-danger"></i>
+                                    {% elif field.name == 'telefono' %}<i class="fa fa-phone text-info"></i>
+                                    {% elif field.name == 'email' %}<i class="fa fa-envelope text-primary"></i>
+                                    {% endif %}
+                                    {{ field.label }}
+                                    {% if field.field.required %} <span class="text-danger">*</span>{% endif %}
+                                  </label>
+                                  {{ field }}
+                                  {% if field.help_text %}
+                                    <small class="form-text text-muted">{{ field.help_text }}</small>
+                                  {% endif %}
+                                  {% for error in field.errors %}
+                                    <div class="text-danger small">
+                                      <i class="fa fa-exclamation-circle"></i> {{ error }}
+                                    </div>
+                                  {% endfor %}
+                                </div>
+                              {% endif %}
+                            {% endfor %}
+                          </div>
+                        </div>
                       </div>
                     </div>
+
+                    <!-- Información Específica del Rol -->
+                    <div class="card mb-4">
+                      <div class="card-header bg-info text-white">
+                        <h6 class="mb-0">
+                          <i class="fa fa-{% if tipo == 'estudiante' %}graduation-cap{% else %}chalkboard-teacher{% endif %}"></i> 
+                          Información del {{ tipo|title }}
+                        </h6>
+                      </div>
+                      <div class="card-body">
+                        <div class="row">
+                          <div class="col-md-6">
+                            {% for field in form %}
+                              {% if field.name in 'codigo_estudiante,codigo_profesor,especialidad' %}
+                                <div class="form-group mb-3">
+                                  <label class="form-label font-weight-bold">
+                                    {% if field.name == 'codigo_estudiante' %}<i class="fa fa-barcode text-primary"></i>
+                                    {% elif field.name == 'codigo_profesor' %}<i class="fa fa-barcode text-success"></i>
+                                    {% elif field.name == 'especialidad' %}<i class="fa fa-graduation-cap text-info"></i>
+                                    {% endif %}
+                                    {{ field.label }}
+                                    {% if field.field.required %} <span class="text-danger">*</span>{% endif %}
+                                  </label>
+                                  {{ field }}
+                                  {% if field.help_text %}
+                                    <small class="form-text text-muted">{{ field.help_text }}</small>
+                                  {% endif %}
+                                  {% for error in field.errors %}
+                                    <div class="text-danger small">
+                                      <i class="fa fa-exclamation-circle"></i> {{ error }}
+                                    </div>
+                                  {% endfor %}
+                                </div>
+                              {% endif %}
+                            {% endfor %}
+                          </div>
+                          
+                          <div class="col-md-6">
+                            {% for field in form %}
+                              {% if field.name in 'username,password' %}
+                                <div class="form-group mb-3">
+                                  <label class="form-label font-weight-bold">
+                                    {% if field.name == 'username' %}<i class="fa fa-user-circle text-primary"></i>
+                                    {% elif field.name == 'password' %}<i class="fa fa-lock text-warning"></i>
+                                    {% endif %}
+                                    {{ field.label }}
+                                    {% if field.field.required %} <span class="text-danger">*</span>{% endif %}
+                                  </label>
+                                  {{ field }}
+                                  {% if field.help_text %}
+                                    <small class="form-text text-muted">{{ field.help_text }}</small>
+                                  {% endif %}
+                                  {% for error in field.errors %}
+                                    <div class="text-danger small">
+                                      <i class="fa fa-exclamation-circle"></i> {{ error }}
+                                    </div>
+                                  {% endfor %}
+                                </div>
+                              {% endif %}
+                            {% endfor %}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Información de Apoderado (solo para profesores) -->
+                    {% if tipo == 'profesor' %}
+                    <div class="card mb-4" id="apoderado-section">
+                      <div class="card-header bg-warning text-dark">
+                        <h6 class="mb-0">
+                          <i class="fa fa-users"></i> Información de Apoderado
+                          <small class="text-muted">(Opcional)</small>
+                        </h6>
+                      </div>
+                      <div class="card-body">
+                        <div class="row">
+                          <div class="col-12 mb-3">
+                            {% for field in form %}
+                              {% if field.name == 'es_apoderado' %}
+                                <div class="form-check form-switch">
+                                  {{ field }}
+                                  <label class="form-check-label font-weight-bold" for="{{ field.id_for_label }}">
+                                    <i class="fa fa-user-plus text-warning"></i> {{ field.label }}
+                                  </label>
+                                  {% if field.help_text %}
+                                    <br><small class="form-text text-muted">{{ field.help_text }}</small>
+                                  {% endif %}
+                                  {% for error in field.errors %}
+                                    <div class="text-danger small">
+                                      <i class="fa fa-exclamation-circle"></i> {{ error }}
+                                    </div>
+                                  {% endfor %}
+                                </div>
+                              {% endif %}
+                            {% endfor %}
+                          </div>
+                        </div>
+                        
+                        <div class="row" id="apoderado-fields">
+                          <div class="col-md-4">
+                            {% for field in form %}
+                              {% if field.name == 'parentesco_principal' %}
+                                <div class="form-group mb-3">
+                                  <label class="form-label font-weight-bold">
+                                    <i class="fa fa-heart text-danger"></i> {{ field.label }}
+                                  </label>
+                                  {{ field }}
+                                  {% if field.help_text %}
+                                    <small class="form-text text-muted">{{ field.help_text }}</small>
+                                  {% endif %}
+                                  {% for error in field.errors %}
+                                    <div class="text-danger small">
+                                      <i class="fa fa-exclamation-circle"></i> {{ error }}
+                                    </div>
+                                  {% endfor %}
+                                </div>
+                              {% endif %}
+                            {% endfor %}
+                          </div>
+                          
+                          <div class="col-md-4">
+                            {% for field in form %}
+                              {% if field.name == 'ocupacion' %}
+                                <div class="form-group mb-3">
+                                  <label class="form-label font-weight-bold">
+                                    <i class="fa fa-briefcase text-success"></i> {{ field.label }}
+                                  </label>
+                                  {{ field }}
+                                  {% if field.help_text %}
+                                    <small class="form-text text-muted">{{ field.help_text }}</small>
+                                  {% endif %}
+                                  {% for error in field.errors %}
+                                    <div class="text-danger small">
+                                      <i class="fa fa-exclamation-circle"></i> {{ error }}
+                                    </div>
+                                  {% endfor %}
+                                </div>
+                              {% endif %}
+                            {% endfor %}
+                          </div>
+                          
+                          <div class="col-md-4">
+                            {% for field in form %}
+                              {% if field.name == 'telefono_emergencia' %}
+                                <div class="form-group mb-3">
+                                  <label class="form-label font-weight-bold">
+                                    <i class="fa fa-phone-alt text-danger"></i> {{ field.label }}
+                                  </label>
+                                  {{ field }}
+                                  {% if field.help_text %}
+                                    <small class="form-text text-muted">{{ field.help_text }}</small>
+                                  {% endif %}
+                                  {% for error in field.errors %}
+                                    <div class="text-danger small">
+                                      <i class="fa fa-exclamation-circle"></i> {{ error }}
+                                    </div>
+                                  {% endfor %}
+                                </div>
+                              {% endif %}
+                            {% endfor %}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    {% endif %}
 
                     <!-- Botones de acción -->
                     <div class="row mt-4">
@@ -326,6 +513,11 @@
                         <a href="{% url 'listar_estudiantes' %}" class="btn btn-secondary btn-lg ml-2">
                           <i class="fa fa-times"></i> Cancelar
                         </a>
+                        {% if tipo == 'profesor' %}
+                          <a href="{% url 'listar_apoderados' %}" class="btn btn-info btn-lg ml-2" target="_blank">
+                            <i class="fa fa-users"></i> Ver Apoderados
+                          </a>
+                        {% endif %}
                       </div>
                     </div>
                   </form>
@@ -343,6 +535,70 @@
 // Validación del formulario
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('modificar-form');
+    const esApoderadoCheckbox = document.getElementById('id_es_apoderado');
+    const apoderadoFields = document.getElementById('apoderado-fields');
+    
+    console.log('🔍 DEBUG: Inicializando formulario de modificar');
+    console.log('Checkbox encontrado:', esApoderadoCheckbox ? 'SÍ' : 'NO');
+    console.log('Campos apoderado encontrados:', apoderadoFields ? 'SÍ' : 'NO');
+    
+    // Manejar checkbox de apoderado
+    if (esApoderadoCheckbox && apoderadoFields) {
+        console.log('Estado inicial del checkbox:', esApoderadoCheckbox.checked);
+        
+        // Función para mostrar/ocultar campos de apoderado
+        function toggleApoderadoFields() {
+            console.log('🔄 Ejecutando toggleApoderadoFields, checked:', esApoderadoCheckbox.checked);
+            
+            if (esApoderadoCheckbox.checked) {
+                apoderadoFields.style.display = 'block';
+                console.log('✅ Mostrando campos de apoderado');
+                
+                // Hacer requerido el campo de parentesco si es apoderado
+                const parentescoField = document.getElementById('id_parentesco_principal');
+                if (parentescoField) {
+                    parentescoField.required = true;
+                    console.log('✅ Campo parentesco marcado como requerido');
+                }
+            } else {
+                apoderadoFields.style.display = 'none';
+                console.log('❌ Ocultando campos de apoderado');
+                
+                // Remover requerimiento del campo de parentesco
+                const parentescoField = document.getElementById('id_parentesco_principal');
+                if (parentescoField) {
+                    parentescoField.required = false;
+                    console.log('❌ Campo parentesco NO requerido');
+                }
+            }
+        }
+        
+        // Aplicar estado inicial con pequeño delay para asegurar que el DOM esté listo
+        setTimeout(function() {
+            console.log('⏰ Aplicando estado inicial después de delay');
+            console.log('Checkbox estado en delay:', esApoderadoCheckbox.checked);
+            toggleApoderadoFields();
+            
+            // Forzar visibilidad si es necesario
+            if (esApoderadoCheckbox.checked) {
+                apoderadoFields.style.display = 'block';
+                console.log('🔧 Forzando visibilidad de campos de apoderado');
+            }
+        }, 100);
+        
+        // También aplicar inmediatamente
+        toggleApoderadoFields();
+        
+        // Escuchar cambios en el checkbox
+        esApoderadoCheckbox.addEventListener('change', function() {
+            console.log('📝 Checkbox cambió a:', this.checked);
+            toggleApoderadoFields();
+        });
+    } else {
+        console.log('❌ No se pudo inicializar la gestión de campos de apoderado');
+    }
+    
+    // Validación del formulario
     if (form) {
         form.addEventListener('submit', function(e) {
             let hasError = false;
@@ -357,9 +613,69 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
             
+            // Validar email
+            const emailField = document.getElementById('id_email');
+            if (emailField && emailField.value) {
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(emailField.value)) {
+                    emailField.classList.add('is-invalid');
+                    hasError = true;
+                } else {
+                    emailField.classList.remove('is-invalid');
+                }
+            }
+            
+            // Si es apoderado, validar parentesco
+            if (esApoderadoCheckbox && esApoderadoCheckbox.checked) {
+                const parentescoField = document.getElementById('id_parentesco_principal');
+                if (parentescoField && !parentescoField.value) {
+                    parentescoField.classList.add('is-invalid');
+                    hasError = true;
+                    alert('Si es apoderado, debe especificar el parentesco principal.');
+                } else if (parentescoField) {
+                    parentescoField.classList.remove('is-invalid');
+                }
+            }
+            
             if (hasError) {
                 e.preventDefault();
-                alert('Por favor complete todos los campos obligatorios marcados con *');
+                alert('Por favor complete todos los campos obligatorios marcados con * y corrija los errores.');
+                // Scroll to first error
+                const firstError = form.querySelector('.is-invalid');
+                if (firstError) {
+                    firstError.scrollIntoView({behavior: 'smooth', block: 'center'});
+                    firstError.focus();
+                }
+            }
+        });
+    }
+    
+    // Formateo automático de RUT
+    const rutInput = document.querySelector('.rut-input');
+    if (rutInput) {
+        rutInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/[^0-9kK]/g, '');
+            if (value.length > 1) {
+                const dv = value.slice(-1);
+                const number = value.slice(0, -1);
+                if (number.length > 3) {
+                    const formattedNumber = number.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+                    e.target.value = formattedNumber + '-' + dv;
+                } else {
+                    e.target.value = number + '-' + dv;
+                }
+            }
+        });
+    }
+    
+    // Auto-rellenar ocupación si es profesor y apoderado
+    if (esApoderadoCheckbox) {
+        esApoderadoCheckbox.addEventListener('change', function() {
+            if (this.checked) {
+                const ocupacionField = document.getElementById('id_ocupacion');
+                if (ocupacionField && !ocupacionField.value) {
+                    ocupacionField.value = 'Profesor';
+                }
             }
         });
     }
@@ -368,6 +684,15 @@ document.addEventListener('DOMContentLoaded', function() {
 // Función para exportar resultados
 function exportarResultados() {
     alert('Función de exportación en desarrollo');
+}
+
+// Función para confirmar eliminación de perfil de apoderado
+function confirmarEliminacionApoderado() {
+    const esApoderadoCheckbox = document.getElementById('id_es_apoderado');
+    if (esApoderadoCheckbox && !esApoderadoCheckbox.checked) {
+        return confirm('¿Está seguro de que desea remover el perfil de apoderado? Esta acción eliminará toda la información relacionada con el apoderado.');
+    }
+    return true;
 }
 </script>
 {% endblock %}
