@@ -7,9 +7,20 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-	<link rel="icon" href="images/favicon.ico" type="image/ico" />
+    
+    <!-- Favicon moderno para SAM -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='grad1' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23667eea;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%23764ba2;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='20' fill='url(%23grad1)'/%3E%3Cpath d='M30 25h40c2.5 0 4.5 2 4.5 4.5v3c0 1.5-1 3-2.5 3.5l-3 1v8h3c1.5 0 3 1.5 3 3v25c0 2.5-2 4.5-4.5 4.5h-35c-2.5 0-4.5-2-4.5-4.5v-25c0-1.5 1.5-3 3-3h3v-8l-3-1c-1.5-.5-2.5-2-2.5-3.5v-3c0-2.5 2-4.5 4.5-4.5z' fill='white' opacity='0.9'/%3E%3Ccircle cx='50' cy='55' r='8' fill='%23667eea'/%3E%3Cpath d='M45 50l3 3 7-7' stroke='white' stroke-width='2' fill='none'/%3E%3C/svg%3E">
+    
+    <!-- Fallback para navegadores que no soportan SVG -->
+    <link rel="apple-touch-icon" sizes="180x180" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAYAAAA9zQYyAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAABGRSURBVHhe7Z0JlBXVlYafJhAggmyyyCKLgCCgIuCCK24xLnGLMWpijJnJZDKZZGbOzJmcOZOZk5w5k8lkMjFmMckkmcQlcY8aFVcQFRVQQVkEBFkEFJBFdgFp6P/e+6teFdXv9etXXV1d79X/nXPqvapbt27de9+/b926VbcKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCoGjf//+Vrt27Zpft27drE6dOrnf3bCdfTfgNZxD3fLly61ly5bWoUMHt3fp0iXyN5fX8vPzrVOnTm6fMWOGjR8/3m644QYbNWqU21+9erUtXLjQFixYYMuWLbM1a9bYli1bbOfOnVZZWWk7duywvXv3uuPsE3dxLcdyTvw7HA67Y8OGDbOcnBwbOHCgjRgxwkaPHm2nnHKKjRs3zsaOHWsDBgywtm3bRr6hKZHxT8xvtxBc6gXAhg0brEmTJu4HePjhh23p0qXWu3dv69atm9s++eQT+/zzz+2rr76y3bt3u+NtDcJPG7Zu3eraxveyZctsyZIl7rj4Ag8++KC9/fbbNnfuXHvxxRft5ZdfttmzZ9ucOXPso48+svnz59vKlStd28yQIUNs5MiRNmzYMOvatav7h9S7d29XD/7BnH322TZx4kSbPHmynXfeeXbGGWfYOeecY6eddppNmTLFTj75ZBs8eLA7xj/Mtm3buv8l/0goOBAAQVJZDhLAsHfeecd69eplHTt2tIULF9qnn35qa9eutW3btrnjJSUl1rJlS2vWrJl17NjR/aDYGlZ0XLwFjY3A47dYi8IwNbGPf8vxFnLFihX2xRdf2Lp162zTpk22efNm+/bbb93xPXv2uH+a7du3d+3yT3Pt2rXu39y6dWt3rtu4caOtXr3aPvjgA3vjjTfslVdesRdeeMGef/55e+6559zfF1980d5880373//9X/vggw9swYIF9tlnn9mXX35p69evt02bNrl2+Nfavn1769KliwsU/oE1adLEGjZs6H6b/BPbs2ePbdmyxVauXGkff/yxvfnmm/byyy+758UzevbZZ+21116zd99917777DPXLv+6LrzwQpsyZYo7L+fvnnMJ5aXy3y/BGAhKjNO2bdusXbt21rt3b1u0aJGrKLt373Y/SkC6t956y26++WY755xz7Ac/+IHdeOONdtVVV9nFF19s06ZNs9NPP90mTZpkY8aMccNLjPm4B2MvFYBKOXv2bHvllVfsueees2eeecaefPJJe+KJJ+zxxx+3Rx55xB5++GF76KGH7MEHH7T777/f7rvvPrv33nvd3z//+c929913u2M/+9nP7I477rA777zTfvKTn9itt95qt956qwsObn/+85/brbfeandcdZVd++23dt5559kFF1zgjl144YV20UUX2aWXXmqXX365XXHFFfajH/3IrrvuOrv++uvthhtusJtuusk97pZbbrGf/vSndtttt9ntt99ud9xxh/3oRz+yH//4x3bjjTfa9ddfbz/4wQ/ssssusy9ee81eePFFe/bZZ23fvn32xRdf2IMPPmjffvutPfPMM/boo4/aQw89ZA8//LA98sgj9vjjj9sTTzxhTz31lD399NP27LPP2vPPP+/e//3vf2+vvfaavf322/bOO+/YnDlz7KOPPrJly5a5f7ykEoxh+Ufx8ssvGwGPrJGtPJVn2LBhB/6tgCAGMgF4t6zrJUuWuOAtXbrUFixYYPPmzXMV/qOPPrJly5a54PLVV1+5oS7BSyU8ePCgOlpCCTVWgKLQKZLAkILAJEjlOFYlJGHI5OMBpW/fvs4HgU5gkHjcd999dv3119skX47dvXu3rVy50t577z3397333rM5c+bYu+++a3PnznX1gzojhwBJmKVZZZjO5uOPP3Z1hsqlE5tO7w4dOrgOGqOYTpwOkCwnP0ilQrv4JNimTJniArdHjx6OUJ5pJm9dvny5e6bZbr/9djv33HNt6tSpduaZZ9qZZ55pl1xyiV1zzTV20003ucB6+OGH7dFHH7XHHnvMfvOb39ivfvUr+8UvfmE/+9nP7I477rCf/OQndscdd7i/t956q91www1266232s9//nP7xS9+YXfffbc98MAD9rvf/c4ef/xxe+qpp+y5555zHdgbbrwx7veiGKfykEwQqKSqgAhbUm32Bw8e7N7Dli1b3DBh1qxZ9tJLL7kKzJCCfZmC+vXr58a4sZGCyaEhHB555BG75557bMCA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">
+    
+    <!-- Meta tags adicionales para SEO y PWA -->
+    <meta name="description" content="School Academic Manager - SAM. Plataforma integral para la gestión de estudiantes, profesores y contenido académico.">
+    <meta name="keywords" content="school academic manager, estudiantes, profesores, educación, sistema escolar, gestión académica">
+    <meta name="author" content="SAM - School Academic Manager">
+    <meta name="theme-color" content="#667eea">
 
-    <title>SAM</title>
+    <title>📚 SAM | School Academic Manager</title>
 
     <!-- Bootstrap -->
     <link href="{% static '/FrWork/admin_lte/vendors/bootstrap/dist/css/bootstrap.min.css' %}" rel="stylesheet">
@@ -32,13 +43,39 @@
     <!-- Custom Theme Style -->
     <link href="{% static '/FrWork/admin_lte/build/css/custom.min.css' %}" rel="stylesheet">
     
+    <!-- Estilos adicionales para mejor visualización -->
+    <style>
+      /* Asegurar que el favicon se vea bien en todas las resoluciones */
+      @media (max-resolution: 150dpi) {
+        link[rel="icon"] {
+          sizes: "16x16 32x32 48x48";
+        }
+      }
+      
+      @media (min-resolution: 150dpi) {
+        link[rel="icon"] {
+          sizes: "64x64 128x128 256x256";
+        }
+      }
+      
+      /* Mejorar la visualización del título en la pestaña */
+      title::before {
+        content: "📚 ";
+      }
+    </style>
+    
     <!-- Custom Sidebar Styles -->
     <style>
+      /* Contenedor principal de la barra lateral */
       .left_col {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
         box-shadow: 4px 0 20px rgba(0,0,0,0.15);
         position: relative;
-        overflow: hidden;
+        overflow-y: auto;
+        overflow-x: hidden;
+        height: 100vh;
+        width: 230px !important;
+        z-index: 1000;
       }
       
       .left_col::before {
@@ -48,129 +85,232 @@
         left: 0;
         right: 0;
         bottom: 0;
-        background: linear-gradient(45deg, rgba(255,255,255,0.1) 0%, transparent 100%);
+        background: linear-gradient(45deg, rgba(255,255,255,0.08) 0%, transparent 100%);
         pointer-events: none;
+        z-index: 1;
       }
       
+      /* Título del sitio */
       .site_title {
-        background: rgba(255,255,255,0.15) !important;
-        border-radius: 15px;
-        margin: 15px;
-        padding: 15px !important;
+        background: rgba(255,255,255,0.12) !important;
+        border-radius: 12px;
+        margin: 12px 8px;
+        padding: 12px 16px !important;
         backdrop-filter: blur(15px);
-        border: 1px solid rgba(255,255,255,0.2);
-        box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        border: 1px solid rgba(255,255,255,0.15);
+        box-shadow: 0 4px 16px rgba(0,0,0,0.1);
         transition: all 0.3s ease;
+        position: relative;
+        z-index: 2;
+        text-decoration: none !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
       }
       
       .site_title:hover {
-        background: rgba(255,255,255,0.2) !important;
-        transform: translateY(-2px);
-        box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+        background: rgba(255,255,255,0.18) !important;
+        transform: translateY(-1px);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.15);
       }
       
       .site_title span {
         color: #fff !important;
         font-weight: 700;
-        font-size: 26px;
-        text-shadow: 2px 2px 8px rgba(0,0,0,0.3);
+        font-size: 22px;
+        text-shadow: 1px 1px 4px rgba(0,0,0,0.3);
         letter-spacing: 1px;
+        margin-left: 8px;
       }
       
+      .site_title i {
+        color: #fff !important;
+        font-size: 20px;
+        text-shadow: 1px 1px 4px rgba(0,0,0,0.3);
+      }
+      
+      /* Perfil del usuario */
       .profile {
-        background: rgba(255,255,255,0.12);
-        border-radius: 20px;
-        margin: 15px;
-        padding: 20px;
+        background: rgba(255,255,255,0.10);
+        border-radius: 16px;
+        margin: 8px;
+        padding: 16px;
         backdrop-filter: blur(15px);
-        border: 1px solid rgba(255,255,255,0.15);
-        box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        border: 1px solid rgba(255,255,255,0.12);
+        box-shadow: 0 4px 16px rgba(0,0,0,0.1);
         transition: all 0.3s ease;
+        position: relative;
+        z-index: 2;
       }
       
       .profile:hover {
-        background: rgba(255,255,255,0.18);
+        background: rgba(255,255,255,0.15);
         transform: translateY(-1px);
-        box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.15);
       }
       
       .profile_pic {
+        text-align: center;
+        margin-bottom: 12px;
+      }
+      
+      .user-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
+        border: 3px solid rgba(255,255,255,0.4);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         position: relative;
-        margin-bottom: 15px;
+        overflow: hidden;
+      }
+      
+      .user-avatar::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, rgba(102,126,234,0.1) 0%, rgba(118,75,162,0.1) 100%);
+        border-radius: 50%;
+      }
+      
+      .avatar-initials {
+        font-size: 18px;
+        font-weight: 700;
+        color: #667eea;
+        text-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        position: relative;
+        z-index: 1;
+        letter-spacing: 0.5px;
+      }
+      
+      .profile_pic:hover .user-avatar {
+        border-color: rgba(255,255,255,0.6);
+        transform: scale(1.05) translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+      }
+      
+      .profile_pic:hover .avatar-initials {
+        color: #764ba2;
       }
       
       .profile_pic img {
-        border: 3px solid rgba(255,255,255,0.3);
-        box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        border: 2px solid rgba(255,255,255,0.3);
+        box-shadow: 0 3px 12px rgba(0,0,0,0.2);
         transition: all 0.3s ease;
+        width: 50px;
+        height: 50px;
       }
       
       .profile_pic:hover img {
-        border-color: rgba(255,255,255,0.6);
-        transform: scale(1.05);
+        border-color: rgba(255,255,255,0.5);
+        transform: scale(1.03);
+      }
+      
+      .profile_info {
+        text-align: center;
       }
       
       .profile_info h2 {
         color: #fff !important;
-        font-weight: 700;
-        margin-bottom: 8px;
-        font-size: 18px;
-        text-shadow: 1px 1px 4px rgba(0,0,0,0.3);
+        font-weight: 600;
+        margin-bottom: 6px;
+        font-size: 16px;
+        text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+        line-height: 1.2;
       }
       
       .profile_info span {
-        color: rgba(255,255,255,0.9) !important;
-        font-size: 14px;
+        color: rgba(255,255,255,0.85) !important;
+        font-size: 12px;
         font-weight: 500;
+        display: block;
+        margin-bottom: 4px;
       }
       
       .profile_info p {
         color: rgba(255,255,255,0.9) !important;
-        background: rgba(255,255,255,0.15);
-        padding: 6px 12px;
-        border-radius: 15px;
+        background: rgba(255,255,255,0.12);
+        padding: 4px 10px;
+        border-radius: 12px;
         display: inline-block;
-        font-size: 12px;
-        margin-top: 8px;
+        font-size: 11px;
+        margin: 6px 0 0 0;
         font-weight: 600;
-        border: 1px solid rgba(255,255,255,0.1);
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        border: 1px solid rgba(255,255,255,0.08);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      }
+      
+      /* Contenedor del menú */
+      .main_menu_side {
+        padding: 0 0 20px 0;
+        position: relative;
+        z-index: 2;
+      }
+      
+      /* Secciones del menú */
+      .menu_section {
+        margin-bottom: 8px;
       }
       
       .main_menu_side h3 {
-        color: rgba(255,255,255,0.95) !important;
-        font-size: 12px;
+        color: rgba(255,255,255,0.9) !important;
+        font-size: 10px;
         font-weight: 700;
         text-transform: uppercase;
-        letter-spacing: 1.5px;
-        margin: 25px 15px 15px 15px;
-        padding: 10px 0;
-        border-bottom: 2px solid rgba(255,255,255,0.25);
+        letter-spacing: 1.2px;
+        margin: 20px 12px 8px 12px;
+        padding: 8px 0 6px 0;
+        border-bottom: 1px solid rgba(255,255,255,0.2);
         position: relative;
+        line-height: 1.2;
       }
       
       .main_menu_side h3::after {
         content: '';
         position: absolute;
-        bottom: -2px;
+        bottom: -1px;
         left: 0;
-        width: 40px;
-        height: 2px;
-        background: #fff;
+        width: 30px;
+        height: 1px;
+        background: rgba(255,255,255,0.6);
         border-radius: 1px;
       }
       
+      .main_menu_side h3 i {
+        margin-right: 6px;
+        font-size: 11px;
+        opacity: 0.8;
+      }
+      
+      /* Items del menú */
+      .main_menu_side .nav {
+        margin-bottom: 0;
+      }
+      
+      .main_menu_side .nav > li {
+        margin: 2px 8px;
+      }
+      
       .main_menu_side .nav > li > a {
-        color: rgba(255,255,255,0.9) !important;
+        color: rgba(255,255,255,0.85) !important;
         background: transparent !important;
-        border-radius: 12px;
-        margin: 4px 12px;
-        padding: 14px 18px;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        border-left: 4px solid transparent;
+        border-radius: 10px;
+        padding: 10px 14px;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        border-left: 3px solid transparent;
         font-weight: 500;
+        font-size: 13px;
         position: relative;
         overflow: hidden;
+        border: 1px solid transparent;
+        line-height: 1.3;
       }
       
       .main_menu_side .nav > li > a::before {
@@ -180,9 +320,10 @@
         left: 0;
         right: 0;
         bottom: 0;
-        background: rgba(255,255,255,0.1);
+        background: rgba(255,255,255,0.08);
         transform: translateX(-100%);
-        transition: transform 0.3s ease;
+        transition: transform 0.25s ease;
+        z-index: -1;
       }
       
       .main_menu_side .nav > li > a:hover::before {
@@ -190,58 +331,117 @@
       }
       
       .main_menu_side .nav > li > a:hover {
-        background: rgba(255,255,255,0.2) !important;
+        background: rgba(255,255,255,0.12) !important;
         color: #fff !important;
-        border-left: 4px solid #fff;
-        transform: translateX(6px);
-        box-shadow: 0 6px 25px rgba(0,0,0,0.15);
+        border-left: 3px solid rgba(255,255,255,0.8);
+        border-color: rgba(255,255,255,0.15);
+        transform: translateX(3px);
+        box-shadow: 0 3px 12px rgba(0,0,0,0.15);
       }
       
       .main_menu_side .nav > li > a i {
-        font-size: 17px;
-        margin-right: 12px;
-        width: 22px;
+        font-size: 14px;
+        margin-right: 10px;
+        width: 18px;
         text-align: center;
         position: relative;
         z-index: 1;
+        opacity: 0.9;
       }
       
+      /* Footer de la barra lateral */
       .sidebar-footer {
-        background: rgba(255,255,255,0.12) !important;
-        border-radius: 15px;
-        margin: 15px;
-        padding: 15px;
+        background: rgba(255,255,255,0.08) !important;
+        border-radius: 16px;
+        margin: 8px;
+        padding: 16px 12px;
         backdrop-filter: blur(15px);
-        border: 1px solid rgba(255,255,255,0.15);
-        box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        border: 1px solid rgba(255,255,255,0.12);
+        box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        position: relative;
+        z-index: 2;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
       }
       
-      .sidebar-footer a {
-        color: rgba(255,255,255,0.8) !important;
-        background: rgba(255,255,255,0.15);
-        border-radius: 50%;
-        width: 45px;
-        height: 45px;
-        display: inline-flex;
+      /* Sección de logout */
+      .logout-section {
+        width: 100%;
+      }
+      
+      .logout-btn {
+        color: rgba(255,255,255,0.9) !important;
+        background: linear-gradient(135deg, rgba(220,53,69,0.8) 0%, rgba(108,117,125,0.8) 100%) !important;
+        border-radius: 12px !important;
+        width: 100% !important;
+        height: auto !important;
+        display: flex !important;
         align-items: center;
         justify-content: center;
-        margin: 3px;
+        padding: 10px 16px !important;
+        margin: 0 !important;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        border: 1px solid rgba(255,255,255,0.1);
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        border: 1px solid rgba(220,53,69,0.3) !important;
+        box-shadow: 0 3px 12px rgba(220,53,69,0.2) !important;
+        text-decoration: none !important;
+        font-weight: 600;
+        font-size: 13px;
+        gap: 8px;
       }
       
-      .sidebar-footer a:hover {
-        background: rgba(255,255,255,0.25) !important;
+      .logout-btn i {
+        font-size: 14px;
+        opacity: 0.9;
+      }
+      
+      .logout-btn span {
+        font-weight: 600;
+        letter-spacing: 0.5px;
+      }
+      
+      .logout-btn:hover {
+        background: linear-gradient(135deg, rgba(220,53,69,1) 0%, rgba(108,117,125,1) 100%) !important;
         color: #fff !important;
-        transform: scale(1.15) translateY(-2px);
-        box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(220,53,69,0.4) !important;
+        border-color: rgba(220,53,69,0.6) !important;
       }
       
-      /* Animaciones adicionales */
+      /* Información del footer */
+      .footer-info {
+        margin-top: 8px;
+      }
+      
+      .footer-info small {
+        color: rgba(255,255,255,0.6);
+        font-size: 10px;
+        font-weight: 500;
+        letter-spacing: 0.8px;
+        text-transform: uppercase;
+        display: block;
+      }
+      
+      /* Animación de pulso para el botón de logout */
+      @keyframes logoutPulse {
+        0%, 100% {
+          box-shadow: 0 3px 12px rgba(220,53,69,0.2);
+        }
+        50% {
+          box-shadow: 0 3px 12px rgba(220,53,69,0.4);
+        }
+      }
+      
+      .logout-btn:focus {
+        animation: logoutPulse 2s infinite;
+        outline: none;
+      }
+      
+      /* Animaciones para items del menú */
       @keyframes slideInLeft {
         0% {
-          transform: translateX(-20px);
+          transform: translateX(-15px);
           opacity: 0;
         }
         100% {
@@ -251,17 +451,43 @@
       }
       
       .main_menu_side .nav > li {
-        animation: slideInLeft 0.5s ease;
-        animation-delay: calc(var(--delay) * 0.1s);
+        animation: slideInLeft 0.4s ease;
+        animation-delay: calc(var(--delay) * 0.08s);
         animation-fill-mode: both;
       }
       
       /* Estados activos */
       .main_menu_side .nav > li.active > a {
-        background: rgba(255,255,255,0.25) !important;
+        background: rgba(255,255,255,0.18) !important;
         color: #fff !important;
-        border-left: 4px solid #fff;
-        box-shadow: 0 6px 25px rgba(0,0,0,0.2);
+        border-left: 3px solid #fff;
+        border-color: rgba(255,255,255,0.2);
+        box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+      }
+      
+      /* Scroll personalizado para la barra lateral */
+      .left_col::-webkit-scrollbar {
+        width: 4px;
+      }
+      
+      .left_col::-webkit-scrollbar-track {
+        background: rgba(255,255,255,0.05);
+      }
+      
+      .left_col::-webkit-scrollbar-thumb {
+        background: rgba(255,255,255,0.2);
+        border-radius: 2px;
+      }
+      
+      .left_col::-webkit-scrollbar-thumb:hover {
+        background: rgba(255,255,255,0.3);
+      }
+      
+      /* Asegurar que el contenido no se superponga */
+      .scroll-view {
+        height: 100%;
+        overflow-y: auto;
+        overflow-x: hidden;
       }
     </style>
   </head>
@@ -277,7 +503,7 @@
             <div class="navbar nav_title" style="border: 0;">
               <a href="{% url 'inicio' %}" class="site_title">
                 <i class="fas fa-graduation-cap"></i> 
-                <span>SMA</span>
+                <span>SAM</span>
               </a>
             </div>
 
@@ -287,7 +513,17 @@
             <div class="profile clearfix">
               <div class="profile_pic">
                 {% if user.is_authenticated %}
-                <img src="{% static '/FrWork/admin_lte/production/images/img.jpg' %}" alt="..." class="img-circle profile_img">
+                <div class="user-avatar">
+                  <span class="avatar-initials">
+                    {% if user.first_name and user.last_name %}
+                      {{ user.first_name|first|upper }}{{ user.last_name|first|upper }}
+                    {% elif user.first_name %}
+                      {{ user.first_name|first|upper }}{{ user.first_name|slice:"1:2"|upper }}
+                    {% else %}
+                      {{ user.username|first|upper }}{{ user.username|slice:"1:2"|upper }}
+                    {% endif %}
+                  </span>
+                </div>
                 {% endif %}
               </div>
               <div class="profile_info">
@@ -489,7 +725,7 @@
                     </li>
                   </ul>
                 </div>
-                 <div class="menu_section">
+                <div class="menu_section">
                   <h3><i class="fas fa-graduation-cap"></i> GESTIÓN ACADÉMICA</h3>
                   <ul class="nav side-menu">
                     <li style="--delay: 10">
@@ -501,7 +737,7 @@
                     <li style="--delay: 12">
                       <a href="{% url 'agregar_curso' %}"><i class="fas fa-plus-square"></i> Nuevo Curso</a>
                     </li>
-                     <li style="--delay: 13">
+                    <li style="--delay: 13">
                       <a href="{% url 'agregar_asignatura_completa' %}"><i class="fas fa-plus-circle"></i> Nueva Asignatura</a>
                     </li>
                     <li style="--delay: 14">
@@ -554,9 +790,16 @@
 
             <!-- /menu footer buttons -->
             <div class="sidebar-footer hidden-small">
-              <a data-toggle="tooltip" data-placement="top" title="Cerrar Sesión" href="{% url 'logout' %}">
-                <span class="fas fa-sign-out-alt" aria-hidden="true"></span>
-              </a>
+              <div class="logout-section">
+                <a href="{% url 'logout' %}" class="logout-btn" data-toggle="tooltip" data-placement="top" title="Cerrar Sesión">
+                  <i class="fas fa-sign-out-alt"></i>
+                  <span>Cerrar Sesión</span>
+                </a>
+              </div>
+              
+              <div class="footer-info">
+                <small>SAM v2.0</small>
+              </div>
             </div>
             <!-- /menu footer buttons -->
             
@@ -586,7 +829,18 @@
                 <li class="">
                   {% if user.is_authenticated %}
                   <a href="#" class="user-profile dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
-                    <img src="{% static '/FrWork/admin_lte/production/images/img.jpg' %}" alt="">{{ user.first_name|default:user.username }}
+                    <div class="top-nav-avatar">
+                      <span class="top-nav-initials">
+                        {% if user.first_name and user.last_name %}
+                          {{ user.first_name|first|upper }}{{ user.last_name|first|upper }}
+                        {% elif user.first_name %}
+                          {{ user.first_name|first|upper }}{{ user.first_name|slice:"1:2"|upper }}
+                        {% else %}
+                          {{ user.username|first|upper }}{{ user.username|slice:"1:2"|upper }}
+                        {% endif %}
+                      </span>
+                    </div>
+                    {{ user.first_name|default:user.username }}
                     <span class=" fa fa-angle-down"></span>
                   </a>
                   <ul class="dropdown-menu dropdown-usermenu pull-right">
@@ -645,7 +899,7 @@
         <!-- footer content -->
         <footer>
           <div class="pull-right">
-            Sistema de Gestión Académica (SMA) - Desarrollado con Django
+            School Academic Manager (SAM) - Desarrollado con Django
           </div>
           <div class="clearfix"></div>
         </footer>
@@ -693,6 +947,68 @@
 
     <!-- Custom Theme Scripts -->
     <script src="{% static '/FrWork/admin_lte/build/js/custom.min.js' %}"></script>
+    
+    <!-- Script para título dinámico de pestaña -->
+    <script>
+      $(document).ready(function() {
+        // Función para actualizar el título de la pestaña según la sección
+        function updatePageTitle() {
+          var currentPath = window.location.pathname;
+          var baseTitle = "📚 SAM";
+          var sectionTitle = "";
+          
+          // Determinar la sección actual
+          if (currentPath.includes('/profesores/')) {
+            sectionTitle = " | 👨‍🏫 Profesores";
+          } else if (currentPath.includes('/estudiantes/')) {
+            sectionTitle = " | 👨‍🎓 Estudiantes";
+          } else if (currentPath.includes('/apoderados/')) {
+            sectionTitle = " | 👨‍👩‍👧‍👦 Apoderados";
+          } else if (currentPath.includes('/cursos/')) {
+            sectionTitle = " | 🏫 Cursos";
+          } else if (currentPath.includes('/asignaturas/')) {
+            sectionTitle = " | 📖 Asignaturas";
+          } else if (currentPath.includes('/notas/')) {
+            sectionTitle = " | 📊 Calificaciones";
+          } else if (currentPath.includes('/asistencia/')) {
+            sectionTitle = " | ✅ Asistencia";
+          } else if (currentPath.includes('/calendario/')) {
+            sectionTitle = " | 📅 Calendario";
+          } else if (currentPath.includes('/anotaciones/')) {
+            sectionTitle = " | 📝 Anotaciones";
+          } else {
+            sectionTitle = " | Panel Principal";
+          }
+          
+          document.title = baseTitle + sectionTitle;
+        }
+        
+        // Actualizar título al cargar la página
+        updatePageTitle();
+        
+        // Actualizar título cuando se hace clic en enlaces del menú
+        $('.nav a').on('click', function() {
+          setTimeout(updatePageTitle, 100);
+        });
+        
+        // Efecto de favicon animado para notificaciones (opcional)
+        function animateFavicon() {
+          var link = document.querySelector("link[rel*='icon']") || document.createElement('link');
+          link.type = 'image/x-icon';
+          link.rel = 'shortcut icon';
+          link.href = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='grad1' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%2367e8ea;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%23764ba2;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='20' fill='url(%23grad1)'/%3E%3Cpath d='M30 25h40c2.5 0 4.5 2 4.5 4.5v3c0 1.5-1 3-2.5 3.5l-3 1v8h3c1.5 0 3 1.5 3 3v25c0 2.5-2 4.5-4.5 4.5h-35c-2.5 0-4.5-2-4.5-4.5v-25c0-1.5 1.5-3 3-3h3v-8l-3-1c-1.5-.5-2.5-2-2.5-3.5v-3c0-2.5 2-4.5 4.5-4.5z' fill='white' opacity='0.9'/%3E%3Ccircle cx='50' cy='55' r='8' fill='%2367e8ea'/%3E%3Cpath d='M45 50l3 3 7-7' stroke='white' stroke-width='2' fill='none'/%3E%3C/svg%3E";
+          document.getElementsByTagName('head')[0].appendChild(link);
+        }
+        
+        // Aplicar favicon con efecto hover/focus (opcional)
+        $(window).on('focus', function() {
+          setTimeout(function() {
+            var originalFavicon = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='grad1' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23667eea;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%23764ba2;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='20' fill='url(%23grad1)'/%3E%3Cpath d='M30 25h40c2.5 0 4.5 2 4.5 4.5v3c0 1.5-1 3-2.5 3.5l-3 1v8h3c1.5 0 3 1.5 3 3v25c0 2.5-2 4.5-4.5 4.5h-35c-2.5 0-4.5-2-4.5-4.5v-25c0-1.5 1.5-3 3-3h3v-8l-3-1c-1.5-.5-2.5-2-2.5-3.5v-3c0-2.5 2-4.5 4.5-4.5z' fill='white' opacity='0.9'/%3E%3Ccircle cx='50' cy='55' r='8' fill='%23667eea'/%3E%3Cpath d='M45 50l3 3 7-7' stroke='white' stroke-width='2' fill='none'/%3E%3C/svg%3E";
+            $("link[rel*='icon']").attr("href", originalFavicon);
+          }, 100);
+        });
+      });
+    </script>
 	
   </body>
 </html>
