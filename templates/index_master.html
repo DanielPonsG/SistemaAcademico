@@ -489,6 +489,290 @@
         overflow-y: auto;
         overflow-x: hidden;
       }
+      
+      /* ===== ESTILOS PARA NAVEGACIÓN SUPERIOR ===== */
+      
+      /* Contenedor principal de navegación superior */
+      .top_nav {
+        background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%) !important;
+        border-bottom: 1px solid rgba(0,0,0,0.08);
+        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        padding: 0 !important;
+        height: 60px;
+        display: flex;
+        align-items: center;
+        position: relative;
+        z-index: 999;
+      }
+      
+      .nav_menu {
+        width: 100%;
+        padding: 0 20px;
+      }
+      
+      .nav_menu nav {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        height: 60px;
+      }
+      
+      /* Botón toggle del menú */
+      .nav.toggle a {
+        color: #667eea !important;
+        font-size: 18px;
+        padding: 8px 12px;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        background: rgba(102,126,234,0.1);
+        border: 1px solid rgba(102,126,234,0.2);
+      }
+      
+      .nav.toggle a:hover {
+        background: rgba(102,126,234,0.15);
+        transform: scale(1.05);
+        color: #764ba2 !important;
+      }
+      
+      /* Lista de navegación */
+      .navbar-nav {
+        display: flex;
+        align-items: center;
+        margin: 0;
+        list-style: none;
+        gap: 15px;
+      }
+      
+      .navbar-right {
+        margin-left: auto;
+      }
+      
+      /* Avatar en navegación superior */
+      .top-nav-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: 2px solid rgba(102,126,234,0.3);
+        box-shadow: 0 3px 12px rgba(102,126,234,0.25);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+        margin-right: 8px;
+      }
+      
+      .top-nav-avatar::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, transparent 100%);
+        border-radius: 50%;
+      }
+      
+      .top-nav-initials {
+        font-size: 14px;
+        font-weight: 700;
+        color: #fff;
+        text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        position: relative;
+        z-index: 1;
+        letter-spacing: 0.5px;
+      }
+      
+      /* Perfil de usuario en navegación superior */
+      .user-profile {
+        display: flex !important;
+        align-items: center;
+        color: #495057 !important;
+        font-weight: 600;
+        font-size: 14px;
+        padding: 8px 12px;
+        border-radius: 12px;
+        transition: all 0.3s ease;
+        text-decoration: none !important;
+        background: rgba(102,126,234,0.05);
+        border: 1px solid rgba(102,126,234,0.1);
+        position: relative;
+        overflow: hidden;
+      }
+      
+      .user-profile::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, rgba(102,126,234,0.1) 0%, rgba(118,75,162,0.1) 100%);
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+        z-index: -1;
+      }
+      
+      .user-profile:hover {
+        color: #667eea !important;
+        background: rgba(102,126,234,0.1);
+        border-color: rgba(102,126,234,0.2);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 15px rgba(102,126,234,0.2);
+        text-decoration: none !important;
+      }
+      
+      .user-profile:hover::before {
+        transform: translateX(0);
+      }
+      
+      .user-profile:hover .top-nav-avatar {
+        transform: scale(1.1);
+        border-color: rgba(102,126,234,0.5);
+        box-shadow: 0 4px 16px rgba(102,126,234,0.4);
+      }
+      
+      .user-profile .fa-angle-down {
+        margin-left: 6px;
+        font-size: 12px;
+        transition: transform 0.3s ease;
+        opacity: 0.7;
+      }
+      
+      .user-profile:hover .fa-angle-down {
+        transform: rotate(180deg);
+        opacity: 1;
+      }
+      
+      /* Menú dropdown del usuario */
+      .dropdown-usermenu {
+        background: #ffffff;
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        padding: 8px 0;
+        margin-top: 8px;
+        border: 1px solid rgba(0,0,0,0.08);
+        min-width: 180px;
+      }
+      
+      .dropdown-usermenu li a {
+        color: #495057 !important;
+        padding: 10px 16px;
+        font-size: 13px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        border-left: 3px solid transparent;
+        position: relative;
+        overflow: hidden;
+      }
+      
+      .dropdown-usermenu li a::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, rgba(102,126,234,0.08) 0%, rgba(118,75,162,0.08) 100%);
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+        z-index: -1;
+      }
+      
+      .dropdown-usermenu li a:hover {
+        background: rgba(102,126,234,0.1) !important;
+        color: #667eea !important;
+        border-left: 3px solid #667eea;
+        text-decoration: none;
+      }
+      
+      .dropdown-usermenu li a:hover::before {
+        transform: translateX(0);
+      }
+      
+      .dropdown-usermenu li a i {
+        margin-right: 8px;
+        width: 16px;
+        text-align: center;
+        opacity: 0.8;
+      }
+      
+      /* Separador en el menú dropdown */
+      .dropdown-usermenu .divider {
+        height: 1px;
+        margin: 8px 16px;
+        background: linear-gradient(90deg, transparent 0%, rgba(0,0,0,0.1) 50%, transparent 100%);
+        border: none;
+        padding: 0;
+      }
+      
+      /* Estilo especial para el item de cerrar sesión */
+      .dropdown-usermenu li:last-child a {
+        color: #dc3545 !important;
+        font-weight: 600;
+      }
+      
+      .dropdown-usermenu li:last-child a:hover {
+        background: rgba(220,53,69,0.1) !important;
+        border-left: 3px solid #dc3545;
+        color: #dc3545 !important;
+      }
+      
+      .dropdown-usermenu li:last-child a::before {
+        background: linear-gradient(135deg, rgba(220,53,69,0.08) 0%, rgba(220,53,69,0.08) 100%);
+      }
+      
+      /* Iconos de notificaciones (ocultos por ahora) */
+      .info-number {
+        display: none !important;
+      }
+      
+      /* Lista de mensajes (oculta por ahora) */
+      .msg_list {
+        display: none !important;
+      }
+      
+      /* Badges en el menú */
+      .dropdown-usermenu .badge {
+        background: linear-gradient(135deg, #dc3545 0%, #6c757d 100%);
+        color: white;
+        font-size: 10px;
+        border-radius: 8px;
+        padding: 2px 6px;
+        font-weight: 600;
+      }
+      
+      /* Responsivo para navegación superior */
+      @media (max-width: 768px) {
+        .top_nav {
+          height: 50px;
+        }
+        
+        .nav_menu {
+          padding: 0 15px;
+        }
+        
+        .nav_menu nav {
+          height: 50px;
+        }
+        
+        .top-nav-avatar {
+          width: 32px;
+          height: 32px;
+        }
+        
+        .top-nav-initials {
+          font-size: 12px;
+        }
+        
+        .user-profile {
+          font-size: 13px;
+          padding: 6px 10px;
+        }
+      }
     </style>
   </head>
 
@@ -844,46 +1128,13 @@
                     <span class=" fa fa-angle-down"></span>
                   </a>
                   <ul class="dropdown-menu dropdown-usermenu pull-right">
-                    <li><a href="#" onclick="event.preventDefault();"> Perfil</a></li>
-                    <li>
-                      <a href="#" onclick="event.preventDefault();">
-                        <span class="badge bg-red pull-right">50%</span>
-                        <span>Configuración</span>
-                      </a>
-                    </li>
-                    <li><a href="#" onclick="event.preventDefault();">Ayuda</a></li>
-                    <li><a href="{% url 'logout' %}"><i class="fa fa-sign-out pull-right"></i> Cerrar Sesión</a></li>
+                    <li><a href="#" onclick="event.preventDefault();"><i class="fa fa-user"></i> Perfil</a></li>
+                    <li><a href="#" onclick="event.preventDefault();"><i class="fa fa-cog"></i> Configuración</a></li>
+                    <li><a href="#" onclick="event.preventDefault();"><i class="fa fa-question-circle"></i> Ayuda</a></li>
+                    <li role="separator" class="divider"></li>
+                    <li><a href="{% url 'logout' %}"><i class="fa fa-sign-out"></i> Cerrar Sesión</a></li>
                   </ul>
                   {% endif %}
-                </li>
-
-                <li role="presentation" class="dropdown">
-                  <a href="#" class="dropdown-toggle info-number" data-toggle="dropdown" aria-expanded="false">
-                    <i class="fa fa-envelope-o"></i>
-                    <span class="badge bg-green">6</span>
-                  </a>
-                  <ul id="menu1" class="dropdown-menu list-unstyled msg_list" role="menu">
-                    <li>
-                      <a>
-                        <span class="image"><img src="{% static '/FrWork/admin_lte/production/images/img.jpg' %}" alt="Profile Image" /></span>
-                        <span>
-                          <span>John Smith</span>
-                          <span class="time">3 mins ago</span>
-                        </span>
-                        <span class="message">
-                          Film festivals used to be do-or-die moments for movie makers. They were where...
-                        </span>
-                      </a>
-                    </li>
-                    <li>
-                      <div class="text-center">
-                        <a>
-                          <strong>Ver Todos los Mensajes</strong>
-                          <i class="fa fa-angle-right"></i>
-                        </a>
-                      </div>
-                    </li>
-                  </ul>
                 </li>
               </ul>
             </nav>
