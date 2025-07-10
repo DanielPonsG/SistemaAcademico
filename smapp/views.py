@@ -730,7 +730,7 @@ def calendario(request):
         except Exception as e:
             return JsonResponse({'success': False, 'error': f'Error al crear el evento: {str(e)}'})
     
-    # Preparar datos para FullCalendar
+    # Preparar datos para el calendario alternativo
     eventos_json = []
     for evento in eventos:
         eventos_json.append({
@@ -741,10 +741,12 @@ def calendario(request):
             'backgroundColor': evento.color_por_tipo,
             'borderColor': evento.color_por_tipo,
             'textColor': '#fff',
+            'tipo': evento.tipo_evento,  # Tipo original del evento
             'extendedProps': {
                 'description': evento.descripcion or '',
                 'responsable': evento.creado_por.first_name if evento.creado_por and evento.creado_por.first_name else (evento.creado_por.username if evento.creado_por else 'Sistema'),
                 'tipo': evento.get_tipo_evento_display(),
+                'tipoOriginal': evento.tipo_evento,
                 'prioridad': evento.get_prioridad_display()
             }
         })
@@ -792,7 +794,7 @@ def calendario(request):
         'prioridades': EventoCalendario.PRIORIDAD_CHOICES,
     }
     
-    return render(request, 'calendario.html', context)
+    return render(request, 'calendario_alternativo.html', context)
 
 @login_required
 def inicio(request):

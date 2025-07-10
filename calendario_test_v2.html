@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Calendario FullCalendar</title>
+    
+    <!-- FullCalendar CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/main.min.css" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        #calendar {
+            height: 600px;
+            margin: 20px 0;
+        }
+        .debug-info {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            border-left: 4px solid #2196f3;
+        }
+        .success { color: #4caf50; }
+        .error { color: #f44336; }
+        .warning { color: #ff9800; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Test de Calendario FullCalendar</h1>
+        
+        <div class="debug-info">
+            <h3>Estado de la prueba:</h3>
+            <div id="status">Iniciando...</div>
+        </div>
+        
+        <div id="calendar"></div>
+        
+        <div class="debug-info">
+            <h3>Log de eventos:</h3>
+            <div id="log" style="font-family: monospace; max-height: 200px; overflow-y: auto;"></div>
+        </div>
+    </div>
+
+    <!-- FullCalendar JS -->
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/main.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/locales/es.min.js"></script>
+    
+    <script>
+        // Función para logging
+        function log(message, type = 'info') {
+            const logEl = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type === 'error' ? 'error' : type === 'success' ? 'success' : type === 'warning' ? 'warning' : '';
+            logEl.innerHTML += `<div class="${className}">[${timestamp}] ${message}</div>`;
+            logEl.scrollTop = logEl.scrollHeight;
+            console.log(message);
+        }
+        
+        function updateStatus(message, type = 'info') {
+            const statusEl = document.getElementById('status');
+            const className = type === 'error' ? 'error' : type === 'success' ? 'success' : type === 'warning' ? 'warning' : '';
+            statusEl.innerHTML = `<span class="${className}">${message}</span>`;
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            log('🚀 Iniciando test de calendario...');
+            updateStatus('Verificando dependencias...');
+            
+            // Verificar que FullCalendar esté disponible
+            if (typeof FullCalendar === 'undefined') {
+                log('❌ FullCalendar no está disponible', 'error');
+                updateStatus('❌ Error: FullCalendar no disponible', 'error');
+                return;
+            }
+            
+            log('✅ FullCalendar cargado correctamente');
+            
+            // Datos de ejemplo (los mismos que tendría Django)
+            const eventosData = [
+                {
+                    "id": 10,
+                    "title": "Feria de Ciencias",
+                    "start": "2025-07-23",
+                    "description": "Muestra de proyectos científicos de todos los cursos.",
+                    "backgroundColor": "#2ecc71",
+                    "borderColor": "#2ecc71",
+                    "textColor": "#fff"
+                },
+                {
+                    "id": 9,
+                    "title": "Entrega de Notas",
+                    "start": "2025-07-16",
+                    "description": "Entrega de calificaciones del primer semestre.",
+                    "backgroundColor": "#f39c12",
+                    "borderColor": "#f39c12",
+                    "textColor": "#fff"
+                },
+                {
+                    "id": 8,
+                    "title": "Día del Estudiante",
+                    "start": "2025-07-12",
+                    "description": "Celebración del día del estudiante con actividades especiales.",
+                    "backgroundColor": "#2ecc71",
+                    "borderColor": "#2ecc71",
+                    "textColor": "#fff"
+                },
+                {
+                    "id": 7,
+                    "title": "Reunión de Apoderados",
+                    "start": "2025-07-09",
+                    "description": "Reunión informativa con apoderados sobre el primer semestre.",
+                    "backgroundColor": "#9b59b6",
+                    "borderColor": "#9b59b6",
+                    "textColor": "#fff"
+                },
+                {
+                    "id": 6,
+                    "title": "Simulacro de Evacuación",
+                    "start": "2025-07-07",
+                    "description": "Ejercicio de evacuación programado para toda la escuela.",
+                    "backgroundColor": "#f39c12",
+                    "borderColor": "#f39c12",
+                    "textColor": "#fff"
+                }
+            ];
+            
+            log(`📅 Eventos cargados: ${eventosData.length}`);
+            updateStatus('Configurando calendario...');
+            
+            // Obtener elemento del calendario
+            const calendarEl = document.getElementById('calendar');
+            if (!calendarEl) {
+                log('❌ Elemento calendar no encontrado', 'error');
+                updateStatus('❌ Error: Elemento calendar no encontrado', 'error');
+                return;
+            }
+            
+            log('✅ Elemento calendar encontrado');
+            
+            try {
+                // Configuración del calendario
+                const calendar = new FullCalendar.Calendar(calendarEl, {
+                    locale: 'es',
+                    initialView: 'dayGridMonth',
+                    height: 550,
+                    headerToolbar: {
+                        left: 'prev,next today',
+                        center: 'title',
+                        right: 'dayGridMonth,timeGridWeek,listWeek'
+                    },
+                    buttonText: {
+                        today: 'Hoy',
+                        month: 'Mes',
+                        week: 'Semana',
+                        list: 'Lista'
+                    },
+                    events: eventosData,
+                    eventClick: function(info) {
+                        log(`🖱️ Click en evento: ${info.event.title}`);
+                        const mensaje = `📅 ${info.event.title}\n📆 Fecha: ${info.event.start.toLocaleDateString('es-ES')}\n📝 ${info.event.extendedProps.description || 'Sin descripción'}`;
+                        alert(mensaje);
+                    },
+                    eventDidMount: function(info) {
+                        log(`✅ Evento montado: ${info.event.title}`);
+                    },
+                    loading: function(isLoading) {
+                        log(`📊 Calendario ${isLoading ? 'cargando' : 'listo'}`);
+                        if (isLoading) {
+                            updateStatus('Cargando eventos...');
+                        } else {
+                            updateStatus('✅ Calendario listo', 'success');
+                        }
+                    }
+                });
+                
+                log('🎯 Renderizando calendario...');
+                calendar.render();
+                log('✅ Calendario renderizado exitosamente', 'success');
+                updateStatus('✅ Calendario funcionando correctamente', 'success');
+                
+            } catch (error) {
+                log(`❌ Error al crear calendario: ${error.message}`, 'error');
+                updateStatus(`❌ Error: ${error.message}`, 'error');
+                calendarEl.innerHTML = `<div style="color: red; text-align: center; padding: 50px;">❌ Error al crear calendario: ${error.message}</div>`;
+            }
+        });
+    </script>
+</body>
+</html>

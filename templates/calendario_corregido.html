@@ -106,11 +106,7 @@
             </h5>
           </div>
           <div class="card-body">
-            <div id="calendar-loading" class="text-center p-4">
-              <i class="fas fa-spinner fa-spin fa-3x text-primary mb-3"></i>
-              <p>Cargando calendario...</p>
-            </div>
-            <div id="calendar" style="height: 600px; min-height: 600px; display: none;"></div>
+            <div id="calendar" style="height: 600px;"></div>
           </div>
         </div>
       </div>
@@ -369,16 +365,8 @@
 </style>
 
 <script>
-// Asegurar que FullCalendar se carga después de que todo esté listo
-document.addEventListener('DOMContentLoaded', function() {
+$(document).ready(function() {
     console.log('🚀 Inicializando calendario...');
-    
-    // Verificar que FullCalendar esté disponible
-    if (typeof FullCalendar === 'undefined') {
-        console.error('❌ FullCalendar no está disponible');
-        document.getElementById('calendar').innerHTML = '<div class="alert alert-danger">Error: FullCalendar no se pudo cargar</div>';
-        return;
-    }
     
     // Actualizar fecha y hora
     function updateDateTime() {
@@ -403,257 +391,153 @@ document.addEventListener('DOMContentLoaded', function() {
     // Datos de eventos
     var eventosData = {{ eventos_json|safe|default:"[]" }};
     console.log('📅 Eventos cargados:', eventosData.length);
-    console.log('📊 Datos de eventos:', eventosData);
-    
-    // Obtener elemento del calendario
-    var calendarEl = document.getElementById('calendar');
-    var loadingEl = document.getElementById('calendar-loading');
-    
-    if (!calendarEl) {
-        console.error('❌ Elemento calendar no encontrado');
-        if (loadingEl) {
-            loadingEl.innerHTML = '<div class="alert alert-danger">❌ Error: Elemento calendar no encontrado</div>';
-        }
-        return;
-    }
-    
-    // Mostrar loading
-    if (loadingEl) {
-        loadingEl.style.display = 'block';
-    }
-    calendarEl.style.display = 'none';
     
     // Configuración del calendario
-    try {
-        var calendarConfig = {
-            locale: 'es',
-            initialView: 'dayGridMonth',
-            height: 600,
-            headerToolbar: {
-                left: 'prev,next today',
-                center: 'title',
-                right: 'dayGridMonth,timeGridWeek,listWeek'
-            },
-            buttonText: {
-                today: 'Hoy',
-                month: 'Mes',
-                week: 'Semana',
-                list: 'Lista'
-            },
-            events: eventosData,
-            eventClick: function(info) {
-                var evento = info.event;
-                var fechaFormateada = evento.start.toLocaleDateString('es-ES', {
-                    weekday: 'long',
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                });
-                
-                var mensaje = '📅 ' + evento.title + '\n\n';
-                mensaje += '📆 Fecha: ' + fechaFormateada + '\n';
-                
-                if (evento.extendedProps && evento.extendedProps.description) {
-                    mensaje += '📝 Descripción: ' + evento.extendedProps.description + '\n';
-                }
-                
-                {% if puede_crear_eventos %}
-                if (evento.extendedProps && evento.extendedProps.responsable) {
-                    mensaje += '👤 Responsable: ' + evento.extendedProps.responsable;
-                }
-                {% endif %}
-                
-                alert(mensaje);
-            },
-            dateClick: function(info) {
-                {% if puede_crear_eventos %}
-                // Usar jQuery si está disponible, sino vanilla JS
-                if (typeof $ !== 'undefined') {
-                    $('input[name="fecha"]').val(info.dateStr);
-                    $('#modalAgregarEvento').modal('show');
-                } else {
-                    var fechaInput = document.querySelector('input[name="fecha"]');
-                    if (fechaInput) fechaInput.value = info.dateStr;
-                    // Abrir modal con Bootstrap nativo si es necesario
-                }
-                {% endif %}
-            },
-            eventMouseEnter: function(info) {
-                info.el.style.transform = 'scale(1.05)';
-                info.el.style.cursor = 'pointer';
-            },
-            eventMouseLeave: function(info) {
-                info.el.style.transform = 'scale(1)';
-            },
-            loading: function(isLoading) {
-                console.log('📊 Calendario cargando:', isLoading);
-                var loadingEl = document.getElementById('calendar-loading');
-                var calendarEl = document.getElementById('calendar');
-                
-                if (isLoading) {
-                    if (loadingEl) loadingEl.style.display = 'block';
-                    if (calendarEl) calendarEl.style.display = 'none';
-                } else {
-                    if (loadingEl) loadingEl.style.display = 'none';
-                    if (calendarEl) calendarEl.style.display = 'block';
-                }
-            },
-            eventDidMount: function(info) {
-                console.log('✅ Evento montado:', info.event.title);
+    var calendarConfig = {
+        locale: 'es',
+        initialView: 'dayGridMonth',
+        height: 600,
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,listWeek'
+        },
+        buttonText: {
+            today: 'Hoy',
+            month: 'Mes',
+            week: 'Semana',
+            list: 'Lista'
+        },
+        events: eventosData,
+        eventClick: function(info) {
+            var evento = info.event;
+            var fechaFormateada = evento.start.toLocaleDateString('es-ES', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            
+            var mensaje = `📅 ${evento.title}\n\n`;
+            mensaje += `📆 Fecha: ${fechaFormateada}\n`;
+            
+            if (evento.extendedProps && evento.extendedProps.description) {
+                mensaje += `📝 Descripción: ${evento.extendedProps.description}\n`;
             }
-        };
-        
-        // Inicializar FullCalendar
+            
+            {% if puede_crear_eventos %}
+            if (evento.extendedProps && evento.extendedProps.responsable) {
+                mensaje += `👤 Responsable: ${evento.extendedProps.responsable}`;
+            }
+            {% endif %}
+            
+            alert(mensaje);
+        },
+        dateClick: function(info) {
+            {% if puede_crear_eventos %}
+            $('input[name="fecha"]').val(info.dateStr);
+            $('#modalAgregarEvento').modal('show');
+            {% endif %}
+        },
+        eventMouseEnter: function(info) {
+            info.el.style.transform = 'scale(1.05)';
+            info.el.style.cursor = 'pointer';
+        },
+        eventMouseLeave: function(info) {
+            info.el.style.transform = 'scale(1)';
+        }
+    };
+    
+    // Inicializar FullCalendar
+    var calendarEl = document.getElementById('calendar');
+    if (calendarEl) {
         var calendar = new FullCalendar.Calendar(calendarEl, calendarConfig);
-        
-        // Renderizar calendario
         calendar.render();
         console.log('✅ Calendario renderizado exitosamente');
-        
-        // Forzar mostrar calendario después del render
-        setTimeout(function() {
-            var loadingEl = document.getElementById('calendar-loading');
-            var calendarEl = document.getElementById('calendar');
-            
-            if (loadingEl) loadingEl.style.display = 'none';
-            if (calendarEl) {
-                calendarEl.style.display = 'block';
-                calendarEl.style.visibility = 'visible';
-            }
-            
-            console.log('🎯 Calendario forzado a mostrar');
-        }, 1000);
-        
-        // Hacer el calendario disponible globalmente para debug
-        window.calendario = calendar;
-        
-    } catch (error) {
-        console.error('❌ Error al crear calendario:', error);
-        var loadingEl = document.getElementById('calendar-loading');
-        if (loadingEl) {
-            loadingEl.innerHTML = '<div class="alert alert-danger">❌ Error al crear calendario: ' + error.message + '</div>';
-        }
+    } else {
+        console.error('❌ Elemento calendar no encontrado');
     }
     
     {% if puede_crear_eventos %}
-    // Esperar a que jQuery esté disponible para la funcionalidad del modal
-    function initModalEvents() {
-        if (typeof $ !== 'undefined') {
-            console.log('✅ jQuery disponible, inicializando eventos del modal');
-            
-            // Manejar formulario de evento
-            $('#formAgregarEvento').on('submit', function(e) {
-                e.preventDefault();
-                
-                var formData = new FormData(this);
-                var submitBtn = $(this).find('button[type="submit"]');
-                var originalText = submitBtn.html();
-                
-                submitBtn.html('<i class="fa fa-spinner fa-spin"></i> Creando...').prop('disabled', true);
-                
-                $.ajax({
-                    url: window.location.href,
-                    type: 'POST',
-                    data: formData,
-                    processData: false,
-                    contentType: false,
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    success: function(response) {
-                        if (response.success) {
-                            alert('✅ Evento creado exitosamente');
-                            $('#modalAgregarEvento').modal('hide');
-                            location.reload();
-                        } else {
-                            alert('❌ Error: ' + (response.error || 'Error desconocido'));
-                        }
-                    },
-                    error: function(xhr, status, error) {
-                        console.error('Error AJAX:', error);
-                        alert('❌ Error de conexión. Inténtalo de nuevo.');
-                    },
-                    complete: function() {
-                        submitBtn.html(originalText).prop('disabled', false);
-                    }
-                });
-            });
-            
-            // Mostrar/ocultar cursos específicos
-            $('input[name="dirigido_a"]').on('change', function() {
-                if ($(this).val() === 'cursos_especificos') {
-                    $('#cursosEspecificos').show();
+    // Manejar formulario de evento
+    $('#formAgregarEvento').on('submit', function(e) {
+        e.preventDefault();
+        
+        var formData = new FormData(this);
+        var submitBtn = $(this).find('button[type="submit"]');
+        var originalText = submitBtn.html();
+        
+        submitBtn.html('<i class="fa fa-spinner fa-spin"></i> Creando...').prop('disabled', true);
+        
+        $.ajax({
+            url: window.location.href,
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            success: function(response) {
+                if (response.success) {
+                    alert('✅ Evento creado exitosamente');
+                    $('#modalAgregarEvento').modal('hide');
+                    location.reload();
                 } else {
-                    $('#cursosEspecificos').hide();
-                    $('#cursosEspecificos input[type="checkbox"]').prop('checked', false);
+                    alert('❌ Error: ' + (response.error || 'Error desconocido'));
                 }
-            });
-            
-            // Limpiar formulario al cerrar modal
-            $('#modalAgregarEvento').on('hidden.bs.modal', function() {
-                $('#formAgregarEvento')[0].reset();
-                $('input[name="dirigido_a"][value="todos"]').prop('checked', true);
-                $('#cursosEspecificos').hide();
-            });
-        } else {
-            console.log('⏳ jQuery no disponible, reintentando en 100ms');
-            setTimeout(initModalEvents, 100);
-        }
-    }
+            },
+            error: function(xhr, status, error) {
+                console.error('Error AJAX:', error);
+                alert('❌ Error de conexión. Inténtalo de nuevo.');
+            },
+            complete: function() {
+                submitBtn.html(originalText).prop('disabled', false);
+            }
+        });
+    });
     
-    // Inicializar eventos del modal
-    initModalEvents();
+    // Mostrar/ocultar cursos específicos
+    $('input[name="dirigido_a"]').on('change', function() {
+        if ($(this).val() === 'cursos_especificos') {
+            $('#cursosEspecificos').show();
+        } else {
+            $('#cursosEspecificos').hide();
+            $('#cursosEspecificos input[type="checkbox"]').prop('checked', false);
+        }
+    });
+    
+    // Limpiar formulario al cerrar modal
+    $('#modalAgregarEvento').on('hidden.bs.modal', function() {
+        $('#formAgregarEvento')[0].reset();
+        $('input[name="dirigido_a"][value="todos"]').prop('checked', true);
+        $('#cursosEspecificos').hide();
+    });
     {% endif %}
 });
 
 {% if puede_crear_eventos %}
 function eliminarEvento(eventoId, titulo) {
     if (confirm('¿Estás seguro de que deseas eliminar el evento "' + titulo + '"?')) {
-        // Usar jQuery si está disponible, sino usar fetch
-        if (typeof $ !== 'undefined') {
-            $.ajax({
-                url: '/eventos/eliminar/' + eventoId + '/',
-                type: 'POST',
-                headers: {
-                    'X-CSRFToken': $('[name=csrfmiddlewaretoken]').val(),
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                success: function(response) {
-                    if (response.success) {
-                        alert('✅ Evento eliminado correctamente');
-                        location.reload();
-                    } else {
-                        alert('❌ Error: ' + (response.error || 'Error al eliminar'));
-                    }
-                },
-                error: function() {
-                    alert('❌ Error de conexión');
-                }
-            });
-        } else {
-            // Fallback usando fetch API
-            var csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
-            fetch('/eventos/eliminar/' + eventoId + '/', {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': csrfToken ? csrfToken.value : '',
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
+        $.ajax({
+            url: '/eventos/eliminar/' + eventoId + '/',
+            type: 'POST',
+            headers: {
+                'X-CSRFToken': $('[name=csrfmiddlewaretoken]').val(),
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            success: function(response) {
+                if (response.success) {
                     alert('✅ Evento eliminado correctamente');
                     location.reload();
                 } else {
-                    alert('❌ Error: ' + (data.error || 'Error al eliminar'));
+                    alert('❌ Error: ' + (response.error || 'Error al eliminar'));
                 }
-            })
-            .catch(error => {
-                console.error('Error:', error);
+            },
+            error: function() {
                 alert('❌ Error de conexión');
-            });
-        }
+            }
+        });
     }
 }
 {% endif %}

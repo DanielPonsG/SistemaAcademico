@@ -1,0 +1,195 @@
+{% extends "index_master.html" %}
+
+{% block content %}
+<div class="right_col" role="main">
+  <div class="container-fluid">
+    
+    <!-- Header -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="bg-white p-4 rounded shadow-sm border">
+          <h1 class="h3 mb-3 text-dark">📅 Calendario Académico</h1>
+          <p class="text-muted">
+            Usuario: {{ user.first_name|default:user.username }} | 
+            Tipo: {{ user_type|capfirst }} | 
+            Eventos: {{ eventos.count }}
+          </p>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Calendario -->
+    <div class="row">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header">
+            <h5>📅 Calendario de Eventos</h5>
+          </div>
+          <div class="card-body">
+            <div id="calendario-container">
+              <div id="status" class="alert alert-info">Cargando calendario...</div>
+              <div id="calendar" style="height: 600px; display: none;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Debug Info -->
+    {% if user.is_superuser %}
+    <div class="row mt-4">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header">
+            <h5>🔧 Información de Debug</h5>
+          </div>
+          <div class="card-body">
+            <p><strong>Total eventos:</strong> {{ eventos.count }}</p>
+            <p><strong>Puede crear eventos:</strong> {{ puede_crear_eventos }}</p>
+            <p><strong>Tipo usuario:</strong> {{ user_type }}</p>
+            <p><strong>Eventos JSON length:</strong> {{ eventos_json|length }}</p>
+            <details>
+              <summary>Ver JSON de eventos</summary>
+              <pre style="max-height: 200px; overflow-y: auto;">{{ eventos_json|safe }}</pre>
+            </details>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- FullCalendar CSS -->
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/main.min.css" rel="stylesheet">
+
+<style>
+#calendar {
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
+
+.fc-event {
+  border-radius: 4px !important;
+  border: none !important;
+  font-weight: 600;
+}
+
+.fc-event:hover {
+  opacity: 0.8;
+  cursor: pointer;
+}
+</style>
+
+<!-- Cargar FullCalendar JavaScript -->
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/main.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/locales/es.min.js"></script>
+
+<script>
+// Función principal para inicializar el calendario
+function inicializarCalendario() {
+    console.log('🚀 Inicializando calendario...');
+    
+    const statusEl = document.getElementById('status');
+    const calendarEl = document.getElementById('calendar');
+    
+    // Verificar que FullCalendar esté disponible
+    if (typeof FullCalendar === 'undefined') {
+        console.error('❌ FullCalendar no disponible');
+        statusEl.innerHTML = '<div class="alert alert-danger">❌ Error: FullCalendar no se pudo cargar</div>';
+        return;
+    }
+    
+    console.log('✅ FullCalendar disponible');
+    statusEl.textContent = 'Configurando calendario...';
+    
+    // Obtener datos de eventos
+    let eventosData;
+    try {
+        eventosData = {{ eventos_json|safe|default:"[]" }};
+        console.log('📅 Eventos cargados:', eventosData.length);
+        console.log('📊 Datos:', eventosData);
+    } catch (error) {
+        console.error('❌ Error al parsear eventos:', error);
+        statusEl.innerHTML = '<div class="alert alert-danger">❌ Error al cargar eventos</div>';
+        return;
+    }
+    
+    if (!calendarEl) {
+        console.error('❌ Elemento calendar no encontrado');
+        statusEl.innerHTML = '<div class="alert alert-danger">❌ Elemento calendar no encontrado</div>';
+        return;
+    }
+    
+    try {
+        // Configuración básica del calendario
+        const calendar = new FullCalendar.Calendar(calendarEl, {
+            locale: 'es',
+            initialView: 'dayGridMonth',
+            height: 550,
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,listWeek'
+            },
+            buttonText: {
+                today: 'Hoy',
+                month: 'Mes',
+                week: 'Semana',
+                list: 'Lista'
+            },
+            events: eventosData,
+            eventClick: function(info) {
+                const evento = info.event;
+                const fecha = evento.start.toLocaleDateString('es-ES', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+                
+                let mensaje = `📅 ${evento.title}\n📆 ${fecha}`;
+                if (evento.extendedProps && evento.extendedProps.description) {
+                    mensaje += `\n📝 ${evento.extendedProps.description}`;
+                }
+                
+                alert(mensaje);
+            },
+            loading: function(isLoading) {
+                console.log('📊 Cargando:', isLoading);
+                if (isLoading) {
+                    statusEl.textContent = 'Cargando eventos...';
+                } else {
+                    statusEl.style.display = 'none';
+                    calendarEl.style.display = 'block';
+                }
+            },
+            eventDidMount: function(info) {
+                console.log('✅ Evento montado:', info.event.title);
+            }
+        });
+        
+        console.log('🎯 Renderizando calendario...');
+        calendar.render();
+        console.log('✅ Calendario renderizado exitosamente');
+        
+        // Ocultar status y mostrar calendario
+        statusEl.style.display = 'none';
+        calendarEl.style.display = 'block';
+        
+    } catch (error) {
+        console.error('❌ Error al crear calendario:', error);
+        statusEl.innerHTML = `<div class="alert alert-danger">❌ Error: ${error.message}</div>`;
+    }
+}
+
+// Asegurar que todo esté cargado antes de inicializar
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', inicializarCalendario);
+} else {
+    // Si ya está cargado, esperar un poco para asegurar que FullCalendar esté disponible
+    setTimeout(inicializarCalendario, 100);
+}
+</script>
+
+{% endblock %}

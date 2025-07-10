@@ -1,0 +1,82 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Calendario</title>
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/main.min.css" rel="stylesheet">
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        #calendar { height: 600px; border: 1px solid #ddd; }
+        .debug { background: #f5f5f5; padding: 10px; margin: 10px 0; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Test Calendario FullCalendar</h1>
+        
+        <div class="debug">
+            <strong>Debug Info:</strong><br>
+            - Total eventos en BD: 10<br>
+            - Eventos JSON generados: 10<br>
+        </div>
+        
+        <div id="calendar"></div>
+        
+        <div class="debug">
+            <strong>Eventos JSON:</strong><br>
+            <pre>[{"id": 10, "title": "Feria de Ciencias", "start": "2025-07-23", "description": "Muestra de proyectos cient\u00edficos de todos los cursos.", "backgroundColor": "#2ecc71", "borderColor": "#2ecc71", "textColor": "#fff"}, {"id": 9, "title": "Entrega de Notas", "start": "2025-07-16", "description": "Entrega de calificaciones del primer semestre.", "backgroundColor": "#f39c12", "borderColor": "#f39c12", "textColor": "#fff"}, {"id": 8, "title": "D\u00eda del Estudiante", "start": "2025-07-12", "description": "Celebraci\u00f3n del d\u00eda del estudiante con actividades recreativas.", "backgroundColor": "#2ecc71", "borderColor": "#2ecc71", "textColor": "#fff"}, {"id": 7, "title": "Reuni\u00f3n de Apoderados", "start": "2025-07-09", "description": "Reuni\u00f3n mensual para revisar el rendimiento acad\u00e9mico.", "backgroundColor": "#3498db", "borderColor": "#3498db", "textColor": "#fff"}, {"id": 11, "title": "Simulacro de Evacuaci\u00f3n", "start": "2025-07-07", "description": "Pr\u00e1ctica de evacuaci\u00f3n en caso de emergencia.", "backgroundColor": "#f39c12", "borderColor": "#f39c12", "textColor": "#fff"}, {"id": 1, "title": "Prueba2222", "start": "2025-07-05", "description": "asdasd", "backgroundColor": "#2ecc71", "borderColor": "#2ecc71", "textColor": "#fff"}, {"id": 6, "title": "Evaluaci\u00f3n de Matem\u00e1ticas", "start": "2025-07-05", "description": "Prueba de \u00e1lgebra b\u00e1sica y geometr\u00eda. Traer calculadora.", "backgroundColor": "#e74c3c", "borderColor": "#e74c3c", "textColor": "#fff"}, {"id": 4, "title": "asdasdasda", "start": "2025-07-03", "description": "", "backgroundColor": "#e74c3c", "borderColor": "#e74c3c", "textColor": "#fff"}, {"id": 5, "title": "asd", "start": "2025-07-03", "description": "", "backgroundColor": "#9b59b6", "borderColor": "#9b59b6", "textColor": "#fff"}, {"id": 2, "title": "Evento de Prueba - Calendario", "start": "2025-07-01", "description": "Este es un evento creado para probar el calendario", "backgroundColor": "#9b59b6", "borderColor": "#9b59b6", "textColor": "#fff"}]</pre>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/main.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/locales/es.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Iniciando calendario de prueba...');
+            
+            var eventosData = [{"id": 10, "title": "Feria de Ciencias", "start": "2025-07-23", "description": "Muestra de proyectos cient\u00edficos de todos los cursos.", "backgroundColor": "#2ecc71", "borderColor": "#2ecc71", "textColor": "#fff"}, {"id": 9, "title": "Entrega de Notas", "start": "2025-07-16", "description": "Entrega de calificaciones del primer semestre.", "backgroundColor": "#f39c12", "borderColor": "#f39c12", "textColor": "#fff"}, {"id": 8, "title": "D\u00eda del Estudiante", "start": "2025-07-12", "description": "Celebraci\u00f3n del d\u00eda del estudiante con actividades recreativas.", "backgroundColor": "#2ecc71", "borderColor": "#2ecc71", "textColor": "#fff"}, {"id": 7, "title": "Reuni\u00f3n de Apoderados", "start": "2025-07-09", "description": "Reuni\u00f3n mensual para revisar el rendimiento acad\u00e9mico.", "backgroundColor": "#3498db", "borderColor": "#3498db", "textColor": "#fff"}, {"id": 11, "title": "Simulacro de Evacuaci\u00f3n", "start": "2025-07-07", "description": "Pr\u00e1ctica de evacuaci\u00f3n en caso de emergencia.", "backgroundColor": "#f39c12", "borderColor": "#f39c12", "textColor": "#fff"}, {"id": 1, "title": "Prueba2222", "start": "2025-07-05", "description": "asdasd", "backgroundColor": "#2ecc71", "borderColor": "#2ecc71", "textColor": "#fff"}, {"id": 6, "title": "Evaluaci\u00f3n de Matem\u00e1ticas", "start": "2025-07-05", "description": "Prueba de \u00e1lgebra b\u00e1sica y geometr\u00eda. Traer calculadora.", "backgroundColor": "#e74c3c", "borderColor": "#e74c3c", "textColor": "#fff"}, {"id": 4, "title": "asdasdasda", "start": "2025-07-03", "description": "", "backgroundColor": "#e74c3c", "borderColor": "#e74c3c", "textColor": "#fff"}, {"id": 5, "title": "asd", "start": "2025-07-03", "description": "", "backgroundColor": "#9b59b6", "borderColor": "#9b59b6", "textColor": "#fff"}, {"id": 2, "title": "Evento de Prueba - Calendario", "start": "2025-07-01", "description": "Este es un evento creado para probar el calendario", "backgroundColor": "#9b59b6", "borderColor": "#9b59b6", "textColor": "#fff"}];
+            console.log('📅 Eventos:', eventosData);
+            
+            var calendarEl = document.getElementById('calendar');
+            if (!calendarEl) {
+                console.error('❌ Elemento calendar no encontrado');
+                return;
+            }
+            
+            if (typeof FullCalendar === 'undefined') {
+                console.error('❌ FullCalendar no cargado');
+                document.getElementById('calendar').innerHTML = '<div style="color: red; text-align: center; padding: 50px;">❌ Error: FullCalendar no se pudo cargar</div>';
+                return;
+            }
+            
+            try {
+                var calendar = new FullCalendar.Calendar(calendarEl, {
+                    locale: 'es',
+                    initialView: 'dayGridMonth',
+                    height: 550,
+                    headerToolbar: {
+                        left: 'prev,next today',
+                        center: 'title',
+                        right: 'dayGridMonth,timeGridWeek'
+                    },
+                    events: eventosData,
+                    eventClick: function(info) {
+                        alert('Evento: ' + info.event.title);
+                    },
+                    loading: function(isLoading) {
+                        console.log('Cargando:', isLoading);
+                    }
+                });
+                
+                calendar.render();
+                console.log('✅ Calendario renderizado');
+                
+            } catch (error) {
+                console.error('❌ Error:', error);
+                document.getElementById('calendar').innerHTML = '<div style="color: red; text-align: center; padding: 50px;">❌ Error al crear calendario: ' + error.message + '</div>';
+            }
+        });
+    </script>
+</body>
+</html>

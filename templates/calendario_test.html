@@ -1,0 +1,120 @@
+{% extends "index_master.html" %}
+
+{% block content %}
+<div class="right_col" role="main">
+  <div class="container-fluid">
+    
+    <!-- Test básico del calendario -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="bg-white p-4 rounded shadow-sm border">
+          <h1 class="h3 mb-3 text-dark">🔧 Test Calendario FullCalendar</h1>
+          
+          <!-- Debug info -->
+          <div class="alert alert-info">
+            <strong>Debug Info:</strong><br>
+            - Total eventos: {{ eventos.count }}<br>
+            - Puede crear eventos: {{ puede_crear_eventos }}<br>
+            - Tipo usuario: {{ user_type }}<br>
+            - Eventos JSON length: {{ eventos_json|length }}
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Calendario simple -->
+    <div class="row">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header">
+            <h5>Calendario FullCalendar</h5>
+          </div>
+          <div class="card-body">
+            <div id="calendar" style="height: 500px; border: 1px solid #ddd;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- JSON de eventos (para debug) -->
+    <div class="row mt-4">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header">
+            <h5>Eventos JSON (Debug)</h5>
+          </div>
+          <div class="card-body">
+            <pre style="max-height: 200px; overflow-y: auto;">{{ eventos_json|safe }}</pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FullCalendar CSS y JS -->
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/main.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/main.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/locales/es.min.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 Iniciando test de calendario...');
+    
+    // Verificar que FullCalendar esté disponible
+    if (typeof FullCalendar === 'undefined') {
+        console.error('❌ FullCalendar no está cargado');
+        alert('Error: FullCalendar no está disponible');
+        return;
+    }
+    
+    // Obtener datos de eventos
+    var eventosData = {{ eventos_json|safe|default:"[]" }};
+    console.log('📅 Eventos cargados:', eventosData);
+    console.log('📊 Cantidad de eventos:', eventosData.length);
+    
+    // Obtener elemento del calendario
+    var calendarEl = document.getElementById('calendar');
+    if (!calendarEl) {
+        console.error('❌ Elemento #calendar no encontrado');
+        alert('Error: Elemento calendar no encontrado');
+        return;
+    }
+    
+    console.log('✅ Elemento calendar encontrado');
+    
+    // Configuración mínima del calendario
+    try {
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+            locale: 'es',
+            initialView: 'dayGridMonth',
+            height: 450,
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek'
+            },
+            events: eventosData,
+            eventClick: function(info) {
+                alert('Evento: ' + info.event.title + '\nFecha: ' + info.event.start.toLocaleDateString('es-ES'));
+            },
+            loading: function(isLoading) {
+                console.log('📊 Calendario cargando:', isLoading);
+            },
+            eventDidMount: function(info) {
+                console.log('✅ Evento montado:', info.event.title);
+            }
+        });
+        
+        console.log('🎯 Renderizando calendario...');
+        calendar.render();
+        console.log('✅ Calendario renderizado exitosamente');
+        
+    } catch (error) {
+        console.error('❌ Error al crear calendario:', error);
+        alert('Error al crear calendario: ' + error.message);
+    }
+});
+</script>
+
+{% endblock %}

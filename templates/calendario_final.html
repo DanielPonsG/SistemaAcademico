@@ -1,0 +1,431 @@
+{% extends "index_master.html" %}
+
+{% block content %}
+<div class="right_col" role="main">
+  <div class="container-fluid">
+    
+    <!-- Header Universal -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="bg-white p-4 rounded shadow-sm border">
+          <div class="row align-items-center">
+            <div class="col-md-8">
+              <div class="d-flex align-items-center">
+                <div class="me-3">
+                  <i class="fas fa-calendar-alt fa-3x text-primary"></i>
+                </div>
+                <div>
+                  <h1 class="h3 mb-1 text-dark">📅 Calendario Académico</h1>
+                  <p class="mb-0 text-muted">
+                    <i class="fas fa-user me-2"></i>
+                    Bienvenido {{ user.first_name|default:user.username }}
+                    <span class="badge bg-primary ms-2">{{ user_type|capfirst }}</span>
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4 text-end">
+              <div id="currentDateTime" class="text-muted small"></div>
+              {% if puede_crear_eventos %}
+                <button type="button" class="btn btn-success mt-2" onclick="abrirModalEvento()">
+                  <i class="fas fa-plus me-1"></i>Nuevo Evento
+                </button>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Estadísticas -->
+    <div class="row mb-4">
+      <div class="col-md-3 mb-3">
+        <div class="card stats-card border-0 shadow-sm h-100">
+          <div class="card-body text-center">
+            <div class="mb-3">
+              <i class="fas fa-calendar-check fa-3x text-success"></i>
+            </div>
+            <h3 class="text-success mb-1">{{ eventos.count }}</h3>
+            <p class="mb-0 small text-muted">Eventos Totales</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3 mb-3">
+        <div class="card stats-card border-0 shadow-sm h-100">
+          <div class="card-body text-center">
+            <div class="mb-3">
+              <i class="fas fa-calendar-day fa-3x text-primary"></i>
+            </div>
+            <h3 class="text-primary mb-1">{{ eventos_count.hoy|default:0 }}</h3>
+            <p class="mb-0 small text-muted">Eventos Hoy</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3 mb-3">
+        <div class="card stats-card border-0 shadow-sm h-100">
+          <div class="card-body text-center">
+            <div class="mb-3">
+              <i class="fas fa-calendar-week fa-3x text-warning"></i>
+            </div>
+            <h3 class="text-warning mb-1">{{ eventos_count.semana|default:0 }}</h3>
+            <p class="mb-0 small text-muted">Esta Semana</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3 mb-3">
+        <div class="card stats-card border-0 shadow-sm h-100">
+          <div class="card-body text-center">
+            <div class="mb-3">
+              <i class="fas fa-user-shield fa-3x text-info"></i>
+            </div>
+            <h6 class="text-info mb-1">
+              {% if user.perfil.tipo_usuario %}
+                {{ user.perfil.tipo_usuario|capfirst }}
+              {% else %}
+                Usuario
+              {% endif %}
+            </h6>
+            <p class="mb-0 small text-muted">Rol Actual</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Calendario y lista de eventos -->
+    <div class="row">
+      <div class="col-lg-8 mb-4">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-header bg-light border-0">
+            <h5 class="mb-0 text-dark">
+              <i class="fas fa-calendar text-primary me-2"></i>
+              Calendario de Eventos
+            </h5>
+          </div>
+          <div class="card-body">
+            <!-- Estado del calendario -->
+            <div id="calendar-status" class="text-center p-4">
+              <i class="fas fa-spinner fa-spin fa-3x text-primary mb-3"></i>
+              <p class="mb-0">Inicializando calendario...</p>
+            </div>
+            
+            <!-- Contenedor del calendario -->
+            <div id="calendar" style="height: 600px; min-height: 600px; display: none;"></div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-lg-4 mb-4">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-header bg-light border-0">
+            <h5 class="mb-0 text-dark">
+              <i class="fas fa-list text-warning me-2"></i>
+              Próximos Eventos
+              <span class="badge bg-primary ms-2">{{ eventos.count }}</span>
+            </h5>
+          </div>
+          <div class="card-body">
+            {% if eventos %}
+              <div class="events-list" style="max-height: 500px; overflow-y: auto;">
+                {% for evento in eventos|slice:":10" %}
+                <div class="event-card mb-3 p-3 border rounded">
+                  <div class="d-flex align-items-start">
+                    <div class="event-icon me-3">
+                      <div class="rounded-circle d-flex align-items-center justify-content-center" 
+                           style="width: 50px; height: 50px; background-color: {{ evento.color_por_tipo|default:'#007bff' }}; color: white;">
+                        <strong>{{ evento.fecha.day }}</strong>
+                      </div>
+                    </div>
+                    <div class="flex-grow-1">
+                      <h6 class="mb-1 fw-bold">{{ evento.titulo }}</h6>
+                      <div class="event-meta">
+                        <p class="mb-1 small text-muted">
+                          <i class="fas fa-calendar-alt me-1"></i>
+                          {{ evento.fecha|date:"l, j F Y" }}
+                        </p>
+                        {% if evento.hora_inicio %}
+                          <p class="mb-1 small text-muted">
+                            <i class="fas fa-clock me-1"></i>
+                            {{ evento.hora_inicio|time:"H:i" }}
+                            {% if evento.hora_fin %} - {{ evento.hora_fin|time:"H:i" }}{% endif %}
+                          </p>
+                        {% endif %}
+                        <p class="mb-1 small">
+                          <span class="badge" style="background-color: {{ evento.color_por_tipo|default:'#007bff' }}; color: white;">
+                            {{ evento.get_tipo_evento_display }}
+                          </span>
+                        </p>
+                      </div>
+                      {% if evento.descripcion %}
+                        <p class="mb-0 small text-secondary">{{ evento.descripcion|truncatewords:12 }}</p>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+                {% endfor %}
+              </div>
+            {% else %}
+              <div class="text-center py-5">
+                <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+                <h6 class="text-muted">No hay eventos</h6>
+                <p class="text-muted small">No hay eventos programados actualmente.</p>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Variables JavaScript -->
+<script>
+// Variables globales para el calendario
+window.calendarioData = {
+    eventos: {{ eventos_json|safe|default:"[]" }},
+    puedeCrearEventos: {{ puede_crear_eventos|yesno:"true,false" }},
+    userType: "{{ user_type }}",
+    totalEventos: {{ eventos.count }}
+};
+
+console.log('📊 Datos del calendario cargados:', window.calendarioData);
+</script>
+
+<!-- FullCalendar CSS -->
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/main.min.css" rel="stylesheet">
+
+<!-- Estilos personalizados -->
+<style>
+.stats-card {
+  transition: all 0.3s ease;
+  border-radius: 12px;
+}
+
+.stats-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.event-card {
+  transition: all 0.3s ease;
+  border-radius: 8px;
+}
+
+.event-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.events-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.events-list::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.events-list::-webkit-scrollbar-thumb {
+  background: #007bff;
+  border-radius: 10px;
+}
+
+#calendar {
+  border-radius: 8px;
+}
+
+.fc-event {
+  border: none !important;
+  border-radius: 6px !important;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+.fc-event:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.25);
+}
+</style>
+
+<!-- JavaScript para el calendario -->
+<script>
+// Función para actualizar fecha y hora
+function actualizarFechaHora() {
+    const now = new Date();
+    const options = { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    };
+    const dateTimeElement = document.getElementById('currentDateTime');
+    if (dateTimeElement) {
+        dateTimeElement.textContent = now.toLocaleDateString('es-ES', options);
+    }
+}
+
+// Función para mostrar status
+function mostrarStatus(mensaje, tipo = 'info') {
+    const statusEl = document.getElementById('calendar-status');
+    if (!statusEl) return;
+    
+    let icono = 'fas fa-info-circle';
+    let color = 'text-primary';
+    
+    if (tipo === 'error') {
+        icono = 'fas fa-exclamation-triangle';
+        color = 'text-danger';
+    } else if (tipo === 'success') {
+        icono = 'fas fa-check-circle';
+        color = 'text-success';
+    } else if (tipo === 'loading') {
+        icono = 'fas fa-spinner fa-spin';
+        color = 'text-primary';
+    }
+    
+    statusEl.innerHTML = `
+        <i class="${icono} fa-3x ${color} mb-3"></i>
+        <p class="mb-0">${mensaje}</p>
+    `;
+}
+
+// Función principal para inicializar el calendario
+function inicializarCalendario() {
+    console.log('🚀 Inicializando calendario FullCalendar...');
+    mostrarStatus('Verificando dependencias...', 'loading');
+    
+    // Verificar que FullCalendar esté disponible
+    if (typeof FullCalendar === 'undefined') {
+        console.error('❌ FullCalendar no disponible');
+        mostrarStatus('Error: FullCalendar no se pudo cargar', 'error');
+        return;
+    }
+    
+    console.log('✅ FullCalendar disponible');
+    mostrarStatus('Configurando calendario...', 'loading');
+    
+    // Obtener elementos
+    const calendarEl = document.getElementById('calendar');
+    const statusEl = document.getElementById('calendar-status');
+    
+    if (!calendarEl) {
+        console.error('❌ Elemento calendar no encontrado');
+        mostrarStatus('Error: Elemento calendar no encontrado', 'error');
+        return;
+    }
+    
+    // Obtener datos
+    const eventosData = window.calendarioData ? window.calendarioData.eventos : [];
+    console.log(`📅 Eventos para calendario: ${eventosData.length}`);
+    
+    try {
+        // Configuración del calendario
+        const calendar = new FullCalendar.Calendar(calendarEl, {
+            locale: 'es',
+            initialView: 'dayGridMonth',
+            height: 550,
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,listWeek'
+            },
+            buttonText: {
+                today: 'Hoy',
+                month: 'Mes',
+                week: 'Semana',
+                list: 'Lista'
+            },
+            events: eventosData,
+            eventClick: function(info) {
+                const evento = info.event;
+                const fecha = evento.start.toLocaleDateString('es-ES', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+                
+                let mensaje = `📅 ${evento.title}\n📆 ${fecha}`;
+                if (evento.extendedProps && evento.extendedProps.description) {
+                    mensaje += `\n📝 ${evento.extendedProps.description}`;
+                }
+                
+                alert(mensaje);
+            },
+            loading: function(isLoading) {
+                console.log(`📊 Calendario ${isLoading ? 'cargando' : 'listo'}`);
+                if (!isLoading) {
+                    // Ocultar status y mostrar calendario
+                    if (statusEl) statusEl.style.display = 'none';
+                    if (calendarEl) calendarEl.style.display = 'block';
+                }
+            },
+            eventDidMount: function(info) {
+                console.log(`✅ Evento montado: ${info.event.title}`);
+            }
+        });
+        
+        console.log('🎯 Renderizando calendario...');
+        calendar.render();
+        
+        // Forzar mostrar calendario después de un momento
+        setTimeout(() => {
+            if (statusEl) statusEl.style.display = 'none';
+            if (calendarEl) {
+                calendarEl.style.display = 'block';
+                calendarEl.style.visibility = 'visible';
+            }
+            console.log('✅ Calendario mostrado exitosamente');
+        }, 1500);
+        
+        // Hacer calendario disponible globalmente
+        window.calendario = calendar;
+        
+    } catch (error) {
+        console.error('❌ Error al crear calendario:', error);
+        mostrarStatus(`Error al crear calendario: ${error.message}`, 'error');
+    }
+}
+
+// Función para abrir modal de evento
+function abrirModalEvento() {
+    alert('Función de crear evento - Por implementar con modal');
+}
+
+// Inicializar cuando todo esté listo
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('📋 DOM cargado, esperando librerías...');
+    
+    // Actualizar fecha/hora
+    actualizarFechaHora();
+    setInterval(actualizarFechaHora, 60000);
+    
+    // Intentar inicializar calendario con reintentos
+    let intentos = 0;
+    const maxIntentos = 10;
+    
+    function intentarInicializar() {
+        intentos++;
+        console.log(`🔄 Intento ${intentos}/${maxIntentos} de inicializar calendario`);
+        
+        if (typeof FullCalendar !== 'undefined') {
+            inicializarCalendario();
+        } else if (intentos < maxIntentos) {
+            setTimeout(intentarInicializar, 500);
+        } else {
+            console.error('❌ Máximo de intentos alcanzado');
+            mostrarStatus('Error: No se pudo cargar FullCalendar después de múltiples intentos', 'error');
+        }
+    }
+    
+    // Comenzar intentos
+    setTimeout(intentarInicializar, 500);
+});
+</script>
+
+<!-- FullCalendar JavaScript -->
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/main.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/locales/es.min.js"></script>
+
+{% endblock %}
