@@ -40,7 +40,7 @@ def permission_required(allowed_user_types):
 admin_required = permission_required(['director', 'administrador'])  # Incluir ambos tipos de admin
 profesor_admin_required = permission_required(['profesor', 'director', 'administrador'])
 estudiante_required = permission_required(['alumno'])  # 'alumno' es el tipo en nuestro modelo
-all_users_required = permission_required(['alumno', 'profesor', 'director', 'administrador'])
+all_users_required = permission_required(['alumno', 'profesor', 'director', 'administrador', 'apoderado'])
 
 def profesor_con_asignaturas_required(view_func):
     """

@@ -870,16 +870,114 @@
                     </li>
                   </ul>
                 </div>
-              {% elif user.is_authenticated and user.apoderado %}
-                <!-- MENÚ SIMPLIFICADO PARA APODERADOS -->
+              {% elif user.is_authenticated and user.perfil.tipo_usuario == 'apoderado' %}
+                <!-- MENÚ PARA APODERADOS -->
                 <div class="menu_section">
-                  <h3><i class="fas fa-users"></i> MIS ESTUDIANTES</h3>
+                  <h3><i class="fas fa-home"></i> MI PANEL</h3>
                   <ul class="nav side-menu">
                     <li style="--delay: 1">
-                      <a href="{% url 'inicio' %}"><i class="fas fa-user-graduate"></i> Ver Mis Estudiantes</a>
+                      <a href="{% url 'inicio' %}"><i class="fas fa-tachometer-alt"></i> Panel de Apoderado</a>
                     </li>
                   </ul>
                 </div>
+                
+                <div class="menu_section">
+                  <h3><i class="fas fa-calendar-alt"></i> CALENDARIO</h3>
+                  <ul class="nav side-menu">
+                    <li style="--delay: 2">
+                      <a href="{% url 'calendario' %}"><i class="fas fa-calendar-check"></i> Ver Calendario Académico</a>
+                    </li>
+                  </ul>
+                </div>
+                
+                {% if user.apoderado %}
+                <!-- Sección disponible solo si tiene registro de Apoderado -->
+                <div class="menu_section">
+                  <h3><i class="fas fa-users"></i> MIS ESTUDIANTES</h3>
+                  <ul class="nav side-menu" id="estudiantes-menu">
+                    {% for relacion in user.apoderado.estudiantes_a_cargo.all %}
+                      {% if relacion.activa %}
+                        <li style="--delay: {{ forloop.counter|add:2 }}">
+                          <a href="#" onclick="seleccionarEstudiante({{ relacion.estudiante.id }}, '{{ relacion.estudiante.get_nombre_completo }}')" 
+                             class="estudiante-link" data-estudiante-id="{{ relacion.estudiante.id }}">
+                            <i class="fas fa-user-graduate"></i> {{ relacion.estudiante.get_nombre_completo }}
+                            {% with curso_actual=relacion.estudiante.get_curso_actual %}
+                              {% if curso_actual %}
+                              <small style="display: block; font-size: 10px; opacity: 0.8; margin-top: 2px;">{{ curso_actual.nombre }}</small>
+                              {% endif %}
+                            {% endwith %}
+                            {% if relacion.es_apoderado_principal %}
+                            <span style="display: block; font-size: 9px; color: #ffd700; margin-top: 2px;">
+                              <i class="fas fa-star"></i> Principal
+                            </span>
+                            {% endif %}
+                          </a>
+                        </li>
+                      {% endif %}
+                    {% empty %}
+                    <li style="--delay: 3">
+                      <a href="#" onclick="event.preventDefault();">
+                        <i class="fas fa-exclamation-circle"></i> No hay estudiantes asignados
+                      </a>
+                    </li>
+                    {% endfor %}
+                  </ul>
+                </div>
+                
+                <!-- Sección que aparece cuando se selecciona un estudiante -->
+                <div class="menu_section" id="estudiante-seleccionado" style="display: none;">
+                  <h3><i class="fas fa-star"></i> <span id="nombre-estudiante">ESTUDIANTE SELECCIONADO</span></h3>
+                  <ul class="nav side-menu">
+                    <li style="--delay: 1">
+                      <a href="#" onclick="verResumenEstudiante()" id="resumen-link">
+                        <i class="fas fa-user-circle"></i> Ver Resumen
+                      </a>
+                    </li>
+                    <li style="--delay: 2">
+                      <a href="#" onclick="verCalendarioEstudiante()" id="calendario-link">
+                        <i class="fas fa-calendar-alt"></i> Ver Calendario
+                      </a>
+                    </li>
+                    <li style="--delay: 3">
+                      <a href="#" onclick="verNotasEstudiante()" id="notas-link">
+                        <i class="fas fa-star"></i> Ver Notas
+                      </a>
+                    </li>
+                    <li style="--delay: 4">
+                      <a href="#" onclick="verAsistenciaEstudiante()" id="asistencia-link">
+                        <i class="fas fa-user-check"></i> Ver Asistencia
+                      </a>
+                    </li>
+                    <li style="--delay: 5">
+                      <a href="#" onclick="verAnotacionesEstudiante()" id="anotaciones-link">
+                        <i class="fas fa-book"></i> Ver Anotaciones
+                      </a>
+                    </li>
+                  </ul>
+                </div>
+                {% else %}
+                <!-- Sección para apoderados sin registro de Apoderado -->
+                <div class="menu_section">
+                  <h3><i class="fas fa-exclamation-triangle"></i> CONFIGURACIÓN REQUERIDA</h3>
+                  <ul class="nav side-menu">
+                    <li style="--delay: 3">
+                      <a href="#" onclick="event.preventDefault(); mostrarAlertaConfiguracion();">
+                        <i class="fas fa-cog"></i> Configurar Perfil de Apoderado
+                      </a>
+                    </li>
+                  </ul>
+                </div>
+                
+                <!-- Menú básico para apoderados sin configurar -->
+                <div class="menu_section">
+                  <h3><i class="fas fa-calendar-alt"></i> FUNCIONES BÁSICAS</h3>
+                  <ul class="nav side-menu">
+                    <li style="--delay: 4">
+                      <a href="{% url 'calendario' %}"><i class="fas fa-calendar-check"></i> Ver Calendario</a>
+                    </li>
+                  </ul>
+                </div>
+                {% endif %}
               {% elif user.is_authenticated and user.perfil.tipo_usuario == 'profesor' %}
                 <!-- MENÚ PARA PROFESORES -->
                 <div class="menu_section">
@@ -955,7 +1053,7 @@
                 </div>
                 
                 <!-- SECCIÓN ADICIONAL PARA PROFESORES QUE TAMBIÉN SON APODERADOS -->
-                {% if user.apoderado %}
+                {% if user.perfil.tipo_usuario == 'profesor' and user.apoderado %}
                 <div class="menu_section">
                   <h3><i class="fas fa-heart"></i> MIS ESTUDIANTES A CARGO</h3>
                   <ul class="nav side-menu">
@@ -1258,8 +1356,199 @@
             $("link[rel*='icon']").attr("href", originalFavicon);
           }, 100);
         });
+        
+        // Función para mostrar alerta de configuración
+        function mostrarAlertaConfiguracion() {
+          mostrarNotificacion('Tu perfil de apoderado necesita ser configurado por un administrador', 'warning');
+        }
+        
+        // ========== FUNCIONALIDAD PARA APODERADOS ==========
+        // Variables globales para el estudiante seleccionado
+        var estudianteSeleccionadoId = null;
+        var estudianteSeleccionadoNombre = null;
+        
+        // Función para seleccionar un estudiante
+        function seleccionarEstudiante(estudianteId, estudianteNombre) {
+          estudianteSeleccionadoId = estudianteId;
+          estudianteSeleccionadoNombre = estudianteNombre;
+          
+          // Actualizar el título de la sección
+          $('#nombre-estudiante').text(estudianteNombre.toUpperCase());
+          
+          // Mostrar la sección del estudiante seleccionado
+          $('#estudiante-seleccionado').slideDown(300);
+          
+          // Destacar el estudiante seleccionado en el menú
+          $('.estudiante-link').removeClass('estudiante-activo');
+          $(`.estudiante-link[data-estudiante-id="${estudianteId}"]`).addClass('estudiante-activo');
+          
+          // Guardar en localStorage para persistencia
+          localStorage.setItem('estudianteSeleccionadoId', estudianteId);
+          localStorage.setItem('estudianteSeleccionadoNombre', estudianteNombre);
+          
+          // Mostrar notificación de selección
+          mostrarNotificacion(`Estudiante seleccionado: ${estudianteNombre}`, 'success');
+        }
+        
+        // Función para ver resumen del estudiante
+        function verResumenEstudiante() {
+          if (!estudianteSeleccionadoId) {
+            mostrarNotificacion('Por favor, selecciona un estudiante primero', 'warning');
+            return;
+          }
+          // Redirigir a la vista de resumen del estudiante
+          window.location.href = `{% url 'inicio' %}?estudiante_id=${estudianteSeleccionadoId}&view=resumen`;
+        }
+        
+        // Función para ver calendario del estudiante
+        function verCalendarioEstudiante() {
+          if (!estudianteSeleccionadoId) {
+            mostrarNotificacion('Por favor, selecciona un estudiante primero', 'warning');
+            return;
+          }
+          // Redirigir al calendario con filtro del estudiante
+          window.location.href = `{% url 'calendario' %}?estudiante_id=${estudianteSeleccionadoId}`;
+        }
+        
+        // Función para ver notas del estudiante
+        function verNotasEstudiante() {
+          if (!estudianteSeleccionadoId) {
+            mostrarNotificacion('Por favor, selecciona un estudiante primero', 'warning');
+            return;
+          }
+          // Redirigir a las notas del estudiante
+          window.location.href = `{% url 'ver_notas_curso' %}?estudiante_id=${estudianteSeleccionadoId}`;
+        }
+        
+        // Función para ver asistencia del estudiante
+        function verAsistenciaEstudiante() {
+          if (!estudianteSeleccionadoId) {
+            mostrarNotificacion('Por favor, selecciona un estudiante primero', 'warning');
+            return;
+          }
+          // Redirigir a la asistencia del estudiante
+          window.location.href = `{% url 'ver_asistencia_alumno' %}?estudiante_id=${estudianteSeleccionadoId}`;
+        }
+        
+        // Función para ver anotaciones del estudiante
+        function verAnotacionesEstudiante() {
+          if (!estudianteSeleccionadoId) {
+            mostrarNotificacion('Por favor, selecciona un estudiante primero', 'warning');
+            return;
+          }
+          // Redirigir a las anotaciones del estudiante
+          window.location.href = `{% url 'libro_anotaciones' %}?estudiante_id=${estudianteSeleccionadoId}`;
+        }
+        
+        // Función para mostrar notificaciones
+        function mostrarNotificacion(mensaje, tipo) {
+          // Crear elemento de notificación
+          var notificacion = $(`
+            <div class="alert alert-${tipo === 'success' ? 'success' : tipo === 'warning' ? 'warning' : 'info'} alert-dismissible fade show notificacion-apoderado" role="alert" style="
+              position: fixed;
+              top: 20px;
+              right: 20px;
+              z-index: 9999;
+              min-width: 300px;
+              box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+              border: none;
+              border-radius: 8px;
+            ">
+              <i class="fas fa-${tipo === 'success' ? 'check-circle' : tipo === 'warning' ? 'exclamation-triangle' : 'info-circle'}"></i>
+              ${mensaje}
+              <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+          `);
+          
+          // Agregar al body
+          $('body').append(notificacion);
+          
+          // Auto-cerrar después de 3 segundos
+          setTimeout(function() {
+            notificacion.fadeOut(300, function() {
+              $(this).remove();
+            });
+          }, 3000);
+        }
+        
+        // Restaurar estudiante seleccionado del localStorage al cargar la página
+        function restaurarEstudianteSeleccionado() {
+          var estudianteId = localStorage.getItem('estudianteSeleccionadoId');
+          var estudianteNombre = localStorage.getItem('estudianteSeleccionadoNombre');
+          
+          if (estudianteId && estudianteNombre) {
+            seleccionarEstudiante(estudianteId, estudianteNombre);
+          }
+        }
+        
+        // Restaurar estado al cargar la página (solo para apoderados)
+        {% if user.is_authenticated and user.perfil.tipo_usuario == 'apoderado' and user.apoderado %}
+        $(document).ready(function() {
+          restaurarEstudianteSeleccionado();
+        });
+        {% endif %}
+        
+        // Limpiar localStorage al cerrar sesión
+        $('a[href*="logout"]').on('click', function() {
+          localStorage.removeItem('estudianteSeleccionadoId');
+          localStorage.removeItem('estudianteSeleccionadoNombre');
+        });
       });
     </script>
+    
+    <!-- Estilos adicionales para el menú de apoderados -->
+    <style>
+      /* Estilos para el estudiante activo */
+      .estudiante-activo {
+        background: rgba(255,255,255,0.2) !important;
+        border-left: 4px solid #fff !important;
+        color: #fff !important;
+        font-weight: 600 !important;
+        box-shadow: 0 3px 12px rgba(0,0,0,0.2) !important;
+      }
+      
+      .estudiante-activo i {
+        color: #fff !important;
+        opacity: 1 !important;
+      }
+      
+      /* Animación para la sección del estudiante seleccionado */
+      #estudiante-seleccionado {
+        transition: all 0.3s ease;
+      }
+      
+      #estudiante-seleccionado h3 {
+        color: rgba(255,255,255,0.95) !important;
+        text-shadow: 1px 1px 3px rgba(0,0,0,0.4);
+      }
+      
+      /* Estilos para las notificaciones */
+      .notificacion-apoderado .close {
+        color: inherit;
+        opacity: 0.8;
+      }
+      
+      .notificacion-apoderado .close:hover {
+        opacity: 1;
+      }
+      
+      /* Efecto hover mejorado para estudiantes */
+      .estudiante-link:hover {
+        background: rgba(255,255,255,0.15) !important;
+        transform: translateX(5px) !important;
+        border-left: 3px solid rgba(255,255,255,0.6) !important;
+      }
+      
+      /* Separación visual para la información del curso */
+      .estudiante-link small {
+        background: rgba(255,255,255,0.1);
+        border-radius: 4px;
+        padding: 1px 6px;
+        margin-top: 4px !important;
+      }
+    </style>
 	
   </body>
 </html>

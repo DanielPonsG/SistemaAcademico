@@ -603,6 +603,8 @@ def calendario(request):
                 puede_crear_eventos = True
             elif hasattr(request.user, 'estudiante'):
                 user_type = 'estudiante'
+            elif hasattr(request.user, 'apoderado'):
+                user_type = 'apoderado'
         except Exception as e:
             # Fallback para superusuarios sin perfil
             if request.user.is_superuser or request.user.is_staff:
@@ -614,6 +616,7 @@ def calendario(request):
     # Obtener filtros
     fecha_filtro = request.GET.get('fecha_filtro', '')
     curso_filtro = request.GET.get('curso_filtro', '')
+    estudiante_id = request.GET.get('estudiante_id', '')  # Nuevo filtro para apoderados
     
     # Base de eventos según tipo de usuario
     eventos_base = EventoCalendario.objects.all()
@@ -645,6 +648,56 @@ def calendario(request):
         except:
             eventos_base = eventos_base.filter(
                 Q(para_todos_los_cursos=True) | Q(solo_profesores=True)
+            )
+    elif user_type == 'apoderado':
+        # Apoderados ven eventos según el estudiante seleccionado
+        try:
+            apoderado = request.user.apoderado
+            estudiantes_a_cargo = Estudiante.objects.filter(
+                apoderados__apoderado=apoderado,
+                apoderados__activa=True
+            )
+            
+            if estudiante_id:
+                # Si se especifica un estudiante, filtrar por ese estudiante
+                try:
+                    estudiante_seleccionado = get_object_or_404(Estudiante, id=estudiante_id)
+                    # Verificar que el apoderado tiene acceso a este estudiante
+                    if estudiante_seleccionado in estudiantes_a_cargo:
+                        cursos_estudiante = estudiante_seleccionado.cursos.all()
+                        eventos_base = eventos_base.filter(
+                            Q(para_todos_los_cursos=True) | Q(cursos__in=cursos_estudiante)
+                        ).filter(solo_profesores=False).distinct()
+                    else:
+                        # El apoderado no tiene acceso a este estudiante, mostrar solo eventos generales
+                        eventos_base = eventos_base.filter(
+                            para_todos_los_cursos=True,
+                            solo_profesores=False
+                        )
+                except:
+                    # Error al obtener el estudiante, mostrar solo eventos generales
+                    eventos_base = eventos_base.filter(
+                        para_todos_los_cursos=True,
+                        solo_profesores=False
+                    )
+            else:
+                # Sin estudiante específico, mostrar eventos de todos los estudiantes a cargo
+                if estudiantes_a_cargo.exists():
+                    cursos_todos_estudiantes = Curso.objects.filter(
+                        estudiantes__in=estudiantes_a_cargo
+                    ).distinct()
+                    eventos_base = eventos_base.filter(
+                        Q(para_todos_los_cursos=True) | Q(cursos__in=cursos_todos_estudiantes)
+                    ).filter(solo_profesores=False).distinct()
+                else:
+                    eventos_base = eventos_base.filter(
+                        para_todos_los_cursos=True,
+                        solo_profesores=False
+                    )
+        except:
+            eventos_base = eventos_base.filter(
+                para_todos_los_cursos=True,
+                solo_profesores=False
             )
     # Administradores y directores ven todos los eventos (sin filtro adicional)
     
@@ -769,6 +822,9 @@ def calendario(request):
     
     # Obtener cursos disponibles para filtros y modal
     cursos = []
+    estudiantes_a_cargo = []
+    estudiante_seleccionado = None
+    
     if user_type in ['administrador', 'director']:
         cursos = Curso.objects.filter(anio=timezone.now().year).order_by('nivel', 'paralelo')
     elif user_type == 'profesor':
@@ -780,6 +836,24 @@ def calendario(request):
             ).distinct().order_by('nivel', 'paralelo')
         except:
             cursos = []
+    elif user_type == 'apoderado':
+        try:
+            apoderado = request.user.apoderado
+            estudiantes_a_cargo = Estudiante.objects.filter(
+                apoderados__apoderado=apoderado,
+                apoderados__activa=True
+            ).order_by('primer_nombre', 'apellido_paterno')
+            
+            # Si hay un estudiante_id seleccionado, verificar que sea válido
+            if estudiante_id:
+                try:
+                    estudiante_candidato = Estudiante.objects.get(id=estudiante_id)
+                    if estudiante_candidato in estudiantes_a_cargo:
+                        estudiante_seleccionado = estudiante_candidato
+                except Estudiante.DoesNotExist:
+                    pass
+        except:
+            estudiantes_a_cargo = []
     
     context = {
         'eventos': eventos.order_by('fecha'),  # Todos los eventos ordenados por fecha
@@ -788,6 +862,9 @@ def calendario(request):
         'cursos': cursos,
         'fecha_filtro': fecha_filtro,
         'curso_filtro': curso_filtro,
+        'estudiante_id': estudiante_id,  # Para apoderados
+        'estudiantes_a_cargo': estudiantes_a_cargo,  # Para apoderados
+        'estudiante_seleccionado': estudiante_seleccionado,  # Para apoderados
         'puede_crear_eventos': puede_crear_eventos,
         'user_type': user_type,
         'tipos_evento': EventoCalendario.TIPO_EVENTO_CHOICES,

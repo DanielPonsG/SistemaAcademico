@@ -91,6 +91,59 @@
       </div>
     </div>
 
+    <!-- Filtros para Apoderados -->
+    {% if user_type == 'apoderado' and estudiantes_a_cargo %}
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="card border-0 shadow-sm">
+          <div class="card-header bg-gradient-primary text-white">
+            <h5 class="mb-0">
+              <i class="fas fa-filter me-2"></i>
+              Filtrar Calendario por Estudiante
+            </h5>
+          </div>
+          <div class="card-body">
+            <div class="row align-items-center">
+              <div class="col-md-6">
+                <label class="form-label">Seleccionar Estudiante:</label>
+                <select class="form-select" id="filtro-estudiante" onchange="filtrarPorEstudiante()">
+                  <option value="">Ver todos los eventos</option>
+                  {% for estudiante in estudiantes_a_cargo %}
+                    <option value="{{ estudiante.id }}" 
+                            {% if estudiante.id|stringformat:"s" == estudiante_id %}selected{% endif %}>
+                      {{ estudiante.get_nombre_completo }}
+                      {% with curso_actual=estudiante.get_curso_actual %}
+                        {% if curso_actual %} - {{ curso_actual.nombre }}{% endif %}
+                      {% endwith %}
+                    </option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="col-md-6">
+                {% if estudiante_seleccionado %}
+                  <div class="alert alert-info mb-0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Mostrando eventos para:</strong> {{ estudiante_seleccionado.get_nombre_completo }}
+                    {% with curso_actual=estudiante_seleccionado.get_curso_actual %}
+                      {% if curso_actual %}
+                        <br><small class="text-muted">Curso: {{ curso_actual.nombre }}</small>
+                      {% endif %}
+                    {% endwith %}
+                  </div>
+                {% else %}
+                  <div class="alert alert-secondary mb-0">
+                    <i class="fas fa-calendar-alt me-2"></i>
+                    <strong>Vista:</strong> Eventos de todos los estudiantes a cargo
+                  </div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
     <!-- Calendario alternativo -->
     <div class="row">
       <div class="col-lg-8 mb-4">
@@ -432,6 +485,39 @@ function mostrarDetalleEvento(titulo, fecha, descripcion) {
 // Función para abrir modal de evento
 function abrirModalEvento() {
     alert('Función de crear evento - Por implementar con modal');
+}
+
+// Función para filtrar calendario por estudiante (para apoderados)
+function filtrarPorEstudiante() {
+    const selectEstudiante = document.getElementById('filtro-estudiante');
+    if (!selectEstudiante) return;
+    
+    const estudianteId = selectEstudiante.value;
+    const url = new URL(window.location);
+    
+    if (estudianteId) {
+        url.searchParams.set('estudiante_id', estudianteId);
+    } else {
+        url.searchParams.delete('estudiante_id');
+    }
+    
+    // Mostrar indicador de carga
+    const loadingHtml = `
+        <div class="text-center py-4">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Cargando...</span>
+            </div>
+            <p class="mt-2 text-muted">Filtrando eventos...</p>
+        </div>
+    `;
+    
+    const calendarBody = document.getElementById('calendar-body');
+    if (calendarBody) {
+        calendarBody.innerHTML = loadingHtml;
+    }
+    
+    // Redirigir con el filtro
+    window.location.href = url.toString();
 }
 
 // Inicializar cuando esté listo
