@@ -16,6 +16,8 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+from django.conf import settings
+from django.conf.urls.static import static
 from smapp.views import (
     index_master, index, agregar, modificar, eliminar,
     listar_estudiantes, listar_profesores, gestionar_profesor,
@@ -145,3 +147,8 @@ urlpatterns = [
     # Ruta de edición de asistencia de profesores deshabilitada - Implementación futura
     # path('profesor/asistencia/editar/<int:asistencia_id>/', editar_asistencia_profesor, name='profesor_editar_asistencia'),
 ]
+
+# Configuración para servir archivos estáticos en desarrollo
+if settings.DEBUG:
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATICFILES_DIRS[0])
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) if hasattr(settings, 'MEDIA_ROOT') else []

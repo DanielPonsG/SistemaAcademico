@@ -1,6 +1,138 @@
-# SAM - Sistema de Administración y Matrícula
+# 📚 SAM - School Academic Manager
 
-SAM es un sistema de gestión escolar completo desarrollado en Django, diseñado para facilitar la administración académica de instituciones educativas chilenas.
+Sistema integral de gestión académica desarrollado en Django para la administración de estudiantes, profesores y contenido educativo.
+
+## 🚀 Instalación y Configuración
+
+### Prerequisitos
+- Python 3.8 o superior
+- pip (gestor de paquetes de Python)
+- Git
+
+### 1. Clonar el repositorio
+```bash
+git clone <url-del-repositorio>
+cd SAM-main
+```
+
+### 2. Crear entorno virtual
+```bash
+python -m venv .venv
+```
+
+### 3. Activar entorno virtual
+**Windows:**
+```bash
+.venv\Scripts\activate
+```
+
+**macOS/Linux:**
+```bash
+source .venv/bin/activate
+```
+
+### 4. Instalar dependencias
+```bash
+pip install -r requirements.txt
+```
+
+### 5. **IMPORTANTE: Recolectar archivos estáticos**
+```bash
+python collect_static.py
+```
+O alternativamente:
+```bash
+python manage.py collectstatic --noinput
+```
+
+### 6. Realizar migraciones
+```bash
+python manage.py makemigrations
+python manage.py migrate
+```
+
+### 7. Crear superusuario (opcional)
+```bash
+python manage.py createsuperuser
+```
+
+### 8. Ejecutar servidor de desarrollo
+```bash
+python manage.py runserver
+```
+
+## ⚠️ Solución de Problemas Comunes
+
+### Los estilos no se cargan correctamente
+Si después de instalar el proyecto los estilos CSS no se ven:
+
+1. **Asegúrate de haber ejecutado el paso 5** (recolectar archivos estáticos)
+2. Verifica que existe la carpeta `staticfiles/` en la raíz del proyecto
+3. Ejecuta nuevamente:
+   ```bash
+   python manage.py collectstatic --clear --noinput
+   ```
+
+### Error 404 en archivos estáticos
+Si aparecen errores 404 para archivos CSS/JS:
+
+1. Verifica que `DEBUG = True` en `settings.py` para desarrollo
+2. Asegúrate de que la carpeta `static/` existe
+3. Ejecuta: `python collect_static.py`
+
+### Base de datos no encontrada
+```bash
+python manage.py makemigrations smapp
+python manage.py migrate
+```
+
+## 📁 Estructura del Proyecto
+
+```
+SAM-main/
+├── sma/                    # Configuración del proyecto Django
+├── smapp/                  # Aplicación principal
+├── templates/              # Plantillas HTML
+├── static/                 # Archivos estáticos (CSS, JS, imágenes)
+├── staticfiles/           # Archivos estáticos recolectados (auto-generado)
+├── requirements.txt       # Dependencias Python
+├── collect_static.py      # Script para recolectar archivos estáticos
+└── manage.py              # Herramienta de gestión Django
+```
+
+## 🔧 Configuración de Desarrollo
+
+### Variables de entorno (.env)
+Crea un archivo `.env` en la raíz del proyecto (opcional):
+```
+DEBUG=True
+SECRET_KEY=tu-clave-secreta-aqui
+```
+
+## 📝 Notas Importantes
+
+- **Siempre ejecutar `python collect_static.py` después de clonar o actualizar el repositorio**
+- Los archivos en `staticfiles/` no se suben a GitHub (están en .gitignore)
+- Para producción, configurar un servidor web para servir archivos estáticos
+
+## 🆘 Soporte
+
+Si encuentras problemas:
+1. Verifica que has seguido todos los pasos de instalación
+2. Asegúrate de que el entorno virtual esté activado
+3. Confirma que has ejecutado `collect_static.py`
+4. Revisa la consola para errores específicos
+
+## 📋 Funcionalidades
+
+- ✅ Gestión de estudiantes y profesores
+- ✅ Sistema de horarios y cursos
+- ✅ Registro de asistencia
+- ✅ Gestión de notas y evaluaciones
+- ✅ Panel de apoderados
+- ✅ Calendario académico
+- ✅ Libro de anotaciones
+- ✅ Dashboard administrativo
 
 ## Características Principales
 
@@ -39,136 +171,5 @@ SAM es un sistema de gestión escolar completo desarrollado en Django, diseñado
 - **Calendario**: FullCalendar.js
 - **Estilos**: Bootstrap 4
 
-## Requisitos del Sistema
-
-- Python 3.8+
-- Django 4.2+
-- SQLite3 (incluido con Python)
-
-## Instalación
-
-1. **Clonar el repositorio**
-   ```bash
-   git clone https://github.com/tu-usuario/SAM.git
-   cd SAM
-   ```
-
-2. **Crear entorno virtual**
-   ```bash
-   python -m venv venv
-   # Windows
-   venv\Scripts\activate
-   # Linux/Mac
-   source venv/bin/activate
-   ```
-
-3. **Instalar dependencias**
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-4. **Configurar base de datos**
-   ```bash
-   python manage.py makemigrations
-   python manage.py migrate
-   ```
-
-5. **Crear superusuario**
-   ```bash
-   python manage.py createsuperuser
-   ```
-
-6. **Ejecutar servidor**
-   ```bash
-   python manage.py runserver
-   ```
-
-7. **Acceder al sistema**
-   - Abrir navegador en `http://localhost:8000`
-   - Admin panel: `http://localhost:8000/admin`
-
-## Estructura del Proyecto
-
-```
-SAM/
-├── manage.py                 # Script principal de Django
-├── sma/                     # Configuración del proyecto
-│   ├── settings.py          # Configuraciones
-│   ├── urls.py             # URLs principales
-│   └── wsgi.py             # Configuración WSGI
-├── smapp/                   # Aplicación principal
-│   ├── models.py           # Modelos de datos
-│   ├── views.py            # Vistas
-│   ├── forms.py            # Formularios
-│   ├── admin.py            # Configuración admin
-│   └── migrations/         # Migraciones de BD
-├── templates/               # Plantillas HTML
-├── static/                  # Archivos estáticos
-└── requirements.txt         # Dependencias
-```
-
-## Uso del Sistema
-
-### Tipos de Usuario
-
-1. **Administrador/Director**
-   - Acceso completo al sistema
-   - Gestión de usuarios, cursos y asignaturas
-   - Configuración general
-
-2. **Profesor**
-   - Gestión de sus cursos asignados
-   - Registro de notas y asistencia
-   - Creación de eventos
-
-3. **Estudiante**
-   - Visualización de horarios y notas
-   - Acceso a calendario de eventos
-
-### Flujo de Trabajo Típico
-
-1. **Configuración Inicial**
-   - Crear profesores y estudiantes
-   - Configurar cursos y paralelos
-   - Asignar asignaturas a cursos
-
-2. **Gestión Diaria**
-   - Registro de asistencia
-   - Ingreso de notas
-   - Creación de eventos
-
-3. **Seguimiento**
-   - Monitoreo de promedios
-   - Libro de anotaciones
-   - Reportes de asistencia
-
-## Contribuir
-
-1. Fork el proyecto
-2. Crear una rama para tu feature (`git checkout -b feature/AmazingFeature`)
-3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
-4. Push a la rama (`git push origin feature/AmazingFeature`)
-5. Abrir un Pull Request
-
-## Licencia
-
-Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más detalles.
-
-## Soporte
-
-Para reportar bugs o solicitar features, por favor crear un issue en el repositorio de GitHub.
-
-## Estado del Proyecto
-
-🟢 **Activo** - En desarrollo continuo
-
-### Últimas Actualizaciones
-- ✅ Sistema de calendario funcional
-- ✅ Gestión completa de notas
-- ✅ Libro de anotaciones implementado
-- ✅ Sistema de asistencia operativo
-- ✅ Gestión de horarios funcional
-
 ---
-
-**Desarrollado con ❤️ para la educación chilena**
+**SAM - School Academic Manager** 🎓

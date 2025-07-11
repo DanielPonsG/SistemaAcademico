@@ -18,6 +18,20 @@ var/
 wheels/
 *.egg-info/
 .installed.cfg
+
+# Archivos estáticos recolectados (no subir a GitHub)
+staticfiles/
+static/collected/
+
+# Archivos de configuración sensible
+.env
+*.env
+.env.local
+.env.production
+
+# Base de datos local
+db.sqlite3
+*.db
 *.egg
 MANIFEST
 
