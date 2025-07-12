@@ -44,7 +44,9 @@ from smapp.views import (
 # Importaciones para vistas de apoderados
 from smapp.views_apoderados import (
     listar_apoderados, gestionar_apoderado, eliminar_apoderado, detalle_apoderado,
-    dashboard_apoderado, dashboard_profesor_apoderado, inicio_apoderado
+    dashboard_apoderado, dashboard_profesor_apoderado, inicio_apoderado,
+    estudiantes_a_cargo_profesor_apoderado, ver_notas_estudiante_apoderado,
+    ver_anotaciones_estudiante_apoderado, ver_horario_estudiante_apoderado
 )
 
 
@@ -77,6 +79,12 @@ urlpatterns = [
     path('dashboard-apoderado/', dashboard_apoderado, name='dashboard_apoderado'),
     path('dashboard-profesor-apoderado/', dashboard_profesor_apoderado, name='dashboard_profesor_apoderado'),
     path('inicio-apoderado/', inicio_apoderado, name='inicio_apoderado'),
+    
+    # Vista específica para profesores-apoderados
+    path('mis-estudiantes-a-cargo/', estudiantes_a_cargo_profesor_apoderado, name='estudiantes_a_cargo_profesor_apoderado'),
+    path('estudiante/<int:estudiante_id>/notas/', ver_notas_estudiante_apoderado, name='ver_notas_estudiante_apoderado'),
+    path('estudiante/<int:estudiante_id>/anotaciones/', ver_anotaciones_estudiante_apoderado, name='ver_anotaciones_estudiante_apoderado'),
+    path('estudiante/<int:estudiante_id>/horario/', ver_horario_estudiante_apoderado, name='ver_horario_estudiante_apoderado'),
     
     # Calendario
     path('calendario/', calendario, name='calendario'),

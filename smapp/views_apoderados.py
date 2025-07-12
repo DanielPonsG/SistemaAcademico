@@ -278,6 +278,118 @@ def inicio_apoderado(request):
     messages.error(request, "No tienes permisos de apoderado.")
     return redirect('login')
 
+@login_required
+def estudiantes_a_cargo_profesor_apoderado(request):
+    """Vista específica para que profesores-apoderados vean sus estudiantes a cargo"""
+    
+    # Verificar que el usuario sea un profesor
+    try:
+        profesor = request.user.profesor
+    except AttributeError:
+        messages.error(request, "No tienes permisos para acceder a esta sección.")
+        return redirect('inicio')
+    
+    # Verificar que también sea apoderado
+    try:
+        apoderado = profesor.apoderado_profile
+        if not apoderado:
+            messages.error(request, "No tienes estudiantes a cargo como apoderado.")
+            return redirect('inicio')
+    except AttributeError:
+        messages.error(request, "No tienes estudiantes a cargo como apoderado.")
+        return redirect('inicio')
+    
+    # Obtener estudiantes a cargo del apoderado
+    estudiantes_a_cargo = RelacionApoderadoEstudiante.objects.filter(
+        apoderado=apoderado,
+        activa=True
+    ).select_related(
+        'estudiante'
+    ).prefetch_related(
+        'estudiante__cursos',
+        'estudiante__cursos__profesor_jefe'
+    ).order_by('estudiante__apellido_paterno', 'estudiante__primer_nombre')
+    
+    # Preparar información detallada de cada estudiante
+    estudiantes_info = []
+    for relacion in estudiantes_a_cargo:
+        estudiante = relacion.estudiante
+        curso_actual = estudiante.get_curso_actual()
+        
+        # Obtener información académica básica
+        from .models import Calificacion, AsistenciaAlumno, Anotacion, Inscripcion
+        from django.utils import timezone
+        from django.db.models import Avg
+        
+        # Promedio general del estudiante
+        promedio_obj = Calificacion.objects.filter(
+            inscripcion__estudiante=estudiante
+        ).aggregate(promedio=Avg('puntaje'))
+        promedio_general = round(promedio_obj['promedio'], 1) if promedio_obj['promedio'] else None
+        
+        # Asistencia del mes actual
+        hoy = timezone.now().date()
+        inicio_mes = hoy.replace(day=1)
+        asistencias_mes = AsistenciaAlumno.objects.filter(
+            estudiante=estudiante,
+            fecha__gte=inicio_mes,
+            fecha__lte=hoy
+        )
+        total_asistencias = asistencias_mes.count()
+        asistencias_presentes = asistencias_mes.filter(presente=True).count()
+        porcentaje_asistencia = round((asistencias_presentes / total_asistencias * 100), 1) if total_asistencias > 0 else 0
+        
+        # Anotaciones recientes (últimas 3)
+        anotaciones_recientes = Anotacion.objects.filter(
+            estudiante=estudiante
+        ).select_related('profesor_autor').order_by('-fecha_creacion')[:3]
+        
+        # Total de asignaturas del estudiante
+        total_asignaturas = Inscripcion.objects.filter(estudiante=estudiante).count()
+        
+        estudiante_data = {
+            'estudiante': estudiante,
+            'relacion': relacion,
+            'curso_actual': curso_actual,
+            'profesor_jefe': curso_actual.profesor_jefe if curso_actual else None,
+            'promedio_general': promedio_general,
+            'total_asistencias': total_asistencias,
+            'asistencias_presentes': asistencias_presentes,
+            'ausencias': total_asistencias - asistencias_presentes,
+            'porcentaje_asistencia': porcentaje_asistencia,
+            'anotaciones_recientes': anotaciones_recientes,
+            'total_asignaturas': total_asignaturas,
+            'total_anotaciones': anotaciones_recientes.count() if anotaciones_recientes else 0,
+        }
+        estudiantes_info.append(estudiante_data)
+    
+    # Calcular estadísticas generales
+    total_estudiantes = len(estudiantes_info)
+    estudiantes_con_promedio = [e for e in estudiantes_info if e['promedio_general']]
+    promedio_general_conjunto = None
+    if estudiantes_con_promedio:
+        suma_promedios = sum(e['promedio_general'] for e in estudiantes_con_promedio)
+        promedio_general_conjunto = round(suma_promedios / len(estudiantes_con_promedio), 1)
+    
+    estudiantes_con_asistencia = [e for e in estudiantes_info if e['total_asistencias'] > 0]
+    promedio_asistencia_conjunto = None
+    if estudiantes_con_asistencia:
+        suma_asistencia = sum(e['porcentaje_asistencia'] for e in estudiantes_con_asistencia)
+        promedio_asistencia_conjunto = round(suma_asistencia / len(estudiantes_con_asistencia), 1)
+    
+    context = {
+        'profesor': profesor,
+        'apoderado': apoderado,
+        'estudiantes_a_cargo': estudiantes_a_cargo,
+        'estudiantes_info': estudiantes_info,
+        'total_estudiantes': total_estudiantes,
+        'promedio_general_conjunto': promedio_general_conjunto,
+        'promedio_asistencia_conjunto': promedio_asistencia_conjunto,
+        'es_profesor_apoderado': True,
+    }
+    
+    return render(request, 'estudiantes_a_cargo_profesor_apoderado.html', context)
+
 def _preparar_contexto_apoderado(request, apoderado, es_profesor_apoderado=False):
     """Función auxiliar para preparar el contexto de un apoderado"""
     
@@ -539,13 +651,26 @@ def _preparar_contexto_profesor_apoderado(request, profesor, apoderado):
                 'total_notas': calificaciones.count(),
                 'calificaciones_detalle': calificaciones,
             })
+        
+        # Obtener horarios de la semana
+        from .models import HorarioCurso
+        horarios_semana = {}
+        if curso_actual:
+            horarios = HorarioCurso.objects.filter(
+                curso=curso_actual
+            ).select_related('asignatura').order_by('hora_inicio', 'dia')
+            
+            # Organizar horarios por bloque de tiempo
+            for horario in horarios:
+                hora_key = f"{horario.hora_inicio.strftime('%H:%M')} - {horario.hora_fin.strftime('%H:%M')}"
+                if hora_key not in horarios_semana:
+                    horarios_semana[hora_key] = []
+                horarios_semana[hora_key].append(horario)
     
         # Obtener compañeros de curso
-        companeros = []
-        if curso_actual:
-            companeros = Estudiante.objects.filter(
-                cursos=curso_actual
-            ).exclude(id=estudiante.id).order_by('apellido_paterno', 'apellido_materno', 'primer_nombre')
+        companeros = Estudiante.objects.filter(
+            cursos=curso_actual
+        ).exclude(id=estudiante.id).order_by('apellido_paterno', 'apellido_materno', 'primer_nombre')
 
         # Obtener asistencia anual para detalles
         inicio_ano = hoy.replace(month=1, day=1)
@@ -554,6 +679,15 @@ def _preparar_contexto_profesor_apoderado(request, profesor, apoderado):
             fecha__gte=inicio_ano,
             fecha__lte=hoy
         ).order_by('-fecha')
+        
+        # Obtener asistencia reciente (últimos 7 días)
+        from datetime import timedelta
+        fecha_limite = hoy - timedelta(days=7)
+        asistencia_reciente = AsistenciaAlumno.objects.filter(
+            estudiante=estudiante,
+            fecha__gte=fecha_limite,
+            fecha__lte=hoy
+        ).order_by('-fecha')[:7]
         
         estudiante_data = {
             'estudiante': estudiante,
@@ -594,6 +728,67 @@ def _preparar_contexto_profesor_apoderado(request, profesor, apoderado):
     promedio_general_conjunto = round(total_promedio / count_con_notas, 1) if count_con_notas > 0 else None
     promedio_asistencia_conjunto = round(total_asistencia / count_con_asistencia, 1) if count_con_asistencia > 0 else None
     
+    # Obtener estadísticas del profesor (usando la misma lógica que listar_cursos)
+    from .models import Grupo, Anotacion, Curso, PeriodoAcademico, Asignatura
+    from django.utils import timezone
+    
+    # Usar la misma lógica que la vista de cursos para profesores
+    try:
+        # Obtener asignaturas del profesor (como en listar_cursos)
+        asignaturas_profesor_queryset = Asignatura.objects.filter(
+            profesor_responsable=profesor
+        )
+        total_asignaturas_profesor = asignaturas_profesor_queryset.count()
+        
+        # Obtener cursos donde tiene asignaturas asignadas (como en listar_cursos)
+        cursos_queryset = Curso.objects.filter(
+            anio=timezone.now().year,
+            asignaturas__in=asignaturas_profesor_queryset
+        ).distinct().prefetch_related('estudiantes', 'asignaturas')
+        
+        # Filtrar solo las asignaturas del profesor para cada curso
+        cursos_con_asignaturas_profesor = []
+        for curso in cursos_queryset:
+            # Solo asignaturas del profesor en este curso
+            asignaturas_curso_profesor = curso.asignaturas.filter(
+                profesor_responsable=profesor
+            )
+            # Agregar las asignaturas filtradas al curso
+            curso.asignaturas_profesor = asignaturas_curso_profesor
+            cursos_con_asignaturas_profesor.append(curso)
+        
+        todos_los_cursos = sorted(cursos_con_asignaturas_profesor, key=lambda c: (c.orden_nivel, c.paralelo))
+        total_cursos_profesor = len(todos_los_cursos)
+        
+        # Debug detallado usando la misma lógica
+        print(f"DEBUG - Profesor: {profesor}")
+        print(f"DEBUG - Asignaturas como responsable:")
+        for asignatura in asignaturas_profesor_queryset:
+            print(f"  - Asignatura: {asignatura.nombre} (ID: {asignatura.id})")
+        print(f"DEBUG - Total asignaturas como responsable: {total_asignaturas_profesor}")
+        
+        print(f"DEBUG - Cursos donde enseña (año {timezone.now().year}):")
+        for curso in todos_los_cursos:
+            print(f"  - Curso: {curso.nombre} (ID: {curso.id})")
+        print(f"DEBUG - Total cursos: {total_cursos_profesor}")
+        
+        # Para el template, usar un QuerySet compatible
+        asignaturas_profesor = asignaturas_profesor_queryset
+        
+    except Exception as e:
+        print(f"DEBUG - Error al obtener estadísticas del profesor: {e}")
+        asignaturas_profesor = Asignatura.objects.none()
+        todos_los_cursos = []
+        total_asignaturas_profesor = 0
+        total_cursos_profesor = 0
+    
+    # Anotaciones creadas por el profesor (objeto con total para template)
+    anotaciones_profesor = Anotacion.objects.filter(profesor_autor=profesor)
+    total_anotaciones_profesor = anotaciones_profesor.count()
+    stats_anotaciones = {'total': total_anotaciones_profesor}
+    
+    print(f"DEBUG - Total anotaciones: {total_anotaciones_profesor}")
+    
     context = {
         'profesor': profesor,
         'apoderado': apoderado,
@@ -605,6 +800,259 @@ def _preparar_contexto_profesor_apoderado(request, profesor, apoderado):
         'tipo_usuario': 'profesor',
         'es_profesor_apoderado': True,
         'mostrar_seccion_apoderado': True,
+        # Variables que espera el template (usando la misma lógica que listar_cursos)
+        'asignaturas_profesor': asignaturas_profesor,
+        'cursos_con_asignaturas': todos_los_cursos, 
+        'stats_anotaciones': stats_anotaciones,
+        # También mantener las variables originales por compatibilidad
+        'total_asignaturas': total_asignaturas_profesor,
+        'total_cursos': total_cursos_profesor,
+        'total_anotaciones': total_anotaciones_profesor,
     }
     
     return render(request, 'inicio.html', context)
+
+@login_required
+def ver_notas_estudiante_apoderado(request, estudiante_id):
+    """Vista para que un profesor-apoderado vea las notas de un estudiante a su cargo"""
+    
+    # Verificar que el usuario sea un profesor
+    try:
+        profesor = request.user.profesor
+    except AttributeError:
+        messages.error(request, "No tienes permisos para acceder a esta sección.")
+        return redirect('inicio')
+    
+    # Verificar que también sea apoderado
+    try:
+        apoderado = profesor.apoderado_profile
+        if not apoderado:
+            messages.error(request, "No tienes permisos de apoderado.")
+            return redirect('inicio')
+    except AttributeError:
+        messages.error(request, "No tienes permisos de apoderado.")
+        return redirect('inicio')
+    
+    # Verificar que el estudiante esté a cargo del apoderado
+    from .models import RelacionApoderadoEstudiante, Estudiante
+    estudiante = get_object_or_404(Estudiante, id=estudiante_id)
+    
+    relacion = RelacionApoderadoEstudiante.objects.filter(
+        apoderado=apoderado,
+        estudiante=estudiante,
+        activa=True
+    ).first()
+    
+    if not relacion:
+        messages.error(request, "No tienes permisos para ver las notas de este estudiante.")
+        return redirect('estudiantes_a_cargo_profesor_apoderado')
+    
+    # Obtener las notas del estudiante
+    from .models import Calificacion, Inscripcion, Grupo
+    from django.db.models import Avg
+    
+    # Obtener inscripciones del estudiante
+    inscripciones = Inscripcion.objects.filter(
+        estudiante=estudiante
+    ).select_related(
+        'grupo__asignatura',
+        'grupo__profesor'
+    ).prefetch_related(
+        'calificacion_set'
+    )
+    
+    # Preparar información de notas por asignatura
+    asignaturas_con_notas = []
+    promedio_general_total = 0
+    asignaturas_con_promedio = 0
+    
+    for inscripcion in inscripciones:
+        calificaciones = inscripcion.calificacion_set.all().order_by('fecha_evaluacion')
+        
+        if calificaciones.exists():
+            promedio_asignatura = calificaciones.aggregate(promedio=Avg('puntaje'))['promedio']
+            promedio_asignatura = round(promedio_asignatura, 1) if promedio_asignatura else None
+            
+            if promedio_asignatura:
+                promedio_general_total += promedio_asignatura
+                asignaturas_con_promedio += 1
+        else:
+            promedio_asignatura = None
+        
+        asignaturas_con_notas.append({
+            'asignatura': inscripcion.grupo.asignatura,
+            'profesor': inscripcion.grupo.profesor,
+            'calificaciones': calificaciones,
+            'promedio': promedio_asignatura,
+            'total_notas': calificaciones.count(),
+        })
+    
+    # Calcular promedio general
+    promedio_general = round(promedio_general_total / asignaturas_con_promedio, 1) if asignaturas_con_promedio > 0 else None
+    
+    context = {
+        'estudiante': estudiante,
+        'relacion': relacion,
+        'asignaturas_con_notas': asignaturas_con_notas,
+        'promedio_general': promedio_general,
+        'curso_actual': estudiante.get_curso_actual(),
+        'es_profesor_apoderado': True,
+    }
+    
+    return render(request, 'ver_notas_estudiante_apoderado.html', context)
+
+@login_required
+def ver_anotaciones_estudiante_apoderado(request, estudiante_id):
+    """Vista para que un profesor-apoderado vea las anotaciones de un estudiante a su cargo"""
+    
+    # Verificar que el usuario sea un profesor
+    try:
+        profesor = request.user.profesor
+    except AttributeError:
+        messages.error(request, "No tienes permisos para acceder a esta sección.")
+        return redirect('inicio')
+    
+    # Verificar que también sea apoderado
+    try:
+        apoderado = profesor.apoderado_profile
+        if not apoderado:
+            messages.error(request, "No tienes permisos de apoderado.")
+            return redirect('inicio')
+    except AttributeError:
+        messages.error(request, "No tienes permisos de apoderado.")
+        return redirect('inicio')
+    
+    # Verificar que el estudiante esté a cargo del apoderado
+    from .models import RelacionApoderadoEstudiante, Estudiante
+    estudiante = get_object_or_404(Estudiante, id=estudiante_id)
+    
+    relacion = RelacionApoderadoEstudiante.objects.filter(
+        apoderado=apoderado,
+        estudiante=estudiante,
+        activa=True
+    ).first()
+    
+    if not relacion:
+        messages.error(request, "No tienes permisos para ver las anotaciones de este estudiante.")
+        return redirect('estudiantes_a_cargo_profesor_apoderado')
+    
+    # Obtener anotaciones del estudiante
+    from .models import Anotacion
+    anotaciones = Anotacion.objects.filter(
+        estudiante=estudiante
+    ).select_related(
+        'profesor_autor',
+        'curso'
+    ).order_by('-fecha_creacion')
+    
+    # Estadísticas de anotaciones
+    total_anotaciones = anotaciones.count()
+    anotaciones_positivas = anotaciones.filter(tipo='positiva').count()
+    anotaciones_negativas = anotaciones.filter(tipo='negativa').count()
+    anotaciones_neutras = anotaciones.filter(tipo='neutra').count()
+    
+    # Paginación
+    from django.core.paginator import Paginator
+    paginator = Paginator(anotaciones, 10)  # 10 anotaciones por página
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    context = {
+        'estudiante': estudiante,
+        'relacion': relacion,
+        'anotaciones': page_obj,
+        'page_obj': page_obj,
+        'total_anotaciones': total_anotaciones,
+        'anotaciones_positivas': anotaciones_positivas,
+        'anotaciones_negativas': anotaciones_negativas,
+        'anotaciones_neutras': anotaciones_neutras,
+        'curso_actual': estudiante.get_curso_actual(),
+        'es_profesor_apoderado': True,
+    }
+    
+    return render(request, 'ver_anotaciones_estudiante_apoderado.html', context)
+
+@login_required
+def ver_horario_estudiante_apoderado(request, estudiante_id):
+    """Vista para que un profesor-apoderado vea el horario de un estudiante a su cargo"""
+    
+    # Verificar que el usuario sea un profesor
+    try:
+        profesor = request.user.profesor
+    except AttributeError:
+        messages.error(request, "No tienes permisos para acceder a esta sección.")
+        return redirect('inicio')
+    
+    # Verificar que también sea apoderado
+    try:
+        apoderado = profesor.apoderado_profile
+        if not apoderado:
+            messages.error(request, "No tienes permisos de apoderado.")
+            return redirect('inicio')
+    except AttributeError:
+        messages.error(request, "No tienes permisos de apoderado.")
+        return redirect('inicio')
+    
+    # Verificar que el estudiante esté a cargo del apoderado
+    from .models import RelacionApoderadoEstudiante, Estudiante
+    estudiante = get_object_or_404(Estudiante, id=estudiante_id)
+    
+    relacion = RelacionApoderadoEstudiante.objects.filter(
+        apoderado=apoderado,
+        estudiante=estudiante,
+        activa=True
+    ).first()
+    
+    if not relacion:
+        messages.error(request, "No tienes permisos para ver el horario de este estudiante.")
+        return redirect('estudiantes_a_cargo_profesor_apoderado')
+    
+    # Obtener curso del estudiante
+    curso_actual = estudiante.get_curso_actual()
+    
+    if not curso_actual:
+        messages.warning(request, "El estudiante no tiene un curso asignado actualmente.")
+        return redirect('estudiantes_a_cargo_profesor_apoderado')
+    
+    # Obtener horarios del curso
+    from .models import HorarioCurso
+    horarios = HorarioCurso.objects.filter(
+        curso=curso_actual
+    ).select_related(
+        'asignatura',
+        'profesor'
+    ).order_by('dia', 'hora_inicio')
+    
+    # Organizar horarios por día y hora
+    dias_semana = [
+        ('1', 'Lunes'),
+        ('2', 'Martes'),
+        ('3', 'Miércoles'),
+        ('4', 'Jueves'),
+        ('5', 'Viernes'),
+        ('6', 'Sábado'),
+    ]
+    
+    # Obtener todas las horas únicas
+    horas_unicas = sorted(set(
+        (h.hora_inicio, h.hora_fin) for h in horarios
+    ))
+    
+    # Crear estructura simplificada para el template
+    horarios_matriz = {}
+    for horario in horarios:
+        key = f"{horario.dia}-{horario.hora_inicio}-{horario.hora_fin}"
+        horarios_matriz[key] = horario
+    
+    context = {
+        'estudiante': estudiante,
+        'relacion': relacion,
+        'curso_actual': curso_actual,
+        'horarios': horarios,
+        'horarios_matriz': horarios_matriz,
+        'horas_unicas': horas_unicas,
+        'dias_semana': dias_semana,
+        'es_profesor_apoderado': True,
+    }
+    
+    return render(request, 'ver_horario_estudiante_apoderado.html', context)

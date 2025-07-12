@@ -1,0 +1,387 @@
+{% extends "index_master.html" %}
+
+{% block extra_css %}
+<style>
+/* Estilos específicos para el horario del estudiante */
+.horario-container {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  border: 1px solid #dee2e6;
+}
+
+.horario-table {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.horario-table th {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  font-weight: 600;
+  text-align: center;
+  padding: 1rem 0.5rem;
+  border: none;
+  font-size: 0.9rem;
+}
+
+.horario-table td {
+  padding: 0.75rem 0.5rem;
+  border: 1px solid #e9ecef;
+  vertical-align: middle;
+  text-align: center;
+  min-height: 80px;
+}
+
+.hora-column {
+  background: #f8f9fa;
+  font-weight: 600;
+  color: #495057;
+  width: 120px;
+  font-size: 0.85rem;
+}
+
+.clase-cell {
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.clase-cell:hover {
+  background: #e3f2fd;
+  transform: scale(1.02);
+}
+
+.clase-info {
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+  color: white;
+  border-radius: 8px;
+  padding: 0.75rem;
+  margin: 2px;
+  text-align: center;
+  font-size: 0.8rem;
+  line-height: 1.2;
+  min-height: 60px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  transition: all 0.3s ease;
+}
+
+.clase-info:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.asignatura-nombre {
+  font-weight: 600;
+  font-size: 0.85rem;
+  margin-bottom: 0.25rem;
+  display: block;
+}
+
+.profesor-nombre {
+  font-size: 0.7rem;
+  opacity: 0.9;
+  font-style: italic;
+}
+
+.celda-vacia {
+  background: #f8f9fa;
+  color: #6c757d;
+  font-style: italic;
+  font-size: 0.8rem;
+}
+
+.info-curso {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  color: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.sin-horario {
+  text-align: center;
+  padding: 3rem;
+  color: #6c757d;
+}
+
+/* Colores alternativos para diferentes asignaturas */
+.clase-info:nth-child(odd) {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+}
+
+.clase-info:nth-child(even) {
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+}
+
+.clase-info:nth-child(3n) {
+  background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+  color: #212529;
+}
+
+.clase-info:nth-child(4n) {
+  background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+}
+
+.clase-info:nth-child(5n) {
+  background: linear-gradient(135deg, #6f42c1 0%, #59359a 100%);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .horario-container {
+    padding: 1rem;
+  }
+  
+  .horario-table th,
+  .horario-table td {
+    padding: 0.5rem 0.25rem;
+    font-size: 0.75rem;
+  }
+  
+  .clase-info {
+    padding: 0.5rem;
+    font-size: 0.7rem;
+    min-height: 50px;
+  }
+  
+  .asignatura-nombre {
+    font-size: 0.75rem;
+  }
+  
+  .profesor-nombre {
+    font-size: 0.65rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .horario-table {
+    font-size: 0.7rem;
+  }
+  
+  .hora-column {
+    width: 80px;
+  }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="right_col" role="main">
+  <div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="bg-white p-4 rounded shadow-sm border">
+          <div class="row align-items-center">
+            <div class="col-md-8">
+              <div class="d-flex align-items-center">
+                <div class="me-3">
+                  <i class="fas fa-clock fa-3x text-primary"></i>
+                </div>
+                <div>
+                  <h1 class="h3 mb-1 text-dark">Horario de {{ estudiante.get_nombre_completo }}</h1>
+                  <p class="mb-0 text-muted">
+                    <i class="fas fa-school me-2"></i>
+                    {% if curso_actual %}{{ curso_actual.get_nivel_display }}{{ curso_actual.paralelo }}{% else %}Sin curso asignado{% endif %}
+                    <span class="badge bg-info ms-2">{{ relacion.get_parentesco_display }}</span>
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4 text-end">
+              <a href="{% url 'estudiantes_a_cargo_profesor_apoderado' %}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left me-2"></i>Volver
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {% if curso_actual %}
+    <!-- Información del Curso -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="info-curso">
+          <h4 class="mb-2">
+            <i class="fas fa-graduation-cap me-2"></i>{{ curso_actual.get_nivel_display }}{{ curso_actual.paralelo }}
+          </h4>
+          <p class="mb-1">
+            <strong>Año Académico:</strong> {{ curso_actual.anio }}
+          </p>
+          <p class="mb-0">
+            <strong>Profesor Jefe:</strong> 
+            {% if curso_actual.profesor_jefe %}
+              {{ curso_actual.profesor_jefe.get_nombre_completo }}
+            {% else %}
+              No asignado
+            {% endif %}
+          </p>
+        </div>
+      </div>
+    </div>
+
+    {% if horarios %}
+    <!-- Tabla de Horarios -->
+    <div class="row">
+      <div class="col-12">
+        <div class="horario-container">
+          <h4 class="mb-4 text-center">
+            <i class="fas fa-calendar-week text-primary me-2"></i>Horario Semanal
+          </h4>
+          
+          <div class="table-responsive">
+            <table class="table horario-table">
+              <thead>
+                <tr>
+                  <th class="hora-column">Hora</th>
+                  {% for dia_key, dia_nombre in dias_semana %}
+                    <th>{{ dia_nombre }}</th>
+                  {% endfor %}
+                </tr>
+              </thead>
+              <tbody>
+                {% for hora_inicio, hora_fin in horas_unicas %}
+                <tr>
+                  <td class="hora-column">
+                    <strong>{{ hora_inicio|time:"H:i" }}</strong>
+                    <br>
+                    <small>{{ hora_fin|time:"H:i" }}</small>
+                  </td>
+                  {% for dia_key, dia_nombre in dias_semana %}
+                    <td class="clase-cell">
+                      {% comment %}Mostrar clase si existe para este día y hora{% endcomment %}
+                      {% for horario in horarios %}
+                        {% if horario.dia == dia_key and horario.hora_inicio == hora_inicio and horario.hora_fin == hora_fin %}
+                          <div class="clase-info">
+                            <span class="asignatura-nombre">{{ horario.asignatura.nombre|truncatechars:15 }}</span>
+                            {% if horario.profesor %}
+                              <span class="profesor-nombre">{{ horario.profesor.get_nombre_completo|truncatechars:20 }}</span>
+                            {% endif %}
+                          </div>
+                        {% endif %}
+                      {% endfor %}
+                    </td>
+                  {% endfor %}
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lista de Asignaturas (Resumen) -->
+    <div class="row">
+      <div class="col-12">
+        <div class="bg-white p-4 rounded shadow-sm border">
+          <h5 class="mb-3">
+            <i class="fas fa-list text-primary me-2"></i>Resumen de Asignaturas
+          </h5>
+          <div class="row">
+            {% for horario in horarios %}
+              {% ifchanged horario.asignatura %}
+              <div class="col-md-4 col-sm-6 mb-3">
+                <div class="d-flex align-items-center p-3 border rounded">
+                  <div class="me-3">
+                    <i class="fas fa-book text-primary"></i>
+                  </div>
+                  <div>
+                    <h6 class="mb-1">{{ horario.asignatura.nombre }}</h6>
+                    <small class="text-muted">
+                      {% if horario.profesor %}
+                        {{ horario.profesor.get_nombre_completo }}
+                      {% else %}
+                        Sin profesor asignado
+                      {% endif %}
+                    </small>
+                  </div>
+                </div>
+              </div>
+              {% endifchanged %}
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    {% else %}
+    <!-- Sin horarios -->
+    <div class="row">
+      <div class="col-12">
+        <div class="bg-white rounded shadow-sm border">
+          <div class="sin-horario">
+            <i class="fas fa-calendar-times fa-4x text-muted mb-3"></i>
+            <h4 class="text-muted mb-2">No hay horarios configurados</h4>
+            <p class="text-muted">El curso {{ curso_actual.get_nivel_display }}{{ curso_actual.paralelo }} no tiene horarios asignados.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+    
+    {% else %}
+    <!-- Sin curso -->
+    <div class="row">
+      <div class="col-12">
+        <div class="bg-white rounded shadow-sm border">
+          <div class="sin-horario">
+            <i class="fas fa-exclamation-triangle fa-4x text-warning mb-3"></i>
+            <h4 class="text-muted mb-2">Estudiante sin curso asignado</h4>
+            <p class="text-muted">{{ estudiante.get_nombre_completo }} no tiene un curso asignado actualmente.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Animación de entrada para la tabla de horarios
+  const horarioTable = document.querySelector('.horario-table');
+  if (horarioTable) {
+    horarioTable.style.opacity = '0';
+    horarioTable.style.transform = 'translateY(20px)';
+    
+    setTimeout(() => {
+      horarioTable.style.transition = 'all 0.6s ease';
+      horarioTable.style.opacity = '1';
+      horarioTable.style.transform = 'translateY(0)';
+    }, 300);
+  }
+  
+  // Animación para las celdas de clase
+  const claseInfos = document.querySelectorAll('.clase-info');
+  claseInfos.forEach((info, index) => {
+    info.style.opacity = '0';
+    info.style.transform = 'scale(0.8)';
+    
+    setTimeout(() => {
+      info.style.transition = 'all 0.4s ease';
+      info.style.opacity = '1';
+      info.style.transform = 'scale(1)';
+    }, 600 + (index * 50));
+  });
+  
+  // Tooltip para mostrar información completa al hover
+  claseInfos.forEach(info => {
+    const asignatura = info.querySelector('.asignatura-nombre').textContent;
+    const profesor = info.querySelector('.profesor-nombre')?.textContent || 'Sin profesor';
+    
+    info.setAttribute('title', `${asignatura}\nProfesor: ${profesor}`);
+  });
+});
+</script>
+{% endblock %}

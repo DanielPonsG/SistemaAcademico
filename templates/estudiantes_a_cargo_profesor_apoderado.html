@@ -1,0 +1,325 @@
+{% extends "index_master.html" %}
+
+{% block extra_css %}
+<style>
+/* Estilos específicos para el panel de estudiantes a cargo */
+.estudiante-card {
+  transition: all 0.3s ease;
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.estudiante-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+  background: #ffffff;
+}
+
+.estudiante-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 1rem;
+}
+
+.estudiante-body {
+  padding: 1.5rem;
+}
+
+.stat-item {
+  background: #f8f9fa;
+  padding: 0.75rem;
+  border-radius: 8px;
+  margin-bottom: 0.5rem;
+  border-left: 4px solid #007bff;
+}
+
+.anotacion-item {
+  background: #fff;
+  border: 1px solid #e9ecef;
+  border-radius: 6px;
+  padding: 0.75rem;
+  margin-bottom: 0.5rem;
+  transition: background-color 0.2s ease;
+}
+
+.anotacion-item:hover {
+  background-color: #f8f9fa;
+}
+
+.badge-parentesco {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  color: white;
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+}
+
+.resumen-stats {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 12px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  border: 1px solid #dee2e6;
+}
+
+.no-estudiantes {
+  text-align: center;
+  padding: 3rem;
+  color: #6c757d;
+}
+
+.btn-accion {
+  margin-right: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .estudiante-body {
+    padding: 1rem;
+  }
+  
+  .resumen-stats {
+    padding: 1rem;
+  }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="right_col" role="main">
+  <div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="bg-white p-4 rounded shadow-sm border">
+          <div class="row align-items-center">
+            <div class="col-md-8">
+              <div class="d-flex align-items-center">
+                <div class="me-3">
+                  <i class="fas fa-user-graduate fa-3x text-primary"></i>
+                </div>
+                <div>
+                  <h1 class="h3 mb-1 text-dark">Mis Estudiantes a Cargo</h1>
+                  <p class="mb-0 text-muted">
+                    <i class="fas fa-heart me-2"></i>
+                    Como apoderado de <span class="badge bg-primary">{{ total_estudiantes }}</span> estudiante{{ total_estudiantes|pluralize:",s" }}
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4 text-end">
+              <a href="{% url 'inicio' %}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left me-2"></i>Volver al Panel
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {% if total_estudiantes > 0 %}
+    <!-- Resumen estadístico -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="resumen-stats">
+          <h4 class="mb-3 text-center">
+            <i class="fas fa-chart-pie text-primary me-2"></i>Resumen General
+          </h4>
+          <div class="row">
+            <div class="col-md-4">
+              <div class="text-center">
+                <div class="h2 text-primary mb-1">{{ total_estudiantes }}</div>
+                <small class="text-muted">Estudiante{{ total_estudiantes|pluralize:",s" }} a Cargo</small>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="text-center">
+                <div class="h2 text-success mb-1">
+                  {% if promedio_general_conjunto %}{{ promedio_general_conjunto }}{% else %}--{% endif %}
+                </div>
+                <small class="text-muted">Promedio General</small>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="text-center">
+                <div class="h2 text-info mb-1">
+                  {% if promedio_asistencia_conjunto %}{{ promedio_asistencia_conjunto }}%{% else %}--{% endif %}
+                </div>
+                <small class="text-muted">Asistencia Promedio</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lista de estudiantes -->
+    <div class="row">
+      {% for info in estudiantes_info %}
+      <div class="col-lg-6 mb-4">
+        <div class="estudiante-card h-100">
+          <!-- Header del estudiante -->
+          <div class="estudiante-header">
+            <div class="row align-items-center">
+              <div class="col">
+                <h5 class="mb-1">
+                  <i class="fas fa-user-circle me-2"></i>
+                  {{ info.estudiante.get_nombre_completo }}
+                </h5>
+                <p class="mb-0 small">
+                  <span class="badge-parentesco">{{ info.relacion.get_parentesco_display }}</span>
+                  {% if info.relacion.es_apoderado_principal %}
+                    <span class="badge bg-warning text-dark ms-2">
+                      <i class="fas fa-star me-1"></i>Principal
+                    </span>
+                  {% endif %}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Cuerpo del estudiante -->
+          <div class="estudiante-body">
+            <!-- Información del curso -->
+            {% if info.curso_actual %}
+            <div class="stat-item">
+              <div class="row align-items-center">
+                <div class="col">
+                  <h6 class="mb-1">
+                    <i class="fas fa-school text-primary me-2"></i>Curso
+                  </h6>
+                  <p class="mb-0">{{ info.curso_actual.get_nivel_display }}{{ info.curso_actual.paralelo }}</p>
+                  {% if info.profesor_jefe %}
+                  <small class="text-muted">
+                    Profesor Jefe: {{ info.profesor_jefe.get_nombre_completo }}
+                  </small>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+            {% endif %}
+
+            <!-- Estadísticas académicas -->
+            <div class="row mb-3">
+              <div class="col-6">
+                <div class="stat-item text-center">
+                  <h6 class="text-success mb-1">
+                    {% if info.promedio_general %}{{ info.promedio_general }}{% else %}--{% endif %}
+                  </h6>
+                  <small class="text-muted">Promedio</small>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="stat-item text-center">
+                  <h6 class="text-info mb-1">{{ info.porcentaje_asistencia }}%</h6>
+                  <small class="text-muted">Asistencia</small>
+                </div>
+              </div>
+            </div>
+
+            <!-- Información adicional -->
+            <div class="row mb-3">
+              <div class="col-6">
+                <div class="stat-item text-center">
+                  <h6 class="text-primary mb-1">{{ info.total_asignaturas }}</h6>
+                  <small class="text-muted">Asignaturas</small>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="stat-item text-center">
+                  <h6 class="text-warning mb-1">{{ info.total_anotaciones }}</h6>
+                  <small class="text-muted">Anotaciones</small>
+                </div>
+              </div>
+            </div>
+
+            <!-- Anotaciones recientes -->
+            {% if info.anotaciones_recientes %}
+            <div class="mb-3">
+              <h6 class="text-muted mb-2">
+                <i class="fas fa-sticky-note me-1"></i>Anotaciones Recientes
+              </h6>
+              {% for anotacion in info.anotaciones_recientes %}
+              <div class="anotacion-item">
+                <div class="d-flex align-items-start">
+                  <div class="me-2">
+                    {% if anotacion.tipo == 'positiva' %}
+                      <i class="fas fa-thumbs-up text-success"></i>
+                    {% elif anotacion.tipo == 'negativa' %}
+                      <i class="fas fa-thumbs-down text-danger"></i>
+                    {% else %}
+                      <i class="fas fa-minus text-warning"></i>
+                    {% endif %}
+                  </div>
+                  <div class="flex-grow-1">
+                    <p class="mb-1 small">{{ anotacion.contenido|truncatechars:50 }}</p>
+                    <small class="text-muted">
+                      {{ anotacion.profesor_autor.get_nombre_completo }} - {{ anotacion.fecha_creacion|date:"d/m H:i" }}
+                    </small>
+                  </div>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Botones de acción -->
+            <div class="text-center mt-3">
+              <a href="{% url 'ver_notas_estudiante_apoderado' info.estudiante.id %}" class="btn btn-sm btn-outline-primary btn-accion">
+                <i class="fas fa-star me-1"></i>Ver Notas
+              </a>
+              <a href="{% url 'ver_anotaciones_estudiante_apoderado' info.estudiante.id %}" class="btn btn-sm btn-outline-warning btn-accion">
+                <i class="fas fa-book me-1"></i>Ver Anotaciones
+              </a>
+              <a href="{% url 'ver_horario_estudiante_apoderado' info.estudiante.id %}" class="btn btn-sm btn-outline-info btn-accion">
+                <i class="fas fa-clock me-1"></i>Ver Horario
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    {% else %}
+    <!-- No hay estudiantes -->
+    <div class="row">
+      <div class="col-12">
+        <div class="bg-white rounded shadow-sm border">
+          <div class="no-estudiantes">
+            <i class="fas fa-user-graduate fa-4x text-muted mb-3"></i>
+            <h4 class="text-muted mb-2">No tienes estudiantes a cargo</h4>
+            <p class="text-muted">Como apoderado, aún no tienes estudiantes asignados bajo tu responsabilidad.</p>
+            <a href="{% url 'inicio' %}" class="btn btn-primary mt-3">
+              <i class="fas fa-arrow-left me-2"></i>Volver al Panel Principal
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Animación de entrada para las tarjetas de estudiantes
+  const estudianteCards = document.querySelectorAll('.estudiante-card');
+  estudianteCards.forEach((card, index) => {
+    card.style.opacity = '0';
+    card.style.transform = 'translateY(20px)';
+    
+    setTimeout(() => {
+      card.style.transition = 'all 0.6s ease';
+      card.style.opacity = '1';
+      card.style.transform = 'translateY(0)';
+    }, index * 150);
+  });
+});
+</script>
+{% endblock %}
