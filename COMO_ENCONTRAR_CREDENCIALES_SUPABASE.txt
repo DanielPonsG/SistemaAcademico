@@ -1,0 +1,29 @@
+====================================================
+     COMO ENCONTRAR CREDENCIALES EN SUPABASE
+====================================================
+
+1. Ve a tu proyecto en Supabase (https://supabase.com/dashboard)
+
+2. En el menu lateral izquierdo, busca y haz clic en:
+   "Settings" (Configuración) - icono de engranaje
+
+3. Dentro de Settings, haz clic en:
+   "Database" 
+
+4. Busca la seccion "Connection info" o "Connection parameters"
+
+5. Encontraras algo como esto:
+
+   Host: db.abcdefghijklmnop.supabase.co
+   Database name: postgres
+   Port: 5432
+   User: postgres
+   Password: [una contraseña muy larga]
+
+6. También puedes buscar "Connection pooling" para una URL completa
+
+IMPORTANTE: 
+- El password es MUY largo (como 20-30 caracteres)
+- Guarda estas credenciales, las necesitaras para el siguiente paso
+
+====================================================

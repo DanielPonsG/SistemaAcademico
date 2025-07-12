@@ -1,0 +1,26 @@
+====================================================
+     URL DIRECTA PARA CREDENCIALES DE SUPABASE
+====================================================
+
+Si no encuentras el boton "Connect", usa esta URL directa:
+
+1. Mira en tu barra de direcciones la URL actual
+   Deberia ser algo como:
+   https://supabase.com/dashboard/project/XXXXXXXX/sql
+
+2. Cambia la parte final "/sql" por "/settings/database"
+   
+   EJEMPLO:
+   Si tienes: https://supabase.com/dashboard/project/abc123/sql
+   Cambiar a: https://supabase.com/dashboard/project/abc123/settings/database
+
+3. O prueba cambiar por "/connect":
+   https://supabase.com/dashboard/project/abc123/connect
+
+ALTERNATIVA:
+Ve al dashboard principal:
+https://supabase.com/dashboard
+
+Y selecciona tu proyecto desde ahi.
+
+====================================================

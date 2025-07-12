@@ -11,21 +11,24 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-m#4xd(+=97eyuwi7bt5sw_h#^j9)8pb2m&p)vaajgq3t%0r$ll'
+try:
+    from decouple import config
+    SECRET_KEY = config('SECRET_KEY', default='django-insecure-m#4xd(+=97eyuwi7bt5sw_h#^j9)8pb2m&p)vaajgq3t%0r$ll')
+    DEBUG = config('DEBUG', default=True, cast=bool)
+except ImportError:
+    SECRET_KEY = 'django-insecure-m#4xd(+=97eyuwi7bt5sw_h#^j9)8pb2m&p)vaajgq3t%0r$ll'
+    DEBUG = True
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'testserver']
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'testserver', '.vercel.app', '.now.sh']
 
 
 # Application definition
@@ -43,6 +46,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -83,8 +87,8 @@ WSGI_APPLICATION = 'sma.wsgi.application'
 try:
     from decouple import config
     
-    # Si DEBUG es False o si tenemos credenciales de PostgreSQL, usar PostgreSQL
-    if not config('DEBUG', default=True, cast=bool) or config('DB_HOST', default=None):
+    # Si tenemos credenciales de PostgreSQL en variables de entorno, usarlas
+    if config('DB_HOST', default=None):
         DATABASES = {
             'default': {
                 'ENGINE': 'django.db.backends.postgresql',
@@ -94,25 +98,39 @@ try:
                 'HOST': config('DB_HOST'),
                 'PORT': config('DB_PORT', default='5432'),
                 'OPTIONS': {
-                    'sslmode': 'require',
+                    'sslmode': config('DB_SSL_MODE', default='require'),
                 },
             }
         }
     else:
-        # Desarrollo con SQLite
+        # Fallback a configuración local de desarrollo
         DATABASES = {
             'default': {
-                'ENGINE': 'django.db.backends.sqlite3',
-                'NAME': BASE_DIR / 'db.sqlite3',
+                'ENGINE': 'django.db.backends.postgresql',
+                'NAME': 'sam_db',
+                'USER': 'postgres',
+                'PASSWORD': 'inacap2024',
+                'HOST': 'localhost',
+                'PORT': '5432',
+                'OPTIONS': {
+                    'sslmode': 'disable',
+                },
             }
         }
         
 except ImportError:
-    # Si no hay python-decouple, usar SQLite por defecto
+    # Si no hay python-decouple, usar configuración local
     DATABASES = {
         'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'sam_db',
+            'USER': 'postgres',
+            'PASSWORD': 'inacap2024',
+            'HOST': 'localhost',
+            'PORT': '5432',
+            'OPTIONS': {
+                'sslmode': 'disable',
+            },
         }
     }
 
@@ -151,27 +169,20 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
+# Configuración de archivos estáticos para producción
 STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR / 'staticfiles'  # Para archivos estáticos recolectados en producción
 STATICFILES_DIRS = [
-    BASE_DIR / 'static',
+    BASE_DIR / "static",
 ]
+STATIC_ROOT = BASE_DIR / "staticfiles_build" / "static"
 
-# Configuración adicional para archivos estáticos
-STATICFILES_FINDERS = [
-    'django.contrib.staticfiles.finders.FileSystemFinder',
-    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-]
+# Configuración de archivos de media
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / "staticfiles_build" / "media"
 
-# Configuración de WhiteNoise para servir archivos estáticos (solo si está instalado)
-try:
-    import whitenoise
-    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-    WHITENOISE_USE_FINDERS = True
-    WHITENOISE_AUTOREFRESH = DEBUG
-except ImportError:
-    # WhiteNoise no instalado, usar configuración por defecto
-    pass
+# WhiteNoise configuration
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field

@@ -17,13 +17,19 @@ class ApoderadoRedirectMiddleware:
             '/dashboard-profesor-apoderado/',
             '/inicio-apoderado/',
             '/logout/',
-            '/admin/',
+            '/admin/',          # Panel de administración
+            '/login/',          # Página de login
+            '/static/',         # Archivos estáticos
+            '/media/',          # Archivos de media
         ]
         
         # Solo procesar si es la página raíz/inicio y el usuario está autenticado
+        # EXCLUIR superusuarios y staff para que puedan acceder libremente
         if (request.path == '/' and 
             request.user.is_authenticated and 
             request.method == 'GET' and
+            not request.user.is_superuser and  # ← NUEVO: Excluir superusuarios
+            not request.user.is_staff and      # ← NUEVO: Excluir staff
             not any(request.path.startswith(path) for path in excluded_paths)):
             
             # Verificar si el usuario es un apoderado directo

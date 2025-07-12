@@ -15,6 +15,10 @@ def permission_required(allowed_user_types):
         @wraps(view_func)
         @login_required
         def _wrapped_view(request, *args, **kwargs):
+            # Los superusuarios tienen acceso completo a todo
+            if request.user.is_superuser:
+                return view_func(request, *args, **kwargs)
+                
             try:
                 user_type = request.user.perfil.tipo_usuario
                 if user_type in allowed_user_types:
@@ -50,6 +54,10 @@ def profesor_con_asignaturas_required(view_func):
     @wraps(view_func)
     @login_required
     def _wrapped_view(request, *args, **kwargs):
+        # Los superusuarios tienen acceso completo a todo
+        if request.user.is_superuser:
+            return view_func(request, *args, **kwargs)
+            
         try:
             user_type = request.user.perfil.tipo_usuario
             

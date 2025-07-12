@@ -1,0 +1,29 @@
+====================================================
+     ENLACES DIRECTOS PARA ENCONTRAR CREDENCIALES
+====================================================
+
+Si no encuentras la seccion Settings > Database, 
+prueba estos enlaces directos:
+
+1. SETTINGS GENERAL:
+   https://supabase.com/dashboard/project/[TU-PROJECT-ID]/settings/general
+
+2. DATABASE SETTINGS:
+   https://supabase.com/dashboard/project/[TU-PROJECT-ID]/settings/database
+
+3. API SETTINGS:
+   https://supabase.com/dashboard/project/[TU-PROJECT-ID]/settings/api
+
+DONDE:
+[TU-PROJECT-ID] = el ID de tu proyecto (lo ves en la URL actual)
+
+EJEMPLO:
+Si tu URL actual es: 
+https://supabase.com/dashboard/project/abcdef123456/connect
+
+Entonces tu PROJECT-ID es: abcdef123456
+
+Y deberias ir a:
+https://supabase.com/dashboard/project/abcdef123456/settings/database
+
+====================================================

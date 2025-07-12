@@ -1,0 +1,44 @@
+====================================================
+     PLAN COMPLETO: MIGRAR A SUPABASE PASO A PASO
+====================================================
+
+✅ PASO 1: BACKUP LOCAL (YA COMPLETADO)
+   - Archivo creado: backup_sam_db_2025-07-12_18-07-03.sql
+   - Tamaño: 94KB
+
+📍 PASO 2: ENCONTRAR CREDENCIALES SUPABASE (ACTUAL)
+   1. Ve a https://supabase.com/dashboard
+   2. Selecciona tu proyecto
+   3. Ve a Settings → Database
+   4. Busca "Connection info"
+   5. Copia Host y Password
+
+🔄 PASO 3: RESTAURAR EN SUPABASE
+   Ejecuta: restore_bd_supabase_mejorado.bat
+
+⚙️ PASO 4: ACTUALIZAR CONFIGURACION
+   Ejecuta: actualizar_env_supabase.bat
+
+🧪 PASO 5: PROBAR CONEXION
+   Ejecuta: test_bd_nube.bat
+
+🚀 PASO 6: REINICIAR SERVIDOR
+   Ctrl+C en el servidor Django y volver a ejecutar:
+   python manage.py runserver
+
+====================================================
+ARCHIVOS DISPONIBLES:
+====================================================
+
+📖 GUIAS:
+   - COMO_ENCONTRAR_CREDENCIALES_SUPABASE.txt
+
+🔧 SCRIPTS:
+   - restore_bd_supabase_mejorado.bat
+   - actualizar_env_supabase.bat  
+   - test_bd_nube.bat
+
+📊 BACKUP:
+   - backup_sam_db_2025-07-12_18-07-03.sql
+
+====================================================
