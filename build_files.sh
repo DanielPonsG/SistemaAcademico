@@ -8,5 +8,8 @@ echo "Make Migration..."
 python3 manage.py makemigrations --noinput
 python3 manage.py migrate --noinput
 
+echo "Creating superuser..."
+python3 manage.py crear_superusuario
+
 echo "Collect Static..."
 python3 manage.py collectstatic --noinput --clear

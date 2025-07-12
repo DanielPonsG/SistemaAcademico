@@ -23,12 +23,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 try:
     from decouple import config
     SECRET_KEY = config('SECRET_KEY', default='django-insecure-m#4xd(+=97eyuwi7bt5sw_h#^j9)8pb2m&p)vaajgq3t%0r$ll')
-    DEBUG = config('DEBUG', default=True, cast=bool)
+    DEBUG = config('DEBUG', default=False, cast=bool)
 except ImportError:
     SECRET_KEY = 'django-insecure-m#4xd(+=97eyuwi7bt5sw_h#^j9)8pb2m&p)vaajgq3t%0r$ll'
-    DEBUG = True
+    DEBUG = False
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'testserver', '.vercel.app', '.now.sh']
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'testserver', '.vercel.app', '.now.sh', '*']
 
 
 # Application definition
@@ -193,11 +193,3 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/login/'
-
-# Configuración condicional de WhiteNoise
-try:
-    import whitenoise
-    # Agregar WhiteNoise al middleware si está disponible
-    MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
-except ImportError:
-    pass
