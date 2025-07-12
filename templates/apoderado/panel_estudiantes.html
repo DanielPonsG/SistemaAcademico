@@ -1,0 +1,275 @@
+{% extends "index_master.html" %}
+{% load static %}
+
+{% block title %}Mis Estudiantes - Sistema Académico{% endblock %}
+
+{% block extra_css %}
+<style>
+.estudiante-card {
+    transition: all 0.3s ease;
+    border: 1px solid #e3e6f0;
+}
+
+.estudiante-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.stats-mini {
+    font-size: 0.875rem;
+}
+
+.badge-comportamiento {
+    font-size: 0.75rem;
+    padding: 0.5rem 0.75rem;
+}
+
+.anotacion-item {
+    font-size: 0.8rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    margin-bottom: 0.25rem;
+}
+
+.anotacion-positiva {
+    background-color: #d4edda;
+    color: #155724;
+    border-left: 3px solid #28a745;
+}
+
+.anotacion-negativa {
+    background-color: #f8d7da;
+    color: #721c24;
+    border-left: 3px solid #dc3545;
+}
+
+.anotacion-neutra {
+    background-color: #e2e3e5;
+    color: #383d41;
+    border-left: 3px solid #6c757d;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-users text-primary"></i> Mis Estudiantes
+        </h1>
+        <a href="{% url 'inicio' %}" class="btn btn-sm btn-primary shadow-sm">
+            <i class="fas fa-arrow-left fa-sm text-white-50"></i> Volver al Inicio
+        </a>
+    </div>
+
+    <!-- Información del Apoderado -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-left-primary shadow">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h5 class="text-primary mb-1">
+                                <i class="fas fa-user-shield"></i> {{ apoderado.get_nombre_completo }}
+                            </h5>
+                            <p class="text-muted mb-0">
+                                <strong>Código:</strong> {{ apoderado.codigo_apoderado }} | 
+                                <strong>Email:</strong> {{ apoderado.email }} | 
+                                <strong>Teléfono:</strong> {{ apoderado.get_telefono_principal }}
+                            </p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <div class="text-primary">
+                                <i class="fas fa-child fa-2x"></i>
+                                <div class="small text-muted">{{ estudiantes_a_cargo|length }} estudiante{{ estudiantes_a_cargo|length|pluralize:",s" }} a cargo</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tarjetas de Estudiantes -->
+    <div class="row">
+        {% for item in estudiantes_a_cargo %}
+        <div class="col-lg-6 col-xl-4 mb-4">
+            <div class="card estudiante-card h-100">
+                <div class="card-header bg-light border-0 d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0 text-primary">
+                        <i class="fas fa-user-graduate"></i> {{ item.estudiante.get_nombre_completo }}
+                    </h6>
+                    <span class="badge badge-info">{{ item.relacion.get_parentesco_display }}</span>
+                </div>
+                
+                <div class="card-body">
+                    <!-- Información básica -->
+                    <div class="mb-3">
+                        <div class="row stats-mini">
+                            <div class="col-6">
+                                <strong>Curso:</strong><br>
+                                <span class="text-primary">
+                                    {% if item.curso_actual %}
+                                        {{ item.curso_actual.nombre }}
+                                    {% else %}
+                                        <span class="text-muted">Sin curso asignado</span>
+                                    {% endif %}
+                                </span>
+                            </div>
+                            <div class="col-6">
+                                <strong>RUT:</strong><br>
+                                {{ item.estudiante.numero_documento }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Estadísticas rápidas -->
+                    <div class="row mb-3">
+                        <div class="col-4 text-center">
+                            <div class="stats-mini">
+                                <div class="text-success font-weight-bold">{{ item.promedio_general }}</div>
+                                <div class="small text-muted">Promedio</div>
+                            </div>
+                        </div>
+                        <div class="col-4 text-center">
+                            <div class="stats-mini">
+                                <div class="text-info font-weight-bold">{{ item.asistencia_porcentaje }}%</div>
+                                <div class="small text-muted">Asistencia</div>
+                            </div>
+                        </div>
+                        <div class="col-4 text-center">
+                            <div class="stats-mini">
+                                <span class="badge badge-comportamiento" style="background-color: {{ item.comportamiento.color }}; color: white;">
+                                    {{ item.comportamiento.nivel }}
+                                </span>
+                                <div class="small text-muted">Comportamiento</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Anotaciones recientes -->
+                    {% if item.anotaciones_recientes %}
+                    <div class="mb-3">
+                        <h6 class="text-muted mb-2">
+                            <i class="fas fa-sticky-note"></i> Anotaciones Recientes
+                        </h6>
+                        {% for anotacion in item.anotaciones_recientes %}
+                        <div class="anotacion-item anotacion-{{ anotacion.tipo }}">
+                            <div class="font-weight-bold">{{ anotacion.titulo|truncatechars:30 }}</div>
+                            <div class="small">{{ anotacion.fecha_para_humanos }} - {{ anotacion.categoria|title }}</div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <!-- Botones de acción -->
+                    <div class="row">
+                        <div class="col-12 mb-2">
+                            <a href="{% url 'detalle_estudiante_apoderado' item.estudiante.id %}" 
+                               class="btn btn-primary btn-sm btn-block">
+                                <i class="fas fa-eye"></i> Ver Detalle Completo
+                            </a>
+                        </div>
+                        <div class="col-6">
+                            <a href="{% url 'calificaciones_estudiante_apoderado' item.estudiante.id %}" 
+                               class="btn btn-success btn-sm btn-block">
+                                <i class="fas fa-chart-line"></i> Notas
+                            </a>
+                        </div>
+                        <div class="col-6">
+                            <a href="{% url 'asistencia_estudiante_apoderado' item.estudiante.id %}" 
+                               class="btn btn-info btn-sm btn-block">
+                                <i class="fas fa-calendar-check"></i> Asistencia
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No tienes estudiantes asignados</h5>
+                    <p class="text-muted">Contacta con la administración si crees que esto es un error.</p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Resumen general (si hay más de un estudiante) -->
+    {% if estudiantes_a_cargo|length > 1 %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card border-left-info">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0">
+                        <i class="fas fa-chart-pie text-info"></i> Resumen General
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-3">
+                            <div class="text-info">
+                                <i class="fas fa-users fa-2x"></i>
+                                <div class="mt-2">
+                                    <div class="h4 font-weight-bold">{{ estudiantes_a_cargo|length }}</div>
+                                    <div class="small text-muted">Estudiantes a Cargo</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-success">
+                                <i class="fas fa-graduation-cap fa-2x"></i>
+                                <div class="mt-2">
+                                    <div class="h4 font-weight-bold">
+                                        {% widthratio estudiantes_a_cargo|length|add:0 estudiantes_a_cargo|length 1 %} <!-- Promedio simulado -->
+                                    </div>
+                                    <div class="small text-muted">Cursos Diferentes</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-warning">
+                                <i class="fas fa-exclamation-triangle fa-2x"></i>
+                                <div class="mt-2">
+                                    <div class="h4 font-weight-bold">
+                                        {% for item in estudiantes_a_cargo %}{% if item.anotaciones_recientes %}{{ item.anotaciones_recientes|length|add:0 }}{% endif %}{% endfor %}
+                                    </div>
+                                    <div class="small text-muted">Anotaciones Totales</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-primary">
+                                <i class="fas fa-calendar fa-2x"></i>
+                                <div class="mt-2">
+                                    <div class="h4 font-weight-bold">{{ anio_actual }}</div>
+                                    <div class="small text-muted">Año Académico</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Animación de entrada para las tarjetas
+    $('.estudiante-card').each(function(index) {
+        $(this).delay(index * 100).fadeIn('slow');
+    });
+    
+    // Tooltips para elementos con información adicional
+    $('[data-toggle="tooltip"]').tooltip();
+});
+</script>
+{% endblock %}

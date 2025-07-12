@@ -352,7 +352,7 @@ def _preparar_contexto_apoderado(request, apoderado, es_profesor_apoderado=False
         )
         
         for inscripcion in inscripciones:
-            calificaciones = Calificacion.objects.filter(inscripcion=inscripcion)
+            calificaciones = Calificacion.objects.filter(inscripcion=inscripcion).order_by('fecha_evaluacion')
             promedio_asignatura = None
             if calificaciones.exists():
                 from django.db.models import Avg
@@ -363,7 +363,8 @@ def _preparar_contexto_apoderado(request, apoderado, es_profesor_apoderado=False
                 'asignatura': inscripcion.grupo.asignatura,
                 'profesor': inscripcion.grupo.profesor,
                 'promedio': promedio_asignatura,
-                'total_notas': calificaciones.count()
+                'total_notas': calificaciones.count(),
+                'calificaciones_detalle': calificaciones,
             })
         
         # Obtener horarios de la semana
@@ -380,6 +381,21 @@ def _preparar_contexto_apoderado(request, apoderado, es_profesor_apoderado=False
                 if hora_key not in horarios_semana:
                     horarios_semana[hora_key] = []
                 horarios_semana[hora_key].append(horario)
+
+        # Obtener compañeros de curso
+        companeros = []
+        if curso_actual:
+            companeros = Estudiante.objects.filter(
+                cursos=curso_actual
+            ).exclude(id=estudiante.id).order_by('apellido_paterno', 'apellido_materno', 'primer_nombre')
+
+        # Obtener asistencia anual para detalles
+        inicio_ano = hoy.replace(month=1, day=1)
+        asistencia_anual = AsistenciaAlumno.objects.filter(
+            estudiante=estudiante,
+            fecha__gte=inicio_ano,
+            fecha__lte=hoy
+        ).order_by('-fecha')
         
         # Obtener asistencia reciente (últimos 7 días)
         from datetime import timedelta
@@ -407,6 +423,8 @@ def _preparar_contexto_apoderado(request, apoderado, es_profesor_apoderado=False
             'total_anotaciones': anotaciones_recientes.count() if hasattr(anotaciones_recientes, 'count') else len(anotaciones_recientes),
             'horarios_semana': horarios_semana,
             'asistencia_reciente': asistencia_reciente,
+            'companeros': companeros,
+            'asistencia_anual': asistencia_anual,
         }
         
         estudiantes_info.append(estudiante_data)
@@ -492,6 +510,51 @@ def _preparar_contexto_profesor_apoderado(request, profesor, apoderado):
         ausencias = total_asistencias - asistencias_presentes
         porcentaje_asistencia = round((asistencias_presentes / total_asistencias * 100), 1) if total_asistencias > 0 else 0
         
+        # Obtener anotaciones recientes (últimas 3)
+        from .models import Anotacion
+        anotaciones_recientes = Anotacion.objects.filter(
+            estudiante=estudiante
+        ).select_related('profesor_autor').order_by('-fecha_creacion')[:3]
+        
+        # Obtener asignaturas con notas del estudiante
+        from .models import Grupo
+        asignaturas_con_notas = []
+        inscripciones = Inscripcion.objects.filter(estudiante=estudiante).select_related(
+            'grupo__asignatura',
+            'grupo__profesor'
+        )
+        
+        for inscripcion in inscripciones:
+            calificaciones = Calificacion.objects.filter(inscripcion=inscripcion).order_by('fecha_evaluacion')
+            promedio_asignatura = None
+            if calificaciones.exists():
+                from django.db.models import Avg
+                promedio_obj = calificaciones.aggregate(promedio=Avg('puntaje'))
+                promedio_asignatura = round(promedio_obj['promedio'], 1) if promedio_obj['promedio'] else None
+            
+            asignaturas_con_notas.append({
+                'asignatura': inscripcion.grupo.asignatura,
+                'profesor': inscripcion.grupo.profesor,
+                'promedio': promedio_asignatura,
+                'total_notas': calificaciones.count(),
+                'calificaciones_detalle': calificaciones,
+            })
+    
+        # Obtener compañeros de curso
+        companeros = []
+        if curso_actual:
+            companeros = Estudiante.objects.filter(
+                cursos=curso_actual
+            ).exclude(id=estudiante.id).order_by('apellido_paterno', 'apellido_materno', 'primer_nombre')
+
+        # Obtener asistencia anual para detalles
+        inicio_ano = hoy.replace(month=1, day=1)
+        asistencia_anual = AsistenciaAlumno.objects.filter(
+            estudiante=estudiante,
+            fecha__gte=inicio_ano,
+            fecha__lte=hoy
+        ).order_by('-fecha')
+        
         estudiante_data = {
             'estudiante': estudiante,
             'parentesco': relacion.parentesco,
@@ -503,6 +566,14 @@ def _preparar_contexto_profesor_apoderado(request, profesor, apoderado):
             'asistencias_presentes': asistencias_presentes,
             'ausencias': ausencias,
             'porcentaje_asistencia': porcentaje_asistencia,
+            'anotaciones_recientes': anotaciones_recientes,
+            'asignaturas_con_notas': asignaturas_con_notas,
+            'total_asignaturas': len(asignaturas_con_notas),
+            'total_anotaciones': anotaciones_recientes.count() if hasattr(anotaciones_recientes, 'count') else len(anotaciones_recientes),
+            'horarios_semana': horarios_semana,
+            'asistencia_reciente': asistencia_reciente,
+            'companeros': companeros,
+            'asistencia_anual': asistencia_anual,
         }
         estudiantes_info.append(estudiante_data)
     

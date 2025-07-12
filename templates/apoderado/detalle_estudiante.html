@@ -1,0 +1,387 @@
+{% extends "index_master.html" %}
+{% load static %}
+
+{% block title %}{{ estudiante.get_nombre_completo }} - Detalle Estudiante{% endblock %}
+
+{% block extra_css %}
+<style>
+.info-card {
+    transition: all 0.3s ease;
+}
+
+.info-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+}
+
+.stat-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 10px;
+}
+
+.anotacion-positiva {
+    background-color: #d4edda;
+    border-left: 4px solid #28a745;
+}
+
+.anotacion-negativa {
+    background-color: #f8d7da;
+    border-left: 4px solid #dc3545;
+}
+
+.anotacion-neutra {
+    background-color: #e2e3e5;
+    border-left: 4px solid #6c757d;
+}
+
+.asistencia-presente {
+    color: #28a745;
+}
+
+.asistencia-ausente {
+    color: #dc3545;
+}
+
+.calificacion-alta {
+    color: #28a745;
+    font-weight: bold;
+}
+
+.calificacion-media {
+    color: #ffc107;
+    font-weight: bold;
+}
+
+.calificacion-baja {
+    color: #dc3545;
+    font-weight: bold;
+}
+
+.mes-card {
+    border-radius: 8px;
+    margin-bottom: 10px;
+}
+
+.evento-card {
+    border-left: 4px solid #007bff;
+    margin-bottom: 10px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header con información del estudiante -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800">
+                <i class="fas fa-user-graduate text-primary"></i> {{ estudiante.get_nombre_completo }}
+            </h1>
+            <p class="mb-0 text-muted">
+                <span class="badge badge-info">{{ relacion.get_parentesco_display }}</span>
+                {% if curso_actual %}
+                    | Curso: <strong>{{ curso_actual.nombre }}</strong>
+                {% endif %}
+                | RUT: <strong>{{ estudiante.numero_documento }}</strong>
+            </p>
+        </div>
+        <div>
+            <a href="{% url 'panel_estudiantes_apoderado' %}" class="btn btn-secondary shadow-sm me-2">
+                <i class="fas fa-arrow-left fa-sm"></i> Volver
+            </a>
+            <div class="btn-group">
+                <a href="{% url 'calificaciones_estudiante_apoderado' estudiante.id %}" class="btn btn-success shadow-sm">
+                    <i class="fas fa-chart-line fa-sm"></i> Ver Notas
+                </a>
+                <a href="{% url 'asistencia_estudiante_apoderado' estudiante.id %}" class="btn btn-info shadow-sm">
+                    <i class="fas fa-calendar-check fa-sm"></i> Ver Asistencia
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estadísticas principales -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card stat-card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-chart-line fa-2x mb-2 opacity-75"></i>
+                    <h3 class="mb-1">
+                        {% if asignaturas_calificaciones %}
+                            {% widthratio asignaturas_calificaciones|length|add:0 asignaturas_calificaciones|length 6.5 %}
+                        {% else %}
+                            --
+                        {% endif %}
+                    </h3>
+                    <small>Promedio General</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Asistencia</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {% if meses_asistencia %}
+                                    {% for mes in meses_asistencia %}{{ mes.porcentaje|floatformat:0 }}{% if not forloop.last %}/{% endif %}{% endfor %}%
+                                {% else %}
+                                    --
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-calendar-check fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Comportamiento</div>
+                            <div class="h5 mb-0 font-weight-bold" style="color: {{ comportamiento_stats.color }}">
+                                {{ comportamiento_stats.nivel }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-user-check fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Asignaturas</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ asignaturas_calificaciones|length }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-book fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Columna izquierda: Información académica -->
+        <div class="col-lg-8">
+            <!-- Calificaciones por asignatura -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-chart-bar"></i> Rendimiento por Asignatura
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if asignaturas_calificaciones %}
+                        <div class="row">
+                            {% for item in asignaturas_calificaciones %}
+                            <div class="col-md-6 mb-3">
+                                <div class="card info-card h-100">
+                                    <div class="card-body">
+                                        <h6 class="card-title text-primary">
+                                            {{ item.asignatura.nombre }}
+                                        </h6>
+                                        <p class="card-text small text-muted mb-2">
+                                            <i class="fas fa-user-tie"></i> 
+                                            {% if item.profesor %}
+                                                {{ item.profesor.get_nombre_completo }}
+                                            {% else %}
+                                                Sin profesor asignado
+                                            {% endif %}
+                                        </p>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="h5 mb-0 
+                                                {% if item.promedio >= 6.0 %}calificacion-alta
+                                                {% elif item.promedio >= 4.0 %}calificacion-media
+                                                {% else %}calificacion-baja{% endif %}">
+                                                {{ item.promedio }}
+                                            </span>
+                                            <small class="text-muted">{{ item.calificaciones|length }} evaluaciones</small>
+                                        </div>
+                                        {% if item.calificaciones %}
+                                        <div class="mt-2">
+                                            <small class="text-muted">Últimas notas:</small>
+                                            <div class="mt-1">
+                                                {% for calif in item.calificaciones|slice:":3" %}
+                                                    <span class="badge badge-secondary mr-1">{{ calif.puntaje }}</span>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-chart-bar fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">No hay calificaciones registradas</h5>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Asistencia reciente -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-calendar-alt"></i> Asistencia Reciente
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if asistencias_recientes %}
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Asignatura</th>
+                                        <th>Estado</th>
+                                        <th>Observación</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for asistencia in asistencias_recientes|slice:":10" %}
+                                    <tr>
+                                        <td>{{ asistencia.fecha|date:"d/m/Y" }}</td>
+                                        <td>{{ asistencia.asignatura.nombre }}</td>
+                                        <td>
+                                            {% if asistencia.presente %}
+                                                <span class="badge badge-success">Presente</span>
+                                            {% else %}
+                                                <span class="badge badge-danger">Ausente</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if asistencia.observacion %}
+                                                {{ asistencia.observacion|truncatechars:30 }}
+                                            {% else %}
+                                                <span class="text-muted">--</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-calendar fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">No hay registros de asistencia</h5>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Columna derecha: Comportamiento y eventos -->
+        <div class="col-lg-4">
+            <!-- Comportamiento -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-user-check"></i> Comportamiento
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        <div class="h3 mb-0" style="color: {{ comportamiento_stats.color }}">
+                            {{ comportamiento_stats.puntaje_total }} pts
+                        </div>
+                        <div class="small text-muted">{{ comportamiento_stats.nivel }}</div>
+                    </div>
+                    
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <div class="text-success h5 mb-0">{{ comportamiento_stats.positivas }}</div>
+                            <div class="small text-muted">Positivas</div>
+                        </div>
+                        <div class="col-4">
+                            <div class="text-danger h5 mb-0">{{ comportamiento_stats.negativas }}</div>
+                            <div class="small text-muted">Negativas</div>
+                        </div>
+                        <div class="col-4">
+                            <div class="text-warning h5 mb-0">{{ comportamiento_stats.graves }}</div>
+                            <div class="small text-muted">Graves</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Anotaciones importantes -->
+            {% if anotaciones_importantes %}
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-warning">
+                        <i class="fas fa-exclamation-triangle"></i> Anotaciones Importantes
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% for anotacion in anotaciones_importantes|slice:":5" %}
+                    <div class="anotacion-{{ anotacion.tipo }} p-2 mb-2 rounded">
+                        <div class="font-weight-bold small">{{ anotacion.titulo }}</div>
+                        <div class="small text-muted">
+                            {{ anotacion.fecha_para_humanos }} - {{ anotacion.categoria|title }}
+                        </div>
+                        {% if anotacion.descripcion %}
+                        <div class="small mt-1">{{ anotacion.descripcion|truncatechars:80 }}</div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Próximos eventos -->
+            {% if proximos_eventos %}
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-info">
+                        <i class="fas fa-calendar-plus"></i> Próximos Eventos
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% for evento in proximos_eventos|slice:":5" %}
+                    <div class="evento-card p-2 mb-2 bg-light rounded">
+                        <div class="font-weight-bold small">{{ evento.titulo }}</div>
+                        <div class="small text-muted">
+                            <i class="fas fa-calendar"></i> {{ evento.fecha|date:"d/m/Y" }}
+                            {% if evento.hora_inicio %}
+                                {{ evento.hora_inicio|time:"H:i" }}
+                            {% endif %}
+                        </div>
+                        <span class="badge badge-{{ evento.tipo_evento }} badge-sm">{{ evento.get_tipo_evento_display }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Animaciones y efectos
+    $('.info-card').hide().fadeIn('slow');
+    
+    // Tooltips
+    $('[data-toggle="tooltip"]').tooltip();
+});
+</script>
+{% endblock %}

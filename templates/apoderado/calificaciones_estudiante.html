@@ -1,0 +1,365 @@
+{% extends "index_master.html" %}
+{% load static %}
+
+{% block title %}Calificaciones - {{ estudiante.get_nombre_completo }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.asignatura-card {
+    transition: all 0.3s ease;
+    border: 1px solid #e3e6f0;
+}
+
+.asignatura-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+}
+
+.nota-alta {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.nota-media {
+    background-color: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeaa7;
+}
+
+.nota-baja {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.promedio-general {
+    font-size: 2.5rem;
+    font-weight: bold;
+}
+
+.evaluacion-item {
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+    border-radius: 8px;
+    border-left: 4px solid #007bff;
+}
+
+.tabla-calificaciones th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.mes-seccion {
+    background-color: #f1f3f4;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800">
+                <i class="fas fa-chart-line text-primary"></i> Calificaciones
+            </h1>
+            <p class="mb-0 text-muted">
+                <strong>{{ estudiante.get_nombre_completo }}</strong>
+                {% if curso_actual %} - {{ curso_actual.nombre }}{% endif %}
+            </p>
+        </div>
+        <div>
+            <a href="{% url 'detalle_estudiante_apoderado' estudiante.id %}" class="btn btn-secondary shadow-sm me-2">
+                <i class="fas fa-arrow-left fa-sm"></i> Volver al Detalle
+            </a>
+            <a href="{% url 'asistencia_estudiante_apoderado' estudiante.id %}" class="btn btn-info shadow-sm">
+                <i class="fas fa-calendar-check fa-sm"></i> Ver Asistencia
+            </a>
+        </div>
+    </div>
+
+    <!-- Resumen general -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Promedio General</div>
+                            <div class="promedio-general text-primary">{{ promedio_general }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-graduation-cap fa-3x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Total Asignaturas</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ asignaturas_detalle|length }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-book fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Total Evaluaciones</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {% widthratio asignaturas_detalle|length|add:0 1 8 %}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Rendimiento</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {% if promedio_general >= 6.0 %}
+                                    <span class="text-success">Excelente</span>
+                                {% elif promedio_general >= 5.0 %}
+                                    <span class="text-warning">Bueno</span>
+                                {% elif promedio_general >= 4.0 %}
+                                    <span class="text-danger">Regular</span>
+                                {% else %}
+                                    <span class="text-danger">Bajo</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-chart-bar fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Calificaciones por asignatura -->
+    {% if asignaturas_detalle %}
+    <div class="row">
+        {% for item in asignaturas_detalle %}
+        <div class="col-lg-6 mb-4">
+            <div class="card asignatura-card h-100">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0 text-primary">
+                        <i class="fas fa-book"></i> {{ item.asignatura.nombre }}
+                    </h6>
+                    <span class="badge 
+                        {% if item.promedio >= 6.0 %}badge-success
+                        {% elif item.promedio >= 4.0 %}badge-warning
+                        {% else %}badge-danger{% endif %} badge-lg">
+                        {{ item.promedio }}
+                    </span>
+                </div>
+                
+                <div class="card-body">
+                    <!-- Información del profesor -->
+                    <div class="mb-3">
+                        <small class="text-muted">
+                            <i class="fas fa-user-tie"></i> 
+                            <strong>Profesor:</strong> 
+                            {% if item.profesor %}
+                                {{ item.profesor.get_nombre_completo }}
+                            {% else %}
+                                <span class="text-warning">Sin profesor asignado</span>
+                            {% endif %}
+                        </small>
+                    </div>
+
+                    <!-- Estadísticas rápidas -->
+                    <div class="row mb-3">
+                        <div class="col-4 text-center">
+                            <div class="text-primary font-weight-bold">{{ item.total_evaluaciones }}</div>
+                            <div class="small text-muted">Evaluaciones</div>
+                        </div>
+                        <div class="col-4 text-center">
+                            <div class="font-weight-bold 
+                                {% if item.promedio >= 6.0 %}text-success
+                                {% elif item.promedio >= 4.0 %}text-warning
+                                {% else %}text-danger{% endif %}">
+                                {{ item.promedio }}
+                            </div>
+                            <div class="small text-muted">Promedio</div>
+                        </div>
+                        <div class="col-4 text-center">
+                            <div class="text-info font-weight-bold">
+                                {% if item.calificaciones %}
+                                    {{ item.calificaciones.first.fecha_evaluacion|date:"M" }}
+                                {% else %}
+                                    --
+                                {% endif %}
+                            </div>
+                            <div class="small text-muted">Última</div>
+                        </div>
+                    </div>
+
+                    <!-- Lista de calificaciones -->
+                    {% if item.calificaciones %}
+                    <div class="evaluaciones-lista">
+                        <h6 class="text-muted mb-2">
+                            <i class="fas fa-list"></i> Últimas Evaluaciones
+                        </h6>
+                        {% for calif in item.calificaciones|slice:":8" %}
+                        <div class="evaluacion-item 
+                            {% if calif.puntaje >= 6.0 %}nota-alta
+                            {% elif calif.puntaje >= 4.0 %}nota-media
+                            {% else %}nota-baja{% endif %}">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="font-weight-bold">{{ calif.nombre_evaluacion }}</div>
+                                    <div class="small">{{ calif.fecha_evaluacion|date:"d/m/Y" }}</div>
+                                    {% if calif.descripcion %}
+                                    <div class="small text-muted">{{ calif.descripcion|truncatechars:50 }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="text-right">
+                                    <div class="h5 mb-0 font-weight-bold">{{ calif.puntaje }}</div>
+                                    {% if calif.porcentaje %}
+                                    <div class="small text-muted">{{ calif.porcentaje }}%</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                        
+                        {% if item.calificaciones|length > 8 %}
+                        <div class="text-center mt-2">
+                            <small class="text-muted">
+                                Y {{ item.calificaciones|length|add:"-8" }} evaluación{{ item.calificaciones|length|add:"-8"|pluralize:",es" }} más...
+                            </small>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% else %}
+                    <div class="text-center text-muted py-3">
+                        <i class="fas fa-clipboard fa-2x mb-2"></i>
+                        <p class="mb-0">Sin evaluaciones registradas</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <!-- Sin calificaciones -->
+    <div class="card">
+        <div class="card-body text-center py-5">
+            <i class="fas fa-chart-line fa-4x text-muted mb-4"></i>
+            <h4 class="text-muted">No hay calificaciones registradas</h4>
+            <p class="text-muted">
+                El estudiante aún no tiene calificaciones en el sistema para el año {{ curso_actual.anio|default:"actual" }}.
+            </p>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Resumen por periodo (si hay calificaciones organizadas) -->
+    {% if asignaturas_detalle %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0 text-primary">
+                        <i class="fas fa-chart-pie"></i> Análisis de Rendimiento
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <h6 class="text-success">Asignaturas con mejor rendimiento:</h6>
+                            <ul class="list-unstyled">
+                                {% for item in asignaturas_detalle %}
+                                    {% if item.promedio >= 6.0 %}
+                                    <li class="mb-1">
+                                        <i class="fas fa-check-circle text-success"></i>
+                                        {{ item.asignatura.nombre }} ({{ item.promedio }})
+                                    </li>
+                                    {% endif %}
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        <div class="col-md-4">
+                            <h6 class="text-warning">Asignaturas en desarrollo:</h6>
+                            <ul class="list-unstyled">
+                                {% for item in asignaturas_detalle %}
+                                    {% if item.promedio >= 4.0 and item.promedio < 6.0 %}
+                                    <li class="mb-1">
+                                        <i class="fas fa-exclamation-circle text-warning"></i>
+                                        {{ item.asignatura.nombre }} ({{ item.promedio }})
+                                    </li>
+                                    {% endif %}
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        <div class="col-md-4">
+                            <h6 class="text-danger">Asignaturas que requieren atención:</h6>
+                            <ul class="list-unstyled">
+                                {% for item in asignaturas_detalle %}
+                                    {% if item.promedio < 4.0 %}
+                                    <li class="mb-1">
+                                        <i class="fas fa-times-circle text-danger"></i>
+                                        {{ item.asignatura.nombre }} ({{ item.promedio }})
+                                    </li>
+                                    {% endif %}
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Animaciones de entrada
+    $('.asignatura-card').each(function(index) {
+        $(this).delay(index * 100).fadeIn('slow');
+    });
+    
+    // Tooltips
+    $('[data-toggle="tooltip"]').tooltip();
+    
+    // Resaltar promedio general según valor
+    const promedioGeneral = {{ promedio_general }};
+    const $promedio = $('.promedio-general');
+    
+    if (promedioGeneral >= 6.0) {
+        $promedio.addClass('text-success');
+    } else if (promedioGeneral >= 4.0) {
+        $promedio.addClass('text-warning');
+    } else {
+        $promedio.addClass('text-danger');
+    }
+});
+</script>
+{% endblock %}

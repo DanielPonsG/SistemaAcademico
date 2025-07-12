@@ -1,0 +1,419 @@
+{% extends "index_master.html" %}
+{% load static %}
+
+{% block title %}Asistencia - {{ estudiante.get_nombre_completo }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.asistencia-presente {
+    background-color: #d4edda;
+    color: #155724;
+    border-left: 4px solid #28a745;
+}
+
+.asistencia-ausente {
+    background-color: #f8d7da;
+    color: #721c24;
+    border-left: 4px solid #dc3545;
+}
+
+.mes-card {
+    transition: all 0.3s ease;
+    border: 1px solid #e3e6f0;
+}
+
+.mes-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+}
+
+.porcentaje-excelente {
+    color: #28a745;
+    font-weight: bold;
+}
+
+.porcentaje-bueno {
+    color: #20c997;
+    font-weight: bold;
+}
+
+.porcentaje-regular {
+    color: #ffc107;
+    font-weight: bold;
+}
+
+.porcentaje-malo {
+    color: #dc3545;
+    font-weight: bold;
+}
+
+.asistencia-item {
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+    border-radius: 8px;
+}
+
+.filtros-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.estadistica-card {
+    border-radius: 10px;
+    transition: all 0.3s ease;
+}
+
+.estadistica-card:hover {
+    transform: scale(1.05);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800">
+                <i class="fas fa-calendar-check text-primary"></i> Asistencia
+            </h1>
+            <p class="mb-0 text-muted">
+                <strong>{{ estudiante.get_nombre_completo }}</strong>
+                {% if curso_actual %} - {{ curso_actual.nombre }}{% endif %}
+            </p>
+        </div>
+        <div>
+            <a href="{% url 'detalle_estudiante_apoderado' estudiante.id %}" class="btn btn-secondary shadow-sm me-2">
+                <i class="fas fa-arrow-left fa-sm"></i> Volver al Detalle
+            </a>
+            <a href="{% url 'calificaciones_estudiante_apoderado' estudiante.id %}" class="btn btn-success shadow-sm">
+                <i class="fas fa-chart-line fa-sm"></i> Ver Calificaciones
+            </a>
+        </div>
+    </div>
+
+    <!-- Filtros de fecha -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card filtros-card">
+                <div class="card-body">
+                    <form method="GET" class="row align-items-center">
+                        <div class="col-md-4">
+                            <label for="desde" class="form-label small text-white-50">Desde:</label>
+                            <input type="date" class="form-control" id="desde" name="desde" value="{{ fecha_desde }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="hasta" class="form-label small text-white-50">Hasta:</label>
+                            <input type="date" class="form-control" id="hasta" name="hasta" value="{{ fecha_hasta }}">
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end">
+                            <button type="submit" class="btn btn-light me-2">
+                                <i class="fas fa-filter"></i> Filtrar
+                            </button>
+                            <a href="{% url 'asistencia_estudiante_apoderado' estudiante.id %}" class="btn btn-outline-light">
+                                <i class="fas fa-undo"></i> Limpiar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estadísticas generales -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card estadistica-card border-left-success shadow h-100">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Porcentaje Asistencia</div>
+                            <div class="h2 mb-0 font-weight-bold 
+                                {% if porcentaje_asistencia >= 95 %}porcentaje-excelente
+                                {% elif porcentaje_asistencia >= 85 %}porcentaje-bueno
+                                {% elif porcentaje_asistencia >= 75 %}porcentaje-regular
+                                {% else %}porcentaje-malo{% endif %}">
+                                {{ porcentaje_asistencia }}%
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-percentage fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card estadistica-card border-left-primary shadow h-100">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Días Presente</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ dias_presente }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card estadistica-card border-left-danger shadow h-100">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Días Ausente</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ dias_ausente }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-times-circle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card estadistica-card border-left-info shadow h-100">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Total Días</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_dias }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-calendar fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Columna izquierda: Estadísticas por mes -->
+        <div class="col-lg-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-chart-bar"></i> Asistencia por Mes
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if estadisticas_mensuales %}
+                        {% for mes in estadisticas_mensuales %}
+                        <div class="card mes-card mb-3">
+                            <div class="card-body py-2">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-0">{{ mes.mes_nombre }}</h6>
+                                        <small class="text-muted">{{ mes.total }} días registrados</small>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="h5 mb-0 
+                                            {% if mes.porcentaje >= 95 %}text-success
+                                            {% elif mes.porcentaje >= 85 %}text-info
+                                            {% elif mes.porcentaje >= 75 %}text-warning
+                                            {% else %}text-danger{% endif %}">
+                                            {{ mes.porcentaje }}%
+                                        </div>
+                                        <small class="text-muted">{{ mes.presente }}/{{ mes.total }}</small>
+                                    </div>
+                                </div>
+                                <!-- Barra de progreso -->
+                                <div class="progress mt-2" style="height: 4px;">
+                                    <div class="progress-bar 
+                                        {% if mes.porcentaje >= 95 %}bg-success
+                                        {% elif mes.porcentaje >= 85 %}bg-info
+                                        {% elif mes.porcentaje >= 75 %}bg-warning
+                                        {% else %}bg-danger{% endif %}" 
+                                        style="width: {{ mes.porcentaje }}%"></div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-calendar fa-3x text-muted mb-3"></i>
+                            <h6 class="text-muted">No hay estadísticas mensuales</h6>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Columna derecha: Registros de asistencia -->
+        <div class="col-lg-8">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-list"></i> Registros Recientes
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if asistencias %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Asignatura</th>
+                                        <th>Estado</th>
+                                        <th>Observación</th>
+                                        <th>Justificación</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for asistencia in asistencias %}
+                                    <tr class="{% if not asistencia.presente %}table-danger{% else %}table-success{% endif %}">
+                                        <td>
+                                            <strong>{{ asistencia.fecha|date:"d/m/Y" }}</strong>
+                                            <br><small class="text-muted">{{ asistencia.fecha|date:"l" }}</small>
+                                        </td>
+                                        <td>
+                                            {{ asistencia.asignatura.nombre }}
+                                            {% if asistencia.asignatura.profesor_responsable %}
+                                            <br><small class="text-muted">{{ asistencia.asignatura.profesor_responsable.get_nombre_completo }}</small>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if asistencia.presente %}
+                                                <span class="badge badge-success">
+                                                    <i class="fas fa-check"></i> Presente
+                                                </span>
+                                            {% else %}
+                                                <span class="badge badge-danger">
+                                                    <i class="fas fa-times"></i> Ausente
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if asistencia.observacion %}
+                                                {{ asistencia.observacion|truncatechars:40 }}
+                                            {% else %}
+                                                <span class="text-muted">--</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if asistencia.justificacion %}
+                                                <span class="text-info">
+                                                    <i class="fas fa-file-alt"></i> 
+                                                    {{ asistencia.justificacion|truncatechars:30 }}
+                                                </span>
+                                            {% else %}
+                                                <span class="text-muted">--</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-calendar-times fa-4x text-muted mb-4"></i>
+                            <h4 class="text-muted">No hay registros de asistencia</h4>
+                            <p class="text-muted">No se encontraron registros para el período seleccionado.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ausencias con y sin justificación -->
+    {% if ausencias_con_justificacion or ausencias_sin_justificacion %}
+    <div class="row">
+        {% if ausencias_con_justificacion %}
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white py-3">
+                    <h6 class="m-0 font-weight-bold">
+                        <i class="fas fa-file-medical"></i> Ausencias Justificadas ({{ ausencias_con_justificacion.count }})
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% for ausencia in ausencias_con_justificacion|slice:":10" %}
+                    <div class="asistencia-item asistencia-presente mb-2">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <strong>{{ ausencia.fecha|date:"d/m/Y" }}</strong> - {{ ausencia.asignatura.nombre }}
+                                <div class="small mt-1">
+                                    <i class="fas fa-quote-left"></i> {{ ausencia.justificacion|truncatechars:60 }}
+                                </div>
+                            </div>
+                            <span class="badge badge-success">Justificada</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if ausencias_sin_justificacion %}
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow">
+                <div class="card-header bg-danger text-white py-3">
+                    <h6 class="m-0 font-weight-bold">
+                        <i class="fas fa-exclamation-triangle"></i> Ausencias Sin Justificar ({{ ausencias_sin_justificacion.count }})
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% for ausencia in ausencias_sin_justificacion|slice:":10" %}
+                    <div class="asistencia-item asistencia-ausente mb-2">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <strong>{{ ausencia.fecha|date:"d/m/Y" }}</strong> - {{ ausencia.asignatura.nombre }}
+                                {% if ausencia.observacion %}
+                                <div class="small mt-1">
+                                    <i class="fas fa-info-circle"></i> {{ ausencia.observacion }}
+                                </div>
+                                {% endif %}
+                            </div>
+                            <span class="badge badge-danger">Sin Justificar</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Animaciones de entrada
+    $('.mes-card, .estadistica-card').hide().fadeIn('slow');
+    
+    // Tooltips
+    $('[data-toggle="tooltip"]').tooltip();
+    
+    // Configurar fechas por defecto si están vacías
+    const hoy = new Date().toISOString().split('T')[0];
+    const inicioAnio = new Date(new Date().getFullYear(), 0, 1).toISOString().split('T')[0];
+    
+    if (!$('#desde').val()) {
+        $('#desde').val(inicioAnio);
+    }
+    if (!$('#hasta').val()) {
+        $('#hasta').val(hoy);
+    }
+    
+    // Resaltar filas según asistencia
+    $('tbody tr').each(function() {
+        const estado = $(this).find('.badge').text().trim();
+        if (estado.includes('Ausente')) {
+            $(this).addClass('table-warning');
+        }
+    });
+});
+</script>
+{% endblock %}
