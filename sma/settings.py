@@ -23,10 +23,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 try:
     from decouple import config
     SECRET_KEY = config('SECRET_KEY', default='django-insecure-m#4xd(+=97eyuwi7bt5sw_h#^j9)8pb2m&p)vaajgq3t%0r$ll')
-    DEBUG = config('DEBUG', default=False, cast=bool)
+    DEBUG = config('DEBUG', default=True, cast=bool)  # Activamos DEBUG temporalmente
 except ImportError:
     SECRET_KEY = 'django-insecure-m#4xd(+=97eyuwi7bt5sw_h#^j9)8pb2m&p)vaajgq3t%0r$ll'
-    DEBUG = False
+    DEBUG = True  # Activamos DEBUG temporalmente
 
 ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'testserver', '.vercel.app', '.now.sh', '*']
 
@@ -53,7 +53,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'smapp.middleware.ApoderadoRedirectMiddleware',
+    # 'smapp.middleware.ApoderadoRedirectMiddleware',  # Desactivado temporalmente
 ]
 
 ROOT_URLCONF = 'sma.urls'
