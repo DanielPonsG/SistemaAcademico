@@ -417,11 +417,52 @@ class Perfil(models.Model):
         ('profesor', 'Profesor'),
         ('alumno', 'Alumno'),
     ]
+    
+    TIPOS_DOCUMENTO = [
+        ('rut', 'RUT'),
+        ('pasaporte', 'Pasaporte'),
+        ('cedula_extranjera', 'Cédula de Extranjería'),
+    ]
+    
+    GENERO_CHOICES = [
+        ('masculino', 'Masculino'),
+        ('femenino', 'Femenino'),
+        ('otro', 'Otro'),
+    ]
+    
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     tipo_usuario = models.CharField(max_length=10, choices=TIPOS_USUARIO)
+    
+    # Campos de identificación
+    tipo_documento = models.CharField(max_length=20, choices=TIPOS_DOCUMENTO, default='rut')
+    numero_documento = models.CharField(max_length=20, blank=True, null=True, help_text="RUT, Pasaporte o Cédula")
+    fecha_nacimiento = models.DateField(blank=True, null=True)
+    genero = models.CharField(max_length=10, choices=GENERO_CHOICES, blank=True, null=True)
+    
+    # Información de contacto
+    direccion = models.CharField(max_length=255, blank=True, null=True)
+    telefono = models.CharField(max_length=20, blank=True, null=True)
+    
+    # Campos específicos para director
+    cargo = models.CharField(max_length=50, blank=True, null=True, help_text="Cargo específico para directores")
+    fecha_ingreso = models.DateField(blank=True, null=True, help_text="Fecha de ingreso para directores")
 
     def __str__(self):
         return f"{self.user.username} ({self.get_tipo_usuario_display()})"
+    
+    @property
+    def nombre_completo(self):
+        """Devuelve el nombre completo del usuario"""
+        return f"{self.user.first_name} {self.user.last_name}".strip()
+    
+    @property
+    def edad(self):
+        """Calcula la edad basada en la fecha de nacimiento"""
+        if self.fecha_nacimiento:
+            from datetime import date
+            today = date.today()
+            return today.year - self.fecha_nacimiento.year - ((today.month, today.day) < (self.fecha_nacimiento.month, self.fecha_nacimiento.day))
+        return None
 
 class AsistenciaAlumno(models.Model):
     estudiante = models.ForeignKey(Estudiante, on_delete=models.CASCADE, related_name='asistencias')

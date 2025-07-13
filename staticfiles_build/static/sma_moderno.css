@@ -1,0 +1,202 @@
+/* Estilos base modernos para toda la aplicación SMA */
+:root {
+  --color-primary: #667eea;
+  --color-secondary: #764ba2;
+  --color-success: #38d39f;
+  --color-danger: #dc3545;
+  --color-warning: #ffc107;
+  --color-info: #17a2b8;
+  --color-light: #f8f9fa;
+  --color-dark: #212529;
+  --color-bg: #f4f6fb;
+  --radius: 14px;
+  --shadow: 0 2px 12px rgba(0,0,0,0.07);
+  --transition: all 0.2s cubic-bezier(.4,0,.2,1);
+  --font-main: 'Inter', 'Segoe UI', Arial, sans-serif;
+}
+
+body {
+  background: var(--color-bg);
+  font-family: var(--font-main);
+  color: var(--color-dark);
+  font-size: 1rem;
+}
+
+.card, .main-content .card {
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  border: none;
+  background: #fff;
+  margin-bottom: 1.5rem;
+  transition: var(--transition);
+}
+
+.card-header {
+  background: var(--color-light);
+  border-bottom: 1px solid #e5e7eb;
+  border-radius: var(--radius) var(--radius) 0 0;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.btn, .btn-primary, .btn-success, .btn-danger, .btn-warning, .btn-info {
+  border-radius: 8px;
+  font-weight: 500;
+  transition: var(--transition);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  border: none;
+}
+
+.btn-success {
+  background: linear-gradient(135deg, #38d39f, #43e97b);
+  border: none;
+}
+
+.btn-danger {
+  background: linear-gradient(135deg, #dc3545, #c82333);
+  border: none;
+}
+
+.btn-warning {
+  background: linear-gradient(135deg, #ffc107, #ffb300);
+  border: none;
+  color: #212529;
+}
+
+.btn-info {
+  background: linear-gradient(135deg, #17a2b8, #117a8b);
+  border: none;
+}
+
+.table {
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: #fff;
+}
+
+.table th, .table td {
+  vertical-align: middle;
+  border-top: 1px solid #e5e7eb;
+}
+
+input, select, textarea {
+  border-radius: 8px !important;
+  border: 1px solid #e5e7eb !important;
+  background: #f8f9fa !important;
+  transition: var(--transition);
+}
+input:focus, select:focus, textarea:focus {
+  border-color: var(--color-primary) !important;
+  background: #fff !important;
+  box-shadow: 0 0 0 2px #667eea22;
+}
+
+.badge {
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.95em;
+  padding: 0.4em 0.7em;
+}
+
+.alert {
+  border-radius: 10px;
+  font-size: 1em;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  background: #e5e7eb;
+}
+::-webkit-scrollbar-thumb {
+  background: #cfd8dc;
+  border-radius: 8px;
+}
+
+/* Animaciones sutiles */
+.card, .btn, .table, .alert, .main-content {
+  transition: var(--transition);
+}
+
+.card:hover {
+  box-shadow: 0 6px 24px rgba(102,126,234,0.10);
+  transform: translateY(-2px) scale(1.01);
+}
+
+/* Mejoras para formularios */
+.form-label {
+  font-weight: 600;
+  color: var(--color-secondary);
+}
+
+.form-control:disabled, .form-control[readonly] {
+  background: #e9ecef !important;
+  color: #adb5bd;
+}
+
+/* Mejoras para menú lateral (sidebar) */
+.sidebar, .left_col {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  color: #fff;
+}
+.sidebar .menu-section-title, .left_col .menu_section h3 {
+  color: #e0e0e0;
+  font-weight: 700;
+  letter-spacing: 1px;
+  opacity: 0.8;
+}
+.sidebar .menu-list li a, .left_col .side-menu li a {
+  color: #fff;
+  border-radius: 8px;
+  margin-bottom: 2px;
+  font-weight: 500;
+  transition: background 0.2s, color 0.2s;
+}
+.sidebar .menu-list li a.active, .sidebar .menu-list li a:hover,
+.left_col .side-menu li a.active, .left_col .side-menu li a:hover {
+  background: rgba(255,255,255,0.13);
+  color: #fff;
+}
+
+/* Mejoras para cards de accesos rápidos */
+.quick-access-card {
+  background: linear-gradient(135deg, #f8fafc 60%, #e9ecef 100%);
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 2px 8px rgba(102,126,234,0.04);
+  border-radius: 12px;
+  transition: var(--transition);
+}
+.quick-access-card:hover {
+  background: linear-gradient(135deg, #e0e7ff 60%, #f8fafc 100%);
+  box-shadow: 0 6px 24px rgba(102,126,234,0.10);
+  transform: translateY(-2px) scale(1.03);
+}
+
+/* Mejoras para leyendas y detalles */
+.legend-color {
+  border-radius: 4px;
+  border: 1px solid #e5e7eb;
+}
+
+/* Mejoras para responsividad */
+@media (max-width: 991.98px) {
+  .main-content {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+  .card {
+    margin-bottom: 1rem;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .main-content {
+    padding: 0.5rem !important;
+  }
+  .card-header, .card-body {
+    padding: 1rem !important;
+  }
+}

@@ -78,10 +78,24 @@ def agregar(request):
         elif tipo == 'director':
             form = DirectorForm(request.POST)
             if form.is_valid():
-                # El formulario maneja la creación del usuario y perfil
-                user, perfil = form.save()
-                mensaje = f"Director {user.get_full_name()} agregado correctamente."
-                form = DirectorForm()  # Limpiar formulario
+                try:
+                    # El formulario maneja la creación del usuario y perfil
+                    user, perfil = form.save()
+                    mensaje = f"Director {user.get_full_name()} agregado correctamente."
+                    form = DirectorForm()  # Limpiar formulario
+                except Exception as e:
+                    # Log del error para debugging
+                    import traceback
+                    print(f"Error al crear director: {e}")
+                    print(f"Traceback: {traceback.format_exc()}")
+                    mensaje = f"Error al crear director: {str(e)}"
+            else:
+                # Log de errores del formulario para debugging
+                print(f"Errores del formulario DirectorForm: {form.errors}")
+                print(f"Errores no específicos de campo: {form.non_field_errors()}")
+                
+                # Los errores del formulario se mostrarán automáticamente en el template
+                # No necesitamos crear un mensaje personalizado aquí
         else:
             form = EstudianteForm(request.POST)
             if form.is_valid():

@@ -12,8 +12,8 @@ def validar_rut(rut):
     # Limpiar el RUT - remover puntos, guiones y espacios
     rut_limpio = rut.replace(".", "").replace("-", "").replace(" ", "").upper()
     
-    # Verificar longitud mínima
-    if len(rut_limpio) < 2:
+    # Verificar longitud (debe ser entre 8 y 9 caracteres: 7-8 dígitos + DV)
+    if len(rut_limpio) < 8 or len(rut_limpio) > 9:
         return False
     
     # Separar número y dígito verificador
@@ -28,7 +28,11 @@ def validar_rut(rut):
     if len(numero) < 7 or len(numero) > 8:
         return False
     
-    # Calcular dígito verificador
+    # Validar dígito verificador
+    if dv not in '0123456789K':
+        return False
+    
+    # Calcular dígito verificador usando el algoritmo estándar
     suma = 0
     multiplicador = 2
     
@@ -39,14 +43,7 @@ def validar_rut(rut):
             multiplicador = 2
     
     resto = suma % 11
-    dv_calculado = 11 - resto
-    
-    if dv_calculado == 11:
-        dv_calculado = '0'
-    elif dv_calculado == 10:
-        dv_calculado = 'K'
-    else:
-        dv_calculado = str(dv_calculado)
+    dv_calculado = 'K' if resto == 1 else '0' if resto == 0 else str(11 - resto)
     
     # Comparar dígito verificador
     return dv == dv_calculado
@@ -54,21 +51,25 @@ def validar_rut(rut):
 def formatear_rut(rut):
     """Formatear RUT con puntos y guión"""
     # Limpiar el RUT
-    rut = rut.replace(".", "").replace("-", "").upper()
+    rut_limpio = rut.replace(".", "").replace("-", "").replace(" ", "").upper()
     
-    if len(rut) < 2:
-        return rut
+    if len(rut_limpio) < 2:
+        return rut_limpio
     
     # Separar número y dígito verificador
-    numero = rut[:-1]
-    dv = rut[-1]
+    numero = rut_limpio[:-1]
+    dv = rut_limpio[-1]
     
-    # Formatear con puntos
-    numero_formateado = ""
-    for i, digit in enumerate(reversed(numero)):
-        if i > 0 and i % 3 == 0:
-            numero_formateado = "." + numero_formateado
-        numero_formateado = digit + numero_formateado
+    # Formatear según la longitud del número
+    if len(numero) == 7:
+        # Formato: 1.234.567-9
+        numero_formateado = f"{numero[0]}.{numero[1:4]}.{numero[4:]}"
+    elif len(numero) == 8:
+        # Formato: 12.345.678-9
+        numero_formateado = f"{numero[:2]}.{numero[2:5]}.{numero[5:]}"
+    else:
+        # Para casos edge, usar el número sin formatear
+        numero_formateado = numero
     
     return f"{numero_formateado}-{dv}"
 
@@ -1904,6 +1905,115 @@ class DirectorForm(forms.Form):
     Formulario para crear usuarios con perfil de Director.
     Los directores son usuarios administrativos sin modelo específico.
     """
+    # Información personal
+    first_name = forms.CharField(
+        label="Nombres",
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Nombres completos'
+        })
+    )
+    
+    last_name = forms.CharField(
+        label="Apellidos",
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Apellidos completos'
+        })
+    )
+    
+    # Campos de identificación
+    tipo_documento = forms.ChoiceField(
+        label="Tipo de documento",
+        choices=[
+            ('rut', 'RUT'),
+            ('pasaporte', 'Pasaporte'),
+            ('cedula_extranjera', 'Cédula de Extranjería')
+        ],
+        widget=forms.Select(attrs={
+            'class': 'form-control'
+        }),
+        initial='rut'
+    )
+    
+    numero_documento = forms.CharField(
+        label="Número de documento",
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': '12345678-9',
+            'maxlength': '12'
+        }),
+        help_text="Formato: 12345678-9"
+    )
+    
+    fecha_nacimiento = forms.DateField(
+        label="Fecha de nacimiento",
+        widget=forms.DateInput(attrs={
+            'class': 'form-control',
+            'type': 'date'
+        }),
+        help_text="Para calcular la edad"
+    )
+    
+    genero = forms.ChoiceField(
+        label="Género",
+        choices=[
+            ('masculino', 'Masculino'),
+            ('femenino', 'Femenino'),
+            ('otro', 'Otro')
+        ],
+        widget=forms.Select(attrs={
+            'class': 'form-control'
+        })
+    )
+    
+    email = forms.EmailField(
+        label="Correo electrónico",
+        widget=forms.EmailInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'director@colegio.cl'
+        })
+    )
+    
+    # Información adicional
+    telefono = forms.CharField(
+        label="Teléfono",
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': '+56912345678'
+        })
+    )
+    
+    direccion = forms.CharField(
+        label="Dirección",
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Dirección completa'
+        })
+    )
+    
+    cargo = forms.CharField(
+        label="Cargo específico",
+        initial="Director",
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Director, Subdirector, etc.'
+        }),
+        help_text="Especifique el cargo dentro de la dirección"
+    )
+    
+    fecha_ingreso = forms.DateField(
+        label="Fecha de ingreso",
+        widget=forms.DateInput(attrs={
+            'class': 'form-control',
+            'type': 'date'
+        }),
+        initial=timezone.now().date(),
+        help_text="Fecha de inicio en el cargo"
+    )
+    
     # Datos del usuario
     username = forms.CharField(
         label="Nombre de usuario",
@@ -1931,61 +2041,72 @@ class DirectorForm(forms.Form):
         })
     )
     
-    # Información personal
-    first_name = forms.CharField(
-        label="Nombres",
-        widget=forms.TextInput(attrs={
-            'class': 'form-control',
-            'placeholder': 'Nombres completos'
-        })
-    )
-    
-    last_name = forms.CharField(
-        label="Apellidos",
-        widget=forms.TextInput(attrs={
-            'class': 'form-control',
-            'placeholder': 'Apellidos completos'
-        })
-    )
-    
-    email = forms.EmailField(
-        label="Correo electrónico",
-        widget=forms.EmailInput(attrs={
-            'class': 'form-control',
-            'placeholder': 'director@colegio.cl'
-        })
-    )
-    
-    # Información adicional
-    telefono = forms.CharField(
-        label="Teléfono",
-        required=False,
-        widget=forms.TextInput(attrs={
-            'class': 'form-control',
-            'placeholder': '+56912345678'
-        })
-    )
-    
-    cargo = forms.CharField(
-        label="Cargo específico",
-        initial="Director",
-        widget=forms.TextInput(attrs={
-            'class': 'form-control',
-            'placeholder': 'Director, Subdirector, etc.'
-        }),
-        help_text="Especifique el cargo dentro de la dirección"
-    )
-    
-    fecha_ingreso = forms.DateField(
-        label="Fecha de ingreso",
-        widget=forms.DateInput(attrs={
-            'class': 'form-control',
-            'type': 'date'
-        }),
-        initial=timezone.now().date(),
-        help_text="Fecha de inicio en el cargo"
-    )
-    
+    def clean_numero_documento(self):
+        from .models import Perfil
+        numero_documento = self.cleaned_data.get('numero_documento')
+        tipo_documento = self.cleaned_data.get('tipo_documento')
+        
+        if not numero_documento:
+            raise forms.ValidationError('Este campo es obligatorio.')
+        
+        # Validar formato de RUT solo si es RUT
+        if tipo_documento == 'rut':
+            # Limpiar RUT: remover puntos, guiones y espacios
+            rut_limpio = ''.join(c for c in numero_documento if c.isalnum())
+            
+            if len(rut_limpio) < 8 or len(rut_limpio) > 9:
+                raise forms.ValidationError('RUT debe tener entre 8 y 9 caracteres (incluyendo dígito verificador).')
+            
+            # Separar número y dígito verificador
+            numero = rut_limpio[:-1]
+            dv = rut_limpio[-1].upper()
+            
+            # Validar que el número sea numérico y tenga 7 u 8 dígitos
+            if not numero.isdigit() or len(numero) < 7 or len(numero) > 8:
+                raise forms.ValidationError('El número del RUT debe tener entre 7 y 8 dígitos.')
+            
+            # Validar dígito verificador
+            if dv not in '0123456789K':
+                raise forms.ValidationError('Dígito verificador inválido.')
+            
+            # Calcular dígito verificador usando el algoritmo estándar
+            suma = 0
+            multiplicador = 2
+            for digito in reversed(numero):
+                suma += int(digito) * multiplicador
+                multiplicador += 1
+                if multiplicador > 7:
+                    multiplicador = 2
+            
+            resto = suma % 11
+            dv_calculado = 'K' if resto == 1 else '0' if resto == 0 else str(11 - resto)
+            
+            if dv != dv_calculado:
+                raise forms.ValidationError('RUT inválido. Dígito verificador incorrecto.')
+            
+            # Formatear RUT correctamente según su longitud
+            if len(numero) == 7:
+                # Formato: 1.234.567-9
+                numero_formateado = f"{numero[0]}.{numero[1:4]}.{numero[4:]}"
+            elif len(numero) == 8:
+                # Formato: 12.345.678-9
+                numero_formateado = f"{numero[:2]}.{numero[2:5]}.{numero[5:]}"
+            else:
+                numero_formateado = numero
+            
+            rut_formateado = f"{numero_formateado}-{dv}"
+            
+            # Verificar que no exista otro perfil con el mismo RUT
+            if Perfil.objects.filter(numero_documento=rut_formateado).exists():
+                raise forms.ValidationError('Ya existe un usuario registrado con este RUT.')
+                
+            return rut_formateado
+        else:
+            # Para otros tipos de documento, solo verificar que no exista
+            if Perfil.objects.filter(numero_documento=numero_documento).exists():
+                raise forms.ValidationError('Ya existe un usuario registrado con este documento.')
+            return numero_documento
+
     def clean_username(self):
         username = self.cleaned_data['username']
         if User.objects.filter(username=username).exists():
@@ -2003,12 +2124,20 @@ class DirectorForm(forms.Form):
         password = cleaned_data.get('password')
         password_confirm = cleaned_data.get('password_confirm')
         
-        if password and password_confirm:
-            if password != password_confirm:
-                raise forms.ValidationError('Las contraseñas no coinciden.')
-            
-            if len(password) < 8:
-                raise forms.ValidationError('La contraseña debe tener al menos 8 caracteres.')
+        # Validar que ambas contraseñas estén presentes
+        if not password:
+            raise forms.ValidationError('La contraseña es obligatoria.')
+        
+        if not password_confirm:
+            raise forms.ValidationError('Debe confirmar la contraseña.')
+        
+        # Validar que las contraseñas coincidan
+        if password != password_confirm:
+            raise forms.ValidationError('Las contraseñas no coinciden.')
+        
+        # Validar longitud mínima
+        if len(password) < 8:
+            raise forms.ValidationError('La contraseña debe tener al menos 8 caracteres.')
         
         return cleaned_data
     
@@ -2028,11 +2157,15 @@ class DirectorForm(forms.Form):
             last_name=self.cleaned_data['last_name']
         )
         
-        # Crear perfil de director
-        from .models import Perfil
+        # Crear perfil de director con todos los campos
         perfil = Perfil.objects.create(
             user=user,
             tipo_usuario='director',
+            tipo_documento=self.cleaned_data.get('tipo_documento', 'rut'),
+            numero_documento=self.cleaned_data.get('numero_documento', ''),
+            fecha_nacimiento=self.cleaned_data.get('fecha_nacimiento'),
+            genero=self.cleaned_data.get('genero', ''),
+            direccion=self.cleaned_data.get('direccion', ''),
             telefono=self.cleaned_data.get('telefono', ''),
             cargo=self.cleaned_data.get('cargo', 'Director'),
             fecha_ingreso=self.cleaned_data['fecha_ingreso']

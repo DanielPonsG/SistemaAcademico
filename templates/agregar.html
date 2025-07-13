@@ -21,6 +21,16 @@
               </div>
             {% endif %}
             
+            {% if form.non_field_errors %}
+              <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-circle me-2"></i>
+                {% for error in form.non_field_errors %}
+                  {{ error }}{% if not forloop.last %}<br>{% endif %}
+                {% endfor %}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              </div>
+            {% endif %}
+            
             {% if not es_edicion %}
             <form id="tipoUsuarioForm" method="get" class="mb-4" action="{% url 'agregar' %}">
               <div class="row align-items-center">
@@ -487,6 +497,68 @@
                     </div>
                   </div>
                 </div>
+                <!-- Campos de RUT para director -->
+                <div class="row">
+                  <div class="col-md-4">
+                    <div class="mb-3">
+                      <label for="{{ form.tipo_documento.id_for_label }}" class="form-label">
+                        <i class="fa fa-id-card"></i> {{ form.tipo_documento.label }} <span class="text-danger">*</span>
+                      </label>
+                      {{ form.tipo_documento|add_class:"form-control" }}
+                      {% if form.tipo_documento.errors %}
+                        <div class="text-danger">{{ form.tipo_documento.errors }}</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                  <div class="col-md-8">
+                    <div class="mb-3">
+                      <label for="{{ form.numero_documento.id_for_label }}" class="form-label">
+                        <i class="fa fa-id-card-alt"></i> {{ form.numero_documento.label }} <span class="text-danger">*</span>
+                      </label>
+                      <div class="input-group">
+                        {{ form.numero_documento|add_class:"form-control" }}
+                        <div class="input-group-append">
+                          <span class="input-group-text">
+                            <i class="fa fa-check-circle text-success d-none" id="rut-valid"></i>
+                            <i class="fa fa-times-circle text-danger d-none" id="rut-invalid"></i>
+                          </span>
+                        </div>
+                      </div>
+                      <small class="form-text text-muted">Formato: 12345678-9 (máximo 12 caracteres)</small>
+                      {% if form.numero_documento.errors %}
+                        <div class="text-danger">{{ form.numero_documento.errors }}</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+                <!-- Campos adicionales para director -->
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="{{ form.fecha_nacimiento.id_for_label }}" class="form-label">
+                        <i class="fa fa-calendar"></i> {{ form.fecha_nacimiento.label }} <span class="text-danger">*</span>
+                      </label>
+                      {{ form.fecha_nacimiento|add_class:"form-control" }}
+                      <small class="form-text text-muted">
+                        Edad calculada: <span id="edad-calculada" class="fw-bold"></span>
+                      </small>
+                      {% if form.fecha_nacimiento.errors %}
+                        <div class="text-danger">{{ form.fecha_nacimiento.errors }}</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="{{ form.genero.id_for_label }}" class="form-label">
+                        <i class="fa fa-venus-mars"></i> {{ form.genero.label }} <span class="text-danger">*</span>
+                      </label>
+                      {{ form.genero|add_class:"form-control" }}
+                      {% if form.genero.errors %}
+                        <div class="text-danger">{{ form.genero.errors }}</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
                 <div class="row">
                   <div class="col-md-6">
                     <div class="mb-3">
@@ -512,6 +584,20 @@
                   </div>
                 </div>
                 <div class="row">
+                  <div class="col-md-12">
+                    <div class="mb-3">
+                      <label for="{{ form.direccion.id_for_label }}" class="form-label">
+                        <i class="fa fa-map-marker-alt"></i> {{ form.direccion.label }}
+                      </label>
+                      {{ form.direccion|add_class:"form-control" }}
+                      {% if form.direccion.errors %}
+                        <div class="text-danger">{{ form.direccion.errors }}</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+                <!-- Campos específicos del director -->
+                <div class="row">
                   <div class="col-md-6">
                     <div class="mb-3">
                       <label for="{{ form.cargo.id_for_label }}" class="form-label">
@@ -535,6 +621,7 @@
                     </div>
                   </div>
                 </div>
+                <!-- Campos de usuario para director -->
                 <div class="row">
                   <div class="col-md-6">
                     <div class="mb-3">
@@ -789,7 +876,7 @@
                     <i class="fas fa-eraser me-2"></i> Limpiar
                   </button>
                   {% endif %}
-                  <a href="{% if tipo == 'apoderado' %}{% url 'listar_apoderados' %}{% elif tipo == 'profesor' %}{% url 'listar_profesores' %}{% else %}{% url 'listar_estudiantes' %}{% endif %}" class="btn btn-outline-secondary btn-lg ml-2 px-5">
+                  <a href="{% if tipo == 'apoderado' %}{% url 'listar_apoderados' %}{% elif tipo == 'profesor' %}{% url 'listar_profesores' %}{% elif tipo == 'director' %}{% url 'inicio' %}{% else %}{% url 'listar_estudiantes' %}{% endif %}" class="btn btn-outline-secondary btn-lg ml-2 px-5">
                     <i class="fas fa-arrow-left me-2"></i> Volver
                   </a>
                 </div>
@@ -893,21 +980,52 @@ document.addEventListener('DOMContentLoaded', function() {
   // Formatear RUT en tiempo real
   if (rutField) {
     rutField.addEventListener('input', function() {
-      let rut = this.value.replace(/[^0-9kK]/g, '');
-      if (rut.length > 1) {
-        let numero = rut.slice(0, -1);
-        let dv = rut.slice(-1);
-        
-        // Formatear con puntos
-        numero = numero.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-        
-        this.value = numero + '-' + dv.toUpperCase();
+      let valor = this.value.replace(/[^0-9kK]/g, ''); // Solo números y K
+      
+      // Limitar a 9 caracteres máximo (8 dígitos + 1 DV)
+      if (valor.length > 9) {
+        valor = valor.slice(0, 9);
       }
+      
+      if (valor.length > 1) {
+        // Separar número y dígito verificador
+        let numero = valor.slice(0, -1);
+        let dv = valor.slice(-1).toUpperCase();
+        
+        // Formatear el número con puntos según su longitud
+        let numeroFormateado = '';
+        if (numero.length <= 3) {
+          numeroFormateado = numero;
+        } else if (numero.length <= 6) {
+          numeroFormateado = numero.slice(0, -3) + '.' + numero.slice(-3);
+        } else {
+          // Para números de 7 u 8 dígitos
+          if (numero.length === 7) {
+            numeroFormateado = numero.slice(0, 1) + '.' + numero.slice(1, 4) + '.' + numero.slice(4);
+          } else if (numero.length === 8) {
+            numeroFormateado = numero.slice(0, 2) + '.' + numero.slice(2, 5) + '.' + numero.slice(5);
+          } else {
+            numeroFormateado = numero;
+          }
+        }
+        
+        this.value = numeroFormateado + '-' + dv;
+      } else {
+        this.value = valor;
+      }
+      
       validarRUT(this);
+    });
+    
+    // También validar cuando se pegue contenido
+    rutField.addEventListener('paste', function(e) {
+      setTimeout(() => {
+        this.dispatchEvent(new Event('input'));
+      }, 10);
     });
   }
 
-  // Calcular edad en tiempo real
+  // Calcular edad en tiempo real (para todos los tipos de usuario que tengan fecha de nacimiento)
   if (fechaField) {
     // Calcular edad inicial si hay fecha (para modo edición)
     if (fechaField.value) {
@@ -920,7 +1038,7 @@ document.addEventListener('DOMContentLoaded', function() {
         edad--;
       }
       
-      if (edad >= 0) {
+      if (edad >= 0 && edadSpan) {
         edadSpan.textContent = edad + ' años';
         edadSpan.className = 'fw-bold text-success';
       }
@@ -936,12 +1054,14 @@ document.addEventListener('DOMContentLoaded', function() {
         edad--;
       }
       
-      if (edad >= 0) {
-        edadSpan.textContent = edad + ' años';
-        edadSpan.className = 'fw-bold text-success';
-      } else {
-        edadSpan.textContent = 'Fecha inválida';
-        edadSpan.className = 'fw-bold text-danger';
+      if (edadSpan) {
+        if (edad >= 0) {
+          edadSpan.textContent = edad + ' años';
+          edadSpan.className = 'fw-bold text-success';
+        } else {
+          edadSpan.textContent = 'Fecha inválida';
+          edadSpan.className = 'fw-bold text-danger';
+        }
       }
     });
   }
@@ -1018,7 +1138,7 @@ function validateField(field) {
 }
 
 function validarRUT(field) {
-  const rut = field.value.replace(/[^0-9kK]/g, '');
+  const valor = field.value.trim();
   const validIcon = document.getElementById('rut-valid');
   const invalidIcon = document.getElementById('rut-invalid');
   
@@ -1026,28 +1146,53 @@ function validarRUT(field) {
   if (validIcon) validIcon.classList.add('d-none');
   if (invalidIcon) invalidIcon.classList.add('d-none');
   
-  if (rut.length < 2) {
+  // Si está vacío o muy corto, no mostrar error aún
+  if (valor.length < 3) {
     field.classList.remove('is-valid', 'is-invalid');
     return false;
   }
   
-  const num = rut.slice(0, -1);
-  const dv = rut.slice(-1).toUpperCase();
+  // Limpiar RUT: remover puntos, guiones y espacios
+  const rut = valor.replace(/[^0-9kK]/g, '');
   
-  if (!/^\d+$/.test(num)) {
+  // Debe tener entre 8 y 9 caracteres (7-8 dígitos + DV)
+  if (rut.length < 8 || rut.length > 9) {
     field.classList.add('is-invalid');
     field.classList.remove('is-valid');
     if (invalidIcon) invalidIcon.classList.remove('d-none');
     return false;
   }
   
-  // Calcular dígito verificador
+  const numero = rut.slice(0, -1);
+  const dv = rut.slice(-1).toUpperCase();
+  
+  // Validar que el número sea numérico y tenga entre 7 y 8 dígitos
+  if (!/^\d{7,8}$/.test(numero)) {
+    field.classList.add('is-invalid');
+    field.classList.remove('is-valid');
+    if (invalidIcon) invalidIcon.classList.remove('d-none');
+    return false;
+  }
+  
+  // Validar dígito verificador
+  if (!/^[0-9K]$/.test(dv)) {
+    field.classList.add('is-invalid');
+    field.classList.remove('is-valid');
+    if (invalidIcon) invalidIcon.classList.remove('d-none');
+    return false;
+  }
+  
+  // Calcular dígito verificador usando el algoritmo estándar
   let suma = 0;
   let multiplicador = 2;
   
-  for (let i = num.length - 1; i >= 0; i--) {
-    suma += parseInt(num[i]) * multiplicador;
-    multiplicador = multiplicador === 7 ? 2 : multiplicador + 1;
+  // Recorrer de derecha a izquierda
+  for (let i = numero.length - 1; i >= 0; i--) {
+    suma += parseInt(numero[i]) * multiplicador;
+    multiplicador++;
+    if (multiplicador > 7) {
+      multiplicador = 2;
+    }
   }
   
   const resto = suma % 11;
