@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
 from .models import Estudiante, Profesor, Apoderado, RelacionApoderadoEstudiante, EventoCalendario, Curso, HorarioCurso, Asignatura, PeriodoAcademico, Anotacion
-from .forms import EstudianteForm, ProfesorForm, ApoderadoForm, EventoCalendarioForm, CursoForm, HorarioCursoForm, AsignaturaForm, AsignaturaCompletaForm, SeleccionCursoAlumnoForm, CalificacionForm, AsistenciaAlumnoForm, AsistenciaProfesorForm, RegistroMasivoAsistenciaForm, AnotacionForm, FiltroAnotacionesForm
+from .forms import EstudianteForm, ProfesorForm, ApoderadoForm, DirectorForm, EventoCalendarioForm, CursoForm, HorarioCursoForm, AsignaturaForm, AsignaturaCompletaForm, SeleccionCursoAlumnoForm, CalificacionForm, AsistenciaAlumnoForm, AsistenciaProfesorForm, RegistroMasivoAsistenciaForm, AnotacionForm, FiltroAnotacionesForm
 from django.db import models
 from django.db.models import Q, Avg
 from django.contrib.auth import authenticate, login, logout
@@ -32,7 +32,6 @@ def index(request):
     """
     return render(request, 'index.html')
 
-# Vistas para el CRUD de Administrador
 @admin_required
 def agregar(request):
     tipo = request.GET.get('tipo', 'estudiante')
@@ -44,6 +43,8 @@ def agregar(request):
             form = ProfesorForm()
         elif tipo == 'apoderado':
             form = ApoderadoForm()
+        elif tipo == 'director':
+            form = DirectorForm()
         else:
             form = EstudianteForm()
     else:
@@ -74,6 +75,13 @@ def agregar(request):
                 apoderado = form.save()
                 mensaje = f"Apoderado {apoderado.get_nombre_completo()} agregado correctamente."
                 form = ApoderadoForm()  # Limpiar formulario
+        elif tipo == 'director':
+            form = DirectorForm(request.POST)
+            if form.is_valid():
+                # El formulario maneja la creación del usuario y perfil
+                user, perfil = form.save()
+                mensaje = f"Director {user.get_full_name()} agregado correctamente."
+                form = DirectorForm()  # Limpiar formulario
         else:
             form = EstudianteForm(request.POST)
             if form.is_valid():

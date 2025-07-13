@@ -30,6 +30,7 @@
                     <option value="estudiante" {% if tipo == 'estudiante' %}selected{% endif %}>Alumno</option>
                     <option value="profesor" {% if tipo == 'profesor' %}selected{% endif %}>Profesor</option>
                     <option value="apoderado" {% if tipo == 'apoderado' %}selected{% endif %}>Apoderado</option>
+                    <option value="director" {% if tipo == 'director' %}selected{% endif %}>Director</option>
                   </select>
                 </div>
               </div>
@@ -460,6 +461,117 @@
                   </div>
                 </div>
                 {% endif %}
+              {% elif tipo == 'director' %}
+                <!-- Campos para director -->
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="{{ form.first_name.id_for_label }}" class="form-label">
+                        <i class="fa fa-user"></i> {{ form.first_name.label }} <span class="text-danger">*</span>
+                      </label>
+                      {{ form.first_name|add_class:"form-control" }}
+                      {% if form.first_name.errors %}
+                        <div class="text-danger">{{ form.first_name.errors }}</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="{{ form.last_name.id_for_label }}" class="form-label">
+                        <i class="fa fa-user"></i> {{ form.last_name.label }} <span class="text-danger">*</span>
+                      </label>
+                      {{ form.last_name|add_class:"form-control" }}
+                      {% if form.last_name.errors %}
+                        <div class="text-danger">{{ form.last_name.errors }}</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="{{ form.email.id_for_label }}" class="form-label">
+                        <i class="fa fa-envelope"></i> {{ form.email.label }} <span class="text-danger">*</span>
+                      </label>
+                      {{ form.email|add_class:"form-control" }}
+                      {% if form.email.errors %}
+                        <div class="text-danger">{{ form.email.errors }}</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="{{ form.telefono.id_for_label }}" class="form-label">
+                        <i class="fa fa-phone"></i> {{ form.telefono.label }}
+                      </label>
+                      {{ form.telefono|add_class:"form-control" }}
+                      {% if form.telefono.errors %}
+                        <div class="text-danger">{{ form.telefono.errors }}</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="{{ form.cargo.id_for_label }}" class="form-label">
+                        <i class="fa fa-id-badge"></i> {{ form.cargo.label }} <span class="text-danger">*</span>
+                      </label>
+                      {{ form.cargo|add_class:"form-control" }}
+                      {% if form.cargo.errors %}
+                        <div class="text-danger">{{ form.cargo.errors }}</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="{{ form.fecha_ingreso.id_for_label }}" class="form-label">
+                        <i class="fa fa-calendar"></i> {{ form.fecha_ingreso.label }} <span class="text-danger">*</span>
+                      </label>
+                      {{ form.fecha_ingreso|add_class:"form-control" }}
+                      {% if form.fecha_ingreso.errors %}
+                        <div class="text-danger">{{ form.fecha_ingreso.errors }}</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="{{ form.username.id_for_label }}" class="form-label">
+                        <i class="fa fa-user-circle"></i> {{ form.username.label }} <span class="text-danger">*</span>
+                      </label>
+                      {{ form.username|add_class:"form-control" }}
+                      {% if form.username.errors %}
+                        <div class="text-danger">{{ form.username.errors }}</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="{{ form.password.id_for_label }}" class="form-label">
+                        <i class="fa fa-lock"></i> {{ form.password.label }} <span class="text-danger">*</span>
+                      </label>
+                      {{ form.password|add_class:"form-control" }}
+                      {% if form.password.errors %}
+                        <div class="text-danger">{{ form.password.errors }}</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="{{ form.password_confirm.id_for_label }}" class="form-label">
+                        <i class="fa fa-lock"></i> {{ form.password_confirm.label }} <span class="text-danger">*</span>
+                      </label>
+                      {{ form.password_confirm|add_class:"form-control" }}
+                      {% if form.password_confirm.errors %}
+                        <div class="text-danger">{{ form.password_confirm.errors }}</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
               {% else %}
                 <!-- Campos para alumno -->
                 <div class="row">
@@ -655,6 +767,8 @@
                         Actualizar Profesor
                       {% elif tipo == 'apoderado' %}
                         Actualizar Apoderado
+                      {% elif tipo == 'director' %}
+                        Actualizar Director
                       {% else %}
                         Actualizar Estudiante
                       {% endif %}
@@ -663,6 +777,8 @@
                         Guardar Profesor
                       {% elif tipo == 'apoderado' %}
                         Guardar Apoderado
+                      {% elif tipo == 'director' %}
+                        Guardar Director
                       {% else %}
                         Guardar Estudiante
                       {% endif %}
