@@ -1195,6 +1195,32 @@ def inicio(request):
                 import traceback
                 print(f"Error en vista inicio (profesor): {traceback.format_exc()}")
                 
+        elif user_type == 'apoderado':
+            try:
+                # Verificar si es un apoderado directo
+                apoderado = None
+                es_profesor_apoderado = False
+                
+                if hasattr(request.user, 'apoderado'):
+                    apoderado = request.user.apoderado
+                elif hasattr(request.user, 'profesor') and hasattr(request.user.profesor, 'apoderado_profile'):
+                    apoderado = request.user.profesor.apoderado_profile
+                    es_profesor_apoderado = True
+                
+                if apoderado:
+                    # Redirigir a la vista específica de apoderados
+                    if es_profesor_apoderado:
+                        return redirect('dashboard_profesor_apoderado')
+                    else:
+                        return redirect('dashboard_apoderado')
+                else:
+                    context['error_apoderado'] = "No se encontró información del apoderado asociada a este usuario."
+                    
+            except Exception as e:
+                context['error_apoderado'] = f"Error al cargar datos del apoderado: {str(e)}"
+                import traceback
+                print(f"Error en vista inicio (apoderado): {traceback.format_exc()}")
+                
         elif user_type in ['administrador', 'director']:
             try:
                 # Estadísticas generales del sistema

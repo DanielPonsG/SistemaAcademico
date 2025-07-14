@@ -1,5 +1,5 @@
 from django import forms
-from .models import Estudiante, Profesor, Apoderado, RelacionApoderadoEstudiante, EventoCalendario, Curso, HorarioCurso, Asignatura, Inscripcion, Calificacion, Grupo, PeriodoAcademico, AsistenciaAlumno, AsistenciaProfesor, Anotacion
+from .models import Estudiante, Profesor, Apoderado, RelacionApoderadoEstudiante, EventoCalendario, Curso, HorarioCurso, Asignatura, Inscripcion, Calificacion, Grupo, PeriodoAcademico, AsistenciaAlumno, AsistenciaProfesor, Anotacion, Perfil
 from datetime import date, timedelta
 from django.utils import timezone
 from django.contrib.auth.models import User
@@ -2399,31 +2399,44 @@ class ApoderadoForm(forms.ModelForm):
         return fecha_nacimiento
 
     def save(self, commit=True):
-        apoderado = super().save(commit=commit)
-        
+        # Guardar el apoderado sin usuario primero
+        apoderado = super().save(commit=False)
+        username = self.cleaned_data.get('username')
+        password = self.cleaned_data.get('password')
+
+        # Si el apoderado no tiene usuario asociado, crear uno nuevo
+        if not apoderado.user and username:
+            from django.contrib.auth.models import User
+            # Verificar si el usuario ya existe
+            user, created = User.objects.get_or_create(username=username)
+            if created or password:
+                if password:
+                    user.set_password(password)
+                else:
+                    # Si no se proporciona contraseña, usar una por defecto segura
+                    user.set_password(User.objects.make_random_password())
+                user.save()
+            apoderado.user = user
+            # Crear perfil si no existe
+            perfil, _ = Perfil.objects.get_or_create(user=user, defaults={'tipo_usuario': 'apoderado'})
+        elif apoderado.user:
+            # Si se está editando y se proporciona nueva contraseña
+            if password:
+                apoderado.user.set_password(password)
+                apoderado.user.save()
+
         if commit:
+            apoderado.save()
             # Manejar relaciones con estudiantes
             estudiantes_seleccionados = self.cleaned_data.get('estudiantes', [])
-            
-            if estudiantes_seleccionados:
-                # Eliminar relaciones existentes
-                RelacionApoderadoEstudiante.objects.filter(apoderado=apoderado).delete()
-                
-                # Crear nuevas relaciones
-                for estudiante in estudiantes_seleccionados:
-                    RelacionApoderadoEstudiante.objects.create(
-                        apoderado=apoderado,
-                        estudiante=estudiante,
-                        parentesco=apoderado.parentesco_principal,
-                        es_apoderado_principal=True  # Por ahora, todos son principales
-                    )
-        
+            # Eliminar todas las relaciones previas
+            RelacionApoderadoEstudiante.objects.filter(apoderado=apoderado).delete()
+            # Si hay estudiantes seleccionados, crear nuevas relaciones
+            for estudiante in estudiantes_seleccionados:
+                RelacionApoderadoEstudiante.objects.create(
+                    apoderado=apoderado,
+                    estudiante=estudiante,
+                    parentesco=apoderado.parentesco_principal,
+                    es_apoderado_principal=True
+                )
         return apoderado
-        
-        # Crear perfil de director
-        perfil = Perfil.objects.create(
-            user=user,
-            tipo_usuario='director'
-        )
-        
-        return user, perfil
