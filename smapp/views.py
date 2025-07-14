@@ -236,6 +236,40 @@ def modificar(request):
                     form = EstudianteForm(request.POST, instance=seleccionado)
                     if form.is_valid():
                         estudiante_guardado = form.save()
+                        
+                        # Manejar usuario del estudiante si se proporcionaron datos
+                        username = form.cleaned_data.get('username')
+                        password = form.cleaned_data.get('password')
+                        
+                        if username:
+                            if estudiante_guardado.user:
+                                # Actualizar usuario existente
+                                user = estudiante_guardado.user
+                                user.username = username
+                                user.first_name = estudiante_guardado.primer_nombre
+                                user.last_name = estudiante_guardado.apellido_paterno
+                                user.email = estudiante_guardado.email or ''
+                                if password:  # Solo actualizar contraseña si se proporcionó una nueva
+                                    user.set_password(password)
+                                user.save()
+                            else:
+                                # Crear nuevo usuario
+                                from django.contrib.auth.models import User
+                                user = User.objects.create_user(
+                                    username=username,
+                                    email=estudiante_guardado.email or '',
+                                    password=password or 'temp123',
+                                    first_name=estudiante_guardado.primer_nombre,
+                                    last_name=estudiante_guardado.apellido_paterno
+                                )
+                                estudiante_guardado.user = user
+                                estudiante_guardado.save()
+                                
+                                # Crear perfil de estudiante si no existe
+                                from .models import Perfil
+                                if not hasattr(user, 'perfil'):
+                                    Perfil.objects.create(user=user, tipo_usuario='estudiante')
+                        
                         messages.success(request, "Estudiante modificado correctamente.")
                         
                         # Redireccionar para evitar reenvío del formulario
@@ -1250,25 +1284,40 @@ def login_view(request):
         username = request.POST.get('username', '')
         password = request.POST.get('password', '')
         
+        print(f"DEBUG LOGIN - Usuario: '{username}', Password: {'*' * len(password)}")
+        
         if username and password:
             user = authenticate(request, username=username, password=password)
+            print(f"DEBUG LOGIN - Usuario autenticado: {user}")
+            
             if user is not None:
+                print(f"DEBUG LOGIN - Usuario activo: {user.is_active}")
+                print(f"DEBUG LOGIN - Tiene perfil: {hasattr(user, 'perfil')}")
+                
+                if hasattr(user, 'perfil'):
+                    print(f"DEBUG LOGIN - Tipo usuario: {user.perfil.tipo_usuario}")
+                
                 login(request, user)
                 
                 # Redirección personalizada según tipo de usuario
                 if hasattr(user, 'perfil'):
                     user_type = user.perfil.tipo_usuario
+                    print(f"DEBUG LOGIN - Redirigiendo a inicio para tipo: {user_type}")
                     if user_type == 'alumno':
                         return redirect('inicio')  # Redirigir al panel de estudiante
                     elif user_type == 'profesor':
                         return redirect('inicio')  # Redirigir al panel de profesor
+                    elif user_type == 'apoderado':
+                        return redirect('inicio')  # Redirigir al panel de apoderado
                     elif user_type in ['administrador', 'director']:
                         return redirect('inicio')  # Redirigir al panel personalizado
                     else:
                         return redirect('index_master')  # Otros usuarios
                 else:
+                    print("DEBUG LOGIN - Sin perfil, redirigiendo a inicio por defecto")
                     return redirect('inicio')  # Por defecto
             else:
+                print("DEBUG LOGIN - Autenticación falló")
                 mensaje = "Credenciales inválidas"
         else:
             mensaje = "Por favor ingresa usuario y contraseña"
