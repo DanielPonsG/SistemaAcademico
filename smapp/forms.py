@@ -2415,7 +2415,7 @@ class ApoderadoForm(forms.ModelForm):
                         apoderado=apoderado,
                         estudiante=estudiante,
                         parentesco=apoderado.parentesco_principal,
-                        es_principal=True  # Por ahora, todos son principales
+                        es_apoderado_principal=True  # Por ahora, todos son principales
                     )
         
         return apoderado
