@@ -2,6 +2,13 @@
 :root {
   --color-primary: #667eea;
   --color-secondary: #764ba2;
+  --sidebar-width: 230px;
+  /* Escala de espacios para un respiro visual cómodo */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
   --color-success: #38d39f;
   --color-danger: #dc3545;
   --color-warning: #ffc107;
@@ -15,11 +22,19 @@
   --font-main: 'Inter', 'Segoe UI', Arial, sans-serif;
 }
 
+html, body {
+  height: 100%;
+}
+
 body {
   background: var(--color-bg);
   font-family: var(--font-main);
   color: var(--color-dark);
   font-size: 1rem;
+  margin: 0;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .card, .main-content .card {
@@ -141,6 +156,13 @@ input:focus, select:focus, textarea:focus {
 .sidebar, .left_col {
   background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
   color: #fff;
+  /* Make sidebar full height and fixed on the left */
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: var(--sidebar-width);
+  overflow-y: auto;
 }
 .sidebar .menu-section-title, .left_col .menu_section h3 {
   color: #e0e0e0;
@@ -154,6 +176,184 @@ input:focus, select:focus, textarea:focus {
   margin-bottom: 2px;
   font-weight: 500;
   transition: background 0.2s, color 0.2s;
+}
+
+/* Main content area sits to the right of the fixed sidebar and fills height */
+.main, .main-content {
+  margin-left: var(--sidebar-width); /* leave space for sidebar */
+  min-height: 100vh;
+  display: block;
+}
+/* Right content sits inside main_container; don't add extra left margin */
+.right_col {
+  margin-left: 0 !important;
+}
+/* Ensure inner bootstrap container doesn't shift */
+.right_col .container-fluid,
+.right_col .container {
+  margin-left: 0 !important;
+  padding-left: var(--space-4) !important; /* más aire a los lados */
+  padding-right: var(--space-4) !important;
+}
+
+/* If there's a top fixed header, ensure content is visible beneath it */
+.navbar-fixed-top, .top-nav, .topbar {
+  position: fixed;
+  top: 0;
+  left: var(--sidebar-width);
+  right: 0;
+  z-index: 1050;
+}
+
+/* Adjustments for small screens: sidebar becomes static */
+@media (max-width: 991.98px) {
+  .sidebar, .left_col {
+    position: relative;
+    width: 100%;
+    height: auto;
+  }
+  .main, .main-content, .right_col, .container-fluid {
+    margin-left: 0;
+  }
+}
+
+/* Layout fixes specific to index_master structure */
+/* Ensure left_col (sidebar) is fixed and top navigation is fixed,
+   and main content fills remaining area. */
+.left_col {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: var(--sidebar-width);
+  z-index: 2000;
+  overflow-y: auto;
+}
+
+.top_nav {
+  position: fixed;
+  top: 0;
+  left: var(--sidebar-width); /* start after the sidebar */
+  right: 0;
+  height: 64px;
+  z-index: 2010;
+  background: #ffffffcc; /* slight transparency to blend */
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  box-shadow: 0 1px 8px rgba(0,0,0,0.06);
+}
+
+.main_container {
+  margin-left: var(--sidebar-width); /* start after the fixed sidebar */
+  margin-top: 64px;   /* space for fixed top_nav */
+  min-height: calc(100vh - 64px);
+  padding-left: var(--space-4) !important;
+  padding-right: var(--space-4) !important;
+}
+
+/* Force main content to occupy remaining horizontal space and
+  remove Bootstrap container max-width centering that creates white margins */
+.main_container {
+  width: calc(100% - var(--sidebar-width));
+  box-sizing: border-box;
+}
+
+.main_container .container, .main_container .container-fluid {
+  max-width: none !important;
+  width: auto !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+/* If templates use a centered wrapper, force it to stretch */
+.main_container .row, .main_container .col-md-9, .main_container .right_col, .main_container .main {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+/* Prevent horizontal scroll due to tiny rounding */
+html, body {
+  overflow-x: hidden;
+}
+
+/* Ensure outer bootstrap container used by the template is full-width
+   (the template uses <div class="container body"> as outer wrapper).
+   This removes Bootstrap's centered max-width behavior for this layout. */
+.container.body, .container.body > .main_container, .container.body > .main_container > .right_col {
+  max-width: 100% !important;
+  width: 100% !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  box-sizing: border-box;
+}
+
+/* Also ensure any top-level .container is not constraining width */
+.container, .container-fluid {
+  max-width: 100% !important;
+  width: 100% !important;
+}
+
+/* Expand right-side content panels and common wrappers so UI fills area */
+.main_container .right_col, .right_col, .main_container .page-content, .page-content,
+.main_container .x_panel, .x_panel, .x_content, .main_container .dashboard_graph,
+.dashboard_graph, .main_container .col-md-9, .main_container .col-sm-9,
+.main_container .col-xs-12, .main_container .tile, .panel, .panel-body {
+  max-width: none !important;
+  width: 100% !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  margin-left: 0 !important;
+}
+
+/* Remove Bootstrap row gutters inside main_container to avoid side gaps */
+.main_container .row {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+.main_container .row > [class*='col-'] {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+/* Force direct children of main_container (except the left_col wrapper) to start after the fixed sidebar */
+.main_container > :not(.col-md-3) {
+  margin-left: 0 !important;
+  width: 100% !important;
+  box-sizing: border-box;
+  padding-left: var(--space-4) !important;
+  padding-right: var(--space-4) !important;
+}
+
+/* Ensure page-title and title_right use full width so cards align */
+.page-title, .title_right {
+  width: 100% !important;
+}
+
+@media (min-width: 992px) {
+  /* In desktop, right area fills the main_container width */
+  .main_container .right_col, .right_col, .main_container .page-content {
+    width: 100% !important;
+  }
+}
+
+/* Ensure footer sits below content and not overlapped */
+footer {
+  margin-left: 0;
+  padding: 12px 24px;
+}
+
+@media (max-width: 991.98px) {
+  .left_col, .top_nav {
+    position: relative;
+    left: 0;
+    width: 100%;
+  }
+  .main_container, footer {
+    margin-left: 0;
+    margin-top: 0;
+  }
 }
 .sidebar .menu-list li a.active, .sidebar .menu-list li a:hover,
 .left_col .side-menu li a.active, .left_col .side-menu li a:hover {
@@ -199,4 +399,49 @@ input:focus, select:focus, textarea:focus {
   .card-header, .card-body {
     padding: 1rem !important;
   }
+}
+
+/* ===== Espaciado cómodo dentro del contenido (sin márgenes externos) ===== */
+/* Reintroducimos gutters suaves dentro de filas del área derecha */
+.right_col .row {
+  margin-left: calc(-1 * var(--space-3)) !important;
+  margin-right: calc(-1 * var(--space-3)) !important;
+}
+.right_col .row > [class*='col-'] {
+  padding-left: var(--space-3) !important;
+  padding-right: var(--space-3) !important;
+}
+
+/* Paneles y tarjetas con padding interno agradable */
+.x_panel, .panel, .card {
+  padding: var(--space-4) !important;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: var(--shadow);
+}
+.panel-body, .x_content {
+  padding: var(--space-3) 0 0 0 !important;
+}
+.x_title, .card-header {
+  margin-bottom: var(--space-3) !important;
+  padding-bottom: var(--space-2) !important;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+/* Formularios: respiración entre campos */
+.form-group {
+  margin-bottom: var(--space-4) !important;
+}
+.form-group > label {
+  margin-bottom: var(--space-2) !important;
+}
+
+/* Bloques informativos (alertas, tablas) con separación vertical uniforme */
+.alert, .table, .panel, .x_panel, .card {
+  margin-bottom: var(--space-4) !important;
+}
+
+/* Mantener sin scroll horizontal tras los nuevos paddings */
+html, body, .main_container, .right_col {
+  overflow-x: hidden;
 }

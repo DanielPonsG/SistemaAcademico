@@ -84,55 +84,16 @@ WSGI_APPLICATION = 'sma.wsgi.application'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 # Configuración dinámica de base de datos
-try:
-    from decouple import config
-    
-    # Si tenemos credenciales de PostgreSQL en variables de entorno, usarlas
-    if config('DB_HOST', default=None):
-        DATABASES = {
-            'default': {
-                'ENGINE': 'django.db.backends.postgresql',
-                'NAME': config('DB_NAME'),
-                'USER': config('DB_USER'),
-                'PASSWORD': config('DB_PASSWORD'),
-                'HOST': config('DB_HOST'),
-                'PORT': config('DB_PORT', default='5432'),
-                'OPTIONS': {
-                    'sslmode': config('DB_SSL_MODE', default='require'),
-                },
-            }
-        }
-    else:
-        # Fallback a configuración local de desarrollo
-        DATABASES = {
-            'default': {
-                'ENGINE': 'django.db.backends.postgresql',
-                'NAME': 'sam_db',
-                'USER': 'postgres',
-                'PASSWORD': 'inacap2024',
-                'HOST': 'localhost',
-                'PORT': '5432',
-                'OPTIONS': {
-                    'sslmode': 'disable',
-                },
-            }
-        }
-        
-except ImportError:
-    # Si no hay python-decouple, usar configuración local
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': 'sam_db',
-            'USER': 'postgres',
-            'PASSWORD': 'inacap2024',
-            'HOST': 'localhost',
-            'PORT': '5432',
-            'OPTIONS': {
-                'sslmode': 'disable',
-            },
-        }
+
+# Usar PostgreSQL en desarrollo, cambiar según entorno si es necesario
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',       
     }
+}
+        
+
 
 
 # Password validation
@@ -181,7 +142,11 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / "staticfiles_build" / "media"
 
 # WhiteNoise configuration
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# Usar almacenamiento por defecto en desarrollo para evitar problemas con collectstatic
+if DEBUG:
+    STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
+else:
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 
 # Default primary key field type

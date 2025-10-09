@@ -20,28 +20,20 @@
     <meta name="author" content="SAM - School Academic Manager">
     <meta name="theme-color" content="#667eea">
 
-    <title>📚 SAM | School Academic Manager</title>
+  <title>📚 SAM | School Academic Manager</title>
 
-    <!-- Bootstrap -->
-    <link href="{% static '/FrWork/admin_lte/vendors/bootstrap/dist/css/bootstrap.min.css' %}" rel="stylesheet">
-    <!-- Font Awesome -->
-    <link href="{% static '/FrWork/admin_lte/vendors/font-awesome/css/font-awesome.min.css' %}" rel="stylesheet">
-    <!-- Font Awesome 6 (CDN para iconos más modernos) -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <!-- NProgress -->
-    <link href="{% static '/FrWork/admin_lte/vendors/nprogress/nprogress.css' %}" rel="stylesheet">
-    <!-- iCheck -->
-    <link href="{% static '/FrWork/admin_lte/vendors/iCheck/skins/flat/green.css' %}" rel="stylesheet">
-	
-    <!-- bootstrap-progressbar -->
-    <link href="{% static '/FrWork/admin_lte/vendors/bootstrap-progressbar/css/bootstrap-progressbar-3.3.4.min.css' %}" rel="stylesheet">
-    <!-- JQVMap -->
-    <link href="{% static '/FrWork/admin_lte/vendors/jqvmap/dist/jqvmap.min.css' %}" rel="stylesheet"/>
-    <!-- bootstrap-daterangepicker -->
-    <link href="{% static '/FrWork/admin_lte/vendors/bootstrap-daterangepicker/daterangepicker.css' %}" rel="stylesheet">
+  <!-- Core CSS from CDNs to avoid missing local compiled assets -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/nprogress/0.2.0/nprogress.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/iCheck/1.0.2/skins/flat/green.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-progressbar/0.9.0/bootstrap-progressbar.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqvmap/1.5.1/jqvmap.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-daterangepicker/3.0.5/daterangepicker.css">
 
-    <!-- Custom Theme Style -->
-    <link href="{% static '/FrWork/admin_lte/build/css/custom.min.css' %}" rel="stylesheet">
+  <!-- Custom Theme Style (local if present) -->
+  <link href="{% static 'FrWork/admin_lte/build/css/custom.min.css' %}" rel="stylesheet">
     
     <!-- Estilos adicionales para mejor visualización -->
     <style>
@@ -63,6 +55,46 @@
         content: "📚 ";
       }
     </style>
+
+    <!-- Runtime CDN loader: ensure jQuery, moment and Chart.js exist for plugins -->
+    <script>
+      (function ensureLib(url, testExpr) {
+        return function loadIfNeeded() {
+          try {
+            if (!testExpr()) {
+              var s = document.createElement('script');
+              s.src = url;
+              s.async = false;
+              document.head.appendChild(s);
+            }
+          } catch(e) { /* ignore */ }
+        };
+      })();
+
+      // Load jQuery if missing (ensure available early)
+      if (typeof window.jQuery === 'undefined') {
+        var s1 = document.createElement('script');
+        s1.src = 'https://code.jquery.com/jquery-3.6.0.min.js';
+        s1.async = false;
+        document.head.appendChild(s1);
+      }
+
+      // Load moment.js if missing
+      if (typeof window.moment === 'undefined') {
+        var s2 = document.createElement('script');
+        s2.src = 'https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js';
+        s2.async = false;
+        document.head.appendChild(s2);
+      }
+
+      // Load Chart.js if missing
+      if (typeof window.Chart === 'undefined') {
+        var s3 = document.createElement('script');
+        s3.src = 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.min.js';
+        s3.async = false;
+        document.head.appendChild(s3);
+      }
+    </script>
     
     <!-- Custom Sidebar Styles -->
     <style>
@@ -774,6 +806,51 @@
         }
       }
     </style>
+    <!-- Load project modern styles (force after template inline styles) -->
+    <link href="{% static 'sma_moderno.css' %}" rel="stylesheet">
+    <style>
+      /* Compact overrides: use a single sidebar width variable and tighter paddings */
+      :root { --sidebar-width: 230px; }
+
+      /* Prevent bootstrap grid column from reserving horizontal space */
+      .main_container > .col-md-3.left_col {
+        width: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        float: left !important;
+      }
+
+      /* Use the inner .left_col.scroll-view as the fixed sidebar */
+      .main_container > .col-md-3.left_col > .left_col {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        bottom: 0 !important;
+        width: var(--sidebar-width) !important;
+        z-index: 2000 !important;
+        overflow-y: auto !important;
+      }
+
+      /* Fallback for other contexts */
+      .left_col { position: fixed !important; top: 0 !important; left: 0 !important; bottom: 0 !important; width: var(--sidebar-width) !important; z-index:2000; }
+
+      .top_nav { position: fixed !important; top: 0 !important; left: var(--sidebar-width) !important; right: 0 !important; height: 64px !important; z-index:2010; }
+
+  /* Use external css for sizing; just keep compact paddings here */
+  .main_container { padding: 8px 10px !important; }
+
+      .container.body, .container.body > .main_container { max-width: 100% !important; width: 100% !important; padding-left: 0 !important; padding-right: 0 !important; box-sizing: border-box; }
+
+      /* Reduce paddings inside common panels to allow more space */
+      .main_container .x_panel, .x_panel { padding: 6px !important; margin-bottom: 10px !important; }
+      .main_container .panel, .panel-body { padding: 6px !important; }
+
+      /* Ensure right area uses remaining width */
+  .main_container .right_col, .right_col, .page-content { padding-left: 8px !important; padding-right: 8px !important; }
+
+      /* If any elements still use grid columns, force them full width inside main_container */
+      .main_container .col-md-9, .main_container .col-md-12, .main_container .col-sm-12 { width: 100% !important; max-width: 100% !important; }
+    </style>
     {% block extra_css %}{% endblock %}
   </head>
 
@@ -1257,46 +1334,47 @@
       </div>
     </div>
 
-    <!-- jQuery -->
-    <script src="{% static '/FrWork/admin_lte/vendors/jquery/dist/jquery.min.js' %}"></script>
-    <!-- Bootstrap -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- FastClick -->
-    <script src="{% static '/FrWork/admin_lte/vendors/fastclick/lib/fastclick.js' %}"></script>
-    <!-- NProgress -->
-    <script src="{% static '/FrWork/admin_lte/vendors/nprogress/nprogress.js' %}"></script>
-    <!-- Chart.js -->
-    <script src="{% static '/FrWork/admin_lte/vendors/Chart.js/dist/Chart.min.js' %}"></script>
-    <!-- gauge.js -->
-    <script src="{% static '/FrWork/admin_lte/vendors/gauge.js/dist/gauge.min.js' %}"></script>
-    <!-- bootstrap-progressbar -->
-    <script src="{% static '/FrWork/admin_lte/vendors/bootstrap-progressbar/bootstrap-progressbar.min.js' %}"></script>
-    <!-- iCheck -->
-    <script src="{% static '/FrWork/admin_lte/vendors/iCheck/icheck.min.js' %}"></script>
-    <!-- Skycons -->
-    <script src="{% static '/FrWork/admin_lte/vendors/skycons/skycons.js' %}"></script>
-    <!-- Flot -->
-    <script src="{% static '/FrWork/admin_lte/vendors/Flot/jquery.flot.js' %}"></script>
-    <script src="{% static '/FrWork/admin_lte/vendors/Flot/jquery.flot.pie.js' %}"></script>
-    <script src="{% static '/FrWork/admin_lte/vendors/Flot/jquery.flot.time.js' %}"></script>
-    <script src="{% static '/FrWork/admin_lte/vendors/Flot/jquery.flot.stack.js' %}"></script>
-    <script src="{% static '/FrWork/admin_lte/vendors/Flot/jquery.flot.resize.js' %}"></script>
-    <!-- Flot plugins -->
-    <script src="{% static '/FrWork/admin_lte/vendors/flot.orderbars/js/jquery.flot.orderBars.js' %}"></script>
-    <script src="{% static '/FrWork/admin_lte/vendors/flot-spline/js/jquery.flot.spline.min.js' %}"></script>
-    <script src="{% static '/FrWork/admin_lte/vendors/flot.curvedlines/curvedLines.js' %}"></script>
-    <!-- DateJS -->
-    <script src="{% static '/FrWork/admin_lte/vendors/DateJS/build/date.js' %}"></script>
-    <!-- JQVMap -->
-    <script src="{% static '/FrWork/admin_lte/vendors/jqvmap/dist/jquery.vmap.js' %}"></script>
-    <script src="{% static '/FrWork/admin_lte/vendors/jqvmap/dist/maps/jquery.vmap.world.js' %}"></script>
-    <script src="{% static '/FrWork/admin_lte/vendors/jqvmap/examples/js/jquery.vmap.sampledata.js' %}"></script>
-    <!-- bootstrap-daterangepicker -->
-    <script src="{% static '/FrWork/admin_lte/vendors/moment/min/moment.min.js' %}"></script>
-    <script src="{% static '/FrWork/admin_lte/vendors/bootstrap-daterangepicker/daterangepicker.js' %}"></script>
+  <!-- Core JS from CDNs to avoid missing local compiled assets -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fastclick/1.0.6/fastclick.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/nprogress/0.2.0/nprogress.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gauge.js/1.3.7/gauge.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-progressbar/0.9.0/bootstrap-progressbar.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/iCheck/1.0.2/icheck.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/skycons/1396634940/skycons.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/flot/0.8.3/jquery.flot.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/flot/0.8.3/jquery.flot.pie.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/flot/0.8.3/jquery.flot.time.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/flot/0.8.3/jquery.flot.stack.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/flot/0.8.3/jquery.flot.resize.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/flot.orderbars/1.0.0/jquery.flot.orderBars.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/flot-spline/0.0.1/jquery.flot.spline.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/flot.curvedlines/1.1.1/curvedLines.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/datejs/1.0/date.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jqvmap/1.5.1/jquery.vmap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jqvmap/1.5.1/maps/jquery.vmap.world.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jqvmap/1.5.1/jquery.vmap.sampledata.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-daterangepicker/3.0.5/daterangepicker.min.js"></script>
 
-    <!-- Custom Theme Scripts -->
-    <script src="{% static '/FrWork/admin_lte/build/js/custom.min.js' %}"></script>
+  <!-- Keep custom theme script local if present; if missing, load CDN fallback -->
+  <script>
+    (function(){
+      var local = document.createElement('script');
+      local.src = "{% static 'FrWork/admin_lte/build/js/custom.min.js' %}";
+      local.async = false;
+      local.onload = function() { /* local theme loaded */ };
+      local.onerror = function() {
+        // Fallback to CDN if local custom script isn't available
+        var s = document.createElement('script');
+        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/admin-lte/2.4.18/js/adminlte.min.js';
+        s.async = false;
+        document.head.appendChild(s);
+      };
+      document.head.appendChild(local);
+    })();
+  </script>
     
     <!-- Script para título dinámico de pestaña -->
     <script>

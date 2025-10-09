@@ -1,0 +1,71 @@
+{% load static %}
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}SAM - School Academic Manager{% endblock %}</title>
+
+    <!-- Core CSS (CDN for development) -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+    <!-- Project CSS/overrides -->
+    <link href="{% static 'sma_moderno.css' %}" rel="stylesheet">
+
+    {% block head_extra %}{% endblock %}
+    <style>
+      /* Minimal layout helpers for the clean base */
+      body { padding-top: 56px; }
+      .sidebar { width: 240px; position: fixed; top: 56px; bottom: 0; left: 0; padding: 1rem; overflow-y: auto; background: #f8f9fa; border-right: 1px solid #e9ecef; }
+      .main { margin-left: 250px; padding: 1.25rem; }
+    </style>
+  </head>
+  <body>
+    <!-- Top navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="#">SAM</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#topNav" aria-controls="topNav" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="topNav">
+          <ul class="navbar-nav ms-auto">
+            <li class="nav-item"><a class="nav-link" href="#">Inicio</a></li>
+            <li class="nav-item"><a class="nav-link" href="#">Acerca</a></li>
+            <li class="nav-item"><a class="nav-link" href="#">Contacto</a></li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Sidebar -->
+    <aside class="sidebar d-none d-md-block">
+      <h5>Menú</h5>
+      <ul class="nav nav-pills flex-column">
+        <li class="nav-item"><a class="nav-link" href="#">Dashboard</a></li>
+        <li class="nav-item"><a class="nav-link" href="#">Estudiantes</a></li>
+        <li class="nav-item"><a class="nav-link" href="#">Profesores</a></li>
+        <li class="nav-item"><a class="nav-link" href="#">Calendario</a></li>
+      </ul>
+    </aside>
+
+    <!-- Main content area -->
+    <main class="main">
+      <div class="container-fluid">
+        {% block content %}
+        <h1>Bienvenido a SAM</h1>
+        <p>Este es un layout limpio para empezar a reestructurar la página.</p>
+        {% endblock %}
+      </div>
+    </main>
+
+    <!-- Core JS (CDN for development) -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.11.8/umd/popper.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.2/js/bootstrap.min.js"></script>
+
+    {% block scripts %}{% endblock %}
+  </body>
+</html>
