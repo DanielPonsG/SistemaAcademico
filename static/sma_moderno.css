@@ -188,6 +188,15 @@ input:focus, select:focus, textarea:focus {
 .right_col {
   margin-left: 0 !important;
 }
+
+/* Some legacy themes offset right_col with a left margin when nav-md is present.
+   Neutralize that to avoid double-offset with our fixed sidebar. */
+.nav-md .container.body .right_col,
+.container.body .right_col {
+  margin-left: 0 !important;
+  float: none !important;
+  width: 100% !important;
+}
 /* Ensure inner bootstrap container doesn't shift */
 .right_col .container-fluid,
 .right_col .container {
@@ -326,6 +335,15 @@ html, body {
   padding-right: var(--space-4) !important;
 }
 
+/* The Bootstrap grid wrapper for the sidebar exists in DOM but sidebar is fixed.
+   Avoid this wrapper reserving width (col-md-3) so content can use 100%. */
+.main_container > .col-md-3.left_col {
+  width: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  float: left !important;
+}
+
 /* Ensure page-title and title_right use full width so cards align */
 .page-title, .title_right {
   width: 100% !important;
@@ -412,6 +430,25 @@ footer {
   padding-right: var(--space-3) !important;
 }
 
+/* En la mayoría de vistas hay layout 8/4 o 9/3. Forzamos 1 columna para dar
+   más ancho al contenido principal y que no se vea "a la mitad". */
+.right_col .row > .col-md-8,
+.right_col .row > .col-lg-7,
+.right_col .row > .col-md-9,
+.right_col .row > .col-lg-8,
+.right_col .row > .col-lg-9 {
+  width: 100% !important;
+  float: none !important;
+}
+.right_col .row > .col-md-4,
+.right_col .row > .col-lg-5,
+.right_col .row > .col-md-3,
+.right_col .row > .col-lg-4,
+.right_col .row > .col-lg-3 {
+  width: 100% !important;
+  float: none !important;
+}
+
 /* Paneles y tarjetas con padding interno agradable */
 .x_panel, .panel, .card {
   padding: var(--space-4) !important;
@@ -441,7 +478,7 @@ footer {
   margin-bottom: var(--space-4) !important;
 }
 
-/* Mantener sin scroll horizontal tras los nuevos paddings */
-html, body, .main_container, .right_col {
+/* Evitar scroll horizontal a nivel global, pero permitir que contenedores internos calculen bien sus gutters */
+html, body {
   overflow-x: hidden;
 }

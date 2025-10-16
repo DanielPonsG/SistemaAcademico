@@ -153,3 +153,46 @@ test_*.html
 # Archivos específicos del proyecto (innecesarios)
 agregar_evento_view.py
 editar_eliminar_evento_views.py
+
+# Python/Django
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.log
+*.pot
+*.pyc
+*.pyo
+*.pyd
+*.sqlite3
+db.sqlite3
+/media/
+.env*
+*.env
+
+# Virtualenv
+.venv/
+venv/
+env/
+
+# VS Code / IDE
+.vscode/
+.idea/
+
+# Static build outputs
+staticfiles/
+staticfiles_build/
+collectstatic/
+frontend_build/
+
+# Node
+node_modules/
+
+# AdminLTE/vendors locales (se recrean en CI con script)
+static/FrWork/admin_lte/vendors/**
+static/FrWork/admin_lte/build/**
+# Conserva imágenes del tema
+!static/FrWork/admin_lte/production/images/**
+
+# Cachés
+.DS_Store
+Thumbs.db

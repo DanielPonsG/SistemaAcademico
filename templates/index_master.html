@@ -807,49 +807,11 @@
       }
     </style>
     <!-- Load project modern styles (force after template inline styles) -->
-    <link href="{% static 'sma_moderno.css' %}" rel="stylesheet">
+  <link href="{% static 'sma_moderno.css' %}?v=20251009" rel="stylesheet">
     <style>
-      /* Compact overrides: use a single sidebar width variable and tighter paddings */
+      /* Solo definimos la variable y dejamos el layout a cargo de sma_moderno.css */
       :root { --sidebar-width: 230px; }
-
-      /* Prevent bootstrap grid column from reserving horizontal space */
-      .main_container > .col-md-3.left_col {
-        width: 0 !important;
-        padding: 0 !important;
-        margin: 0 !important;
-        float: left !important;
-      }
-
-      /* Use the inner .left_col.scroll-view as the fixed sidebar */
-      .main_container > .col-md-3.left_col > .left_col {
-        position: fixed !important;
-        top: 0 !important;
-        left: 0 !important;
-        bottom: 0 !important;
-        width: var(--sidebar-width) !important;
-        z-index: 2000 !important;
-        overflow-y: auto !important;
-      }
-
-      /* Fallback for other contexts */
-      .left_col { position: fixed !important; top: 0 !important; left: 0 !important; bottom: 0 !important; width: var(--sidebar-width) !important; z-index:2000; }
-
-      .top_nav { position: fixed !important; top: 0 !important; left: var(--sidebar-width) !important; right: 0 !important; height: 64px !important; z-index:2010; }
-
-  /* Use external css for sizing; just keep compact paddings here */
-  .main_container { padding: 8px 10px !important; }
-
-      .container.body, .container.body > .main_container { max-width: 100% !important; width: 100% !important; padding-left: 0 !important; padding-right: 0 !important; box-sizing: border-box; }
-
-      /* Reduce paddings inside common panels to allow more space */
-      .main_container .x_panel, .x_panel { padding: 6px !important; margin-bottom: 10px !important; }
-      .main_container .panel, .panel-body { padding: 6px !important; }
-
-      /* Ensure right area uses remaining width */
-  .main_container .right_col, .right_col, .page-content { padding-left: 8px !important; padding-right: 8px !important; }
-
-      /* If any elements still use grid columns, force them full width inside main_container */
-      .main_container .col-md-9, .main_container .col-md-12, .main_container .col-sm-12 { width: 100% !important; max-width: 100% !important; }
+      /* Nota: los tamaños, paddings y widths se controlan en static/sma_moderno.css */
     </style>
     {% block extra_css %}{% endblock %}
   </head>
