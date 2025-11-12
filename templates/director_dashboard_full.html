@@ -1,0 +1,472 @@
+{% extends "index_master.html" %}
+
+{% block extra_css %}
+<style>
+.director-dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+  padding: 1.5rem 0 2.5rem;
+}
+
+.director-dashboard.container-fluid {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding-left: clamp(1.75rem, 5vw, 3rem);
+  padding-right: clamp(1.75rem, 5vw, 3rem);
+}
+
+@media (max-width: 767px) {
+  .director-dashboard {
+    padding: 1rem 0.75rem 1.5rem;
+  }
+
+  .director-dashboard.container-fluid {
+    padding-left: 1.1rem;
+    padding-right: 1.1rem;
+  }
+}
+
+.director-dashboard__header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: center;
+  text-align: center;
+}
+
+.director-dashboard__title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin: 0;
+  color: #1f2937;
+}
+
+.director-dashboard__subtitle {
+  margin: 0;
+  color: #6b7280;
+}
+
+.director-dashboard__subtitle span {
+  color: #2563eb;
+  font-weight: 600;
+}
+
+.director-dashboard__intro {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+  align-items: center;
+  width: 100%;
+}
+
+.director-dashboard__stats {
+  display: grid;
+  gap: 1.35rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.director-dashboard__stat-card {
+  border-radius: 14px;
+  padding: 1.1rem 1.25rem;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  box-shadow: 0 12px 25px rgba(15, 23, 42, 0.15);
+}
+
+.director-dashboard__stat-value {
+  font-size: 2.1rem;
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.director-dashboard__stat-card--blue {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+}
+
+.director-dashboard__stat-card--green {
+  background: linear-gradient(135deg, #16a34a, #15803d);
+}
+
+.director-dashboard__stat-card--amber {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.director-dashboard__stat-card--cyan {
+  background: linear-gradient(135deg, #0891b2, #0e7490);
+}
+
+
+.director-dashboard__section {
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 1.75rem;
+  box-shadow: 0 8px 30px rgba(15, 23, 42, 0.08);
+}
+
+.director-dashboard__grid.director-dashboard__grid--split,
+.director-dashboard__grid.director-dashboard__grid--thirds {
+  max-width: 1040px;
+  margin: 0 auto;
+  gap: 1.5rem;
+  justify-content: center;
+}
+
+.director-dashboard__grid--split,
+.director-dashboard__grid--thirds {
+  display: grid;
+  justify-items: center;
+  align-items: stretch;
+  gap: 1.5rem;
+}
+
+.director-dashboard__grid--split {
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+}
+
+.director-dashboard__grid--thirds {
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+@media (max-width: 991px) {
+  .director-dashboard__grid.director-dashboard__grid--split,
+  .director-dashboard__grid.director-dashboard__grid--thirds,
+  .director-dashboard__stats {
+    max-width: 100%;
+  }
+}
+
+.director-dashboard__section:not(:last-child) {
+  margin-bottom: 0.25rem;
+}
+
+.director-dashboard__section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.director-dashboard__label {
+  background: #e5e7eb;
+  color: #374151;
+  border-radius: 999px;
+  padding: 0.25rem 0.65rem;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.director-dashboard__grid {
+  display: grid;
+  gap: 1rem;
+}
+
+@media (min-width: 992px) {
+  .director-dashboard__grid--split {
+    grid-template-columns: minmax(0, 1.8fr) minmax(320px, 1.2fr);
+  }
+
+  .director-dashboard__grid--thirds {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.director-dashboard__progress {
+  height: 0.9rem;
+  border-radius: 999px;
+  background: #e5e7eb;
+  overflow: hidden;
+}
+
+.director-dashboard__progress-bar {
+  height: 100%;
+  width: calc(var(--attendance-rate, 0) * 1%);
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+}
+
+.director-dashboard__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.director-dashboard__table th,
+.director-dashboard__table td {
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid #e5e7eb;
+  white-space: nowrap;
+}
+
+.director-dashboard__table th {
+  background: #f1f5f9;
+  font-weight: 600;
+}
+
+.director-dashboard__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.director-dashboard__item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 0.85rem 1rem;
+  background: #f8fafc;
+}
+
+.director-dashboard__badge {
+  display: inline-block;
+  border-radius: 999px;
+  padding: 0.25rem 0.6rem;
+  font-size: 0.75rem;
+  background: #e5e7eb;
+  color: #374151;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.director-dashboard__muted {
+  color: #6b7280;
+  font-size: 0.85rem;
+}
+
+.director-dashboard__item strong {
+  font-weight: 600;
+  color: #111827;
+}
+
+.director-dashboard__empty {
+  text-align: center;
+  border: 1px dashed #cbd5f5;
+  border-radius: 12px;
+  padding: 1rem;
+  color: #6b7280;
+  background: #f9fafc;
+}
+
+.director-dashboard__section > .director-dashboard__list {
+  margin-top: 0.5rem;
+}
+
+.director-dashboard__grid--thirds .director-dashboard__item {
+  min-height: 88px;
+}
+</style>
+{% endblock %}
+{% block content %}
+<div class="right_col" role="main">
+  <div class="director-dashboard container-fluid">
+    <div class="director-dashboard__intro">
+      <div class="director-dashboard__header">
+        <p class="director-dashboard__title">Panel Directivo</p>
+        <p class="director-dashboard__subtitle">Resumen ejecutivo del sistema académico · Año <span>{{ anio_actual }}</span></p>
+      </div>
+
+      <div class="director-dashboard__stats">
+      <div class="director-dashboard__stat-card director-dashboard__stat-card--blue">
+        <span class="director-dashboard__stat-value">{{ total_estudiantes_sistema|default:0 }}</span>
+        <span>Estudiantes registrados</span>
+      </div>
+      <div class="director-dashboard__stat-card director-dashboard__stat-card--green">
+        <span class="director-dashboard__stat-value">{{ total_profesores_sistema|default:0 }}</span>
+        <span>Docentes activos</span>
+      </div>
+      <div class="director-dashboard__stat-card director-dashboard__stat-card--amber">
+        <span class="director-dashboard__stat-value">{{ total_cursos_activos|default:0 }}</span>
+        <span>Cursos {{ anio_actual }}</span>
+      </div>
+      <div class="director-dashboard__stat-card director-dashboard__stat-card--cyan">
+        <span class="director-dashboard__stat-value">{{ porcentaje_asistencia_hoy|default:0 }}%</span>
+        <span>Asistencia de hoy ({{ presentes_hoy|default:0 }}/{{ total_asistencias_hoy|default:0 }})</span>
+      </div>
+    </div>
+
+    <div class="director-dashboard__grid director-dashboard__grid--split">
+      <div class="director-dashboard__section">
+
+    <div class="director-dashboard__grid director-dashboard__grid--split">
+      <div class="director-dashboard__section">
+        <div class="director-dashboard__section-head">
+          <h4 class="mb-0">Panorama diario</h4>
+          <span class="director-dashboard__label">{{ anio_actual }}</span>
+        </div>
+
+  {% if total_asistencias_hoy > 0 %}
+          <p class="director-dashboard__muted">Asistencia general</p>
+          <div class="director-dashboard__progress" aria-hidden="true">
+            <div class="director-dashboard__progress-bar" style="--attendance-rate: {{ porcentaje_asistencia_hoy|default:0 }};"></div>
+          </div>
+          <div class="director-dashboard__muted" style="display: flex; justify-content: space-between; gap: 0.75rem; margin: 0.75rem 0 1.5rem;">
+            <span>Presentes: {{ presentes_hoy|default:0 }}</span>
+            <span>Ausentes: {{ ausentes_hoy|default:0 }}</span>
+            <span>Total: {{ total_asistencias_hoy|default:0 }}</span>
+          </div>
+        {% else %}
+          <div class="director-dashboard__empty">Aún no hay registros de asistencia para hoy.</div>
+        {% endif %}
+
+        <p class="director-dashboard__muted" style="margin-bottom: 0.75rem;">Oferta por nivel</p>
+        {% if cursos_por_nivel %}
+          <table class="director-dashboard__table">
+            <thead>
+              <tr>
+                <th>Nivel</th>
+                <th>Cursos</th>
+                <th>Matrícula</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for nivel, datos in cursos_por_nivel.items %}
+              <tr>
+                <td>{{ nivel }}</td>
+                <td>{{ datos.cursos }}</td>
+                <td>{{ datos.estudiantes }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% else %}
+          <div class="director-dashboard__empty">No hay cursos configurados para {{ anio_actual }}.</div>
+        {% endif %}
+      </div>
+
+      <div class="director-dashboard__grid" style="gap: 1rem;">
+        <div class="director-dashboard__section">
+          <div class="director-dashboard__section-head">
+            <h4 class="mb-0">Próximos eventos</h4>
+            <span class="director-dashboard__label">7 días</span>
+          </div>
+          {% if proximos_eventos %}
+            <ul class="director-dashboard__list">
+              {% for evento in proximos_eventos %}
+              <li class="director-dashboard__item">
+                <div>
+                  <strong>{{ evento.titulo|default:"Sin título"|truncatechars:40 }}</strong>
+                  <div class="director-dashboard__muted">{{ evento.descripcion|default:"Sin descripción"|truncatechars:70 }}</div>
+                </div>
+                <span class="director-dashboard__badge">{{ evento.fecha|date:"d/m" }}</span>
+              </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <div class="director-dashboard__empty">No hay eventos programados en los próximos 7 días.</div>
+          {% endif %}
+        </div>
+
+        <div class="director-dashboard__section">
+          <div class="director-dashboard__section-head">
+            <h4 class="mb-0">Anotaciones recientes</h4>
+            <span class="director-dashboard__label">Últimas 5</span>
+          </div>
+          {% if anotaciones_recientes_sistema %}
+            <ul class="director-dashboard__list">
+              {% for anotacion in anotaciones_recientes_sistema|slice:":5" %}
+              <li class="director-dashboard__item">
+                <div>
+                  <strong>
+                    {% if anotacion.estudiante %}
+                      {{ anotacion.estudiante.get_nombre_completo|truncatechars:28 }}
+                    {% else %}
+                      {{ anotacion.curso.get_nivel_display }}{{ anotacion.curso.paralelo }}
+                    {% endif %}
+                  </strong>
+                  <div class="director-dashboard__muted">{{ anotacion.contenido|truncatechars:80 }}</div>
+                  <div class="director-dashboard__muted">{{ anotacion.profesor_autor.get_nombre_completo|truncatechars:26 }}</div>
+                </div>
+                <span class="director-dashboard__badge">{{ anotacion.tipo|default:"" }}</span>
+              </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <div class="director-dashboard__empty">Sin anotaciones registradas recientemente.</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="director-dashboard__section">
+      <div class="director-dashboard__section-head">
+        <h4 class="mb-0">Actividad reciente</h4>
+        <span class="director-dashboard__muted">Últimos registros incorporados</span>
+      </div>
+      <div class="director-dashboard__grid director-dashboard__grid--thirds">
+        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+          <h5 class="mb-0">Cursos</h5>
+          {% if cursos_recientes %}
+            <ul class="director-dashboard__list">
+              {% for curso in cursos_recientes|slice:":4" %}
+              <li class="director-dashboard__item">
+                <div>
+                  <strong>{{ curso.get_nivel_display }}{{ curso.paralelo }}</strong>
+                  <div class="director-dashboard__muted">{{ curso.estudiantes.count }} estudiante{{ curso.estudiantes.count|pluralize:",s" }}</div>
+                </div>
+                <span class="director-dashboard__badge">{{ curso.anio }}</span>
+              </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <div class="director-dashboard__empty">Sin cursos recientes.</div>
+          {% endif %}
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+          <h5 class="mb-0">Profesores</h5>
+          {% if profesores_recientes %}
+            <ul class="director-dashboard__list">
+              {% for profesor in profesores_recientes|slice:":4" %}
+              <li class="director-dashboard__item">
+                <div>
+                  <strong>{{ profesor.get_nombre_completo|truncatechars:30 }}</strong>
+                  <div class="director-dashboard__muted">{{ profesor.asignaturas.count }} asignatura{{ profesor.asignaturas.count|pluralize:",s" }}</div>
+                </div>
+                <span class="director-dashboard__badge">ID {{ profesor.id }}</span>
+              </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <div class="director-dashboard__empty">Sin profesores recientes.</div>
+          {% endif %}
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+          <h5 class="mb-0">Estudiantes</h5>
+          {% if estudiantes_recientes %}
+            <ul class="director-dashboard__list">
+              {% for estudiante in estudiantes_recientes|slice:":4" %}
+              <li class="director-dashboard__item">
+                <div>
+                  <strong>{{ estudiante.get_nombre_completo|truncatechars:30 }}</strong>
+                  {% if estudiante.cursos.exists %}
+                    <div class="director-dashboard__muted">{{ estudiante.cursos.first.get_nivel_display }}{{ estudiante.cursos.first.paralelo }}</div>
+                  {% else %}
+                    <div class="director-dashboard__muted">Sin curso asignado</div>
+                  {% endif %}
+                </div>
+                <span class="director-dashboard__badge">ID {{ estudiante.id }}</span>
+              </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <div class="director-dashboard__empty">Sin estudiantes recientes.</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -370,7 +370,15 @@ def listar_estudiantes(request):
     genero_profesor = request.GET.get('genero_profesor', '')
     especialidad_profesor = request.GET.get('especialidad_profesor', '')
 
-    # Obtener todos los estudiantes y profesores
+    # Obtener selección de pestaña solicitada
+    tab_activa = request.GET.get('tab', 'estudiantes') or 'estudiantes'
+    if tab_activa not in {'estudiantes', 'profesores'}:
+        tab_activa = 'estudiantes'
+
+    # Obtener todos los estudiantes y profesores (para estadísticas generales)
+    total_estudiantes_registrados = Estudiante.objects.count()
+    total_profesores_registrados = Profesor.objects.count()
+
     estudiantes = Estudiante.objects.select_related('user').all()
     profesores = Profesor.objects.select_related('user').all()
 
@@ -417,9 +425,12 @@ def listar_estudiantes(request):
     estudiantes = estudiantes.order_by('primer_nombre', 'apellido_paterno')
     profesores = profesores.order_by('primer_nombre', 'apellido_paterno')
 
-    # Estadísticas
-    total_estudiantes = estudiantes.count()
-    total_profesores = profesores.count()
+    # Realizar las consultas y métricas finales
+    estudiantes = list(estudiantes)
+    profesores = list(profesores)
+
+    estudiantes_visibles = len(estudiantes)
+    profesores_visibles = len(profesores)
     
     # Obtener especialidades únicas para el filtro
     especialidades = Profesor.objects.values_list('especialidad', flat=True).distinct().exclude(especialidad__isnull=True).exclude(especialidad__exact='')
@@ -429,9 +440,14 @@ def listar_estudiantes(request):
         'profesores': profesores,
         'estudiantes_filtrados': estudiantes,  # Para compatibilidad con template
         'profesores_filtrados': profesores,    # Para compatibilidad con template
-        'total_estudiantes': total_estudiantes,
-        'total_profesores': total_profesores,
+        'total_estudiantes_registrados': total_estudiantes_registrados,
+        'total_profesores_registrados': total_profesores_registrados,
+        'estudiantes_visibles': estudiantes_visibles,
+        'profesores_visibles': profesores_visibles,
+        'total_estudiantes': estudiantes_visibles,
+        'total_profesores': profesores_visibles,
         'especialidades': especialidades,
+        'tab_activa': tab_activa,
     })
 
 @admin_required
@@ -935,6 +951,7 @@ def inicio(request):
     from django.utils import timezone
     from django.db.models import Avg, Count
     
+    template_name = 'inicio.html'
     context = {
         'user': request.user,
     }
@@ -1267,6 +1284,7 @@ def inicio(request):
                 total_asistencias_hoy = asistencias_hoy.count()
                 presentes_hoy = asistencias_hoy.filter(presente=True).count()
                 porcentaje_asistencia_hoy = (presentes_hoy / total_asistencias_hoy * 100) if total_asistencias_hoy > 0 else 0
+                ausentes_hoy = max(total_asistencias_hoy - presentes_hoy, 0)
                 
                 # Cursos recientes (últimos creados)
                 cursos_recientes = Curso.objects.filter(anio=anio_actual).order_by('-id')[:5]
@@ -1288,19 +1306,23 @@ def inicio(request):
                     'stats_anotaciones_sistema': stats_anotaciones_sistema,
                     'total_asistencias_hoy': total_asistencias_hoy,
                     'presentes_hoy': presentes_hoy,
+                    'ausentes_hoy': ausentes_hoy,
                     'porcentaje_asistencia_hoy': round(porcentaje_asistencia_hoy, 1),
                     'cursos_recientes': cursos_recientes,
                     'profesores_recientes': profesores_recientes,
                     'estudiantes_recientes': estudiantes_recientes,
                     'anio_actual': anio_actual,
                 })
+
+                if user_type == 'director':
+                    template_name = 'director_dashboard_full.html'
                 
             except Exception as e:
                 context['error_admin'] = f"Error al cargar datos del sistema: {str(e)}"
                 import traceback
                 print(f"Error en vista inicio (admin/director): {traceback.format_exc()}")
     
-    return render(request, 'inicio.html', context)
+    return render(request, template_name, context)
 
 def login_view(request):
     """Vista de login personalizada"""

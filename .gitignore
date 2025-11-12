@@ -139,6 +139,12 @@ solucion_*.py
 # Carpetas de backup
 templates_backup_*/
 *_backup/
+backup_*.json
+backup_*.sql
+backup_*/
+backup_data*/
+backup-data*/
+**/backup/**
 
 # Archivos de configuración específicos
 CREDENCIALES_*.py

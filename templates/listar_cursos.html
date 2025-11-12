@@ -1,332 +1,786 @@
 {% extends "index_master.html" %}
+
+{% block extra_css %}
+<style>
+.courses-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+  padding: 1.5rem 0 2.5rem;
+}
+
+.courses-alerts {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.courses-alerts .alert {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  border-radius: 16px;
+  border: 1px solid rgba(59, 130, 246, 0.15);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+}
+
+.courses-alerts .btn-close {
+  margin-left: auto;
+  box-shadow: none;
+}
+
+.courses-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  background: #ffffff;
+  border-radius: 22px;
+  padding: 1.6rem 1.9rem;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+}
+
+.courses-header__title {
+  margin: 0;
+  font-size: 1.7rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.courses-header__subtitle {
+  margin: 0.35rem 0 0;
+  color: #64748b;
+}
+
+.courses-header__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #ffffff;
+  border-radius: 14px;
+  padding: 0.65rem 1.4rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 12px 24px rgba(37, 99, 235, 0.32);
+}
+
+.courses-header__cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 32px rgba(37, 99, 235, 0.4);
+}
+
+.courses-header__cta i {
+  font-size: 1rem;
+}
+
+.courses-stats {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.courses-stat-card {
+  position: relative;
+  border-radius: 20px;
+  padding: 1.25rem 1.45rem;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.18);
+  overflow: hidden;
+}
+
+.courses-stat-card::after {
+  content: "";
+  position: absolute;
+  inset: auto -20% -30% auto;
+  width: 120px;
+  height: 120px;
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: 50%;
+  filter: blur(0);
+}
+
+.courses-stat-card__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.18);
+  font-size: 1.45rem;
+}
+
+.courses-stat-card__metric {
+  margin: 0;
+  font-size: 2.2rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.courses-stat-card__label {
+  margin: 0.35rem 0 0;
+  font-size: 0.95rem;
+  opacity: 0.92;
+}
+
+.courses-stat-card--primary {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+}
+
+.courses-stat-card--success {
+  background: linear-gradient(135deg, #16a34a, #15803d);
+}
+
+.courses-stat-card--info {
+  background: linear-gradient(135deg, #0ea5e9, #0369a1);
+}
+
+.courses-stat-card--warning {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.courses-table {
+  background: #ffffff;
+  border-radius: 24px;
+  box-shadow: 0 22px 48px rgba(15, 23, 42, 0.12);
+  overflow: hidden;
+}
+
+.courses-table__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 1.8rem 2rem 0.75rem;
+}
+
+.courses-table__title {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #0f172a;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.courses-table__title i {
+  font-size: 1.1rem;
+  color: #2563eb;
+}
+
+.courses-table__meta {
+  font-size: 0.9rem;
+  color: #64748b;
+}
+
+.courses-table__scroll {
+  padding: 0 2rem 2rem;
+  overflow-x: auto;
+}
+
+.courses-table__table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  min-width: 720px;
+}
+
+.courses-table__table thead th {
+  background: #f8fafc;
+  color: #475569;
+  font-weight: 600;
+  padding: 0.95rem 1rem;
+  text-transform: uppercase;
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.35);
+}
+
+.courses-table__table tbody tr:not(.collapse-row) td {
+  padding: 1.05rem 1rem;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.7);
+  vertical-align: middle;
+}
+
+.courses-table__table tbody tr:hover:not(.collapse-row) {
+  background: rgba(37, 99, 235, 0.05);
+}
+
+.courses-table__course {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.courses-table__chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: rgba(37, 99, 235, 0.12);
+  color: #1d4ed8;
+}
+
+.courses-table__chip--info {
+  background: rgba(14, 165, 233, 0.15);
+  color: #0ea5e9;
+}
+
+.courses-table__professor {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-weight: 600;
+}
+
+.courses-table__professor i {
+  color: #22c55e;
+}
+
+.courses-table__professor--warning i {
+  color: #f59e0b;
+}
+
+.courses-table__professor--warning {
+  color: #b45309;
+}
+
+.courses-table .badge {
+  border-radius: 999px;
+  padding: 0.4rem 0.85rem;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.courses-toggle-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  border: 1px solid rgba(37, 99, 235, 0.3);
+  background: rgba(37, 99, 235, 0.08);
+  color: #1d4ed8;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 0.5rem;
+  transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.courses-toggle-btn:hover {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #ffffff;
+  box-shadow: 0 12px 24px rgba(37, 99, 235, 0.25);
+}
+
+.courses-actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.courses-action-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  background: #f8fafc;
+  color: #334155;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  text-decoration: none;
+}
+
+.courses-action-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.15);
+}
+
+.courses-action-btn--info {
+  background: rgba(14, 165, 233, 0.12);
+  color: #0e7490;
+  border-color: rgba(14, 165, 233, 0.25);
+}
+
+.courses-action-btn--info:hover {
+  background: linear-gradient(135deg, #0ea5e9, #0284c7);
+  color: #ffffff;
+  box-shadow: 0 16px 32px rgba(2, 132, 199, 0.28);
+}
+
+.courses-action-btn--secondary {
+  background: rgba(148, 163, 184, 0.18);
+  color: #1f2937;
+}
+
+.courses-action-btn--secondary:hover {
+  background: linear-gradient(135deg, #94a3b8, #64748b);
+  color: #ffffff;
+}
+
+.courses-action-btn--danger {
+  background: rgba(248, 113, 113, 0.18);
+  color: #b91c1c;
+  border-color: rgba(248, 113, 113, 0.3);
+}
+
+.courses-action-btn--danger:hover {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: #ffffff;
+  box-shadow: 0 16px 32px rgba(239, 68, 68, 0.25);
+}
+
+.courses-action-btn--compact {
+  width: 34px;
+  height: 34px;
+  font-size: 0.85rem;
+}
+
+.collapse-row td {
+  padding: 1.35rem 2rem;
+  background: #f8fafc;
+  border-top: 1px solid rgba(226, 232, 240, 0.7);
+}
+
+.courses-detail-grid {
+  display: grid;
+  gap: 0.85rem 1.25rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.courses-detail-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 0.7rem 0.85rem;
+  box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.25);
+  font-size: 0.92rem;
+  color: #1f2937;
+}
+
+.courses-detail-item > div {
+  flex: 1;
+  min-width: 0;
+}
+
+.courses-detail-item i {
+  font-size: 1rem;
+}
+
+.courses-detail-item--student i {
+  color: #16a34a;
+}
+
+.courses-detail-item--subject i {
+  color: #0ea5e9;
+}
+
+.courses-detail-item small {
+  display: block;
+  color: #64748b;
+  font-size: 0.78rem;
+}
+
+.courses-table__empty {
+  padding: 3rem 2rem;
+  text-align: center;
+  color: #64748b;
+}
+
+.courses-table__empty i {
+  font-size: 2.4rem;
+  color: #94a3b8;
+  margin-bottom: 1rem;
+}
+
+.courses-table__empty h5 {
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.courses-table__empty .courses-header__cta {
+  margin-top: 0.75rem;
+}
+
+.courses-modal .modal-content {
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.courses-modal .modal-header {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #fff;
+}
+
+.courses-modal .modal-title i {
+  margin-right: 0.5rem;
+}
+
+.courses-modal .modal-body {
+  background: #f8fafc;
+}
+
+.courses-modal h6 {
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+@media (max-width: 991px) {
+  .courses-header {
+    padding: 1.4rem 1.5rem;
+  }
+
+  .courses-table__table {
+    min-width: 640px;
+  }
+}
+
+@media (max-width: 767px) {
+  .courses-page {
+    gap: 1.5rem;
+  }
+
+  .courses-header__title {
+    font-size: 1.45rem;
+  }
+
+  .courses-table__head {
+    padding: 1.4rem 1.25rem 0.65rem;
+  }
+
+  .courses-table__scroll {
+    padding: 0 1.25rem 1.5rem;
+  }
+
+  .collapse-row td {
+    padding: 1.1rem 1.25rem;
+  }
+}
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="right_col" role="main">
-  <div class="container-fluid">
+  <div class="container-fluid courses-page">
     {% csrf_token %}
-    
-    <!-- Mensajes -->
+
     {% if messages %}
-      {% for message in messages %}
-        <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
-          <i class="fas fa-{{ message.tags|default:'info'|yesno:'check-circle,exclamation-triangle,info-circle' }} me-2"></i>
-          {{ message }}
-          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-      {% endfor %}
+      <div class="courses-alerts">
+        {% for message in messages %}
+          <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+            {% with tags=message.tags|default:'' %}
+              {% if 'success' in tags %}
+                <i class="fas fa-check-circle text-success me-2"></i>
+              {% elif 'warning' in tags %}
+                <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+              {% elif 'error' in tags or 'danger' in tags %}
+                <i class="fas fa-times-circle text-danger me-2"></i>
+              {% else %}
+                <i class="fas fa-info-circle text-primary me-2"></i>
+              {% endif %}
+            {% endwith %}
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        {% endfor %}
+      </div>
     {% endif %}
 
-    <!-- Header con Estadísticas -->
-    <div class="row mb-4">
-      <div class="col-12">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-          <div>
-            {% if tipo_usuario == 'profesor' %}
-              <h2 class="mb-1">
-                <i class="fas fa-chalkboard-teacher me-2 text-primary"></i>Mis Cursos {{ anio_actual }}
-              </h2>
-              <p class="text-muted mb-0">Cursos donde impartes clases</p>
-            {% else %}
-              <h2 class="mb-1">
-                <i class="fas fa-school me-2 text-primary"></i>Cursos {{ anio_actual }}
-              </h2>
-              <p class="text-muted mb-0">Sistema de gestión de cursos y estudiantes</p>
-            {% endif %}
-          </div>
-          {% if puede_editar %}
-            <a href="{% url 'agregar_curso' %}" class="btn btn-primary">
-              <i class="fas fa-plus me-2"></i>Nuevo Curso
-            </a>
-          {% endif %}
-        </div>
-        
-        <!-- Estadísticas Detalladas -->
-        <div class="row">
-          <div class="col-md-3 col-sm-6 mb-3">
-            <div class="card border-primary">
-              <div class="card-body text-center py-3">
-                <div class="d-flex align-items-center justify-content-center">
-                  <i class="fas fa-graduation-cap fa-2x text-primary me-3"></i>
-                  <div>
-                    <h4 class="mb-0 text-primary fw-bold">{{ total_cursos }}</h4>
-                    {% if tipo_usuario == 'profesor' %}
-                      <small class="text-muted">Mis Curso{{ total_cursos|pluralize }}</small>
-                    {% else %}
-                      <small class="text-muted">Curso{{ total_cursos|pluralize }}</small>
-                    {% endif %}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <div class="col-md-3 col-sm-6 mb-3">
-            <div class="card border-success">
-              <div class="card-body text-center py-3">
-                <div class="d-flex align-items-center justify-content-center">
-                  <i class="fas fa-users fa-2x text-success me-3"></i>
-                  <div>
-                    <h4 class="mb-0 text-success fw-bold">{{ total_estudiantes }}</h4>
-                    {% if tipo_usuario == 'profesor' %}
-                      <small class="text-muted">Mis Estudiante{{ total_estudiantes|pluralize }}</small>
-                    {% else %}
-                      <small class="text-muted">Estudiante{{ total_estudiantes|pluralize }} totales</small>
-                    {% endif %}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <div class="col-md-3 col-sm-6 mb-3">
-            <div class="card border-info">
-              <div class="card-body text-center py-3">
-                <div class="d-flex align-items-center justify-content-center">
-                  <i class="fas fa-book fa-2x text-info me-3"></i>
-                  <div>
-                    <h4 class="mb-0 text-info fw-bold">{{ total_asignaturas_asignadas }}</h4>
-                    {% if tipo_usuario == 'profesor' %}
-                      <small class="text-muted">Mis Asignatura{{ total_asignaturas_asignadas|pluralize }}</small>
-                    {% else %}
-                      <small class="text-muted">Asignatura{{ total_asignaturas_asignadas|pluralize }} asignadas</small>
-                    {% endif %}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          {% if tipo_usuario != 'profesor' %}
-          <div class="col-md-3 col-sm-6 mb-3">
-            <div class="card border-warning">
-              <div class="card-body text-center py-3">
-                <div class="d-flex align-items-center justify-content-center">
-                  <i class="fas fa-user-clock fa-2x text-warning me-3"></i>
-                  <div>
-                    <h4 class="mb-0 text-warning fw-bold">{{ total_estudiantes_pendientes }}</h4>
-                    <small class="text-muted">Sin asignar</small>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          {% else %}
-          <div class="col-md-3 col-sm-6 mb-3">
-            <div class="card border-warning">
-              <div class="card-body text-center py-3">
-                <div class="d-flex align-items-center justify-content-center">
-                  <i class="fas fa-user-tie fa-2x text-warning me-3"></i>
-                  <div>
-                    <h4 class="mb-0 text-warning fw-bold">{{ profesores_jefe_asignados }}</h4>
-                    <small class="text-muted">Con Profesor Jefe</small>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          {% endif %}
-        </div>
+    <section class="courses-header">
+      <div>
+        {% if tipo_usuario == 'profesor' %}
+          <h1 class="courses-header__title">
+            <i class="fas fa-chalkboard-teacher me-2 text-primary"></i>Mis Cursos {{ anio_actual }}
+          </h1>
+          <p class="courses-header__subtitle">Cursos donde impartes clases</p>
+        {% else %}
+          <h1 class="courses-header__title">
+            <i class="fas fa-school me-2 text-primary"></i>Cursos {{ anio_actual }}
+          </h1>
+          <p class="courses-header__subtitle">Sistema de gestión de cursos y estudiantes</p>
+        {% endif %}
       </div>
-    </div>
+      {% if puede_editar %}
+        <a href="{% url 'agregar_curso' %}" class="courses-header__cta">
+          <i class="fas fa-plus"></i>
+          <span>Nuevo Curso</span>
+        </a>
+      {% endif %}
+    </section>
 
-    <!-- Tabla de Cursos Simple -->
-    <div class="card">
-      <div class="card-body p-0">
-        {% if cursos %}
-          <div class="table-responsive">
-            <table class="table table-hover mb-0">
-              <thead class="table-light">
-                <tr>
-                  <th class="fw-semibold">Curso</th>
-                  <th class="fw-semibold">Profesor Jefe</th>
-                  <th class="fw-semibold text-center">Estudiantes</th>
-                  <th class="fw-semibold text-center">
-                    {% if tipo_usuario == 'profesor' %}
-                      Mis Asignaturas
-                    {% else %}
-                      Asignaturas
-                    {% endif %}
-                  </th>
-                  {% if puede_editar and tipo_usuario != 'profesor' %}
-                  <th class="fw-semibold text-center">Acciones</th>
+    <section class="courses-stats">
+      <article class="courses-stat-card courses-stat-card--primary">
+        <span class="courses-stat-card__icon"><i class="fas fa-graduation-cap"></i></span>
+        <div>
+          <p class="courses-stat-card__metric">{{ total_cursos }}</p>
+          {% if tipo_usuario == 'profesor' %}
+            <p class="courses-stat-card__label">Mis Curso{{ total_cursos|pluralize }}</p>
+          {% else %}
+            <p class="courses-stat-card__label">Curso{{ total_cursos|pluralize }} registrados</p>
+          {% endif %}
+        </div>
+      </article>
+      <article class="courses-stat-card courses-stat-card--success">
+        <span class="courses-stat-card__icon"><i class="fas fa-users"></i></span>
+        <div>
+          <p class="courses-stat-card__metric">{{ total_estudiantes }}</p>
+          {% if tipo_usuario == 'profesor' %}
+            <p class="courses-stat-card__label">Mis Estudiante{{ total_estudiantes|pluralize }}</p>
+          {% else %}
+            <p class="courses-stat-card__label">Estudiante{{ total_estudiantes|pluralize }} totales</p>
+          {% endif %}
+        </div>
+      </article>
+      <article class="courses-stat-card courses-stat-card--info">
+        <span class="courses-stat-card__icon"><i class="fas fa-book-open"></i></span>
+        <div>
+          <p class="courses-stat-card__metric">{{ total_asignaturas_asignadas }}</p>
+          {% if tipo_usuario == 'profesor' %}
+            <p class="courses-stat-card__label">Mis Asignatura{{ total_asignaturas_asignadas|pluralize }}</p>
+          {% else %}
+            <p class="courses-stat-card__label">Asignatura{{ total_asignaturas_asignadas|pluralize }} asignadas</p>
+          {% endif %}
+        </div>
+      </article>
+      <article class="courses-stat-card courses-stat-card--warning">
+        <span class="courses-stat-card__icon">
+          {% if tipo_usuario != 'profesor' %}
+            <i class="fas fa-user-clock"></i>
+          {% else %}
+            <i class="fas fa-user-tie"></i>
+          {% endif %}
+        </span>
+        <div>
+          {% if tipo_usuario != 'profesor' %}
+            <p class="courses-stat-card__metric">{{ total_estudiantes_pendientes }}</p>
+            <p class="courses-stat-card__label">Estudiantes sin asignar</p>
+          {% else %}
+            <p class="courses-stat-card__metric">{{ profesores_jefe_asignados }}</p>
+            <p class="courses-stat-card__label">Cursos con profesor jefe</p>
+          {% endif %}
+        </div>
+      </article>
+    </section>
+
+    <section class="courses-table">
+      <div class="courses-table__head">
+        <h3 class="courses-table__title">
+          <i class="fas fa-list-check"></i>
+          {% if tipo_usuario == 'profesor' %}
+            Cursos asignados
+          {% else %}
+            Catálogo de cursos
+          {% endif %}
+        </h3>
+        <span class="courses-table__meta">
+          {% if cursos %}
+            {{ cursos|length }} curso{{ cursos|length|pluralize }} activos
+          {% else %}
+            Sin cursos registrados
+          {% endif %}
+        </span>
+      </div>
+      {% if cursos %}
+        <div class="courses-table__scroll">
+          <table class="courses-table__table">
+            <thead>
+              <tr>
+                <th>Curso</th>
+                <th>Profesor Jefe</th>
+                <th class="text-center">Estudiantes</th>
+                <th class="text-center">
+                  {% if tipo_usuario == 'profesor' %}
+                    Mis asignaturas
+                  {% else %}
+                    Asignaturas
                   {% endif %}
-                </tr>
-              </thead>
-              <tbody>
-                {% for curso in cursos %}
-                  <tr>
-                    <td>
-                      <div class="d-flex align-items-center">
-                        {% if curso.nivel|slice:"-1" == "B" %}
-                          <span class="badge bg-primary me-2">Básico</span>
-                        {% else %}
-                          <span class="badge bg-info me-2">Medio</span>
-                        {% endif %}
-                        <strong>{{ curso.get_nivel_display }}{{ curso.paralelo }}</strong>
-                      </div>
-                    </td>
-                    <td>
-                      {% if curso.profesor_jefe %}
-                        <span class="text-success">
-                          <i class="fas fa-user-tie me-1"></i>{{ curso.profesor_jefe.get_nombre_completo }}
-                        </span>
+                </th>
+                {% if puede_editar and tipo_usuario != 'profesor' %}
+                <th class="text-center">Acciones</th>
+                {% endif %}
+              </tr>
+            </thead>
+            <tbody>
+              {% for curso in cursos %}
+                <tr>
+                  <td>
+                    <div class="courses-table__course">
+                      {% if curso.nivel|slice:"-1" == "B" %}
+                        <span class="courses-table__chip">Básico</span>
                       {% else %}
-                        <span class="text-warning">
-                          <i class="fas fa-exclamation-triangle me-1"></i>Sin asignar
-                        </span>
+                        <span class="courses-table__chip courses-table__chip--info">Medio</span>
                       {% endif %}
-                    </td>
-                    <td class="text-center">
-                      <span class="badge bg-success">{{ curso.estudiantes.count }}</span>
-                      {% if curso.estudiantes.count > 0 %}
-                        <button type="button" class="btn btn-sm btn-outline-primary ms-1" 
-                                onclick="toggleDetalle('estudiantes-{{ curso.id }}', this)">
+                      <strong>{{ curso.get_nivel_display }}{{ curso.paralelo }}</strong>
+                    </div>
+                  </td>
+                  <td>
+                    {% if curso.profesor_jefe %}
+                      <div class="courses-table__professor">
+                        <i class="fas fa-user-tie"></i>
+                        <span>{{ curso.profesor_jefe.get_nombre_completo }}</span>
+                      </div>
+                    {% else %}
+                      <div class="courses-table__professor courses-table__professor--warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <span>Sin asignar</span>
+                      </div>
+                    {% endif %}
+                  </td>
+                  <td class="text-center">
+                    <span class="badge bg-success">{{ curso.estudiantes.count }}</span>
+                    {% if curso.estudiantes.count > 0 %}
+                      <button type="button" class="courses-toggle-btn" onclick="toggleDetalle('estudiantes-{{ curso.id }}', this)" title="Ver estudiantes">
+                        <i class="fas fa-eye"></i>
+                      </button>
+                    {% endif %}
+                  </td>
+                  <td class="text-center">
+                    {% if tipo_usuario == 'profesor' %}
+                      <span class="badge bg-info">{{ curso.asignaturas_profesor.count }}</span>
+                      {% if curso.asignaturas_profesor.count > 0 %}
+                        <button type="button" class="courses-toggle-btn" onclick="toggleDetalle('asignaturas-{{ curso.id }}', this)" title="Ver asignaturas">
                           <i class="fas fa-eye"></i>
                         </button>
                       {% endif %}
-                    </td>
-                    <td class="text-center">
-                      {% if tipo_usuario == 'profesor' %}
-                        <span class="badge bg-info">{{ curso.asignaturas_profesor.count }}</span>
-                        {% if curso.asignaturas_profesor.count > 0 %}
-                          <button type="button" class="btn btn-sm btn-outline-primary ms-1" 
-                                  onclick="toggleDetalle('asignaturas-{{ curso.id }}', this)">
-                            <i class="fas fa-eye"></i>
-                          </button>
-                        {% endif %}
-                      {% else %}
-                        <span class="badge bg-info">{{ curso.asignaturas.count }}</span>
-                        {% if curso.asignaturas.count > 0 %}
-                          <button type="button" class="btn btn-sm btn-outline-primary ms-1" 
-                                  onclick="toggleDetalle('asignaturas-{{ curso.id }}', this)">
-                            <i class="fas fa-eye"></i>
-                          </button>
-                        {% endif %}
+                    {% else %}
+                      <span class="badge bg-info">{{ curso.asignaturas.count }}</span>
+                      {% if curso.asignaturas.count > 0 %}
+                        <button type="button" class="courses-toggle-btn" onclick="toggleDetalle('asignaturas-{{ curso.id }}', this)" title="Ver asignaturas">
+                          <i class="fas fa-eye"></i>
+                        </button>
                       {% endif %}
-                    </td>
-                    {% if puede_editar and tipo_usuario != 'profesor' %}
-                    <td class="text-center">
-                      <div class="btn-group btn-group-sm">
-                        <button type="button" class="btn btn-outline-primary" 
-                                onclick="gestionarAsignaturas({{ curso.id }}, '{{ curso.get_nivel_display }}{{ curso.paralelo }}')"
-                                title="Gestionar asignaturas">
-                          <i class="fas fa-book"></i>
-                        </button>
-                        <a href="{% url 'editar_curso' curso.id %}" class="btn btn-outline-secondary" title="Editar">
-                          <i class="fas fa-edit"></i>
-                        </a>
-                        <button type="button" class="btn btn-outline-danger" 
-                                onclick="eliminarCurso('{{ curso.get_nivel_display }}{{ curso.paralelo }}', {{ curso.id }})"
-                                title="Eliminar">
-                          <i class="fas fa-trash"></i>
-                        </button>
-                      </div>
-                    </td>
                     {% endif %}
-                  </tr>
-                  
-                  <!-- Detalle de estudiantes -->
-                  {% if curso.estudiantes.count > 0 %}
-                  <tr id="estudiantes-{{ curso.id }}" class="table-light collapse-row" style="display: none;">
-                    <td colspan="{% if puede_editar and tipo_usuario != 'profesor' %}5{% else %}4{% endif %}">
-                      <div class="p-3">
-                        <h6 class="text-primary mb-3">
-                          <i class="fas fa-users me-1"></i>Estudiantes ({{ curso.estudiantes.count }})
-                        </h6>
-                        <div class="row">
-                          {% for estudiante in curso.estudiantes.all %}
-                            <div class="col-md-4 mb-2">
-                              <span class="small">
-                                <i class="fas fa-user-graduate text-success me-1"></i>
-                                {{ estudiante.get_nombre_completo }}
-                              </span>
-                            </div>
-                          {% endfor %}
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
+                  </td>
+                  {% if puede_editar and tipo_usuario != 'profesor' %}
+                  <td class="text-center">
+                    <div class="courses-actions">
+                      <button type="button" class="courses-action-btn courses-action-btn--info" onclick="gestionarAsignaturas({{ curso.id }}, '{{ curso.get_nivel_display }}{{ curso.paralelo }}')" title="Gestionar asignaturas">
+                        <i class="fas fa-book"></i>
+                      </button>
+                      <a href="{% url 'editar_curso' curso.id %}" class="courses-action-btn courses-action-btn--secondary" title="Editar curso">
+                        <i class="fas fa-edit"></i>
+                      </a>
+                      <button type="button" class="courses-action-btn courses-action-btn--danger" onclick="eliminarCurso('{{ curso.get_nivel_display }}{{ curso.paralelo }}', {{ curso.id }})" title="Eliminar curso">
+                        <i class="fas fa-trash"></i>
+                      </button>
+                    </div>
+                  </td>
                   {% endif %}
-                  
-                  {% if tipo_usuario == 'profesor' and curso.asignaturas_profesor.count > 0 %}
-                  <tr id="asignaturas-{{ curso.id }}" class="table-light collapse-row" style="display: none;">
-                    <td colspan="4">
-                      <div class="p-3">
-                        <h6 class="text-info mb-3">
-                          <i class="fas fa-book me-1"></i>Mis Asignaturas en este Curso ({{ curso.asignaturas_profesor.count }})
-                        </h6>
-                        <div class="row">
-                          {% for asignatura in curso.asignaturas_profesor %}
-                            <div class="col-md-6 mb-2">
-                              <div class="d-flex justify-content-between align-items-center">
-                                <span class="small">
-                                  <i class="fas fa-book-open text-info me-1"></i>
-                                  <strong>{{ asignatura.nombre }}</strong>
-                                  {% if asignatura.codigo_asignatura %}
-                                    <br><small class="text-muted ms-3">Código: {{ asignatura.codigo_asignatura }}</small>
-                                  {% endif %}
-                                </span>
-                                <span class="badge bg-success ms-2">Responsable</span>
-                              </div>
-                            </div>
-                          {% endfor %}
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                  {% elif tipo_usuario != 'profesor' and curso.asignaturas.count > 0 %}
-                  <tr id="asignaturas-{{ curso.id }}" class="table-light collapse-row" style="display: none;">
-                    <td colspan="{% if puede_editar %}5{% else %}4{% endif %}">
-                      <div class="p-3">
-                        <h6 class="text-info mb-3">
-                          <i class="fas fa-book me-1"></i>Asignaturas ({{ curso.asignaturas.count }})
-                        </h6>
-                        <div class="row">
-                          {% for asignatura in curso.asignaturas.all %}
-                            <div class="col-md-6 mb-2">
-                              <div class="d-flex justify-content-between align-items-center">
-                                <span class="small">
-                                  <i class="fas fa-book-open text-info me-1"></i>
-                                  <strong>{{ asignatura.nombre }}</strong>
-                                  {% if asignatura.profesor_responsable %}
-                                    <br><small class="text-muted ms-3">{{ asignatura.profesor_responsable.get_nombre_completo }}</small>
-                                  {% endif %}
-                                </span>
-                                {% if puede_editar %}
-                                <button type="button" class="btn btn-sm btn-outline-danger"
-                                        onclick="removerAsignatura({{ curso.id }}, {{ asignatura.id }}, '{{ asignatura.nombre }}')"
-                                        title="Remover">
-                                  <i class="fas fa-times"></i>
-                                </button>
-                                {% endif %}
-                              </div>
-                            </div>
-                          {% endfor %}
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                  {% endif %}
-                {% endfor %}
-              </tbody>
-            </table>
-          </div>
-        {% else %}
-          <div class="text-center py-5">
-            <i class="fas fa-school fa-3x text-muted mb-3"></i>
-            <h5 class="text-muted">No hay cursos registrados</h5>
-            <p class="text-muted">Comienza agregando el primer curso del año académico.</p>
-            {% if puede_editar %}
-              <a href="{% url 'agregar_curso' %}" class="btn btn-primary">
-                <i class="fas fa-plus me-2"></i>Agregar Primer Curso
-              </a>
-            {% endif %}
-          </div>
-        {% endif %}
-      </div>
-    </div>
+                </tr>
 
-    <!-- Modal Simple para Gestionar Asignaturas -->
-    <div class="modal fade" id="modalAsignaturas" tabindex="-1">
+                {% if curso.estudiantes.count > 0 %}
+                <tr id="estudiantes-{{ curso.id }}" class="collapse-row" style="display: none;">
+                  <td colspan="{% if puede_editar and tipo_usuario != 'profesor' %}5{% else %}4{% endif %}">
+                    <div>
+                      <h6 class="text-primary mb-3"><i class="fas fa-users me-2"></i>Estudiantes ({{ curso.estudiantes.count }})</h6>
+                      <div class="courses-detail-grid">
+                        {% for estudiante in curso.estudiantes.all %}
+                          <div class="courses-detail-item courses-detail-item--student">
+                            <i class="fas fa-user-graduate"></i>
+                            <span>{{ estudiante.get_nombre_completo }}</span>
+                          </div>
+                        {% endfor %}
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+                {% endif %}
+
+                {% if tipo_usuario == 'profesor' and curso.asignaturas_profesor.count > 0 %}
+                <tr id="asignaturas-{{ curso.id }}" class="collapse-row" style="display: none;">
+                  <td colspan="4">
+                    <div>
+                      <h6 class="text-info mb-3"><i class="fas fa-book me-2"></i>Mis asignaturas en este curso ({{ curso.asignaturas_profesor.count }})</h6>
+                      <div class="courses-detail-grid">
+                        {% for asignatura in curso.asignaturas_profesor %}
+                          <div class="courses-detail-item courses-detail-item--subject">
+                            <i class="fas fa-book-open"></i>
+                            <div>
+                              <strong>{{ asignatura.nombre }}</strong>
+                              {% if asignatura.codigo_asignatura %}
+                                <small>Código: {{ asignatura.codigo_asignatura }}</small>
+                              {% endif %}
+                            </div>
+                            <span class="badge bg-success ms-auto">Responsable</span>
+                          </div>
+                        {% endfor %}
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+                {% elif tipo_usuario != 'profesor' and curso.asignaturas.count > 0 %}
+                <tr id="asignaturas-{{ curso.id }}" class="collapse-row" style="display: none;">
+                  <td colspan="{% if puede_editar %}5{% else %}4{% endif %}">
+                    <div>
+                      <h6 class="text-info mb-3"><i class="fas fa-book me-2"></i>Asignaturas ({{ curso.asignaturas.count }})</h6>
+                      <div class="courses-detail-grid">
+                        {% for asignatura in curso.asignaturas.all %}
+                          <div class="courses-detail-item courses-detail-item--subject">
+                            <i class="fas fa-book-open"></i>
+                            <div>
+                              <strong>{{ asignatura.nombre }}</strong>
+                              {% if asignatura.profesor_responsable %}
+                                <small>{{ asignatura.profesor_responsable.get_nombre_completo }}</small>
+                              {% endif %}
+                            </div>
+                            {% if puede_editar %}
+                              <button type="button" class="courses-action-btn courses-action-btn--danger courses-action-btn--compact" onclick="removerAsignatura({{ curso.id }}, {{ asignatura.id }}, '{{ asignatura.nombre }}')" title="Remover asignatura">
+                                <i class="fas fa-times"></i>
+                              </button>
+                            {% endif %}
+                          </div>
+                        {% endfor %}
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+                {% endif %}
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="courses-table__empty">
+          <i class="fas fa-school"></i>
+          <h5>No hay cursos registrados</h5>
+          <p>Comienza agregando el primer curso del año académico.</p>
+          {% if puede_editar %}
+            <a href="{% url 'agregar_curso' %}" class="courses-header__cta">
+              <i class="fas fa-plus"></i>
+              <span>Agregar primer curso</span>
+            </a>
+          {% endif %}
+        </div>
+      {% endif %}
+    </section>
+
+    {% if estudiantes_pendientes and puede_editar and tipo_usuario != 'profesor' %}
+    <div class="alert alert-warning">
+      <h6 class="alert-heading"><i class="fas fa-exclamation-triangle me-2"></i>Estudiantes pendientes ({{ total_estudiantes_pendientes }})</h6>
+      <p class="mb-0">Hay estudiantes que no están asignados a ningún curso. <a href="{% url 'agregar_curso' %}" class="alert-link">Crear un nuevo curso</a> o editar uno existente para asignarlos.</p>
+    </div>
+    {% endif %}
+
+    <!-- Modal actualizado -->
+    <div class="modal fade courses-modal" id="modalAsignaturas" tabindex="-1">
       <div class="modal-dialog modal-lg">
         <div class="modal-content">
           <div class="modal-header">
@@ -363,17 +817,6 @@
       </div>
     </div>
 
-    <!-- Sección de estudiantes pendientes (solo para administradores) -->
-    {% if estudiantes_pendientes and puede_editar and tipo_usuario != 'profesor' %}
-    <div class="alert alert-warning mt-4">
-      <h6 class="alert-heading">
-        <i class="fas fa-exclamation-triangle me-2"></i>Estudiantes Pendientes ({{ total_estudiantes_pendientes }})
-      </h6>
-      <p class="mb-0">Hay estudiantes que no están asignados a ningún curso. 
-        <a href="{% url 'agregar_curso' %}" class="alert-link">Crear un nuevo curso</a> o editar uno existente para asignarlos.
-      </p>
-    </div>
-    {% endif %}
   </div>
 </div>
 
@@ -544,91 +987,4 @@ function eliminarCurso(nombreCurso, cursoId) {
   }
 }
 </script>
-
-<!-- Estilos Limpios -->
-<style>
-.table th {
-  border-bottom: 2px solid #dee2e6;
-  font-weight: 600;
-}
-
-.collapse-row {
-  background-color: #f8f9fa !important;
-}
-
-.btn-group-sm > .btn {
-  padding: 0.25rem 0.5rem;
-}
-
-.badge {
-  font-size: 0.875em;
-}
-
-.modal-content {
-  border: none;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-}
-
-.card {
-  border: 1px solid #dee2e6;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  transition: transform 0.2s ease-in-out;
-}
-
-.card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-}
-
-/* Estilos para las tarjetas de estadísticas */
-.card.border-primary {
-  border-left: 4px solid #0d6efd !important;
-}
-
-.card.border-success {
-  border-left: 4px solid #198754 !important;
-}
-
-.card.border-info {
-  border-left: 4px solid #0dcaf0 !important;
-}
-
-.card.border-warning {
-  border-left: 4px solid #ffc107 !important;
-}
-
-.card-body {
-  border-radius: 6px;
-}
-
-.fw-bold {
-  font-weight: 700 !important;
-}
-
-@media (max-width: 768px) {
-  .btn-group-sm > .btn {
-    padding: 0.125rem 0.25rem;
-  }
-  
-  .card-body.py-3 {
-    padding: 1rem !important;
-  }
-  
-  .fa-2x {
-    font-size: 1.5em !important;
-  }
-}
-
-@media (max-width: 576px) {
-  .d-flex.align-items-center.justify-content-center {
-    flex-direction: column;
-    text-align: center;
-  }
-  
-  .fa-2x.me-3 {
-    margin-right: 0 !important;
-    margin-bottom: 0.5rem;
-  }
-}
-</style>
 {% endblock %}

@@ -198,11 +198,203 @@ input:focus, select:focus, textarea:focus {
   width: 100% !important;
 }
 /* Ensure inner bootstrap container doesn't shift */
+.has-horizontal-nav {
+  background: #f1f5f9;
+}
+
+.has-horizontal-nav .container.body,
+.has-horizontal-nav .container.body .main_container {
+  width: 100%;
+  margin: 0;
+}
+
+.has-horizontal-nav .left_col,
+.has-horizontal-nav .sidebar-footer {
+  display: none !important;
+}
+
+.has-horizontal-nav .top_nav {
+  margin-left: 0 !important;
+  width: 100% !important;
+  left: 0 !important;
+  right: 0 !important;
+}
+
+.has-horizontal-nav .nav_menu {
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+
+.has-horizontal-nav .main_container {
+  margin-left: 0 !important;
+  width: 100% !important;
+  margin-top: 0 !important;
+}
+
+.has-horizontal-nav #menu_toggle {
+  display: none !important;
+}
+
+.horizontal-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  background: #ffffff;
+  padding: 0.75rem 1rem;
+  border-radius: 18px;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  position: sticky;
+  top: 1.5rem;
+  z-index: 101;
+}
+
+.horizontal-nav__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #1f2937;
+  text-decoration: none;
+  padding: 0.55rem 1rem;
+  border-radius: 14px;
+  transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.horizontal-nav__link:hover {
+  background: rgba(37, 99, 235, 0.1);
+  color: #1d4ed8;
+  box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.15);
+}
+
+.horizontal-nav__link--active {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #ffffff;
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.35);
+}
+
+.horizontal-nav__link--active:hover {
+  color: #ffffff;
+}
+
+.horizontal-nav__icon {
+  font-size: 1rem;
+}
+
+.horizontal-nav__meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: auto;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1f2937;
+  padding: 0.4rem 0.85rem;
+  border-radius: 999px;
+  background: rgba(37, 99, 235, 0.12);
+  box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.15);
+}
+
+.horizontal-nav__meta-avatar {
+  width: 2.1rem;
+  height: 2.1rem;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
+}
+
+.horizontal-nav__meta-name {
+  white-space: nowrap;
+}
+
+.horizontal-nav__meta-role {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: rgba(31, 41, 55, 0.72);
+  background: rgba(29, 78, 216, 0.08);
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+}
+
+.horizontal-nav__link--logout {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: #ffffff;
+}
+
+.horizontal-nav__link--logout:hover {
+  color: #ffffff;
+  box-shadow: 0 6px 18px rgba(220, 38, 38, 0.35);
+}
+
+.horizontal-nav-wrapper {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  max-width: 1220px;
+  padding: 0 2.25rem;
+  margin: 0 auto 1.75rem;
+}
+
+.horizontal-nav-host {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 1.5rem 0 0;
+}
+
+@media (max-width: 767px) {
+  .has-horizontal-nav .nav_menu {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .horizontal-nav-wrapper {
+    padding: 0 1.25rem;
+    margin-bottom: 1.35rem;
+  }
+
+  .horizontal-nav-host {
+    padding: 1.35rem 0 0;
+  }
+
+  .horizontal-nav {
+    gap: 0.5rem;
+    justify-content: center;
+    top: 1rem;
+  }
+
+  .horizontal-nav__meta {
+    margin-left: 0;
+    width: 100%;
+    justify-content: center;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .horizontal-nav__link--logout {
+    width: 100%;
+    justify-content: center;
+  }
+}
 .right_col .container-fluid,
 .right_col .container {
-  margin-left: 0 !important;
-  padding-left: var(--space-4) !important; /* más aire a los lados */
-  padding-right: var(--space-4) !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  padding-left: clamp(1.75rem, 4vw, 3.25rem) !important;
+  padding-right: clamp(1.75rem, 4vw, 3.25rem) !important;
+  max-width: 1220px;
 }
 
 /* If there's a top fixed header, ensure content is visible beneath it */

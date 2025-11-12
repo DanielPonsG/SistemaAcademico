@@ -816,13 +816,15 @@
     {% block extra_css %}{% endblock %}
   </head>
 
-  <body class="nav-md">
+  <body class="nav-md has-horizontal-nav {% block body_class %}{% endblock %}">
     <div class="container body">
       <div class="main_container">
-        <div class="col-md-3 left_col 
-        {% if user.is_authenticated and user.perfil.tipo_usuario == 'alumno' %}menu-alumno
-        {% elif user.is_authenticated and user.perfil.tipo_usuario == 'profesor' %}menu-profesor  
-        {% else %}menu-director{% endif %}">
+  {% comment %}
+  Legacy sidebar and top navigation kept for reference. To restore, move this block out of the comment.
+  <div class="col-md-3 left_col 
+  {% if user.is_authenticated and user.perfil.tipo_usuario == 'alumno' %}menu-alumno
+  {% elif user.is_authenticated and user.perfil.tipo_usuario == 'profesor' %}menu-profesor  
+  {% else %}menu-director{% endif %}">
           <div class="left_col scroll-view">
             <div class="navbar nav_title" style="border: 0;">
               <a href="{% url 'inicio' %}" class="site_title">
@@ -1277,8 +1279,17 @@
               </ul>
             </nav>
           </div>
-        </div>
-        <!-- /top navigation -->
+    </div>
+  <!-- /top navigation -->
+    {% endcomment %}
+
+  {% block horizontal_nav %}
+          {% if user.is_authenticated %}
+            <div class="horizontal-nav-host">
+              {% include "includes/horizontal_nav.html" %}
+            </div>
+          {% endif %}
+        {% endblock %}
 
         <!-- page content -->
         {% block content %}

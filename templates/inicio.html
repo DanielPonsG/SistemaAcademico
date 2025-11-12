@@ -2,132 +2,521 @@
 
 {% block extra_css %}
 <style>
-/* Estilos específicos para el panel de profesores */
-.quick-access-card {
-  transition: all 0.3s ease;
-  background: #f8f9fa;
-  border: 1px solid #dee2e6;
+.director-dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  min-height: calc(100vh - 220px);
 }
 
-.quick-access-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-  background: #ffffff;
+.director-dashboard__kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
 }
 
-.stats-card {
-  transition: transform 0.2s ease;
+.director-kpi-card {
+  position: relative;
+  overflow: hidden;
+  border: 0;
+  border-radius: 1rem;
+  color: #fff;
+  background: linear-gradient(135deg, #0d6efd, #0943ad);
+  box-shadow: 0 18px 36px rgba(13, 110, 253, 0.2);
 }
 
-.stats-card:hover {
-  transform: scale(1.05);
+.director-kpi-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.12), transparent);
 }
 
-.academic-section {
-  border-radius: 8px;
+.director-kpi-card .card-body {
+  position: relative;
+  z-index: 1;
+  padding: 1.15rem 1.3rem;
+}
+
+.director-kpi-icon {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  font-size: 2.75rem;
+  opacity: 0.28;
+}
+
+.director-kpi-card.director-kpi-success {
+  background: linear-gradient(135deg, #198754, #0f5132);
+}
+
+.director-kpi-card.director-kpi-warning {
+  background: linear-gradient(135deg, #ffc107, #c08700);
+}
+
+.director-kpi-card.director-kpi-info {
+  background: linear-gradient(135deg, #0dcaf0, #0a6cb1);
+}
+
+.director-kpi-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.director-kpi-value {
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.director-dashboard__content {
+  display: block;
+}
+
+.director-main-column,
+.director-side-column {
+  display: block;
+  gap: 1rem;
+}
+
+.director-main-column > .card,
+.director-side-column > .card {
   margin-bottom: 1.5rem;
 }
 
-.section-title {
-  border-bottom: 2px solid #e9ecef;
-  padding-bottom: 0.5rem;
+@media (min-width: 1200px) {
+  .director-dashboard__content {
+    display: flex;
+    gap: 1.5rem;
+    align-items: flex-start;
+  }
+  .director-main-column {
+    flex: 0 0 65%;
+    max-width: 65%;
+  }
+  .director-side-column {
+    flex: 0 0 35%;
+    max-width: 35%;
+  }
 }
 
-.clase-bloque {
-  font-size: 0.75rem;
-  line-height: 1.2;
-  padding: 2px;
-  border-radius: 3px;
-  background: rgba(13, 110, 253, 0.1);
-  border-left: 3px solid #0d6efd;
+.director-card {
+  border: 0;
+  border-radius: 1rem;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+  display: flex;
+  flex-direction: column;
 }
 
-.tabla-horarios {
+.director-card .card-body {
+  padding: 1.2rem 1.35rem;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.director-card,
+.director-card .card-body,
+.director-scroll-area,
+.director-timeline,
+.director-mini-card {
+  height: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+.director-section-title {
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.director-pill-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: #eff4ff;
+  color: #0d6efd;
   font-size: 0.85rem;
-}
-
-.horario-cell {
-  width: 120px;
-  max-width: 120px;
-  word-wrap: break-word;
-  vertical-align: middle;
-}
-
-.hora-columna {
-  background-color: #f8f9fa;
   font-weight: 600;
-  color: #495057;
+  border-radius: 999px;
+  padding: 0.25rem 0.75rem;
 }
 
-/* Estilos para el panel de profesor */
-.profesor-stats-card {
-  transition: all 0.3s ease;
+.director-progress {
+  height: 0.75rem;
+  border-radius: 999px;
+  background: #e9ecef;
+  overflow: hidden;
 }
 
-.profesor-stats-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+.director-progress-bar {
+  width: calc(var(--progress-value, 0) * 1%);
+  transition: width 0.45s ease;
 }
 
-.profesor-info-item {
-  padding: 0.75rem;
-  border-radius: 6px;
-  background: #f8f9fa;
-  margin-bottom: 0.5rem;
+.director-mini-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 0.85rem;
+  padding: 0.75rem 1rem;
+  background: #fff;
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.04);
 }
 
-.annotation-item {
-  transition: background-color 0.2s ease;
+.director-mini-card h6 {
+  font-weight: 600;
+  font-size: 0.95rem;
 }
 
-.annotation-item:hover {
-  background-color: #f8f9fa;
+.director-activity-item {
+  padding: 0.35rem 0;
+  border-bottom: 1px dashed rgba(148, 163, 184, 0.35);
 }
 
-/* Estilos para el panel de administradores */
-.admin-stats-card {
-  transition: all 0.3s ease;
+.director-activity-item:last-child {
+  border-bottom: none;
 }
 
-.admin-stats-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+.director-scroll-area {
+  max-height: none;
+  overflow: visible;
+  padding-right: 0;
 }
 
-.admin-item {
-  transition: background-color 0.2s ease;
-  border-radius: 6px;
+.director-scroll-area::-webkit-scrollbar {
+  width: 6px;
 }
 
-.admin-item:hover {
-  background-color: #f8f9fa;
+.director-scroll-area::-webkit-scrollbar-thumb {
+  background: rgba(15, 23, 42, 0.18);
+  border-radius: 999px;
 }
 
-/* Responsive para paneles de profesor */
-@media (max-width: 768px) {
-  .quick-access-card {
-    margin-bottom: 1rem;
+.director-timeline {
+  position: relative;
+  margin: 0;
+  padding-left: 1.5rem;
+}
+
+.director-timeline::before {
+  content: "";
+  position: absolute;
+  top: 0.25rem;
+  bottom: 0.25rem;
+  left: 0.35rem;
+  width: 2px;
+  background: #e2e8f0;
+}
+
+.director-timeline-item {
+  position: relative;
+  padding-left: 1.5rem;
+  margin-bottom: 1.1rem;
+}
+
+.director-timeline-item:last-child {
+  margin-bottom: 0;
+}
+
+.director-timeline-bullet {
+  position: absolute;
+  top: 0.3rem;
+  left: 0;
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  background: #0d6efd;
+  box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.15);
+}
+
+.director-empty-state {
+  min-height: 110px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed #cbd5f5;
+  border-radius: 1rem;
+  background: #f8fafc;
+  color: #64748b;
+  padding: 1rem;
+}
+
+.director-quick-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.75rem;
+}
+
+.director-quick-actions .director-mini-card {
+  min-height: 130px;
+  text-align: center;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.director-quick-actions .director-mini-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.1);
+}
+
+.director-card--quick .director-mini-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.director-dashboard {
+  padding-bottom: 1.5rem;
+}
+
+.director-card .director-scroll-area {
+  max-height: none;
+  overflow: visible;
+  flex: 1 1 auto;
+}
+
+@media (max-width: 991px) {
+  .director-card .director-scroll-area {
+    max-height: 260px;
+    overflow-y: auto;
   }
-  
-  .profesor-stats-card .card-body,
-  .admin-stats-card .card-body {
-    padding: 1rem;
+}
+
+@media (max-width: 1199px) {
+  .director-dashboard {
+    min-height: auto;
   }
-  
-  .profesor-stats-card h3,
-  .admin-stats-card h3 {
-    font-size: 1.5rem;
+  .director-scroll-area {
+    max-height: 240px;
+    overflow-y: auto;
+    padding-right: 0.3rem;
+  }
+  .director-main-column > .card,
+  .director-side-column > .card {
+    margin-bottom: 1.25rem;
   }
 }
 
-/* Animaciones suaves */
+@media (max-width: 767px) {
+  .director-dashboard__kpis {
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  }
+  .director-dashboard__content {
+    gap: 0.75rem;
+  }
+}
+
 .fade-in {
   animation: fadeIn 0.5s ease-in;
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Estilos generales existentes */
+.card {
+  border: 1px solid #dee2e6;
+}
+
+.badge {
+  font-size: 0.875rem;
+}
+
+.form-label {
+  margin-bottom: 0.5rem;
+}
+
+.text-dark {
+  color: #212529 !important;
+}
+
+.quick-access-card {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid rgba(0, 0, 0, 0.125);
+  border-radius: 15px;
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  position: relative;
+  margin-bottom: 1.5rem;
+}
+
+.quick-access-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, rgba(255, 255, 255, 0.15), transparent);
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  opacity: 0;
+}
+
+.quick-access-card:hover::before {
+  opacity: 1;
+}
+
+.quick-access-card:hover {
+  transform: translateY(-10px) scale(1.05);
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.quick-access-card i {
+  transition: all 0.4s ease;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.quick-access-card:hover i {
+  transform: scale(1.2) rotate(5deg);
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.quick-access-card h6 {
+  font-weight: 700;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.quick-access-card small {
+  opacity: 0.9;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.stats-card {
+  transition: all 0.4s ease;
+  border-radius: 15px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  position: relative;
+  overflow: hidden;
+}
+
+.stats-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), transparent);
+  pointer-events: none;
+}
+
+.stats-card:hover {
+  transform: translateY(-5px) scale(1.02);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+  border-color: rgba(0, 123, 255, 0.3);
+}
+
+.stats-card i {
+  transition: transform 0.3s ease;
+}
+
+.stats-card:hover i {
+  transform: scale(1.1);
+}
+
+.academic-section {
+  margin-bottom: 3rem;
+  padding: 1.5rem 0;
+}
+
+.section-title {
+  border-bottom: 3px solid #e9ecef;
+  padding-bottom: 0.75rem;
+  margin-bottom: 2rem;
+  position: relative;
+}
+
+.section-title::after {
+  content: "";
+  position: absolute;
+  bottom: -3px;
+  left: 0;
+  width: 60px;
+  height: 3px;
+  background: linear-gradient(90deg, #007bff, #0056b3);
+  border-radius: 2px;
+}
+
+.horario-cell {
+  min-width: 120px;
+  padding: 8px 4px;
+}
+
+.clase-bloque {
+  background: linear-gradient(135deg, #007bff, #0056b3);
+  color: #fff;
+  border-radius: 6px;
+  padding: 4px 6px;
+  margin: 1px 0;
+  font-size: 0.7rem;
+  line-height: 1.2;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.clase-bloque strong {
+  display: block;
+  font-weight: 600;
+}
+
+.clase-bloque small {
+  opacity: 0.9;
+  font-size: 0.65rem;
+}
+
+.tabla-horarios {
+  font-size: 0.9rem;
+}
+
+.tabla-horarios th {
+  background-color: #f8f9fa !important;
+  font-weight: 600;
+  border: 1px solid #dee2e6;
+  vertical-align: middle;
+}
+
+.tabla-horarios td {
+  border: 1px solid #dee2e6;
+  vertical-align: middle;
+}
+
+.hora-columna {
+  background-color: #f1f3f4;
+  font-weight: 600;
+  color: #495057;
+}
+
+@media (max-width: 768px) {
+  .quick-access-card {
+    margin-bottom: 1rem;
+  }
+  .profesor-stats-card .card-body,
+  .admin-stats-card .card-body {
+    padding: 1rem;
+  }
+  .profesor-stats-card h3,
+  .admin-stats-card h3 {
+    font-size: 1.5rem;
+  }
+  .tabla-horarios {
+    font-size: 0.8rem;
+  }
+  .clase-bloque {
+    font-size: 0.65rem;
+    padding: 2px 4px;
+  }
 }
 </style>
 {% endblock %}
@@ -601,7 +990,7 @@
             
             <!-- Cursos como jefe de curso -->
             {% if cursos_jefe %}
-            <div class="mb-4">
+            <div class="mb-3">
               <h6 class="text-muted mb-3">
                 <i class="fas fa-user-tie me-1"></i>Jefatura de Curso
               </h6>
@@ -813,11 +1202,297 @@
       </div>
     </div>
 
-    {% elif user.perfil.tipo_usuario == 'administrador' or user.perfil.tipo_usuario == 'director' %}
+    {% elif user.perfil.tipo_usuario == 'director' %}
     <!-- ################################################## -->
-    <!-- ######### PANEL ESPECÍFICO PARA ADMINISTRADORES Y DIRECTORES ######### -->
+    <!-- ######### PANEL RENOVADO PARA DIRECTORES ######### -->
     <!-- ################################################## -->
-    
+
+    <div class="director-dashboard fade-in">
+      <div class="director-dashboard__kpis">
+        <div class="card director-kpi-card">
+          <span class="director-kpi-icon"><i class="fas fa-user-graduate"></i></span>
+          <div class="card-body">
+            <p class="mb-1 director-kpi-label">Estudiantes</p>
+            <div class="director-kpi-value">{{ total_estudiantes_sistema|default:"0" }}</div>
+            <small class="text-white-50">Total en plataforma</small>
+          </div>
+        </div>
+        <div class="card director-kpi-card director-kpi-success">
+          <span class="director-kpi-icon"><i class="fas fa-chalkboard-teacher"></i></span>
+          <div class="card-body">
+            <p class="mb-1 director-kpi-label">Profesores</p>
+            <div class="director-kpi-value">{{ total_profesores_sistema|default:"0" }}</div>
+            <small class="text-white-50">Docentes activos</small>
+          </div>
+        </div>
+        <div class="card director-kpi-card director-kpi-warning">
+          <span class="director-kpi-icon"><i class="fas fa-school"></i></span>
+          <div class="card-body">
+            <p class="mb-1 director-kpi-label">Cursos {{ anio_actual }}</p>
+            <div class="director-kpi-value">{{ total_cursos_activos|default:"0" }}</div>
+            <small class="text-white-50">Secciones vigentes</small>
+          </div>
+        </div>
+        <div class="card director-kpi-card director-kpi-info">
+          <span class="director-kpi-icon"><i class="fas fa-calendar-check"></i></span>
+          <div class="card-body">
+            <p class="mb-1 director-kpi-label">Asistencia Hoy</p>
+            <div class="director-kpi-value">{{ porcentaje_asistencia_hoy|default:"0" }}%</div>
+            <small class="text-white-50">{{ presentes_hoy|default:"0" }} presentes de {{ total_asistencias_hoy|default:"0" }}</small>
+          </div>
+        </div>
+      </div>
+
+      <div class="director-dashboard__content">
+        <div class="director-main-column">
+          <div class="card director-card director-card--panorama">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-center">
+                <span class="director-section-title">Panorama Diario</span>
+                <span class="director-pill-count">Año {{ anio_actual }}</span>
+              </div>
+
+              {% if total_asistencias_hoy > 0 %}
+              <div>
+                <div class="d-flex justify-content-between align-items-center">
+                  <h5 class="mb-0 text-dark">Asistencia de hoy</h5>
+                  <span class="badge bg-light text-dark">{{ total_asistencias_hoy }} registros</span>
+                </div>
+                <div class="progress director-progress mt-2">
+                  <div class="progress-bar bg-success director-progress-bar" role="progressbar" style="--progress-value: {{ porcentaje_asistencia_hoy|default_if_none:0|floatformat:0 }};" aria-valuenow="{{ porcentaje_asistencia_hoy|default_if_none:0 }}" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+                <div class="d-flex justify-content-between small text-muted mt-2">
+                  <span>Presentes: {{ presentes_hoy|default:"0" }}</span>
+                  <span>Ausentes: {{ ausentes_hoy|default:"0" }}</span>
+                  <span>{{ porcentaje_asistencia_hoy|default:"0" }}%</span>
+                </div>
+              </div>
+              {% else %}
+              <div class="director-empty-state">
+                <div class="text-center">
+                  <i class="fas fa-clipboard-list fa-2x mb-2"></i>
+                  <p class="mb-0 small">Aún no hay registros de asistencia para hoy</p>
+                </div>
+              </div>
+              {% endif %}
+
+              <div class="d-flex justify-content-between align-items-center">
+                <span class="director-section-title">Oferta por nivel</span>
+                <span class="text-muted small">Distribución de cursos y matrícula</span>
+              </div>
+              {% if cursos_por_nivel %}
+              <div class="row g-2">
+                {% for nivel, stats in cursos_por_nivel.items %}
+                <div class="col-sm-6">
+                  <div class="director-mini-card h-100">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                      <span class="fw-semibold text-dark">{{ nivel }}</span>
+                      <span class="director-pill-count">{{ stats.cursos }} curso{{ stats.cursos|pluralize:",s" }}</span>
+                    </div>
+                    <p class="mb-0 small text-muted">{{ stats.estudiantes }} estudiante{{ stats.estudiantes|pluralize:",s" }}</p>
+                  </div>
+                </div>
+                {% endfor %}
+              </div>
+              {% else %}
+              <div class="director-mini-card text-center text-muted">
+                <i class="fas fa-layer-group me-2"></i>No hay cursos registrados para {{ anio_actual }}
+              </div>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="card director-card director-card--activity">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-center">
+                <span class="director-section-title">Actividad reciente</span>
+                <span class="text-muted small">Actualizado automáticamente</span>
+              </div>
+              <div class="row g-2 flex-grow-1">
+                <div class="col-md-4">
+                  <div class="director-mini-card h-100">
+                    <h6 class="fw-semibold text-dark mb-2"><i class="fas fa-school me-2 text-primary"></i>Cursos</h6>
+                    {% if cursos_recientes %}
+                      {% for curso in cursos_recientes|slice:":4" %}
+                      <div class="director-activity-item">
+                        <p class="mb-1 small fw-semibold">{{ curso.get_nivel_display }}{{ curso.paralelo }}</p>
+                        <small class="text-muted">{{ curso.estudiantes.count }} estudiante{{ curso.estudiantes.count|pluralize:",s" }}</small>
+                      </div>
+                      {% endfor %}
+                    {% else %}
+                      <p class="mb-0 small text-muted">Sin registros recientes</p>
+                    {% endif %}
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="director-mini-card h-100">
+                    <h6 class="fw-semibold text-dark mb-2"><i class="fas fa-chalkboard me-2 text-success"></i>Profesores</h6>
+                    {% if profesores_recientes %}
+                      {% for profesor in profesores_recientes|slice:":4" %}
+                      <div class="director-activity-item">
+                        <p class="mb-1 small fw-semibold">{{ profesor.get_nombre_completo|truncatechars:22 }}</p>
+                        <small class="text-muted">{{ profesor.asignaturas.count }} asignatura{{ profesor.asignaturas.count|pluralize:",s" }}</small>
+                      </div>
+                      {% endfor %}
+                    {% else %}
+                      <p class="mb-0 small text-muted">Sin registros recientes</p>
+                    {% endif %}
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="director-mini-card h-100">
+                    <h6 class="fw-semibold text-dark mb-2"><i class="fas fa-user-friends me-2 text-warning"></i>Estudiantes</h6>
+                    {% if estudiantes_recientes %}
+                      {% for estudiante in estudiantes_recientes|slice:":4" %}
+                      <div class="director-activity-item">
+                        <p class="mb-1 small fw-semibold">{{ estudiante.get_nombre_completo|truncatechars:22 }}</p>
+                        {% if estudiante.cursos.exists %}
+                          <small class="text-muted">{{ estudiante.cursos.first.get_nivel_display }}{{ estudiante.cursos.first.paralelo }}</small>
+                        {% else %}
+                          <small class="text-muted">Sin curso asignado</small>
+                        {% endif %}
+                      </div>
+                      {% endfor %}
+                    {% else %}
+                      <p class="mb-0 small text-muted">Sin registros recientes</p>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="director-side-column">
+          <div class="card director-card director-card--events">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-center">
+                <span class="director-section-title">Próximos eventos</span>
+                <a href="{% url 'calendario' %}" class="btn btn-sm btn-outline-primary">
+                  <i class="fas fa-calendar-week me-1"></i>Calendario
+                </a>
+              </div>
+              <div class="director-scroll-area">
+                {% if proximos_eventos %}
+                <div class="director-timeline">
+                  {% for evento in proximos_eventos %}
+                  <div class="director-timeline-item">
+                    <span class="director-timeline-bullet"></span>
+                    <h6 class="mb-1">{{ evento.titulo|truncatechars:28 }}</h6>
+                    <p class="mb-1 small text-muted">{{ evento.descripcion|default:"Sin descripción"|truncatechars:60 }}</p>
+                    <small class="text-muted"><i class="fas fa-clock me-1"></i>{{ evento.fecha|date:"d/m/Y" }}</small>
+                  </div>
+                  {% endfor %}
+                </div>
+                {% else %}
+                <div class="director-empty-state">
+                  <div class="text-center">
+                    <i class="fas fa-calendar-times fa-2x mb-2"></i>
+                    <p class="mb-0 small">No hay eventos en los próximos 7 días</p>
+                  </div>
+                </div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
+          <div class="card director-card director-card--annotations">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-center">
+                <span class="director-section-title">Anotaciones</span>
+                <a href="{% url 'libro_anotaciones' %}" class="btn btn-sm btn-outline-secondary">Ver todas</a>
+              </div>
+              <div class="director-scroll-area">
+                {% if anotaciones_recientes_sistema %}
+                <div class="director-timeline">
+                  {% for anotacion in anotaciones_recientes_sistema|slice:":5" %}
+                  <div class="director-timeline-item">
+                    <span class="director-timeline-bullet"></span>
+                    <p class="mb-1 small fw-semibold">
+                      {% if anotacion.estudiante %}
+                        {{ anotacion.estudiante.get_nombre_completo|truncatechars:24 }}
+                      {% else %}
+                        {{ anotacion.curso.get_nivel_display }}{{ anotacion.curso.paralelo }}
+                      {% endif %}
+                    </p>
+                    <p class="mb-1 small text-muted">{{ anotacion.contenido|truncatechars:65 }}</p>
+                    <small class="text-muted">Por {{ anotacion.profesor_autor.get_nombre_completo|truncatechars:18 }}</small>
+                  </div>
+                  {% endfor %}
+                </div>
+                {% else %}
+                <div class="director-empty-state">
+                  <div class="text-center">
+                    <i class="fas fa-comment-dots fa-2x mb-2"></i>
+                    <p class="mb-0 small">No hay anotaciones recientes</p>
+                  </div>
+                </div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
+          <div class="card director-card director-card--quick">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-center">
+                <span class="director-section-title">Gestión rápida</span>
+                <span class="text-muted small">Accesos frecuentes</span>
+              </div>
+              <div class="director-quick-actions">
+                <a href="{% url 'listar_estudiantes' %}" class="text-decoration-none">
+                  <div class="director-mini-card text-center">
+                    <i class="fas fa-users fa-2x text-primary mb-2"></i>
+                    <h6 class="mb-1">Estudiantes</h6>
+                    <small class="text-muted">Listado y gestión</small>
+                  </div>
+                </a>
+                <a href="{% url 'listar_estudiantes' %}?tipo=profesor" class="text-decoration-none">
+                  <div class="director-mini-card text-center">
+                    <i class="fas fa-chalkboard-teacher fa-2x text-success mb-2"></i>
+                    <h6 class="mb-1">Profesores</h6>
+                    <small class="text-muted">Asignaciones y datos</small>
+                  </div>
+                </a>
+                <a href="{% url 'listar_cursos' %}" class="text-decoration-none">
+                  <div class="director-mini-card text-center">
+                    <i class="fas fa-school fa-2x text-warning mb-2"></i>
+                    <h6 class="mb-1">Cursos</h6>
+                    <small class="text-muted">Oferta académica</small>
+                  </div>
+                </a>
+                <a href="{% url 'listar_asignaturas' %}" class="text-decoration-none">
+                  <div class="director-mini-card text-center">
+                    <i class="fas fa-book fa-2x text-info mb-2"></i>
+                    <h6 class="mb-1">Asignaturas</h6>
+                    <small class="text-muted">Planificación y docentes</small>
+                  </div>
+                </a>
+                <a href="{% url 'agregar' %}" class="text-decoration-none">
+                  <div class="director-mini-card text-center">
+                    <i class="fas fa-user-plus fa-2x text-danger mb-2"></i>
+                    <h6 class="mb-1">Nuevo usuario</h6>
+                    <small class="text-muted">Alta rápida</small>
+                  </div>
+                </a>
+                <a href="{% url 'calendario' %}" class="text-decoration-none">
+                  <div class="director-mini-card text-center">
+                    <i class="fas fa-calendar-check fa-2x text-secondary mb-2"></i>
+                    <h6 class="mb-1">Calendario</h6>
+                    <small class="text-muted">Eventos y hitos</small>
+                  </div>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {% elif user.perfil.tipo_usuario == 'administrador' %}
+    <!-- ################################################## -->
+    <!-- ######### PANEL ESPECÍFICO PARA ADMINISTRADORES ######### -->
+    <!-- ################################################## -->
+
     <!-- Estadísticas principales del sistema -->
     <div class="row mb-4 fade-in">
       <div class="col-md-3 mb-3">
@@ -951,7 +1626,7 @@
                 </div>
                 <div class="col-md-4">
                   <div class="text-center p-3 bg-danger text-white rounded">
-                    <h5 class="mb-1">{{ total_asistencias_hoy|add:"-"|add:presentes_hoy }}</h5>
+                    <h5 class="mb-1">{{ ausentes_hoy|default:"0" }}</h5>
                     <small>Ausentes</small>
                   </div>
                 </div>
@@ -1530,198 +2205,6 @@
     </div>
   </div>
 </div>
-
-<style>
-.card {
-  border: 1px solid #dee2e6;
-}
-
-.badge {
-  font-size: 0.875rem;
-}
-
-.form-label {
-  margin-bottom: 0.5rem;
-}
-
-.text-dark {
-  color: #212529 !important;
-}
-
-.quick-access-card {
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  border: 1px solid rgba(0,0,0,0.125);
-  border-radius: 15px;
-  box-shadow: 0 6px 25px rgba(0,0,0,0.1);
-  overflow: hidden;
-  position: relative;
-  margin-bottom: 1.5rem;
-}
-
-.quick-access-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(45deg, rgba(255,255,255,0.15), transparent);
-  pointer-events: none;
-  transition: opacity 0.3s ease;
-  opacity: 0;
-}
-
-.quick-access-card:hover::before {
-  opacity: 1;
-}
-
-.quick-access-card:hover {
-  transform: translateY(-10px) scale(1.05);
-  box-shadow: 0 25px 50px rgba(0,0,0,0.25);
-  border-color: rgba(255,255,255,0.4);
-}
-
-.quick-access-card i {
-  transition: all 0.4s ease;
-  text-shadow: 0 2px 10px rgba(0,0,0,0.2);
-}
-
-.quick-access-card:hover i {
-  transform: scale(1.2) rotate(5deg);
-  text-shadow: 0 4px 20px rgba(0,0,0,0.3);
-}
-
-.quick-access-card h6 {
-  font-weight: 700;
-  text-shadow: 0 1px 3px rgba(0,0,0,0.2);
-}
-
-.quick-access-card small {
-  opacity: 0.9;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.2);
-}
-
-.stats-card {
-  transition: all 0.4s ease;
-  border-radius: 15px;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.1);
-  border: 1px solid rgba(0,0,0,0.08);
-  position: relative;
-  overflow: hidden;
-}
-
-.stats-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(135deg, rgba(255,255,255,0.1), transparent);
-  pointer-events: none;
-}
-
-.stats-card:hover {
-  transform: translateY(-5px) scale(1.02);
-  box-shadow: 0 15px 35px rgba(0,0,0,0.2);
-  border-color: rgba(0,123,255,0.3);
-}
-
-.stats-card i {
-  transition: transform 0.3s ease;
-}
-
-.stats-card:hover i {
-  transform: scale(1.1);
-}
-
-.academic-section {
-  margin-bottom: 3rem;
-  padding: 1.5rem 0;
-}
-
-.section-title {
-  border-bottom: 3px solid #e9ecef;
-  padding-bottom: 0.75rem;
-  margin-bottom: 2rem;
-  position: relative;
-}
-
-.section-title::after {
-  content: '';
-  position: absolute;
-  bottom: -3px;
-  left: 0;
-  width: 60px;
-  height: 3px;
-  background: linear-gradient(90deg, #007bff, #0056b3);
-  border-radius: 2px;
-}
-
-.horario-cell {
-  min-width: 120px;
-  padding: 8px 4px;
-}
-
-.clase-bloque {
-  background: linear-gradient(135deg, #007bff, #0056b3);
-  color: white;
-  border-radius: 6px;
-  padding: 4px 6px;
-  margin: 1px 0;
-  font-size: 0.7rem;
-  line-height: 1.2;
-  border: 1px solid rgba(255,255,255,0.2);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-}
-
-.clase-bloque strong {
-  display: block;
-  font-weight: 600;
-}
-
-.clase-bloque small {
-  opacity: 0.9;
-  font-size: 0.65rem;
-}
-
-.tabla-horarios {
-  font-size: 0.9rem;
-}
-
-.tabla-horarios th {
-  background-color: #f8f9fa !important;
-  font-weight: 600;
-  border: 1px solid #dee2e6;
-  vertical-align: middle;
-}
-
-.tabla-horarios td {
-  border: 1px solid #dee2e6;
-  vertical-align: middle;
-}
-
-.hora-columna {
-  background-color: #f1f3f4;
-  font-weight: 600;
-  color: #495057;
-}
-
-@media (max-width: 768px) {
-  .welcome-header .col-md-4 {
-    margin-top: 1rem;
-  }
-  
-  .tabla-horarios {
-    font-size: 0.8rem;
-  }
-  
-  .clase-bloque {
-    font-size: 0.65rem;
-    padding: 2px 4px;
-  }
-}
-</style>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {

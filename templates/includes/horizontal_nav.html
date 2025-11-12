@@ -1,0 +1,108 @@
+{% comment %}
+  Barra de navegación horizontal reutilizable.
+  Determina los enlaces a mostrar según el tipo de usuario autenticado.
+{% endcomment %}
+{% if request.user.is_authenticated %}
+  {% with user_type=request.user.perfil.tipo_usuario|default:"" %}
+    <div class="horizontal-nav-wrapper">
+      <nav class="horizontal-nav" aria-label="Navegación principal">
+        <a href="{% url 'inicio' %}" class="horizontal-nav__link{% if request.path == '/' %} horizontal-nav__link--active{% endif %}">
+          <i class="fa-solid fa-house horizontal-nav__icon" aria-hidden="true"></i>
+          <span>Inicio</span>
+        </a>
+
+  {% if user_type == 'administrador' or user_type == 'director' %}
+          <a href="{% url 'listar_cursos' %}" class="horizontal-nav__link{% if '/cursos/' in request.path %} horizontal-nav__link--active{% endif %}">
+            <i class="fa-solid fa-layer-group horizontal-nav__icon" aria-hidden="true"></i>
+            <span>Cursos</span>
+          </a>
+          <a href="{% url 'listar_profesores' %}" class="horizontal-nav__link{% if '/profesores/' in request.path %} horizontal-nav__link--active{% endif %}">
+            <i class="fa-solid fa-chalkboard-user horizontal-nav__icon" aria-hidden="true"></i>
+            <span>Profesores</span>
+          </a>
+          <a href="{% url 'listar_estudiantes' %}" class="horizontal-nav__link{% if '/estudiantes/' in request.path %} horizontal-nav__link--active{% endif %}">
+            <i class="fa-solid fa-user-graduate horizontal-nav__icon" aria-hidden="true"></i>
+            <span>Estudiantes</span>
+          </a>
+          <a href="{% url 'listar_asignaturas' %}" class="horizontal-nav__link{% if '/asignaturas/' in request.path %} horizontal-nav__link--active{% endif %}">
+            <i class="fa-solid fa-book horizontal-nav__icon" aria-hidden="true"></i>
+            <span>Asignaturas</span>
+          </a>
+          <a href="{% url 'listar_apoderados' %}" class="horizontal-nav__link{% if '/apoderados/' in request.path %} horizontal-nav__link--active{% endif %}">
+            <i class="fa-solid fa-people-group horizontal-nav__icon" aria-hidden="true"></i>
+            <span>Apoderados</span>
+          </a>
+  {% elif user_type == 'profesor' %}
+          <a href="{% url 'mi_curso' %}" class="horizontal-nav__link{% if '/mi-curso' in request.path %} horizontal-nav__link--active{% endif %}">
+            <i class="fa-solid fa-layer-group horizontal-nav__icon" aria-hidden="true"></i>
+            <span>Mi curso</span>
+          </a>
+          <a href="{% url 'mis_horarios' %}" class="horizontal-nav__link{% if '/mis-horarios' in request.path %} horizontal-nav__link--active{% endif %}">
+            <i class="fa-solid fa-calendar-days horizontal-nav__icon" aria-hidden="true"></i>
+            <span>Mis horarios</span>
+          </a>
+          <a href="{% url 'registrar_asistencia_profesor' %}" class="horizontal-nav__link{% if '/asistencia/profesor/' in request.path %} horizontal-nav__link--active{% endif %}">
+            <i class="fa-solid fa-user-check horizontal-nav__icon" aria-hidden="true"></i>
+            <span>Asistencia</span>
+          </a>
+          <a href="{% url 'ingresar_notas' %}" class="horizontal-nav__link{% if '/notas/' in request.path %} horizontal-nav__link--active{% endif %}">
+            <i class="fa-solid fa-file-pen horizontal-nav__icon" aria-hidden="true"></i>
+            <span>Notas</span>
+          </a>
+        {% elif user_type == 'alumno' %}
+          <a href="{% url 'mi_curso' %}" class="horizontal-nav__link{% if '/mi-curso' in request.path %} horizontal-nav__link--active{% endif %}">
+            <i class="fa-solid fa-layer-group horizontal-nav__icon" aria-hidden="true"></i>
+            <span>Mi curso</span>
+          </a>
+          <a href="{% url 'mis_horarios' %}" class="horizontal-nav__link{% if '/mis-horarios' in request.path %} horizontal-nav__link--active{% endif %}">
+            <i class="fa-solid fa-clock horizontal-nav__icon" aria-hidden="true"></i>
+            <span>Mis horarios</span>
+          </a>
+        {% elif user_type == 'apoderado' %}
+          <a href="{% url 'dashboard_apoderado' %}" class="horizontal-nav__link{% if '/dashboard-apoderado' in request.path %} horizontal-nav__link--active{% endif %}">
+            <i class="fa-solid fa-people-roof horizontal-nav__icon" aria-hidden="true"></i>
+            <span>Mi panel</span>
+          </a>
+          <a href="{% url 'inicio_apoderado' %}" class="horizontal-nav__link{% if '/inicio-apoderado' in request.path %} horizontal-nav__link--active{% endif %}">
+            <i class="fa-solid fa-clipboard-list horizontal-nav__icon" aria-hidden="true"></i>
+            <span>Resumen</span>
+          </a>
+        {% endif %}
+
+        <a href="{% url 'calendario' %}" class="horizontal-nav__link{% if '/calendario/' in request.path %} horizontal-nav__link--active{% endif %}">
+          <i class="fa-solid fa-calendar-days horizontal-nav__icon" aria-hidden="true"></i>
+          <span>Calendario</span>
+        </a>
+
+  {% if user_type == 'administrador' or user_type == 'director' or user_type == 'profesor' %}
+          <a href="{% url 'libro_anotaciones' %}" class="horizontal-nav__link{% if '/anotaciones/' in request.path %} horizontal-nav__link--active{% endif %}">
+            <i class="fa-solid fa-clipboard-list horizontal-nav__icon" aria-hidden="true"></i>
+            <span>Anotaciones</span>
+          </a>
+        {% endif %}
+
+        {% if request.user.is_authenticated %}
+          <span class="horizontal-nav__meta" aria-label="Usuario autenticado">
+            <span class="horizontal-nav__meta-avatar">
+              {% if request.user.first_name and request.user.last_name %}
+                {{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}
+              {% elif request.user.first_name %}
+                {{ request.user.first_name|first|upper }}{{ request.user.first_name|slice:"1:2"|upper }}
+              {% else %}
+                {{ request.user.username|first|upper }}{{ request.user.username|slice:"1:2"|upper }}
+              {% endif %}
+            </span>
+            <span class="horizontal-nav__meta-name">{{ request.user.first_name|default:request.user.username }}</span>
+            {% if request.user.perfil %}
+              <span class="horizontal-nav__meta-role">{{ request.user.perfil.get_tipo_usuario_display }}</span>
+            {% endif %}
+          </span>
+          <a href="{% url 'logout' %}" class="horizontal-nav__link horizontal-nav__link--logout">
+            <i class="fa-solid fa-right-from-bracket horizontal-nav__icon" aria-hidden="true"></i>
+            <span>Salir</span>
+          </a>
+        {% endif %}
+      </nav>
+    </div>
+  {% endwith %}
+{% endif %}

@@ -1,306 +1,877 @@
 {% extends "index_master.html" %}
+
+{% block extra_css %}
+<style>
+.teachers-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+  padding: 1.5rem 0 2.5rem;
+}
+
+.teachers-alerts {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.teachers-alerts .alert {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  border-radius: 16px;
+  border: 1px solid rgba(59, 130, 246, 0.18);
+  background: #ffffff;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+}
+
+.teachers-alerts .btn-close {
+  margin-left: auto;
+  box-shadow: none;
+}
+
+.teachers-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 1.75rem 2rem;
+  box-shadow: 0 20px 48px rgba(15, 23, 42, 0.12);
+}
+
+.teachers-header__title {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.teachers-header__subtitle {
+  margin: 0.4rem 0 0;
+  color: #64748b;
+  max-width: 560px;
+}
+
+.teachers-header__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.7rem 1.45rem;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #ffffff;
+  font-weight: 600;
+  text-decoration: none;
+  box-shadow: 0 16px 32px rgba(37, 99, 235, 0.35);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.teachers-header__cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 22px 40px rgba(37, 99, 235, 0.45);
+}
+
+.teachers-stats {
+  display: grid;
+  gap: 1.1rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.teachers-stat-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem 1.4rem;
+  border-radius: 22px;
+  color: #ffffff;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.15);
+  overflow: hidden;
+}
+
+.teachers-stat-card::after {
+  content: "";
+  position: absolute;
+  inset: auto -25% -35% auto;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.teachers-stat-card__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 54px;
+  height: 54px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.18);
+  font-size: 1.45rem;
+}
+
+.teachers-stat-card__metric {
+  margin: 0;
+  font-size: 2.15rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.teachers-stat-card__label {
+  margin: 0.25rem 0 0;
+  font-size: 0.92rem;
+  opacity: 0.9;
+}
+
+.teachers-stat-card--primary {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+}
+
+.teachers-stat-card--success {
+  background: linear-gradient(135deg, #16a34a, #15803d);
+}
+
+.teachers-stat-card--info {
+  background: linear-gradient(135deg, #0ea5e9, #0369a1);
+}
+
+.teachers-stat-card--warning {
+  background: linear-gradient(135deg, #f97316, #ea580c);
+}
+
+.teachers-search {
+  background: #ffffff;
+  border-radius: 22px;
+  padding: 1.75rem 2rem;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.teachers-search__title {
+  margin: 0;
+  font-weight: 700;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.teachers-search__title i {
+  color: #2563eb;
+}
+
+.teachers-search__form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+}
+
+.teachers-search__field {
+  position: relative;
+  flex: 1 1 280px;
+}
+
+.teachers-search__input {
+  width: 100%;
+  padding: 0.8rem 1rem 0.8rem 2.8rem;
+  border-radius: 14px;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  background: #f8fafc;
+  font-size: 0.95rem;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.teachers-search__input:focus {
+  outline: none;
+  border-color: rgba(37, 99, 235, 0.45);
+  background: #ffffff;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+}
+
+.teachers-search__icon {
+  position: absolute;
+  top: 50%;
+  left: 1rem;
+  transform: translateY(-50%);
+  color: #64748b;
+}
+
+.teachers-search__actions {
+  display: inline-flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.teachers-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  border-radius: 14px;
+  padding: 0.65rem 1.45rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  text-decoration: none;
+}
+
+.teachers-btn--primary {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #ffffff;
+  box-shadow: 0 12px 26px rgba(37, 99, 235, 0.28);
+}
+
+.teachers-btn--primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 18px 36px rgba(37, 99, 235, 0.36);
+}
+
+.teachers-btn--ghost {
+  background: rgba(15, 23, 42, 0.05);
+  color: #1f2937;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+}
+
+.teachers-btn--ghost:hover {
+  background: rgba(15, 23, 42, 0.08);
+}
+
+.teachers-table {
+  background: #ffffff;
+  border-radius: 26px;
+  box-shadow: 0 24px 52px rgba(15, 23, 42, 0.12);
+  overflow: hidden;
+}
+
+.teachers-table__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 1.9rem 2.1rem 0.9rem;
+}
+
+.teachers-table__title {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #0f172a;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.teachers-table__title i {
+  color: #2563eb;
+  font-size: 1.1rem;
+}
+
+.teachers-table__meta {
+  font-size: 0.92rem;
+  color: #64748b;
+}
+
+.teachers-table__scroll {
+  padding: 0 2.1rem 2rem;
+  overflow-x: auto;
+}
+
+.teachers-table__table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  min-width: 860px;
+}
+
+.teachers-table__table thead th {
+  background: #f8fafc;
+  color: #475569;
+  font-weight: 600;
+  padding: 0.95rem 1rem;
+  text-transform: uppercase;
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.35);
+}
+
+.teachers-table__table tbody tr:not(.teachers-empty-row) td {
+  padding: 1.1rem 1rem;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.7);
+  vertical-align: top;
+}
+
+.teachers-table__table tbody tr:hover:not(.teachers-empty-row) {
+  background: rgba(37, 99, 235, 0.04);
+}
+
+.teachers-table__teacher {
+  display: flex;
+  gap: 0.9rem;
+  align-items: flex-start;
+}
+
+.teachers-table__avatar {
+  width: 46px;
+  height: 46px;
+  border-radius: 16px;
+  background: rgba(37, 99, 235, 0.12);
+  color: #1d4ed8;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+}
+
+.teachers-table__name {
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 0.15rem;
+  display: block;
+  line-height: 1.3;
+}
+
+.teachers-table__code {
+  font-size: 0.88rem;
+  color: #0ea5e9;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.teachers-table__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: rgba(148, 163, 184, 0.18);
+  color: #475569;
+  border-radius: 999px;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.78rem;
+  margin-top: 0.4rem;
+}
+
+.teachers-table__meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+  color: #94a3b8;
+  margin-top: 0.35rem;
+}
+
+.teachers-contact {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.teachers-contact span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #475569;
+  font-size: 0.9rem;
+}
+
+.teachers-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border-radius: 999px;
+  padding: 0.35rem 0.85rem;
+  font-size: 0.86rem;
+  font-weight: 600;
+  border: 1px solid;
+}
+
+.teachers-status--active {
+  background: rgba(34, 197, 94, 0.12);
+  color: #047857;
+  border-color: rgba(34, 197, 94, 0.35);
+}
+
+.teachers-status--inactive {
+  background: rgba(148, 163, 184, 0.15);
+  color: #475569;
+  border-color: rgba(148, 163, 184, 0.35);
+}
+
+.teachers-assignments {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.teachers-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border-radius: 999px;
+  padding: 0.35rem 0.9rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  background: rgba(37, 99, 235, 0.12);
+  color: #1d4ed8;
+}
+
+.teachers-chip--success {
+  background: rgba(34, 197, 94, 0.13);
+  color: #059669;
+}
+
+.teachers-chip--muted {
+  background: rgba(148, 163, 184, 0.16);
+  color: #475569;
+}
+
+.teachers-chip__note {
+  display: block;
+  font-size: 0.78rem;
+  color: #94a3b8;
+  margin-top: 0.25rem;
+}
+
+.teachers-actions {
+  display: inline-flex;
+  gap: 0.55rem;
+  align-items: center;
+}
+
+.teachers-action-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 14px;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  background: #f8fafc;
+  color: #1f2937;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  cursor: pointer;
+}
+
+.teachers-action-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.15);
+}
+
+.teachers-action-btn--primary {
+  background: rgba(37, 99, 235, 0.12);
+  color: #1d4ed8;
+  border-color: rgba(37, 99, 235, 0.26);
+}
+
+.teachers-action-btn--danger {
+  background: rgba(239, 68, 68, 0.12);
+  color: #b91c1c;
+  border-color: rgba(239, 68, 68, 0.28);
+}
+
+.teachers-action-btn--warning {
+  background: rgba(234, 179, 8, 0.15);
+  color: #b45309;
+  border-color: rgba(234, 179, 8, 0.26);
+}
+
+.teachers-action-btn a {
+  color: inherit;
+}
+
+.teachers-empty {
+  padding: 3.2rem 2rem;
+  text-align: center;
+  color: #64748b;
+}
+
+.teachers-empty i {
+  font-size: 2.6rem;
+  color: #94a3b8;
+  margin-bottom: 1rem;
+}
+
+.teachers-empty h5 {
+  color: #0f172a;
+  font-weight: 600;
+  margin-bottom: 0.6rem;
+}
+
+.teachers-empty a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-top: 1rem;
+  padding: 0.7rem 1.5rem;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #ffffff;
+  text-decoration: none;
+  font-weight: 600;
+  box-shadow: 0 16px 34px rgba(37, 99, 235, 0.32);
+}
+
+.teachers-empty a:hover {
+  box-shadow: 0 20px 42px rgba(37, 99, 235, 0.4);
+}
+
+@media (max-width: 991px) {
+  .teachers-header {
+    padding: 1.5rem 1.5rem;
+  }
+
+  .teachers-search,
+  .teachers-table {
+    border-radius: 20px;
+  }
+
+  .teachers-table__table {
+    min-width: 760px;
+  }
+}
+
+@media (max-width: 767px) {
+  .teachers-page {
+    gap: 1.35rem;
+    padding: 1.2rem 0 2rem;
+  }
+
+  .teachers-header__title {
+    font-size: 1.45rem;
+  }
+
+  .teachers-header__cta {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .teachers-search__form {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .teachers-search__actions {
+    justify-content: center;
+  }
+
+  .teachers-table__head {
+    padding: 1.4rem 1.6rem 0.8rem;
+  }
+
+  .teachers-table__scroll {
+    padding: 0 1.6rem 1.6rem;
+  }
+}
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="right_col" role="main">
-  <div class="container-fluid">
-    <!-- Header -->
-    <div class="row mb-4">
-      <div class="col-12">
-        <div class="bg-white p-4 rounded shadow-sm border">
-          <div class="d-flex justify-content-between align-items-center">
-            <div>
-              <h2 class="h3 text-dark mb-2">
-                <i class="fas fa-chalkboard-teacher text-primary me-2"></i>Gestión de Profesores
-              </h2>
-              <p class="text-muted mb-0">Administra los profesores del sistema escolar</p>
-            </div>
-            <div>
-              <a href="{% url 'agregar' %}?tipo=profesor" class="btn btn-primary">
-                <i class="fas fa-plus me-1"></i>Nuevo Profesor
-              </a>
-            </div>
-          </div>
-        </div>
-      </div>
+  <div class="container-fluid teachers-page">
+    <div class="d-none">
+      <form id="teachers-csrf-form">{% csrf_token %}</form>
     </div>
 
-    <!-- Estadísticas -->
-    <div class="row mb-4">
-      <div class="col-md-3">
-        <div class="card border shadow-sm bg-white">
-          <div class="card-body text-center">
-            <i class="fas fa-users fa-2x text-primary mb-2"></i>
-            <h3 class="mb-0 text-dark">{{ total_profesores }}</h3>
-            <p class="mb-0 text-muted">Total Profesores</p>
+    {% if messages %}
+      <div class="teachers-alerts">
+        {% for message in messages %}
+          <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+            {% with tags=message.tags|default:'' %}
+              {% if 'success' in tags %}
+                <i class="fas fa-check-circle text-success"></i>
+              {% elif 'warning' in tags %}
+                <i class="fas fa-exclamation-triangle text-warning"></i>
+              {% elif 'error' in tags or 'danger' in tags %}
+                <i class="fas fa-times-circle text-danger"></i>
+              {% else %}
+                <i class="fas fa-info-circle text-primary"></i>
+              {% endif %}
+            {% endwith %}
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
           </div>
-        </div>
+        {% endfor %}
       </div>
-      <div class="col-md-3">
-        <div class="card border shadow-sm bg-white">
-          <div class="card-body text-center">
-            <i class="fas fa-user-check fa-2x text-success mb-2"></i>
-            <h3 class="mb-0 text-dark">{{ profesores_activos }}</h3>
-            <p class="mb-0 text-muted">Profesores Activos</p>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-3">
-        <div class="card border shadow-sm bg-white">
-          <div class="card-body text-center">
-            <i class="fas fa-book fa-2x text-info mb-2"></i>
-            <h3 class="mb-0 text-dark">{{ profesores_con_asignaturas }}</h3>
-            <p class="mb-0 text-muted">Con Asignaturas</p>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-3">
-        <div class="card border shadow-sm bg-white">
-          <div class="card-body text-center">
-            <i class="fas fa-list fa-2x text-warning mb-2"></i>
-            <h3 class="mb-0 text-dark">{{ asignaturas.count }}</h3>
-            <p class="mb-0 text-muted">Asignaturas Total</p>
-          </div>
-        </div>
-      </div>
-    </div>
+    {% endif %}
 
-    <!-- Búsqueda -->
-    <div class="card border shadow-sm mb-4">
-      <div class="card-body">
-        <h6 class="fw-bold mb-3">
-          <i class="fas fa-search me-2 text-primary"></i>Buscar Profesores
-        </h6>
-        <form method="get" class="row g-3">
-          <div class="col-md-8">
-            <input type="text" name="filtro_profesor" class="form-control" 
-                   placeholder="Buscar por nombre, apellido, código o email..." 
-                   value="{{ filtro_profesor }}">
-          </div>
-          <div class="col-md-2">
-            <button type="submit" class="btn btn-primary w-100">
-              <i class="fas fa-search me-1"></i>Buscar
-            </button>
-          </div>
-          <div class="col-md-2">
-            {% if filtro_profesor %}
-              <a href="{% url 'listar_profesores' %}" class="btn btn-outline-secondary w-100">
-                <i class="fas fa-times me-1"></i>Limpiar
-              </a>
-            {% endif %}
-          </div>
-        </form>
+    <section class="teachers-header">
+      <div>
+        <h1 class="teachers-header__title">
+          <i class="fas fa-chalkboard-teacher text-primary me-2"></i>Gestión de Profesores
+        </h1>
+        <p class="teachers-header__subtitle">Administra la nómina docente, asignaciones y accesos al sistema académico desde un panel moderno y ordenado.</p>
       </div>
-    </div>
+      <a href="{% url 'agregar' %}?tipo=profesor" class="teachers-header__cta">
+        <i class="fas fa-plus"></i>
+        <span>Nuevo profesor</span>
+      </a>
+    </section>
 
-    <!-- Tabla de profesores -->
-    <div class="card border shadow-sm">
-      <div class="card-header bg-light border-bottom">
-        <h5 class="mb-0 text-dark">
-          <i class="fas fa-list me-2"></i>Lista de Profesores
+    <section class="teachers-stats">
+      <article class="teachers-stat-card teachers-stat-card--primary">
+        <span class="teachers-stat-card__icon"><i class="fas fa-users"></i></span>
+        <div>
+          <p class="teachers-stat-card__metric">{{ total_profesores }}</p>
+          <p class="teachers-stat-card__label">Profesores registrados</p>
+        </div>
+      </article>
+      <article class="teachers-stat-card teachers-stat-card--success">
+        <span class="teachers-stat-card__icon"><i class="fas fa-user-check"></i></span>
+        <div>
+          <p class="teachers-stat-card__metric">{{ profesores_activos }}</p>
+          <p class="teachers-stat-card__label">Docentes activos</p>
+        </div>
+      </article>
+      <article class="teachers-stat-card teachers-stat-card--info">
+        <span class="teachers-stat-card__icon"><i class="fas fa-book"></i></span>
+        <div>
+          <p class="teachers-stat-card__metric">{{ profesores_con_asignaturas }}</p>
+          <p class="teachers-stat-card__label">Con asignaturas asignadas</p>
+        </div>
+      </article>
+      <article class="teachers-stat-card teachers-stat-card--warning">
+        <span class="teachers-stat-card__icon"><i class="fas fa-layer-group"></i></span>
+        <div>
+          <p class="teachers-stat-card__metric">{{ asignaturas.count }}</p>
+          <p class="teachers-stat-card__label">Asignaturas disponibles</p>
+        </div>
+      </article>
+    </section>
+
+    <section class="teachers-search">
+      <h2 class="teachers-search__title"><i class="fas fa-search"></i>Filtra el listado docente</h2>
+      <form method="get" class="teachers-search__form">
+        <div class="teachers-search__field">
+          <span class="teachers-search__icon"><i class="fas fa-search"></i></span>
+          <input
+            type="text"
+            name="filtro_profesor"
+            class="teachers-search__input"
+            placeholder="Buscar por nombre, apellido, código o correo"
+            value="{{ filtro_profesor }}"
+            autocomplete="off"
+          >
+        </div>
+        <div class="teachers-search__actions">
+          <button type="submit" class="teachers-btn teachers-btn--primary">
+            <i class="fas fa-search"></i>
+            <span>Buscar</span>
+          </button>
           {% if filtro_profesor %}
-            <small class="text-muted">(Filtrado por: "{{ filtro_profesor }}")</small>
+            <a href="{% url 'listar_profesores' %}" class="teachers-btn teachers-btn--ghost">
+              <i class="fas fa-times"></i>
+              <span>Limpiar</span>
+            </a>
           {% endif %}
-        </h5>
+        </div>
+      </form>
+    </section>
+
+    <section class="teachers-table">
+      <div class="teachers-table__head">
+        <h3 class="teachers-table__title">
+          <i class="fas fa-scroll"></i>
+          Listado de profesores
+        </h3>
+        <span class="teachers-table__meta">
+          {% if filtro_profesor %}
+            Filtro aplicado: "{{ filtro_profesor }}"
+          {% else %}
+            Total docentes: {{ total_profesores }}
+          {% endif %}
+        </span>
       </div>
-      <div class="card-body p-0">
-        {% if profesores %}
-          <div class="table-responsive">
-            <table class="table table-hover mb-0">
-              <thead class="table-light">
-                <tr>
-                  <th width="15%">Código</th>
-                  <th width="25%">Nombre Completo</th>
-                  <th width="20%">Contacto</th>
-                  <th width="10%">Estado</th>
-                  <th width="15%">Curso Asignado</th>
-                  <th width="15%">Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for profesor in profesores %}
+
+      {% if profesores %}
+        <div class="teachers-table__scroll">
+          <table class="teachers-table__table">
+            <thead>
+              <tr>
+                <th>Código</th>
+                <th>Profesor</th>
+                <th>Contacto</th>
+                <th>Estado</th>
+                <th>Asignaciones</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for profesor in profesores %}
                 <tr>
                   <td>
-                    <div class="d-flex align-items-center">
-                      <div class="me-3">
-                        <div class="bg-light text-dark border rounded-circle d-flex align-items-center justify-content-center" 
-                             style="width: 40px; height: 40px;">
-                          <i class="fas fa-chalkboard-teacher"></i>
-                        </div>
-                      </div>
+                    <span class="teachers-table__code">
+                      <i class="fas fa-hashtag"></i>
+                      {{ profesor.codigo_profesor|default:"—" }}
+                    </span>
+                  </td>
+                  <td>
+                    <div class="teachers-table__teacher">
+                      <span class="teachers-table__avatar"><i class="fas fa-chalkboard-teacher"></i></span>
                       <div>
-                        <div class="fw-bold text-dark">{{ profesor.codigo_profesor }}</div>
-                        <small class="text-muted">Profesor</small>
+                        <span class="teachers-table__name">
+                          {{ profesor.primer_nombre }} {{ profesor.segundo_nombre|default:"" }} {{ profesor.apellido_paterno }} {{ profesor.apellido_materno|default:"" }}
+                        </span>
+                        {% if profesor.user %}
+                          <span class="teachers-table__badge">
+                            <i class="fas fa-user"></i>
+                            Usuario: {{ profesor.user.username }}
+                          </span>
+                        {% endif %}
+                        {% if profesor.fecha_contratacion %}
+                          <span class="teachers-table__meta">
+                            <i class="fas fa-calendar"></i>
+                            Ingreso: {{ profesor.fecha_contratacion|date:"d/m/Y" }}
+                          </span>
+                        {% endif %}
                       </div>
                     </div>
                   </td>
                   <td>
-                    <div>
-                      <div class="fw-bold text-dark">
-                        {{ profesor.primer_nombre }} {{ profesor.segundo_nombre|default:"" }}
-                      </div>
-                      <div class="text-muted">
-                        {{ profesor.apellido_paterno }} {{ profesor.apellido_materno|default:"" }}
-                      </div>
-                      {% if profesor.user %}
-                        <small class="badge bg-light text-dark border">Usuario: {{ profesor.user.username }}</small>
-                      {% endif %}
-                      <small class="text-muted d-block">
-                        <i class="fas fa-calendar me-1"></i>Ingresó: {{ profesor.fecha_contratacion|date:"d/m/Y" }}
-                      </small>
-                    </div>
-                  </td>
-                  <td>
-                    <div>
-                      <div class="mb-1">
-                        <i class="fas fa-envelope text-muted me-1"></i>
-                        <small>{{ profesor.email|default:"No especificado" }}</small>
-                      </div>
-                      <div>
-                        <i class="fas fa-phone text-muted me-1"></i>
-                        <small>{{ profesor.telefono|default:"No especificado" }}</small>
-                      </div>
+                    <div class="teachers-contact">
+                      <span>
+                        <i class="fas fa-envelope"></i>
+                        {{ profesor.email|default:"Sin correo" }}
+                      </span>
+                      <span>
+                        <i class="fas fa-phone"></i>
+                        {{ profesor.telefono|default:"Sin teléfono" }}
+                      </span>
                     </div>
                   </td>
                   <td>
                     {% if profesor.user and profesor.user.is_active %}
-                      <span class="badge bg-light text-success border">
-                        <i class="fas fa-check me-1"></i>Activo
+                      <span class="teachers-status teachers-status--active">
+                        <i class="fas fa-circle"></i>
+                        Activo
                       </span>
                     {% else %}
-                      <span class="badge bg-light text-muted border">
-                        <i class="fas fa-times me-1"></i>Inactivo
+                      <span class="teachers-status teachers-status--inactive">
+                        <i class="fas fa-circle"></i>
+                        Inactivo
                       </span>
                     {% endif %}
                   </td>
                   <td>
-                    {% if profesor.cursos_jefatura.exists %}
-                      {% for curso in profesor.cursos_jefatura.all %}
-                        <div class="mb-1">
-                          <span class="badge bg-light text-success border">
-                            <i class="fas fa-user-tie me-1"></i>{{ curso.get_nivel_display }}{{ curso.paralelo }}
+                    <div class="teachers-assignments">
+                      {% if profesor.cursos_jefatura.exists %}
+                        {% for curso in profesor.cursos_jefatura.all %}
+                          <span class="teachers-chip teachers-chip--success">
+                            <i class="fas fa-user-tie"></i>
+                            {{ curso.get_nivel_display }}{{ curso.paralelo }} · Profesor jefe
                           </span>
-                          <small class="text-muted d-block">Profesor Jefe</small>
-                        </div>
-                      {% endfor %}
-                    {% else %}
-                      <span class="badge bg-light text-muted border">
-                        <i class="fas fa-minus me-1"></i>Sin asignar
-                      </span>
-                      <small class="text-muted d-block">Especialidad: {{ profesor.especialidad|truncatechars:15 }}</small>
-                    {% endif %}
+                        {% endfor %}
+                      {% else %}
+                        <span class="teachers-chip teachers-chip--muted">
+                          <i class="fas fa-minus"></i>
+                          Sin curso jefe asignado
+                        </span>
+                        {% if profesor.especialidad %}
+                          <span class="teachers-chip__note">Especialidad: {{ profesor.especialidad }}</span>
+                        {% endif %}
+                      {% endif %}
+                    </div>
                   </td>
                   <td>
-                    <div class="btn-group btn-group-sm" role="group">
-                      <a href="{% url 'modificar' %}?tipo=profesor&id={{ profesor.id }}" 
-                         class="btn btn-light border" title="Editar profesor">
-                        <i class="fas fa-edit text-primary"></i>
+                    <div class="teachers-actions">
+                      <a
+                        href="{% url 'modificar' %}?tipo=profesor&id={{ profesor.id }}"
+                        class="teachers-action-btn teachers-action-btn--primary"
+                        title="Editar profesor"
+                      >
+                        <i class="fas fa-edit"></i>
                       </a>
-                      <button type="button" 
-                              class="btn btn-light border" 
-                              onclick="confirmarEliminacion('{{ profesor.primer_nombre }} {{ profesor.apellido_paterno }}', {{ profesor.id }})"
-                              title="Eliminar profesor">
-                        <i class="fas fa-trash text-danger"></i>
+                      <button
+                        type="button"
+                        class="teachers-action-btn teachers-action-btn--danger"
+                        onclick="confirmarEliminacion('{{ profesor.primer_nombre }} {{ profesor.apellido_paterno }}', {{ profesor.id }})"
+                        title="Eliminar profesor"
+                      >
+                        <i class="fas fa-trash"></i>
                       </button>
                       {% if profesor.user %}
-                        <button type="button" 
-                                class="btn btn-light border" 
-                                onclick="resetPassword({{ profesor.id }})"
-                                title="Resetear contraseña">
-                          <i class="fas fa-key text-warning"></i>
+                        <button
+                          type="button"
+                          class="teachers-action-btn teachers-action-btn--warning"
+                          onclick="resetPassword({{ profesor.id }})"
+                          title="Resetear contraseña"
+                        >
+                          <i class="fas fa-key"></i>
                         </button>
                       {% endif %}
                     </div>
                   </td>
                 </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          </div>
-        {% else %}
-          <div class="text-center py-5">
-            <i class="fas fa-chalkboard-teacher fa-3x text-muted mb-3"></i>
-            <h5 class="text-muted mb-2">No se encontraron profesores</h5>
-            {% if filtro_profesor %}
-              <p class="text-muted mb-3">No hay profesores que coincidan con el filtro "{{ filtro_profesor }}"</p>
-              <a href="{% url 'listar_profesores' %}" class="btn btn-primary">Ver todos los profesores</a>
-            {% else %}
-              <p class="text-muted mb-3">Aún no hay profesores registrados en el sistema</p>
-              <a href="{% url 'agregar' %}?tipo=profesor" class="btn btn-primary">
-                <i class="fas fa-plus me-1"></i>Agregar primer profesor
-              </a>
-            {% endif %}
-          </div>
-        {% endif %}
-      </div>
-    </div>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="teachers-empty">
+          <i class="fas fa-chalkboard-teacher"></i>
+          <h5>No se encontraron profesores</h5>
+          {% if filtro_profesor %}
+            <p>No hay docentes que coincidan con el filtro "{{ filtro_profesor }}".</p>
+            <a href="{% url 'listar_profesores' %}">
+              <i class="fas fa-redo"></i>
+              Ver todos los profesores
+            </a>
+          {% else %}
+            <p>Aún no hay profesores registrados en el sistema.</p>
+            <a href="{% url 'agregar' %}?tipo=profesor">
+              <i class="fas fa-plus"></i>
+              Agregar primer profesor
+            </a>
+          {% endif %}
+        </div>
+      {% endif %}
+    </section>
   </div>
 </div>
 
-<!-- JavaScript -->
 <script>
 function confirmarEliminacion(nombreProfesor, profesorId) {
   if (confirm(`¿Está seguro de que desea eliminar al profesor "${nombreProfesor}"?\n\nEsta acción no se puede deshacer.`)) {
-    // Aquí puedes agregar la lógica para eliminar el profesor
     window.location.href = `/profesores/eliminar/${profesorId}/`;
   }
 }
 
 function resetPassword(profesorId) {
-    if (confirm('¿Está seguro de que desea resetear la contraseña de este profesor?')) {
-        fetch(`/reset-password-profesor/${profesorId}/`, {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-            },
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert(`Contraseña reseteada. Nueva contraseña: ${data.new_password}`);
-            } else {
-                alert('Error al resetear la contraseña');
-            }
-        })
-        .catch(error => {
-            alert('Error al resetear la contraseña');
-            console.error('Error:', error);
-        });
-    }
+  const csrfInput = document.querySelector('#teachers-csrf-form [name=csrfmiddlewaretoken]');
+  const csrfToken = csrfInput ? csrfInput.value : '';
+
+  if (!csrfToken) {
+    alert('No se pudo obtener el token CSRF. Intente refrescar la página.');
+    return;
+  }
+
+  if (confirm('¿Está seguro de que desea resetear la contraseña de este profesor?')) {
+    fetch(`/reset-password-profesor/${profesorId}/`, {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': csrfToken,
+      },
+    })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          alert(`Contraseña reseteada. Nueva contraseña: ${data.new_password}`);
+        } else {
+          alert('Error al resetear la contraseña');
+        }
+      })
+      .catch(error => {
+        alert('Error al resetear la contraseña');
+        console.error('Error:', error);
+      });
+  }
 }
 </script>
-
-<!-- Estilos simples -->
-<style>
-.table-hover tbody tr:hover {
-  background-color: #f8f9fa;
-}
-
-.btn-group-sm > .btn {
-  border-radius: 4px;
-  margin: 0 1px;
-}
-
-.card {
-  border: 1px solid #dee2e6;
-}
-
-.border {
-  border: 1px solid #dee2e6 !important;
-}
-
-.fw-medium {
-  font-weight: 500;
-}
-
-.text-dark {
-  color: #212529 !important;
-}
-
-.badge {
-  font-weight: 500;
-}
-
-.bg-light {
-  background-color: #f8f9fa !important;
-}
-</style>
 {% endblock %}
