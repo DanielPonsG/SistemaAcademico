@@ -392,6 +392,650 @@
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
+.professor-dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
+.professor-hero {
+  position: relative;
+  overflow: hidden;
+  border-radius: 26px;
+  background: linear-gradient(135deg, #4338ca, #2563eb);
+  color: #fff;
+  padding: 42px 46px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  box-shadow: 0 24px 54px rgba(30, 64, 175, 0.28);
+}
+
+.professor-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 15% 25%, rgba(255, 255, 255, 0.32), transparent 55%),
+              radial-gradient(circle at 85% 20%, rgba(96, 165, 250, 0.45), transparent 58%),
+              radial-gradient(circle at 50% 100%, rgba(59, 130, 246, 0.4), transparent 60%);
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+
+.professor-hero > * {
+  position: relative;
+  z-index: 1;
+}
+
+.professor-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.18);
+  padding: 8px 18px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.professor-hero h2 {
+  font-size: 2.1rem;
+  font-weight: 700;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.professor-hero p {
+  margin: 0;
+  max-width: 540px;
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 1.02rem;
+}
+
+.professor-hero__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.professor-meta-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  border-radius: 16px;
+  padding: 10px 16px;
+  background: rgba(15, 23, 42, 0.2);
+  backdrop-filter: blur(6px);
+  font-weight: 600;
+}
+
+.professor-meta-pill strong {
+  display: block;
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.professor-meta-pill span {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.85;
+}
+
+.professor-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 18px;
+}
+
+.professor-metric-card {
+  position: relative;
+  border-radius: 22px;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  padding: 24px;
+  background: #fff;
+  box-shadow: 0 18px 36px rgba(148, 163, 184, 0.18);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.professor-metric-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.12;
+  pointer-events: none;
+}
+
+.professor-metric-card .metric-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  font-size: 1.4rem;
+  color: #fff;
+}
+
+.professor-metric-card .metric-label {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.professor-metric-card .metric-value {
+  font-size: 2.1rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
+.professor-metric-card .metric-note {
+  margin: 0;
+  color: #475569;
+  font-size: 0.92rem;
+}
+
+.professor-metric-card.metric-students::before {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+}
+
+.professor-metric-card.metric-students .metric-icon {
+  background: linear-gradient(135deg, #16a34a, #22c55e);
+}
+
+.professor-metric-card.metric-subjects::before {
+  background: linear-gradient(135deg, #6366f1, #4338ca);
+}
+
+.professor-metric-card.metric-subjects .metric-icon {
+  background: linear-gradient(135deg, #4338ca, #6366f1);
+}
+
+.professor-metric-card.metric-courses::before {
+  background: linear-gradient(135deg, #f97316, #f59e0b);
+}
+
+.professor-metric-card.metric-courses .metric-icon {
+  background: linear-gradient(135deg, #f97316, #fb923c);
+}
+
+.professor-metric-card.metric-notes::before {
+  background: linear-gradient(135deg, #0ea5e9, #2563eb);
+}
+
+.professor-metric-card.metric-notes .metric-icon {
+  background: linear-gradient(135deg, #1d4ed8, #2563eb);
+}
+
+.professor-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.professor-actions__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.professor-actions__header h3 {
+  margin: 0;
+  font-weight: 700;
+  color: #1f2937;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.2rem;
+}
+
+.professor-actions__header p {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.92rem;
+}
+
+.professor-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 16px;
+}
+
+.professor-action-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-start;
+  background: #fff;
+  border-radius: 18px;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  padding: 18px 20px;
+  text-decoration: none;
+  color: #0f172a;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.professor-action-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 18px 36px rgba(15, 23, 42, 0.14);
+}
+
+.professor-action-card i {
+  font-size: 1.5rem;
+  color: var(--professor-action-color, #2563eb);
+}
+
+.professor-action-card h6 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.professor-action-card small {
+  color: #64748b;
+  font-size: 0.8rem;
+}
+
+.professor-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 2.2fr) minmax(0, 1fr);
+  gap: 20px;
+}
+
+.professor-main,
+.professor-side {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.professor-card {
+  background: #fff;
+  border-radius: 22px;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  padding: 24px 26px;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.professor-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.professor-card__title {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #1f2937;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.professor-card__badge {
+  background: #eef2ff;
+  color: #4338ca;
+  font-weight: 600;
+  font-size: 0.85rem;
+  border-radius: 999px;
+  padding: 6px 14px;
+}
+
+.professor-tile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 14px;
+}
+
+.professor-tile {
+  background: #f8fafc;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.professor-tile:hover {
+  transform: translateY(-2px);
+  border-color: rgba(79, 70, 229, 0.45);
+}
+
+.professor-tile__title {
+  margin: 0;
+  font-weight: 600;
+  color: #111827;
+}
+
+.professor-tile__meta {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.85rem;
+}
+
+.professor-subject-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+.professor-subject-card {
+  padding: 14px;
+  border-radius: 14px;
+  background: #f1f5f9;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.professor-subject-card h6 {
+  margin: 0;
+  font-weight: 600;
+  color: #0f172a;
+  font-size: 0.95rem;
+}
+
+.professor-subject-card span {
+  font-size: 0.75rem;
+  color: #64748b;
+  letter-spacing: 0.04em;
+}
+
+.professor-schedule-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+.professor-schedule-card {
+  border-radius: 18px;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  background: #f8fafc;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.professor-schedule-card__head {
+  background: rgba(79, 70, 229, 0.08);
+  padding: 14px 16px;
+}
+
+.professor-schedule-card__head h6 {
+  margin: 0;
+  color: #4338ca;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.professor-schedule-card__head small {
+  color: #475569;
+  font-size: 0.75rem;
+}
+
+.professor-schedule-list {
+  padding: 14px 16px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.professor-schedule-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.professor-schedule-item__title {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #0f172a;
+}
+
+.professor-schedule-item__meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.professor-annotation-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+}
+
+.professor-annotation-pill {
+  border-radius: 16px;
+  padding: 14px 16px;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-weight: 600;
+}
+
+.professor-annotation-pill.positive { background: linear-gradient(135deg, #22c55e, #16a34a); }
+.professor-annotation-pill.neutral { background: linear-gradient(135deg, #f59e0b, #d97706); }
+.professor-annotation-pill.negative { background: linear-gradient(135deg, #ef4444, #b91c1c); }
+.professor-annotation-pill.total { background: linear-gradient(135deg, #334155, #0f172a); }
+
+.professor-annotation-pill span {
+  font-size: 0.75rem;
+  opacity: 0.85;
+}
+
+.professor-course-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.professor-course-card {
+  border-radius: 18px;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  background: #fff;
+  box-shadow: 0 16px 34px rgba(15, 23, 42, 0.08);
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.professor-course-card__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.professor-course-pill {
+  background: #eef2ff;
+  color: #4338ca;
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.professor-course-badge {
+  background: #dcfce7;
+  color: #16a34a;
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.professor-course-meta {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  color: #64748b;
+  font-size: 0.8rem;
+}
+
+.professor-course-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.professor-course-card__body {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.professor-course-stat {
+  flex: 1 1 120px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: #f8fafc;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+}
+
+.professor-course-stat i {
+  font-size: 1.1rem;
+  color: #2563eb;
+}
+
+.professor-course-stat strong {
+  display: block;
+  font-size: 1.1rem;
+  color: #0f172a;
+}
+
+.professor-course-stat span {
+  display: block;
+  font-size: 0.75rem;
+  color: #64748b;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.professor-course-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.professor-course-actions a {
+  flex: 1 1 auto;
+  text-decoration: none;
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-align: center;
+  border: 1px solid rgba(99, 102, 241, 0.4);
+  color: #4338ca;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.professor-course-actions a:hover {
+  background: #4338ca;
+  color: #fff;
+}
+
+.professor-activity-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.professor-activity-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: #f8fafc;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+.professor-activity-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  font-size: 0.95rem;
+  color: #fff;
+}
+
+.professor-activity-icon.positive { background: linear-gradient(135deg, #22c55e, #16a34a); }
+.professor-activity-icon.negative { background: linear-gradient(135deg, #ef4444, #b91c1c); }
+.professor-activity-icon.neutral { background: linear-gradient(135deg, #f59e0b, #d97706); }
+
+.professor-activity-item h6 {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.professor-activity-item p {
+  margin: 4px 0;
+  color: #64748b;
+  font-size: 0.82rem;
+}
+
+.profesor-info-item {
+  padding: 12px 0;
+  border-bottom: 1px dashed rgba(148, 163, 184, 0.35);
+}
+
+.profesor-info-item:last-child {
+  border-bottom: none;
+}
+
+.profesor-info-item small {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #94a3b8;
+}
+
+.profesor-info-item p {
+  margin: 2px 0 0;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.professor-empty {
+  text-align: center;
+  padding: 24px;
+  border-radius: 18px;
+  background: #f8fafc;
+  border: 1px dashed rgba(148, 163, 184, 0.25);
+  color: #64748b;
+}
+
 .stats-card {
   transition: all 0.4s ease;
   border-radius: 15px;
@@ -502,11 +1146,9 @@
   .quick-access-card {
     margin-bottom: 1rem;
   }
-  .profesor-stats-card .card-body,
   .admin-stats-card .card-body {
     padding: 1rem;
   }
-  .profesor-stats-card h3,
   .admin-stats-card h3 {
     font-size: 1.5rem;
   }
@@ -516,6 +1158,25 @@
   .clase-bloque {
     font-size: 0.65rem;
     padding: 2px 4px;
+  }
+  .professor-hero {
+    padding: 32px 28px;
+  }
+  .professor-hero h2 {
+    font-size: 1.6rem;
+  }
+  .professor-actions__header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .professor-actions-grid {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  }
+  .professor-layout {
+    grid-template-columns: 1fr;
+  }
+  .professor-card {
+    padding: 20px 22px;
   }
 }
 </style>
@@ -734,474 +1395,438 @@
                     </a>
                   </div>
                   <div class="col-lg-4 col-md-6 mb-3">
-                    <a href="{% url 'ver_asistencia_alumno' %}" class="text-decoration-none">
-                      <div class="card border-0 bg-success text-white text-center p-4 h-100 quick-access-card">
-                        <i class="fas fa-user-check fa-3x mb-3"></i>
-                        <h6 class="mb-1 fw-bold">Mi Asistencia</h6>
-                        <small class="opacity-75">Revisar registro de asistencia</small>
-                      </div>
-                    </a>
-                  </div>
-                  <div class="col-lg-4 col-md-6 mb-3">
                     <a href="{% url 'mis_horarios' %}" class="text-decoration-none">
-                      <div class="card border-0 bg-info text-white text-center p-4 h-100 quick-access-card">
+                      <div class="card border-0 bg-success text-white text-center p-4 h-100 quick-access-card">
                         <i class="fas fa-clock fa-3x mb-3"></i>
                         <h6 class="mb-1 fw-bold">Mi Horario</h6>
-                        <small class="opacity-75">Ver horario completo de clases</small>
-                      </div>
-                    </a>
-                  </div>
-                  <div class="col-lg-4 col-md-6 mb-3">
-                    <a href="{% url 'mi_curso' %}" class="text-decoration-none">
-                      <div class="card border-0 bg-warning text-white text-center p-4 h-100 quick-access-card">
-                        <i class="fas fa-users fa-3x mb-3"></i>
-                        <h6 class="mb-1 fw-bold">Mi Curso</h6>
-                        <small class="opacity-75">Información del curso y compañeros</small>
-                      </div>
-                    </a>
-                  </div>
-                  <div class="col-lg-4 col-md-6 mb-3">
-                    <a href="{% url 'listar_asignaturas' %}" class="text-decoration-none">
-                      <div class="card border-0 bg-secondary text-white text-center p-4 h-100 quick-access-card">
-                        <i class="fas fa-book fa-3x mb-3"></i>
-                        <h6 class="mb-1 fw-bold">Mis Materias</h6>
-                        <small class="opacity-75">Ver asignaturas y profesores</small>
+                        <small class="opacity-75">Consulta tus clases programadas</small>
                       </div>
                     </a>
                   </div>
                   <div class="col-lg-4 col-md-6 mb-3">
                     <a href="{% url 'libro_anotaciones' %}" class="text-decoration-none">
-                      <div class="card border-0 bg-danger text-white text-center p-4 h-100 quick-access-card">
-                        <i class="fas fa-sticky-note fa-3x mb-3"></i>
-                        <h6 class="mb-1 fw-bold">Mis Anotaciones</h6>
-                        <small class="opacity-75">Revisar observaciones académicas</small>
+                      <div class="card border-0 bg-info text-white text-center p-4 h-100 quick-access-card">
+                        <i class="fas fa-book-reader fa-3x mb-3"></i>
+                        <h6 class="mb-1 fw-bold">Anotaciones</h6>
+                        <small class="opacity-75">Revisa tus últimas anotaciones</small>
                       </div>
                     </a>
                   </div>
                 </div>
               </div>
-
-            {% elif error_estudiante %}
-              <div class="alert alert-danger text-center">
-                <h5 class="alert-heading"><i class="fas fa-exclamation-triangle me-2"></i>Error</h5>
-                <p>{{ error_estudiante }}</p>
-                <p class="mb-0">Por favor, contacta con el administrador para resolver este problema.</p>
+            {% else %}
+              <div class="alert alert-warning">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                No se encontró información del estudiante asociada a este usuario.
               </div>
             {% endif %}
           </div>
         </div>
       </div>
-
-      <!-- Panel Lateral: Anotaciones y Asignaturas -->
+      <!-- Panel lateral del estudiante -->
       <div class="col-lg-4 mb-4">
-        <!-- Anotaciones Recientes -->
-        <div class="card border-0 shadow-sm mb-4">
-          <div class="card-header bg-light border-0">
-            <h5 class="mb-0 text-dark"><i class="fas fa-book-open text-warning me-2"></i>Anotaciones Recientes</h5>
-          </div>
-          <div class="card-body">
-            {% if anotaciones_recientes %}
-              <div class="list-group list-group-flush">
-                {% for anotacion in anotaciones_recientes %}
-                  <div class="list-group-item border-0 px-0">
-                    <span class="badge bg-{% if anotacion.tipo == 'positiva' %}success{% elif anotacion.tipo == 'negativa' %}danger{% else %}warning{% endif %} mb-1">
-                      {{ anotacion.get_tipo_display }}
-                    </span>
-                    <p class="mb-1 small">{{ anotacion.descripcion|truncatewords:10 }}</p>
-                    <small class="text-muted">{{ anotacion.fecha_creacion|date:"d/m/Y" }}</small>
-                  </div>
-                {% endfor %}
-              </div>
-              <div class="text-center mt-3">
-                <a href="{% url 'libro_anotaciones' %}" class="btn btn-outline-primary btn-sm">
-                  <i class="fas fa-eye me-1"></i>Ver Todas
-                </a>
-              </div>
-            {% else %}
-              <div class="alert alert-success text-center">
-                <i class="fas fa-thumbs-up fa-2x mb-2"></i>
-                <p class="mb-0">¡Felicidades! No tienes anotaciones recientes.</p>
-              </div>
-            {% endif %}
-          </div>
-        </div>
-
-        <!-- Mis Asignaturas -->
-        <div class="card border-0 shadow-sm">
-          <div class="card-header bg-light border-0">
-            <h5 class="mb-0 text-dark"><i class="fas fa-book text-info me-2"></i>Mis Asignaturas</h5>
-          </div>
-          <div class="card-body">
-            {% if asignaturas_con_profesores %}
-              <div class="list-group list-group-flush">
-                {% for item in asignaturas_con_profesores|slice:":5" %}
-                  <div class="list-group-item border-0 px-0">
-                    <h6 class="mb-1">{{ item.asignatura.nombre }}</h6>
-                    <small class="text-muted">
-                      {% if item.profesor %}
-                        <i class="fas fa-user me-1"></i>{{ item.profesor.get_nombre_completo }}
-                      {% else %}
-                        <i class="fas fa-user-times me-1"></i>Sin profesor asignado
-                      {% endif %}
-                    </small>
-                  </div>
-                {% endfor %}
-              </div>
-              {% if asignaturas_con_profesores.count > 5 %}
-                <div class="text-center mt-3">
-                  <a href="{% url 'listar_asignaturas' %}" class="btn btn-outline-info btn-sm">
-                    <i class="fas fa-eye me-1"></i>Ver Todas ({{ asignaturas_con_profesores.count }})
-                  </a>
-                </div>
-              {% endif %}
-            {% else %}
-              <div class="text-center">
-                <i class="fas fa-book fa-2x text-muted mb-2"></i>
-                <p class="text-muted mb-0">No tienes asignaturas asignadas</p>
-              </div>
-            {% endif %}
-          </div>
-        </div>
-      </div>
-    </div>
-
-    {% elif user.perfil.tipo_usuario == 'profesor' %}
-    <!-- ################################################## -->
-    <!-- ########### PANEL ESPECÍFICO PARA PROFESORES ############### -->
-    <!-- ################################################## -->
-    
-    <!-- Estadísticas principales del profesor -->
-    <div class="row mb-4 fade-in">
-      <div class="col-md-3 mb-3">
-        <div class="card border-0 shadow-sm bg-primary text-white h-100 profesor-stats-card">
-          <div class="card-body text-center">
-            <i class="fas fa-users fa-2x mb-2 opacity-75"></i>
-            <h3 class="mb-1">{{ total_estudiantes|default:"0" }}</h3>
-            <small>Estudiantes a Cargo</small>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-3 mb-3">
-        <div class="card border-0 shadow-sm bg-success text-white h-100 profesor-stats-card">
-          <div class="card-body text-center">
-            <i class="fas fa-book fa-2x mb-2 opacity-75"></i>
-            <h3 class="mb-1">{{ asignaturas_profesor.count|default:"0" }}</h3>
-            <small>Asignaturas Asignadas</small>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-3 mb-3">
-        <div class="card border-0 shadow-sm bg-warning text-white h-100 profesor-stats-card">
-          <div class="card-body text-center">
-            <i class="fas fa-school fa-2x mb-2 opacity-75"></i>
-            <h3 class="mb-1">{{ cursos_con_asignaturas.count|default:"0" }}</h3>
-            <small>Cursos Asignados</small>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-3 mb-3">
-        <div class="card border-0 shadow-sm bg-info text-white h-100 profesor-stats-card">
-          <div class="card-body text-center">
-            <i class="fas fa-sticky-note fa-2x mb-2 opacity-75"></i>
-            <h3 class="mb-1">{{ stats_anotaciones.total|default:"0" }}</h3>
-            <small>Anotaciones Creadas</small>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Panel de accesos rápidos para profesores -->
-    <div class="row mb-4">
-      <div class="col-12">
-        <div class="card border-0 shadow-sm">
-          <div class="card-header bg-light border-0">
-            <h4 class="mb-0 text-dark">
-              <i class="fas fa-rocket text-primary me-2"></i>Herramientas Principales
-            </h4>
-          </div>
-          <div class="card-body">
-            <div class="row g-3">
-              <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
-                <a href="{% url 'crear_anotacion' %}" class="quick-access-link text-decoration-none">
-                  <div class="quick-access-card text-center p-3 rounded-3 h-100 border">
-                    <i class="fas fa-plus-circle fa-2x text-success mb-2"></i>
-                    <h6 class="mb-0">Crear Anotación</h6>
-                  </div>
-                </a>
-              </div>
-              <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
-                <a href="{% url 'libro_anotaciones' %}" class="quick-access-link text-decoration-none">
-                  <div class="quick-access-card text-center p-3 rounded-3 h-100 border">
-                    <i class="fas fa-book-open fa-2x text-primary mb-2"></i>
-                    <h6 class="mb-0">Libro de Anotaciones</h6>
-                  </div>
-                </a>
-              </div>
-              <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
-                <a href="{% url 'listar_cursos' %}" class="quick-access-link text-decoration-none">
-                  <div class="quick-access-card text-center p-3 rounded-3 h-100 border">
-                    <i class="fas fa-users fa-2x text-warning mb-2"></i>
-                    <h6 class="mb-0">Mis Cursos</h6>
-                  </div>
-                </a>
-              </div>
-              <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
-                <a href="{% url 'listar_asignaturas' %}" class="quick-access-link text-decoration-none">
-                  <div class="quick-access-card text-center p-3 rounded-3 h-100 border">
-                    <i class="fas fa-book fa-2x text-info mb-2"></i>
-                    <h6 class="mb-0">Mis Asignaturas</h6>
-                  </div>
-                </a>
-              </div>
-              <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
-                <a href="{% url 'ver_notas_curso' %}" class="quick-access-link text-decoration-none">
-                  <div class="quick-access-card text-center p-3 rounded-3 h-100 border">
-                    <i class="fas fa-chart-line fa-2x text-secondary mb-2"></i>
-                    <h6 class="mb-0">Ver Notas</h6>
-                  </div>
-                </a>
-              </div>
-              <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
-                <a href="{% url 'calendario' %}" class="quick-access-link text-decoration-none">
-                  <div class="quick-access-card text-center p-3 rounded-3 h-100 border">
-                    <i class="fas fa-calendar-alt fa-2x text-danger mb-2"></i>
-                    <h6 class="mb-0">Calendario</h6>
-                  </div>
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Panel principal del profesor -->
-    <div class="row">
-      <!-- Información académica -->
-      <div class="col-lg-8 mb-4">
-        <div class="card border-0 shadow-sm h-100">
-          <div class="card-header bg-light border-0">
-            <h5 class="mb-0 text-dark">
-              <i class="fas fa-chalkboard-teacher text-primary me-2"></i>Mi Panel Académico
-            </h5>
-          </div>
-          <div class="card-body">
-            {% if profesor %}
-            
-            <!-- Cursos como jefe de curso -->
-            {% if cursos_jefe %}
-            <div class="mb-3">
-              <h6 class="text-muted mb-3">
-                <i class="fas fa-user-tie me-1"></i>Jefatura de Curso
-              </h6>
-              <div class="row g-2">
-                {% for curso in cursos_jefe %}
-                <div class="col-md-6">
-                  <div class="card border">
-                    <div class="card-body p-3">
-                      <h6 class="mb-2">{{ curso.get_nivel_display }}{{ curso.paralelo }}</h6>
-                      <p class="mb-1 small text-muted">
-                        <i class="fas fa-users me-1"></i>{{ curso.estudiantes.count }} estudiantes
-                      </p>
-                      <div class="d-flex gap-2">
-                        <a href="{% url 'listar_cursos' %}#curso-{{ curso.id }}" class="btn btn-outline-primary btn-sm">
-                          <i class="fas fa-eye me-1"></i>Ver
-                        </a>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                {% endfor %}
-              </div>
-            </div>
-            {% endif %}
-
-            <!-- Asignaturas que enseña -->
-            {% if asignaturas_profesor %}
-            <div class="mb-4">
-              <h6 class="text-muted mb-3">
-                <i class="fas fa-book me-1"></i>Mis Asignaturas ({{ asignaturas_profesor.count }})
-              </h6>
-              <div class="row g-2">
-                {% for asignatura in asignaturas_profesor|slice:":6" %}
-                <div class="col-md-4">
-                  <div class="card border h-100">
-                    <div class="card-body p-2 text-center">
-                      <h6 class="mb-1 small">{{ asignatura.nombre|truncatechars:20 }}</h6>
-                      <small class="text-muted">{{ asignatura.codigo|default:"Sin código" }}</small>
-                    </div>
-                  </div>
-                </div>
-                {% endfor %}
-              </div>
-              {% if asignaturas_profesor.count > 6 %}
-              <div class="text-center mt-2">
-                <a href="{% url 'listar_asignaturas' %}" class="btn btn-outline-info btn-sm">
-                  <i class="fas fa-eye me-1"></i>Ver Todas ({{ asignaturas_profesor.count }})
-                </a>
-              </div>
-              {% endif %}
-            </div>
-            {% endif %}
-
-            <!-- Próximos horarios del profesor -->
-            {% if proximos_horarios_profesor %}
-            <div class="mb-4">
-              <h6 class="text-muted mb-3">
-                <i class="fas fa-clock me-1"></i>Mis Próximas Clases
-              </h6>
-              <div class="row g-2">
-                {% for dia in proximos_horarios_profesor %}
-                <div class="col-md-4">
-                  <div class="card border h-100">
-                    <div class="card-header bg-light py-2">
-                      <h6 class="mb-0 text-primary small">{{ dia.dia_nombre }}</h6>
-                      <small class="text-muted">{{ dia.fecha|date:"d/m" }}</small>
-                    </div>
-                    <div class="card-body py-2">
-                      {% for horario in dia.horarios|slice:":3" %}
-                        <div class="d-flex justify-content-between small mb-1">
-                          <div>
-                            <strong>{{ horario.asignatura.nombre|truncatechars:15 }}</strong>
-                            <br><small class="text-muted">{{ horario.curso.get_nivel_display }}{{ horario.curso.paralelo }}</small>
-                          </div>
-                          <div class="text-end">
-                            <span class="text-muted">{{ horario.hora_inicio|time:"H:i" }}</span>
-                          </div>
-                        </div>
-                        {% if not forloop.last %}<hr class="my-1">{% endif %}
-                      {% endfor %}
-                    </div>
-                  </div>
-                </div>
-                {% endfor %}
-              </div>
-            </div>
-            {% endif %}
-
-            <!-- Estadísticas de anotaciones -->
-            <div class="mb-4">
-              <h6 class="text-muted mb-3">
-                <i class="fas fa-chart-pie me-1"></i>Resumen de Anotaciones
-              </h6>
-              <div class="row g-2">
-                <div class="col-md-3">
-                  <div class="text-center p-2 bg-success text-white rounded">
-                    <h6 class="mb-0">{{ stats_anotaciones.positivas }}</h6>
-                    <small>Positivas</small>
-                  </div>
-                </div>
-                <div class="col-md-3">
-                  <div class="text-center p-2 bg-warning text-white rounded">
-                    <h6 class="mb-0">{{ stats_anotaciones.neutras }}</h6>
-                    <small>Neutras</small>
-                  </div>
-                </div>
-                <div class="col-md-3">
-                  <div class="text-center p-2 bg-danger text-white rounded">
-                    <h6 class="mb-0">{{ stats_anotaciones.negativas }}</h6>
-                    <small>Negativas</small>
-                  </div>
-                </div>
-                <div class="col-md-3">
-                  <div class="text-center p-2 bg-secondary text-white rounded">
-                    <h6 class="mb-0">{{ stats_anotaciones.total }}</h6>
-                    <small>Total</small>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {% else %}
-            <div class="alert alert-warning">
-              <i class="fas fa-exclamation-triangle me-2"></i>
-              No se encontró información del profesor asociada a este usuario.
-            </div>
-            {% endif %}
-          </div>
-        </div>
-      </div>
-
-      <!-- Panel lateral -->
-      <div class="col-lg-4 mb-4">
-        <!-- Anotaciones recientes -->
         <div class="card border-0 shadow-sm mb-3">
           <div class="card-header bg-light border-0">
             <h6 class="mb-0">
-              <i class="fas fa-history text-info me-2"></i>Anotaciones Recientes
+              <i class="fas fa-history text-primary me-2"></i>Anotaciones recientes
             </h6>
           </div>
           <div class="card-body">
             {% if anotaciones_recientes %}
-              {% for anotacion in anotaciones_recientes|slice:":3" %}
-              <div class="d-flex mb-2 p-2 rounded annotation-item {% if not forloop.last %}border-bottom pb-3{% endif %}">
-                <div class="me-2">
-                  {% if anotacion.tipo == 'positiva' %}
-                    <i class="fas fa-thumbs-up text-success"></i>
-                  {% elif anotacion.tipo == 'negativa' %}
-                    <i class="fas fa-thumbs-down text-danger"></i>
-                  {% else %}
-                    <i class="fas fa-minus text-warning"></i>
-                  {% endif %}
-                </div>
-                <div class="flex-grow-1">
-                  <h6 class="mb-1 small">
-                    {% if anotacion.estudiante %}
-                      {{ anotacion.estudiante.get_nombre_completo }}
+              <div class="professor-activity-list">
+                {% for anotacion in anotaciones_recientes|slice:":4" %}
+                <div class="professor-activity-item">
+                  <div class="professor-activity-icon {% if anotacion.tipo == 'positiva' %}positive{% elif anotacion.tipo == 'negativa' %}negative{% else %}neutral{% endif %}">
+                    {% if anotacion.tipo == 'positiva' %}
+                      <i class="fas fa-thumbs-up"></i>
+                    {% elif anotacion.tipo == 'negativa' %}
+                      <i class="fas fa-thumbs-down"></i>
                     {% else %}
-                      {{ anotacion.curso.get_nivel_display }}{{ anotacion.curso.paralelo }} (General)
+                      <i class="fas fa-minus"></i>
                     {% endif %}
-                  </h6>
-                  <p class="mb-0 small text-muted">{{ anotacion.contenido|truncatechars:60 }}</p>
-                  <small class="text-muted">{{ anotacion.fecha_creacion|date:"d/m H:i" }}</small>
+                  </div>
+                  <div>
+                    <h6 class="mb-1">{{ anotacion.profesor_autor.get_nombre_completo|default:"Profesor"|truncatechars:34 }}</h6>
+                    <p class="mb-1">{{ anotacion.contenido|truncatechars:70 }}</p>
+                    <small class="text-muted">{{ anotacion.fecha_creacion|date:"d/m/Y H:i" }}</small>
+                  </div>
                 </div>
+                {% endfor %}
               </div>
-              {% endfor %}
-              <div class="text-center mt-2">
-                <a href="{% url 'libro_anotaciones' %}" class="btn btn-outline-primary btn-sm">
-                  <i class="fas fa-eye me-1"></i>Ver Todas
-                </a>
-              </div>
+              <a href="{% url 'libro_anotaciones' %}" class="btn btn-outline-primary btn-sm mt-2">
+                <i class="fas fa-book-open me-1"></i>Ver todas
+              </a>
             {% else %}
-              <div class="text-center text-muted">
-                <i class="fas fa-clipboard fa-2x mb-2"></i>
-                <p class="mb-0 small">No hay anotaciones recientes</p>
+              <div class="professor-empty">
+                <i class="fas fa-clipboard-check fa-2x mb-2"></i>
+                <p class="mb-0">No tienes anotaciones recientes.</p>
               </div>
             {% endif %}
           </div>
         </div>
 
-        <!-- Información personal -->
         <div class="card border-0 shadow-sm">
           <div class="card-header bg-light border-0">
             <h6 class="mb-0">
-              <i class="fas fa-user text-secondary me-2"></i>Información Personal
+              <i class="fas fa-id-badge text-secondary me-2"></i>Mi perfil
             </h6>
           </div>
           <div class="card-body">
-            <div class="mb-2 profesor-info-item">
-              <small class="text-muted d-block">Nombre Completo</small>
-              <p class="mb-0 fw-semibold">{{ user.get_full_name|default:user.username }}</p>
+            <div class="profesor-info-item">
+              <small>Nombre completo</small>
+              <p>{{ user.get_full_name|default:user.username }}</p>
             </div>
-            <div class="mb-2 profesor-info-item">
-              <small class="text-muted d-block">Email</small>
-              <p class="mb-0">{{ user.email|default:"No registrado" }}</p>
+            <div class="profesor-info-item">
+              <small>Correo</small>
+              <p>{{ user.email|default:"No registrado" }}</p>
             </div>
-            {% if profesor %}
-            <div class="mb-2 profesor-info-item">
-              <small class="text-muted d-block">RUT</small>
-              <p class="mb-0">{{ profesor.rut|default:"No registrado" }}</p>
+            {% if curso_actual %}
+            <div class="profesor-info-item">
+              <small>Curso actual</small>
+              <p>{{ curso_actual.get_nivel_display }}{{ curso_actual.paralelo }} - {{ curso_actual.anio }}</p>
             </div>
             {% endif %}
-            <div class="mb-0 profesor-info-item">
-              <small class="text-muted d-block">Último acceso</small>
-              <p class="mb-0">{{ user.last_login|date:"d/m/Y H:i"|default:"Primer acceso" }}</p>
+            <div class="profesor-info-item">
+              <small>Último acceso</small>
+              <p>{{ user.last_login|date:"d/m/Y H:i"|default:"Primer acceso" }}</p>
             </div>
           </div>
         </div>
       </div>
     </div>
+  {% elif user.perfil.tipo_usuario == 'profesor' %}
+  <!-- ################################################## -->
+  <!-- ########### PANEL ESPECÍFICO PARA PROFESORES ############### -->
+  <!-- ################################################## -->
 
+  <div class="professor-dashboard fade-in">
+                    <section class="professor-hero">
+                      <span class="professor-chip"><i class="fas fa-chalkboard-teacher"></i> Docente</span>
+                      <h2>Hola, {{ user.get_full_name|default:user.username }}</h2>
+                      <p>Organiza tus clases, estudiantes y anotaciones desde un mismo lugar.</p>
+                      <div class="professor-hero__meta">
+                        <div class="professor-meta-pill">
+                          <i class="fas fa-users"></i>
+                          <div>
+                            <strong>{{ total_estudiantes|default:"0" }}</strong>
+                            <span>Estudiantes</span>
+                          </div>
+                        </div>
+                        <div class="professor-meta-pill">
+                          <i class="fas fa-clock"></i>
+                          <div>
+                            <strong>{{ proximos_horarios_profesor|length|default:"0" }}</strong>
+                            <span>Próximas clases</span>
+                          </div>
+                        </div>
+                        <div class="professor-meta-pill">
+                          <i class="fas fa-book"></i>
+                          <div>
+                            <strong>{{ asignaturas_profesor.count|default:"0" }}</strong>
+                            <span>Asignaturas</span>
+                          </div>
+                        </div>
+                      </div>
+                    </section>
+
+                    <div class="professor-metrics-grid">
+                      <div class="professor-metric-card metric-students">
+                        <div class="metric-icon"><i class="fas fa-users"></i></div>
+                        <span class="metric-label">Estudiantes a cargo</span>
+                        <span class="metric-value">{{ total_estudiantes|default:"0" }}</span>
+                        <p class="metric-note">Distribuidos en tus cursos activos.</p>
+                      </div>
+                      <div class="professor-metric-card metric-subjects">
+                        <div class="metric-icon"><i class="fas fa-book-open"></i></div>
+                        <span class="metric-label">Asignaturas activas</span>
+                        <span class="metric-value">{{ asignaturas_profesor.count|default:"0" }}</span>
+                        <p class="metric-note">Actualiza contenidos y seguimiento.</p>
+                      </div>
+                      <div class="professor-metric-card metric-courses">
+                        <div class="metric-icon"><i class="fas fa-school"></i></div>
+                        <span class="metric-label">Cursos asignados</span>
+                        <span class="metric-value">{{ cursos_con_asignaturas.count|default:"0" }}</span>
+                        <p class="metric-note">Incluye jefaturas y asignaturas.</p>
+                      </div>
+                      <div class="professor-metric-card metric-notes">
+                        <div class="metric-icon"><i class="fas fa-sticky-note"></i></div>
+                        <span class="metric-label">Anotaciones creadas</span>
+                        <span class="metric-value">{{ stats_anotaciones.total|default:"0" }}</span>
+                        <p class="metric-note">Registros en el libro digital.</p>
+                      </div>
+                    </div>
+
+                    <section class="professor-actions">
+                      <div class="professor-actions__header">
+                        <h3><i class="fas fa-rocket text-primary"></i>Accesos rápidos</h3>
+                        <p>Gestiona tus tareas diarias sin perder el ritmo.</p>
+                      </div>
+                      <div class="professor-actions-grid">
+                        <a href="{% url 'crear_anotacion' %}" class="professor-action-card" style="--professor-action-color:#16a34a;">
+                          <i class="fas fa-plus-circle"></i>
+                          <h6>Crear anotación</h6>
+                          <small>Registra observaciones en segundos.</small>
+                        </a>
+                        <a href="{% url 'libro_anotaciones' %}" class="professor-action-card" style="--professor-action-color:#2563eb;">
+                          <i class="fas fa-book-open"></i>
+                          <h6>Libro de anotaciones</h6>
+                          <small>Revisa históricos y filtros personalizados.</small>
+                        </a>
+                        <a href="{% url 'listar_cursos' %}" class="professor-action-card" style="--professor-action-color:#f97316;">
+                          <i class="fas fa-users"></i>
+                          <h6>Mis cursos</h6>
+                          <small>Visualiza jefaturas y estudiantes.</small>
+                        </a>
+                        <a href="{% url 'listar_asignaturas' %}" class="professor-action-card" style="--professor-action-color:#6366f1;">
+                          <i class="fas fa-book"></i>
+                          <h6>Mis asignaturas</h6>
+                          <small>Accede a contenidos y calificaciones.</small>
+                        </a>
+                        <a href="{% url 'ver_notas_curso' %}" class="professor-action-card" style="--professor-action-color:#0ea5e9;">
+                          <i class="fas fa-chart-line"></i>
+                          <h6>Ver notas</h6>
+                          <small>Consulta avances y promedios.</small>
+                        </a>
+                        <a href="{% url 'calendario' %}" class="professor-action-card" style="--professor-action-color:#ef4444;">
+                          <i class="fas fa-calendar-alt"></i>
+                          <h6>Calendario</h6>
+                          <small>Planifica eventos y evaluaciones.</small>
+                        </a>
+                      </div>
+                    </section>
+
+                    {% if profesor %}
+                    <div class="professor-layout">
+                      <div class="professor-main">
+                        {% if cursos_jefe %}
+                        <div class="professor-card">
+                          <div class="professor-card__header">
+                            <h3 class="professor-card__title"><i class="fas fa-user-tie text-primary"></i>Jefatura de curso</h3>
+                            <span class="professor-card__badge">{{ cursos_jefe|length }} curso{{ cursos_jefe|length|pluralize:",s" }}</span>
+                          </div>
+                          <div class="professor-tile-grid">
+                            {% for curso in cursos_jefe %}
+                            <div class="professor-tile">
+                              <p class="professor-tile__title">{{ curso.get_nivel_display }}{{ curso.paralelo }}</p>
+                              <p class="professor-tile__meta"><i class="fas fa-users me-1"></i>{{ curso.estudiantes.count }} estudiante{{ curso.estudiantes.count|pluralize:",s" }}</p>
+                              <a href="{% url 'listar_cursos' %}#curso-{{ curso.id }}" class="btn btn-outline-primary btn-sm w-100">
+                                <i class="fas fa-eye me-1"></i>Ver detalles
+                              </a>
+                            </div>
+                            {% endfor %}
+                          </div>
+                        </div>
+                        {% endif %}
+
+                        {% if cursos_con_asignaturas %}
+                        <div class="professor-card">
+                          <div class="professor-card__header">
+                            <h3 class="professor-card__title"><i class="fas fa-layer-group text-primary"></i>Mis cursos</h3>
+                            <span class="professor-card__badge">{{ cursos_con_asignaturas|length }} activo{{ cursos_con_asignaturas|length|pluralize:",s" }}</span>
+                          </div>
+                          <div class="professor-course-grid">
+                            {% for curso in cursos_con_asignaturas %}
+                            <div class="professor-course-card">
+                              <div class="professor-course-card__head">
+                                <span class="professor-course-pill">{{ curso.get_nivel_display }}{{ curso.paralelo }}</span>
+                                {% if profesor and curso.profesor_jefe_id == profesor.id %}
+                                  <span class="professor-course-badge">Profesor jefe</span>
+                                {% endif %}
+                              </div>
+                              <div class="professor-course-meta">
+                                <span><i class="fas fa-calendar text-primary"></i>{{ curso.anio }}</span>
+                                {% if curso.profesor_jefe %}
+                                <span><i class="fas fa-user text-secondary"></i>{{ curso.profesor_jefe.get_nombre_completo|truncatechars:26 }}</span>
+                                {% endif %}
+                              </div>
+                              <div class="professor-course-card__body">
+                                <div class="professor-course-stat">
+                                  <i class="fas fa-user-graduate"></i>
+                                  <div>
+                                    {% with total_estudiantes=curso.estudiantes_total|default:curso.estudiantes.count %}
+                                    <strong>{{ total_estudiantes }}</strong>
+                                    <span>Estudiantes</span>
+                                    {% endwith %}
+                                  </div>
+                                </div>
+                                <div class="professor-course-stat">
+                                  <i class="fas fa-book"></i>
+                                  <div>
+                                    <strong>{{ curso.mis_asignaturas_count|default:"0" }}</strong>
+                                    <span>Mis asignaturas</span>
+                                  </div>
+                                </div>
+                              </div>
+                              <div class="professor-course-actions">
+                                <a href="{% url 'listar_cursos' %}#curso-{{ curso.id }}"><i class="fas fa-eye me-1"></i>Ver curso</a>
+                                <a href="{% url 'listar_asignaturas' %}?curso={{ curso.id }}"><i class="fas fa-book-open me-1"></i>Asignaturas</a>
+                              </div>
+                            </div>
+                            {% endfor %}
+                          </div>
+                        </div>
+                        {% endif %}
+
+                        {% if asignaturas_profesor %}
+                        <div class="professor-card">
+                          <div class="professor-card__header">
+                            <h3 class="professor-card__title"><i class="fas fa-book me-2 text-primary"></i>Mis asignaturas</h3>
+                            <span class="professor-card__badge">{{ asignaturas_profesor.count }} activa{{ asignaturas_profesor.count|pluralize:",s" }}</span>
+                          </div>
+                          <div class="professor-subject-grid">
+                            {% for asignatura in asignaturas_profesor|slice:":6" %}
+                            <div class="professor-subject-card">
+                              <h6>{{ asignatura.nombre|truncatechars:26 }}</h6>
+                              <span>{{ asignatura.codigo|default:"Sin código" }}</span>
+                            </div>
+                            {% endfor %}
+                          </div>
+                          {% if asignaturas_profesor.count > 6 %}
+                          <a href="{% url 'listar_asignaturas' %}" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-list"></i> Ver todas ({{ asignaturas_profesor.count }})
+                          </a>
+                          {% endif %}
+                        </div>
+                        {% endif %}
+
+                        {% if proximos_horarios_profesor %}
+                        <div class="professor-card">
+                          <div class="professor-card__header">
+                            <h3 class="professor-card__title"><i class="fas fa-clock text-primary"></i>Próximas clases</h3>
+                            <span class="professor-card__badge">{{ proximos_horarios_profesor|length }} jornada{{ proximos_horarios_profesor|length|pluralize:",s" }}</span>
+                          </div>
+                          <div class="professor-schedule-grid">
+                            {% for dia in proximos_horarios_profesor %}
+                            <div class="professor-schedule-card">
+                              <div class="professor-schedule-card__head">
+                                <h6>{{ dia.dia_nombre }}</h6>
+                                <small>{{ dia.fecha|date:"d/m" }}</small>
+                              </div>
+                              <div class="professor-schedule-list">
+                                {% for horario in dia.horarios|slice:":3" %}
+                                <div class="professor-schedule-item">
+                                  <div>
+                                    <div class="professor-schedule-item__title">{{ horario.asignatura.nombre|truncatechars:24 }}</div>
+                                    <div class="text-muted small">{{ horario.curso.get_nivel_display }}{{ horario.curso.paralelo }}</div>
+                                  </div>
+                                  <div class="professor-schedule-item__meta">
+                                    <span>{{ horario.hora_inicio|time:"H:i" }}</span>
+                                  </div>
+                                </div>
+                                {% empty %}
+                                <div class="text-muted small">Sin horarios registrados.</div>
+                                {% endfor %}
+                              </div>
+                            </div>
+                            {% endfor %}
+                          </div>
+                        </div>
+                        {% endif %}
+
+                        <div class="professor-card">
+                          <div class="professor-card__header">
+                            <h3 class="professor-card__title"><i class="fas fa-chart-pie text-primary"></i>Resumen de anotaciones</h3>
+                            <span class="professor-card__badge">{{ stats_anotaciones.total|default:"0" }} total</span>
+                          </div>
+                          <p class="text-muted mb-0">Sigue el pulso de las anotaciones registradas durante el año.</p>
+                          <div class="professor-annotation-stats">
+                            <div class="professor-annotation-pill total">
+                              <strong>{{ stats_anotaciones.total|default:"0" }}</strong>
+                              <span>Total registradas</span>
+                            </div>
+                            <div class="professor-annotation-pill positive">
+                              <strong>{{ stats_anotaciones.positivas|default:"0" }}</strong>
+                              <span>Positivas</span>
+                            </div>
+                            <div class="professor-annotation-pill neutral">
+                              <strong>{{ stats_anotaciones.neutras|default:"0" }}</strong>
+                              <span>Neutras</span>
+                            </div>
+                            <div class="professor-annotation-pill negative">
+                              <strong>{{ stats_anotaciones.negativas|default:"0" }}</strong>
+                              <span>Negativas</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <aside class="professor-side">
+                        <div class="professor-card">
+                          <div class="professor-card__header">
+                            <h3 class="professor-card__title"><i class="fas fa-history text-primary"></i>Actividad reciente</h3>
+                            <span class="professor-card__badge">{{ anotaciones_recientes|length|default:"0" }} registro{{ anotaciones_recientes|length|default:"0"|pluralize:",s" }}</span>
+                          </div>
+                          {% if anotaciones_recientes %}
+                          <div class="professor-activity-list">
+                            {% for anotacion in anotaciones_recientes|slice:":4" %}
+                            <div class="professor-activity-item">
+                              <div class="professor-activity-icon {% if anotacion.tipo == 'positiva' %}positive{% elif anotacion.tipo == 'negativa' %}negative{% else %}neutral{% endif %}">
+                                {% if anotacion.tipo == 'positiva' %}
+                                  <i class="fas fa-thumbs-up"></i>
+                                {% elif anotacion.tipo == 'negativa' %}
+                                  <i class="fas fa-thumbs-down"></i>
+                                {% else %}
+                                  <i class="fas fa-minus"></i>
+                                {% endif %}
+                              </div>
+                              <div>
+                                <h6>
+                                  {% if anotacion.estudiante %}
+                                    {{ anotacion.estudiante.get_nombre_completo|truncatechars:32 }}
+                                  {% else %}
+                                    {{ anotacion.curso.get_nivel_display }}{{ anotacion.curso.paralelo }} (General)
+                                  {% endif %}
+                                </h6>
+                                <p>{{ anotacion.contenido|truncatechars:70 }}</p>
+                                <small class="text-muted">{{ anotacion.fecha_creacion|date:"d/m/Y H:i" }}</small>
+                              </div>
+                            </div>
+                            {% endfor %}
+                          </div>
+                          <a href="{% url 'libro_anotaciones' %}" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-eye"></i> Ver libro completo
+                          </a>
+                          {% else %}
+                          <div class="professor-empty">
+                            <i class="fas fa-clipboard-check fa-2x mb-2"></i>
+                            <p class="mb-0">Sin anotaciones recientes en los últimos días.</p>
+                          </div>
+                          {% endif %}
+                        </div>
+
+                        <div class="professor-card">
+                          <div class="professor-card__header">
+                            <h3 class="professor-card__title"><i class="fas fa-id-badge text-primary"></i>Información personal</h3>
+                          </div>
+                          <div class="profesor-info-item">
+                            <small>Nombre completo</small>
+                            <p>{{ user.get_full_name|default:user.username }}</p>
+                          </div>
+                          <div class="profesor-info-item">
+                            <small>Email institucional</small>
+                            <p>{{ user.email|default:"No registrado" }}</p>
+                          </div>
+                          {% if profesor %}
+                          <div class="profesor-info-item">
+                            <small>RUT</small>
+                            <p>{{ profesor.rut|default:"No registrado" }}</p>
+                          </div>
+                          {% endif %}
+                          <div class="profesor-info-item">
+                            <small>Último acceso</small>
+                            <p>{{ user.last_login|date:"d/m/Y H:i"|default:"Primer acceso" }}</p>
+                          </div>
+                        </div>
+                      </aside>
+                    </div>
+                    {% else %}
+                    <div class="professor-empty">
+                      <i class="fas fa-exclamation-triangle fa-2x mb-2 text-warning"></i>
+                      <p class="mb-1">No encontramos información del profesor asociada a este usuario.</p>
+                      <small>Contacta al administrador para verificar tus credenciales.</small>
+                    </div>
+                    {% endif %}
+                  </div>
     {% elif user.perfil.tipo_usuario == 'director' %}
     <!-- ################################################## -->
     <!-- ######### PANEL RENOVADO PARA DIRECTORES ######### -->

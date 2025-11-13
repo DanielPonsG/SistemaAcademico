@@ -954,6 +954,8 @@ def inicio(request):
     template_name = 'inicio.html'
     context = {
         'user': request.user,
+        'es_alumno': False,
+        'es_profesor': False,
     }
     
     # Datos específicos según el tipo de usuario
@@ -1134,10 +1136,18 @@ def inicio(request):
                 cursos_jefe = profesor.cursos_jefatura.filter(anio=anio_actual)
                 
                 # Cursos donde tiene asignaturas
-                cursos_con_asignaturas = profesor.get_cursos_asignados()
+                cursos_asignados_qs = profesor.get_cursos_asignados().prefetch_related('estudiantes', 'asignaturas')
+                cursos_con_asignaturas = []
+                for curso in cursos_asignados_qs:
+                    estudiantes_total = curso.estudiantes.count()
+                    mis_asignaturas_count = curso.asignaturas.filter(profesor_responsable=profesor).count()
+                    curso.estudiantes_total = estudiantes_total
+                    curso.mis_asignaturas_count = mis_asignaturas_count
+                    curso.total_asignaturas = curso.asignaturas.count()
+                    cursos_con_asignaturas.append(curso)
                 
                 # Asignaturas que enseña
-                asignaturas_profesor = profesor.asignaturas.all()
+                asignaturas_profesor = profesor.asignaturas.all().order_by('nombre')
                 
                 # Estadísticas de anotaciones creadas
                 from .models import Anotacion
@@ -1184,7 +1194,7 @@ def inicio(request):
                 # Total de estudiantes bajo su responsabilidad
                 total_estudiantes = 0
                 for curso in cursos_con_asignaturas:
-                    total_estudiantes += curso.estudiantes.count()
+                    total_estudiantes += getattr(curso, 'estudiantes_total', curso.estudiantes.count())
                 
                 # Asistencia reciente de profesores
                 from .models import AsistenciaProfesor
@@ -1577,46 +1587,153 @@ def mis_horarios(request):
         try:
             profesor = request.user.profesor
             anio_actual = timezone.now().year
+
+            context['es_profesor'] = True
+            context['anio_actual'] = anio_actual
+            context['profesor'] = profesor
             
             # Obtener asignaturas del profesor (solo como responsable)
             asignaturas_profesor = Asignatura.objects.filter(
                 profesor_responsable=profesor
-            ).prefetch_related('cursos')
+            ).prefetch_related('cursos').order_by('nombre')
+            context['asignaturas_profesor'] = asignaturas_profesor
+            context.setdefault('total_asignaturas', asignaturas_profesor.count())
+            context.setdefault('total_horas_semanales', 0)
+            context.setdefault('total_cursos', 0)
+            context.setdefault('total_estudiantes', 0)
+            context.setdefault('proximas_clases', [])
+            context.setdefault('horarios_por_curso', [])
+            context.setdefault('asignaturas_resumen', [])
+            context.setdefault('dias_semana_display', [])
             
             if asignaturas_profesor.exists():
                 # Obtener horarios de las asignaturas del profesor
-                horarios_profesor = HorarioCurso.objects.filter(
+                horarios_profesor_qs = HorarioCurso.objects.filter(
                     asignatura__in=asignaturas_profesor,
                     curso__anio=anio_actual
                 ).select_related('curso', 'asignatura').order_by('dia', 'hora_inicio')
+
+                horarios_profesor = list(horarios_profesor_qs)
                 
                 # Organizar horarios y crear matriz
                 horario_semanal_matriz, dias_semana, total_clases_semana, clases_por_asignatura = organizar_horarios_matriz(horarios_profesor)
                 
                 # Obtener cursos donde enseña
-                cursos_profesor = Curso.objects.filter(
+                cursos_profesor_qs = Curso.objects.filter(
                     horarios__asignatura__in=asignaturas_profesor,
                     anio=anio_actual
                 ).distinct()
+
+                cursos_profesor = list(cursos_profesor_qs)
                 
                 # Estadísticas del profesor
                 total_estudiantes = sum(curso.estudiantes.count() for curso in cursos_profesor)
                 total_asignaturas = asignaturas_profesor.count()
                 total_horas_semanales = total_clases_semana
+
+                # Preparar datos complementarios para la vista
+                from datetime import timedelta
+
+                dias_nombres = {
+                    'LU': 'Lunes',
+                    'MA': 'Martes',
+                    'MI': 'Miércoles',
+                    'JU': 'Jueves',
+                    'VI': 'Viernes',
+                    'SA': 'Sábado',
+                    'DO': 'Domingo',
+                }
+                dias_orden = {codigo: idx for idx, codigo in enumerate(['LU', 'MA', 'MI', 'JU', 'VI', 'SA', 'DO'])}
+
+                curso_horarios_map = {}
+                for horario in horarios_profesor:
+                    curso_horarios_map.setdefault(horario.curso, []).append(horario)
+
+                horarios_por_curso = []
+                for curso in cursos_profesor:
+                    bloques = curso_horarios_map.get(curso, [])
+                    bloques.sort(key=lambda h: (dias_orden.get(h.dia, 99), h.hora_inicio))
+                    horarios_por_curso.append({
+                        'curso': curso,
+                        'bloques': bloques,
+                        'total_bloques': len(bloques),
+                        'total_estudiantes': curso.estudiantes.count(),
+                        'es_profesor_jefe': curso.profesor_jefe_id == profesor.id,
+                    })
+
+                horarios_por_curso.sort(key=lambda item: (item['curso'].orden_nivel, item['curso'].paralelo))
+
+                # Próximas clases basadas en la semana actual
+                hoy = timezone.localdate()
+                hoy_idx = hoy.weekday()
+                sorted_horarios = sorted(
+                    horarios_profesor,
+                    key=lambda h: ((dias_orden.get(h.dia, 99) - hoy_idx) % 7, h.hora_inicio)
+                )
+
+                proximas_clases = []
+                for horario in sorted_horarios:
+                    dia_idx = dias_orden.get(horario.dia)
+                    if dia_idx is None:
+                        continue
+                    delta = (dia_idx - hoy_idx) % 7
+                    fecha_estimada = hoy + timedelta(days=delta)
+                    proximas_clases.append({
+                        'fecha': fecha_estimada,
+                        'dia_nombre': dias_nombres.get(horario.dia, horario.get_dia_display()),
+                        'hora_inicio': horario.hora_inicio,
+                        'hora_fin': horario.hora_fin,
+                        'curso': horario.curso,
+                        'asignatura': horario.asignatura,
+                        'es_hoy': delta == 0,
+                    })
+                    if len(proximas_clases) >= 6:
+                        break
+
+                clases_por_asignatura_dict = dict(clases_por_asignatura)
+                asignaturas_resumen = []
+                for asignatura, cantidad in clases_por_asignatura_dict.items():
+                    if asignatura:
+                        cursos_relacionados = sorted({
+                            f"{curso.get_nivel_display()}{curso.paralelo}"
+                            for curso in asignatura.cursos.filter(anio=anio_actual)
+                        })
+                        codigo = getattr(asignatura, 'codigo_asignatura', None)
+                        nombre = asignatura.nombre
+                    else:
+                        cursos_relacionados = []
+                        codigo = None
+                        nombre = 'Bloque sin asignatura'
+                    asignaturas_resumen.append({
+                        'obj': asignatura,
+                        'nombre': nombre,
+                        'codigo': codigo,
+                        'cantidad': cantidad,
+                        'cursos': cursos_relacionados,
+                    })
+
+                asignaturas_resumen.sort(key=lambda item: item['nombre'])
+
+                dias_semana_display = [
+                    {'codigo': codigo, 'nombre': dias_nombres.get(codigo, codigo)}
+                    for codigo in dias_semana
+                ]
                 
                 context.update({
-                    'profesor': profesor,
-                    'es_profesor': True,
-                    'asignaturas_profesor': asignaturas_profesor,
+                    'asignaturas_resumen': asignaturas_resumen,
                     'horarios_profesor': horarios_profesor,
                     'horario_semanal_matriz': horario_semanal_matriz,
                     'horarios_matriz': horario_semanal_matriz,  # Alias para compatibilidad con template
                     'dias_semana': dias_semana,
+                    'dias_semana_display': dias_semana_display,
+                    'dias_nombres': dias_nombres,
                     'total_clases_semana': total_clases_semana,
-                    'clases_por_asignatura': dict(clases_por_asignatura),
+                    'clases_por_asignatura': clases_por_asignatura_dict,
                     'cursos_profesor': cursos_profesor,
+                    'horarios_por_curso': horarios_por_curso,
+                    'proximas_clases': proximas_clases,
                     'total_estudiantes': total_estudiantes,
-                    'total_cursos': cursos_profesor.count(),
+                    'total_cursos': len(cursos_profesor),
                     'total_asignaturas': total_asignaturas,
                     'total_horas_semanales': total_horas_semanales,
                 })
@@ -1692,9 +1809,19 @@ def mi_curso(request):
     context = {
         'user': request.user,
     }
+    context.setdefault('es_alumno', False)
+    context.setdefault('es_profesor', False)
+    
+    tipo_usuario = None
+    if hasattr(request.user, 'perfil') and request.user.perfil.tipo_usuario:
+        tipo_usuario = request.user.perfil.tipo_usuario
+    elif hasattr(request.user, 'estudiante'):
+        tipo_usuario = 'alumno'
+    elif hasattr(request.user, 'profesor'):
+        tipo_usuario = 'profesor'
     
     # Verificar que el usuario sea estudiante
-    if hasattr(request.user, 'perfil') and request.user.perfil.tipo_usuario == 'alumno':
+    if tipo_usuario == 'alumno':
         try:
             estudiante = request.user.estudiante
             anio_actual = timezone.now().year
@@ -1739,6 +1866,124 @@ def mi_curso(request):
             import traceback
             print(f"Error en mi_curso (alumno): {traceback.format_exc()}")
     
+    elif tipo_usuario == 'profesor':
+        try:
+            profesor = request.user.profesor
+            anio_actual = timezone.now().year
+            cursos_jefe_qs = profesor.cursos_jefatura.filter(anio=anio_actual).order_by('nivel', 'paralelo')
+            cursos_jefe = list(cursos_jefe_qs)
+
+            cursos_asignados_qs = profesor.get_cursos_asignados().prefetch_related('estudiantes', 'asignaturas')
+            cursos_profesor = []
+            total_estudiantes = 0
+            total_mis_asignaturas = 0
+
+            for curso in cursos_asignados_qs:
+                estudiantes_total = curso.estudiantes.count()
+                mis_asignaturas_qs = curso.asignaturas.filter(profesor_responsable=profesor).order_by('nombre')
+                otros_profesores_raw = curso.asignaturas.exclude(profesor_responsable=profesor) \
+                    .exclude(profesor_responsable__isnull=True) \
+                    .values_list('profesor_responsable__primer_nombre', 'profesor_responsable__apellido_paterno') \
+                    .distinct()
+                otros_profesores = sorted({
+                    f"{nombre or ''} {apellido or ''}".strip()
+                    for nombre, apellido in otros_profesores_raw
+                    if (nombre or apellido)
+                })
+
+                curso_info = {
+                    'obj': curso,
+                    'nombre': f"{curso.get_nivel_display()}{curso.paralelo}",
+                    'anio': curso.anio,
+                    'soy_profesor_jefe': curso.profesor_jefe_id == profesor.id,
+                    'profesor_jefe': curso.profesor_jefe,
+                    'total_estudiantes': estudiantes_total,
+                    'total_asignaturas': curso.asignaturas.count(),
+                    'mis_asignaturas': list(mis_asignaturas_qs),
+                    'mis_asignaturas_count': mis_asignaturas_qs.count(),
+                    'otros_profesores': otros_profesores,
+                }
+
+                curso.estudiantes_total = estudiantes_total
+                curso.mis_asignaturas_count = curso_info['mis_asignaturas_count']
+                curso.total_asignaturas = curso_info['total_asignaturas']
+
+                cursos_profesor.append(curso_info)
+                total_estudiantes += estudiantes_total
+                total_mis_asignaturas += curso_info['mis_asignaturas_count']
+
+            curso_destacado = None
+            if cursos_profesor:
+                if cursos_jefe:
+                    curso_jefe_id = cursos_jefe[0].id
+                    for info in cursos_profesor:
+                        if info['obj'].id == curso_jefe_id:
+                            curso_destacado = info
+                            break
+                if not curso_destacado:
+                    curso_destacado = cursos_profesor[0]
+
+            cursos_objs = [info['obj'] for info in cursos_profesor]
+
+            proximas_clases = []
+            eventos_proximos = []
+            if cursos_objs:
+                from datetime import timedelta
+                from django.db.models import Q
+                from .models import HorarioCurso, EventoCalendario
+
+                hoy = timezone.localdate()
+                dias_weekday_a_codigo = {0: 'LU', 1: 'MA', 2: 'MI', 3: 'JU', 4: 'VI', 5: 'SA', 6: 'DO'}
+                dias_nombre = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
+
+                for offset in range(7):
+                    fecha = hoy + timedelta(days=offset)
+                    codigo_dia = dias_weekday_a_codigo[fecha.weekday()]
+                    horarios = HorarioCurso.objects.filter(
+                        curso__in=cursos_objs,
+                        dia=codigo_dia,
+                        asignatura__profesor_responsable=profesor
+                    ).select_related('curso', 'asignatura').order_by('hora_inicio')
+                    if horarios.exists():
+                        proximas_clases.append({
+                            'fecha': fecha,
+                            'dia_nombre': dias_nombre[fecha.weekday()],
+                            'horarios': horarios,
+                        })
+                    if len(proximas_clases) >= 3:
+                        break
+
+                eventos_proximos = EventoCalendario.objects.filter(
+                    Q(para_todos_los_cursos=True) | Q(cursos__in=cursos_objs),
+                    fecha__gte=hoy
+                ).distinct().order_by('fecha')[:5]
+
+            context.update({
+                'es_profesor': True,
+                'profesor': profesor,
+                'anio_actual': anio_actual,
+                'cursos_jefe': cursos_jefe,
+                'cursos_profesor': cursos_profesor,
+                'curso_destacado': curso_destacado,
+                'resumen_profesor': {
+                    'total_cursos': len(cursos_profesor),
+                    'total_estudiantes': total_estudiantes,
+                    'total_asignaturas_propias': total_mis_asignaturas,
+                    'total_cursos_jefe': len(cursos_jefe),
+                },
+                'proximas_clases': proximas_clases,
+                'eventos_proximos': eventos_proximos,
+                'asignaturas_profesor': profesor.asignaturas.all().order_by('nombre'),
+            })
+
+            if not cursos_profesor:
+                context['error_curso'] = "No tienes cursos asignados actualmente."
+
+        except Exception as e:
+            context['error_curso'] = f"Error al cargar información del profesor: {str(e)}"
+            import traceback
+            print(f"Error en mi_curso (profesor): {traceback.format_exc()}")
+
     else:
         # Para otros tipos de usuario (profesores, admin)
         messages.info(request, 'Esta vista está diseñada específicamente para estudiantes.')
