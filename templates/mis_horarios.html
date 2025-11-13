@@ -5,265 +5,258 @@
   <div class="container-fluid">
     
     {% if es_alumno %}
-    <!-- ################################################## -->
-    <!-- ########## VISTA DETALLADA DE HORARIOS PARA ALUMNOS ########## -->
-    <!-- ################################################## -->
-    
-    <!-- Header personalizado -->
-    <div class="row mb-4">
-      <div class="col-12">
-        <div class="bg-white p-4 rounded shadow-sm border">
-          <div class="row align-items-center">
-            <div class="col-md-8">
-              <div class="d-flex align-items-center">
-                <div class="me-3">
-                  <i class="fas fa-calendar-week fa-3x text-primary"></i>
-                </div>
-                <div>
-                  <h1 class="h3 mb-1 text-dark">Mi Horario de Clases</h1>
-                  <p class="mb-0 text-muted">
-                    <i class="fas fa-user me-2"></i>
-                    Horario académico de {{ user.first_name|default:user.username }}
-                    {% if curso_actual %} - {{ curso_actual }}{% endif %}
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-4 text-end d-none d-md-block">
-              <div class="text-center">
-                <p class="mb-0 h5 text-primary" id="currentDateTime"></p>
-                <small class="text-muted">Fecha y hora actual</small>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
     {% if error_curso %}
-    <!-- Error sin curso asignado -->
-    <div class="row">
-      <div class="col-12">
-        <div class="alert alert-warning text-center p-5">
-          <i class="fas fa-exclamation-triangle fa-4x text-warning mb-3"></i>
-          <h4>No hay curso asignado</h4>
-          <p class="mb-3">{{ error_curso }}</p>
-          <a href="{% url 'inicio' %}" class="btn btn-primary">
-            <i class="fas fa-home me-2"></i>Volver al Inicio
-          </a>
-        </div>
-      </div>
+    <div class="student-alert student-alert--warning">
+      <i class="fas fa-exclamation-triangle"></i>
+      <h2>Sin curso asignado</h2>
+      <p>{{ error_curso }}</p>
+      <a href="{% url 'inicio' %}" class="btn btn-primary btn-sm">
+        <i class="fas fa-home me-1"></i>Volver al inicio
+      </a>
     </div>
-    
     {% elif error_horarios %}
-    <!-- Error cargando horarios -->
-    <div class="row">
-      <div class="col-12">
-        <div class="alert alert-danger text-center p-5">
-          <i class="fas fa-times-circle fa-4x text-danger mb-3"></i>
-          <h4>Error al cargar horarios</h4>
-          <p class="mb-3">{{ error_horarios }}</p>
-          <a href="{% url 'inicio' %}" class="btn btn-primary">
-            <i class="fas fa-home me-2"></i>Volver al Inicio
+    <div class="student-alert student-alert--danger">
+      <i class="fas fa-times-circle"></i>
+      <h2>No fue posible cargar tus horarios</h2>
+      <p>{{ error_horarios }}</p>
+      <a href="{% url 'inicio' %}" class="btn btn-primary btn-sm">
+        <i class="fas fa-home me-1"></i>Volver al inicio
+      </a>
+    </div>
+    {% else %}
+    <div class="student-schedule fade-in">
+      <section class="student-schedule-hero">
+        <div class="student-schedule-hero__header">
+          <div class="student-schedule-hero__icon"><i class="fas fa-calendar-week"></i></div>
+          <div>
+            <span class="student-schedule-hero__chip"><i class="fas fa-user-graduate"></i> Vista alumno</span>
+            <h1 class="student-schedule-hero__title">Mi horario de clases</h1>
+            <p class="student-schedule-hero__subtitle">Coordina tus jornadas y mantén tus bloques bajo control.</p>
+            <div class="student-schedule-hero__meta">
+              <span><i class="fas fa-school"></i>{{ curso_actual }}</span>
+              <span><i class="fas fa-user-tie"></i>{% if curso_actual.profesor_jefe %}{{ curso_actual.profesor_jefe.get_nombre_completo }}{% else %}Profesor jefe no asignado{% endif %}</span>
+              <span><i class="fas fa-clock"></i>{% if primer_bloque and ultimo_bloque %}{{ primer_bloque|time:"H:i" }} - {{ ultimo_bloque|time:"H:i" }}{% else %}Sin bloques{% endif %}</span>
+            </div>
+          </div>
+        </div>
+        <div class="student-schedule-hero__aside">
+          <div class="student-schedule-hero__time" id="studentScheduleClock"></div>
+          <div class="student-schedule-hero__metrics">
+            <article class="student-metric">
+              <span>Clases semanales</span>
+              <strong>{{ total_clases_semana }}</strong>
+            </article>
+            <article class="student-metric">
+              <span>Horas semanales</span>
+              <strong>{{ horas_totales_semana }}</strong>
+              <small>hrs</small>
+            </article>
+            <article class="student-metric">
+              <span>Días con clases</span>
+              <strong>{{ dias_con_clases }}</strong>
+            </article>
+            <article class="student-metric">
+              <span>Asignaturas activas</span>
+              <strong>{{ asignaturas_curso|length }}</strong>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="student-schedule-section">
+        <header class="student-schedule-section__header">
+          <div>
+            <h2>Panorama semanal</h2>
+            <p>Visualiza los días con mayor carga académica.</p>
+          </div>
+        </header>
+        <div class="student-week-grid">
+          {% for dia in dias_semana_display %}
+          <article class="student-week-card{% if dia.es_hoy %} is-today{% endif %}">
+            <header>
+              <span>{{ dia.nombre }}</span>
+              <small>{{ dia.abreviado }}</small>
+            </header>
+            <strong>{{ dia.total }}</strong>
+            <span>bloque{{ dia.total|pluralize:",s" }}</span>
+          </article>
+          {% endfor %}
+        </div>
+      </section>
+
+      <section class="student-schedule-section">
+        <header class="student-schedule-section__header">
+          <div>
+            <h2>Próximas clases</h2>
+            <p>Agenda inmediata para que no pierdas ningún bloque.</p>
+          </div>
+        </header>
+        {% if proximas_clases_estudiante %}
+        <div class="student-upcoming-grid">
+          {% for clase in proximas_clases_estudiante %}
+          <article class="student-upcoming-card{% if clase.es_hoy %} is-today{% endif %}">
+            <div class="student-upcoming-card__head">
+              <span>{{ clase.dia_nombre }}</span>
+              <small>{{ clase.fecha|date:"d M" }}</small>
+            </div>
+            <div class="student-upcoming-card__time">{{ clase.hora_inicio|time:"H:i" }} - {{ clase.hora_fin|time:"H:i" }}</div>
+            <div class="student-upcoming-card__subject">{{ clase.asignatura.nombre|default:"Sin asignatura" }}</div>
+            {% if clase.profesor %}
+            <small class="student-upcoming-card__teacher"><i class="fas fa-user me-1"></i>{{ clase.profesor.get_nombre_completo }}</small>
+            {% endif %}
+          </article>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="student-empty-state">
+          <i class="fas fa-calendar-check"></i>
+          <p>No tienes clases próximas registradas.</p>
+        </div>
+        {% endif %}
+      </section>
+
+      <section class="student-schedule-section">
+        <header class="student-schedule-section__header">
+          <div>
+            <h2>Horario semanal completo</h2>
+            <p>Revisa todos tus bloques organizados por jornada.</p>
+          </div>
+        </header>
+        {% if horario_semanal_matriz %}
+        <div class="student-schedule-table-wrapper">
+          <table class="table tabla-horarios-detallada student-schedule-table">
+            <thead>
+              <tr>
+                <th class="hora-columna text-center"><i class="fas fa-clock me-1"></i>Bloque</th>
+                {% for dia in dias_semana_display %}
+                <th class="text-center dia-columna{% if dia.es_hoy %} horario-dia-actual{% endif %}" data-dia="{{ dia.codigo }}">
+                  <div class="dia-header">
+                    <div class="dia-nombre">{{ dia.nombre }}</div>
+                    <small class="dia-codigo">{{ dia.abreviado }}</small>
+                  </div>
+                </th>
+                {% endfor %}
+              </tr>
+            </thead>
+            <tbody>
+              {% for fila in horario_semanal_matriz %}
+              <tr>
+                <td class="hora-columna text-center">
+                  <div class="hora-bloque">
+                    <div>{{ fila.hora_inicio|time:"H:i" }}</div>
+                    <small class="text-muted">{{ fila.hora_fin|time:"H:i" }}</small>
+                  </div>
+                </td>
+                {% for dia_codigo in dias_semana %}
+                <td class="horario-cell student-schedule-cell{% if dia_codigo == dia_actual_codigo %} horario-dia-actual-celda{% endif %}" data-dia="{{ dia_codigo }}">
+                  {% for clase_dia, clase_obj in fila.clases.items %}
+                    {% if clase_dia == dia_codigo and clase_obj %}
+                    <div class="student-schedule-slot">
+                      <strong>{{ clase_obj.asignatura.nombre|default:"Sin asignatura" }}</strong>
+                      {% if clase_obj.asignatura.profesor_responsable %}
+                      <small>{{ clase_obj.asignatura.profesor_responsable.get_nombre_completo }}</small>
+                      {% endif %}
+                    </div>
+                    {% elif clase_dia == dia_codigo %}
+                    <div class="student-schedule-slot student-schedule-slot--empty">
+                      <i class="fas fa-minus"></i>
+                    </div>
+                    {% endif %}
+                  {% endfor %}
+                </td>
+                {% endfor %}
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <div class="student-schedule-table-actions">
+          <div class="student-schedule-legend">
+            <span><span class="legend-dot legend-dot--class"></span>Clase programada</span>
+            <span><span class="legend-dot legend-dot--empty"></span>Horario libre</span>
+          </div>
+          <div class="student-schedule-actions">
+            <button type="button" class="btn btn-outline-primary btn-sm" onclick="imprimirHorario()">
+              <i class="fas fa-print me-1"></i>Imprimir
+            </button>
+            <a href="{% url 'mi_curso' %}" class="btn btn-primary btn-sm">
+              <i class="fas fa-users me-1"></i>Ver mi curso
+            </a>
+          </div>
+        </div>
+        {% else %}
+        <div class="student-empty-state">
+          <i class="fas fa-calendar-times"></i>
+          <p>Tu curso aún no tiene bloques asignados.</p>
+        </div>
+        {% endif %}
+      </section>
+
+      <section class="student-schedule-section">
+        <header class="student-schedule-section__header">
+          <div>
+            <h2>Asignaturas y docentes</h2>
+            <p>Distribución de bloques por materia y profesor responsable.</p>
+          </div>
+        </header>
+        {% if asignaturas_resumen %}
+        <div class="student-subject-grid">
+          {% for asignatura in asignaturas_resumen %}
+          <article class="student-subject-card">
+            <div class="student-subject-card__header">
+              <strong>{{ asignatura.nombre }}</strong>
+              {% if asignatura.codigo %}<span class="student-subject-card__code">{{ asignatura.codigo }}</span>{% endif %}
+            </div>
+            <p class="student-subject-card__meta">
+              {{ asignatura.bloques }} bloque{{ asignatura.bloques|pluralize:",s" }}
+              {% if total_clases_semana %}<span>{{ asignatura.porcentaje }}%</span>{% endif %}
+            </p>
+            {% if asignatura.profesor %}
+            <small class="text-muted d-block"><i class="fas fa-user me-1"></i>{{ asignatura.profesor.get_nombre_completo }}</small>
+            {% endif %}
+            <div class="student-subject-card__progress"><span style="width: {{ asignatura.porcentaje }}%;"></span></div>
+          </article>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="student-empty-state">
+          <i class="fas fa-book"></i>
+          <p>No hay asignaturas vinculadas a tu horario.</p>
+        </div>
+        {% endif %}
+      </section>
+
+      <section class="student-schedule-section">
+        <header class="student-schedule-section__header">
+          <div>
+            <h2>Accesos directos</h2>
+            <p>Ingresa rápidamente a las vistas asociadas a tu curso.</p>
+          </div>
+        </header>
+        <div class="student-quick-grid">
+          <a href="{% url 'ver_notas_curso' %}" class="student-quick-card" style="background: linear-gradient(135deg, #2563eb, #1d4ed8);">
+            <i class="fas fa-chart-line"></i>
+            <strong>Mis notas</strong>
+            <small>Revisa tus últimas evaluaciones.</small>
+          </a>
+          <a href="{% url 'ver_asistencia_alumno' %}" class="student-quick-card" style="background: linear-gradient(135deg, #10b981, #047857);">
+            <i class="fas fa-user-check"></i>
+            <strong>Mi asistencia</strong>
+            <small>Monitorea tus registros diarios.</small>
+          </a>
+          <a href="{% url 'libro_anotaciones' %}" class="student-quick-card" style="background: linear-gradient(135deg, #f97316, #ea580c);">
+            <i class="fas fa-sticky-note"></i>
+            <strong>Anotaciones</strong>
+            <small>Consulta observaciones importantes.</small>
+          </a>
+          <a href="{% url 'mi_curso' %}" class="student-quick-card" style="background: linear-gradient(135deg, #7c3aed, #5b21b6);">
+            <i class="fas fa-users"></i>
+            <strong>Mi curso</strong>
+            <small>Resumen completo de tu curso.</small>
           </a>
         </div>
-      </div>
+      </section>
     </div>
-    
-    {% else %}
-    
-    <!-- Información del curso y estadísticas -->
-    <div class="row mb-4">
-      <div class="col-md-8">
-        <div class="card border-0 shadow-sm">
-          <div class="card-header bg-gradient-primary text-white border-0">
-            <h5 class="mb-0">
-              <i class="fas fa-graduation-cap me-2"></i>
-              Información del Curso
-            </h5>
-          </div>
-          <div class="card-body">
-            <div class="row">
-              <div class="col-md-6">
-                <h6 class="text-primary mb-3">Datos Académicos</h6>
-                <div class="info-item mb-2">
-                  <i class="fas fa-school text-muted me-2"></i>
-                  <strong>Curso:</strong> {{ curso_actual }}
-                </div>
-                <div class="info-item mb-2">
-                  <i class="fas fa-user-tie text-muted me-2"></i>
-                  <strong>Profesor Jefe:</strong> 
-                  {% if curso_actual.profesor_jefe %}
-                    {{ curso_actual.profesor_jefe.get_nombre_completo }}
-                  {% else %}
-                    No asignado
-                  {% endif %}
-                </div>
-                <div class="info-item mb-2">
-                  <i class="fas fa-users text-muted me-2"></i>
-                  <strong>Total Estudiantes:</strong> {{ curso_actual.estudiantes.count }}
-                </div>
-              </div>
-              <div class="col-md-6">
-                <h6 class="text-primary mb-3">Estadísticas del Horario</h6>
-                <div class="info-item mb-2">
-                  <i class="fas fa-clock text-muted me-2"></i>
-                  <strong>Clases por semana:</strong> {{ total_clases_semana }}
-                </div>
-                <div class="info-item mb-2">
-                  <i class="fas fa-book text-muted me-2"></i>
-                  <strong>Total asignaturas:</strong> {{ asignaturas_curso.count }}
-                </div>
-                <div class="info-item mb-2">
-                  <i class="fas fa-calendar-day text-muted me-2"></i>
-                  <strong>Días con clases:</strong> {{ dias_semana|length }}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      <div class="col-md-4">
-        <div class="card border-0 shadow-sm h-100">
-          <div class="card-header bg-gradient-info text-white border-0">
-            <h5 class="mb-0">
-              <i class="fas fa-chart-pie me-2"></i>
-              Asignaturas y Clases
-            </h5>
-          </div>
-          <div class="card-body">
-            {% if clases_por_asignatura %}
-              <div class="asignaturas-stats">
-                {% for asignatura, cantidad in clases_por_asignatura.items %}
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                  <span class="text-truncate me-2" style="max-width: 70%;">
-                    <i class="fas fa-book-open text-primary me-1"></i>
-                    {{ asignatura.nombre }}
-                  </span>
-                  <span class="badge bg-primary">{{ cantidad }} hrs</span>
-                </div>
-                {% endfor %}
-              </div>
-            {% else %}
-              <div class="text-center text-muted">
-                <i class="fas fa-info-circle fa-2x mb-2"></i>
-                <p class="mb-0">No hay asignaturas programadas</p>
-              </div>
-            {% endif %}
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Horario semanal completo -->
-    <div class="row">
-      <div class="col-12">
-        <div class="card border-0 shadow-sm">
-          <div class="card-header bg-light border-0">
-            <h5 class="mb-0 text-dark">
-              <i class="fas fa-table text-success me-2"></i>
-              Horario Semanal Completo - {{ curso_actual }}
-            </h5>
-          </div>
-          <div class="card-body">
-            {% if horario_semanal_matriz %}
-            <div class="table-responsive">
-              <table class="table tabla-horarios-detallada">
-                <thead>
-                  <tr>
-                    <th class="hora-columna text-center">
-                      <i class="fas fa-clock me-1"></i>Horario
-                    </th>
-                    {% for dia in dias_semana %}
-                    <th class="text-center dia-columna" data-dia="{{ dia }}">
-                      <div class="dia-header">
-                        <div class="dia-nombre">{{ dia }}</div>
-                      </div>
-                    </th>
-                    {% endfor %}
-                  </tr>
-                </thead>
-                <tbody>
-                  {% for fila in horario_semanal_matriz %}
-                  <tr>
-                    <td class="hora-columna text-center fw-bold">
-                      <div class="hora-bloque">
-                        <div>{{ fila.hora_inicio|time:"H:i" }}</div>
-                        <small class="text-muted">{{ fila.hora_fin|time:"H:i" }}</small>
-                      </div>
-                    </td>
-                    {% for dia in dias_semana %}
-                    <td class="horario-cell text-center" data-dia="{{ dia }}">
-                      {% for clase_dia, clase_obj in fila.clases.items %}
-                        {% if clase_dia == dia and clase_obj %}
-                        <div class="clase-bloque-detallada">
-                          <div class="asignatura-nombre">
-                            {{ clase_obj.asignatura.nombre|default:"Sin asignatura" }}
-                          </div>
-                          {% if clase_obj.asignatura.profesor_responsable %}
-                          <div class="profesor-nombre">
-                            {{ clase_obj.asignatura.profesor_responsable.get_nombre_completo }}
-                          </div>
-                          {% endif %}
-                        </div>
-                        {% elif clase_dia == dia %}
-                        <div class="clase-vacia">
-                          <i class="fas fa-minus text-muted"></i>
-                        </div>
-                        {% endif %}
-                      {% endfor %}
-                    </td>
-                    {% endfor %}
-                  </tr>
-                  {% endfor %}
-                </tbody>
-              </table>
-            </div>
-            
-            <!-- Leyenda y acciones -->
-            <div class="row mt-4">
-              <div class="col-md-6">
-                <div class="leyenda-horarios">
-                  <h6 class="text-muted mb-2">
-                    <i class="fas fa-info-circle me-1"></i>Información
-                  </h6>
-                  <div class="d-flex flex-wrap gap-3">
-                    <div class="leyenda-item">
-                      <div class="clase-bloque-detallada ejemplo me-2"></div>
-                      <small>Clase programada</small>
-                    </div>
-                    <div class="leyenda-item">
-                      <div class="clase-vacia ejemplo me-2"></div>
-                      <small>Horario libre</small>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="col-md-6 text-end">
-                <div class="acciones-horario">
-                  <button class="btn btn-outline-primary btn-sm me-2" onclick="imprimirHorario()">
-                    <i class="fas fa-print me-1"></i>Imprimir
-                  </button>
-                  <a href="{% url 'mi_curso' %}" class="btn btn-primary btn-sm">
-                    <i class="fas fa-users me-1"></i>Ver Mi Curso
-                  </a>
-                </div>
-              </div>
-            </div>
-            
-            {% else %}
-            <div class="text-center py-5">
-              <i class="fas fa-calendar-times fa-4x text-muted mb-3"></i>
-              <h5 class="text-muted">No hay horarios programados</h5>
-              <p class="text-muted">Tu curso aún no tiene horarios asignados.</p>
-            </div>
-            {% endif %}
-          </div>
-        </div>
-      </div>
-    </div>
-    
     {% endif %}
     
     {% elif es_profesor %}
@@ -537,46 +530,327 @@
 
 <!-- Estilos específicos para la página de horarios -->
 <style>
-/* Header y gradientes */
-.bg-gradient-primary {
-  background: linear-gradient(135deg, #007bff, #0056b3) !important;
+.fade-in {
+  animation: fadeInUp 0.6s ease;
 }
 
-.bg-gradient-info {
-  background: linear-gradient(135deg, #17a2b8, #138496) !important;
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-/* Información del curso */
-.info-item {
-  padding: 0.25rem 0;
-  border-bottom: 1px solid rgba(0,0,0,0.05);
+.student-alert {
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 1rem;
+  padding: 2.5rem 2rem;
+  text-align: center;
+  color: #9a3412;
+  box-shadow: 0 18px 40px -24px rgba(251, 146, 60, 0.6);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  align-items: center;
 }
 
-.info-item:last-child {
-  border-bottom: none;
+.student-alert i {
+  font-size: 2.5rem;
 }
 
-/* Estadísticas de asignaturas */
-.asignaturas-stats {
-  max-height: 200px;
-  overflow-y: auto;
+.student-alert--danger {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #b91c1c;
+  box-shadow: 0 18px 40px -24px rgba(248, 113, 113, 0.6);
 }
 
-.asignaturas-stats::-webkit-scrollbar {
-  width: 4px;
+.student-alert--warning {
+  background: #fffbeb;
+  border-color: #fde68a;
+  color: #92400e;
 }
 
-.asignaturas-stats::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 4px;
+.student-schedule {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
 }
 
-.asignaturas-stats::-webkit-scrollbar-thumb {
-  background: #007bff;
-  border-radius: 4px;
+.student-schedule-hero {
+  background: linear-gradient(135deg, #0f172a, #1d4ed8);
+  color: #fff;
+  border-radius: 1.5rem;
+  padding: 2.25rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 24px 55px -26px rgba(15, 23, 42, 0.85);
 }
 
-/* Tabla de horarios detallada */
+.student-schedule-hero::after {
+  content: "";
+  position: absolute;
+  inset: auto -120px -120px auto;
+  width: 240px;
+  height: 240px;
+  background: radial-gradient(circle, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 70%);
+}
+
+.student-schedule-hero__header {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-start;
+  flex: 1 1 320px;
+  min-width: 280px;
+  position: relative;
+  z-index: 1;
+}
+
+.student-schedule-hero__icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 20px;
+  background: rgba(255,255,255,0.16);
+  display: grid;
+  place-items: center;
+  font-size: 1.8rem;
+}
+
+.student-schedule-hero__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  background: rgba(255,255,255,0.15);
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.student-schedule-hero__title {
+  font-size: 2.2rem;
+  font-weight: 700;
+  margin: 0.35rem 0;
+}
+
+.student-schedule-hero__subtitle {
+  margin: 0 0 1rem;
+  max-width: 560px;
+  color: rgba(226,232,240,0.85);
+}
+
+.student-schedule-hero__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.25rem;
+  font-size: 0.95rem;
+  color: rgba(226,232,240,0.9);
+}
+
+.student-schedule-hero__meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.student-schedule-hero__aside {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1rem;
+  min-width: 220px;
+  flex: 0 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+.student-schedule-hero__time {
+  font-size: 0.9rem;
+  color: rgba(226,232,240,0.85);
+  text-transform: capitalize;
+}
+
+.student-schedule-hero__metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.student-metric {
+  background: rgba(15,23,42,0.35);
+  border: 1px solid rgba(148,163,184,0.25);
+  border-radius: 1rem;
+  padding: 1rem 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.85rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.student-metric strong {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.student-metric small {
+  font-size: 0.7rem;
+  color: rgba(226,232,240,0.8);
+}
+
+.student-schedule-section {
+  background: #fff;
+  border-radius: 1.25rem;
+  padding: 2rem;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 24px 45px -32px rgba(15, 23, 42, 0.35);
+}
+
+.student-schedule-section__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.75rem;
+}
+
+.student-schedule-section__header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.student-schedule-section__header p {
+  margin: 0;
+  color: #64748b;
+}
+
+.student-week-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+
+.student-week-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 1rem;
+  padding: 1.2rem 1.4rem;
+  background: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  color: #0f172a;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.student-week-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 18px 32px -24px rgba(15, 23, 42, 0.35);
+}
+
+.student-week-card header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.student-week-card strong {
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.student-week-card span:last-child {
+  color: #64748b;
+  font-size: 0.85rem;
+}
+
+.student-week-card.is-today {
+  background: linear-gradient(135deg, #1d4ed8, #2563eb);
+  color: #fff;
+  border-color: transparent;
+  box-shadow: 0 20px 35px -24px rgba(37, 99, 235, 0.8);
+}
+
+.student-week-card.is-today:hover {
+  box-shadow: 0 26px 45px -28px rgba(37, 99, 235, 0.9);
+}
+
+.student-upcoming-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.student-upcoming-card {
+  border-radius: 1rem;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  padding: 1.3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.student-upcoming-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 38px -30px rgba(15, 23, 42, 0.45);
+}
+
+.student-upcoming-card__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.student-upcoming-card__time {
+  font-size: 0.95rem;
+  color: #1d4ed8;
+  font-weight: 600;
+}
+
+.student-upcoming-card__subject {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.student-upcoming-card__teacher {
+  color: #64748b;
+}
+
+.student-upcoming-card.is-today {
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.1), #dbeafe);
+  border-color: rgba(37, 99, 235, 0.35);
+}
+
+.student-schedule-table-wrapper {
+  border: 1px solid #e2e8f0;
+  border-radius: 1.1rem;
+  overflow: hidden;
+}
+
+.student-schedule-table {
+  margin-bottom: 0;
+  background: #fff;
+}
+
 .tabla-horarios-detallada {
   font-size: 0.9rem;
   border-collapse: separate;
@@ -585,22 +859,23 @@
 
 .tabla-horarios-detallada th,
 .tabla-horarios-detallada td {
-  border: 1px solid #dee2e6;
+  border: 1px solid #e2e8f0;
   vertical-align: middle;
   position: relative;
+  background: #fff;
 }
 
 .hora-columna {
-  background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+  background: linear-gradient(135deg, #f8fafc, #e2e8f0);
   font-weight: 600;
-  color: #495057;
+  color: #0f172a;
   min-width: 100px;
 }
 
 .dia-columna {
-  background: linear-gradient(135deg, #e3f2fd, #bbdefb);
-  color: #1976d2;
-  font-weight: 600;
+  background: linear-gradient(135deg, #dbeafe, #c7d2fe);
+  color: #1d4ed8;
+  font-weight: 700;
   min-width: 150px;
 }
 
@@ -609,120 +884,293 @@
 }
 
 .dia-nombre {
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   font-weight: 700;
 }
 
 .dia-codigo {
   display: block;
   font-size: 0.7rem;
-  color: #64748b;
+  color: #475569;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
 .horario-dia-actual {
-  background: linear-gradient(135deg, #fef3c7, #fcd34d) !important;
+  background: linear-gradient(135deg, #fde68a, #fbbf24) !important;
   color: #92400e !important;
 }
 
 .horario-dia-actual-celda {
-  background: rgba(252, 211, 77, 0.2) !important;
+  background: rgba(250, 204, 21, 0.16) !important;
 }
 
 .hora-bloque {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 0.5rem;
+  padding: 0.55rem 0.25rem;
 }
 
 .horario-cell {
-  padding: 8px 4px;
+  padding: 10px 6px;
   min-width: 150px;
-  height: 80px;
+  height: 88px;
 }
 
-.clase-bloque-detallada {
-  background: linear-gradient(135deg, #007bff, #0056b3);
-  color: white;
-  border-radius: 8px;
-  padding: 8px;
-  margin: 2px;
-  font-size: 0.75rem;
-  line-height: 1.2;
-  border: 1px solid rgba(255,255,255,0.2);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-  transition: all 0.3s ease;
-  height: 100%;
+.student-schedule-cell {
+  background: #f8fafc;
+}
+
+.student-schedule-slot {
+  background: linear-gradient(135deg, #1d4ed8, #2563eb);
+  color: #fff;
+  border-radius: 0.9rem;
+  padding: 0.65rem;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  text-align: center;
-}
-
-.clase-bloque-detallada:hover {
-  transform: scale(1.05);
-  box-shadow: 0 4px 15px rgba(0,0,0,0.25);
-}
-
-.asignatura-nombre {
-  font-weight: 600;
+  gap: 0.25rem;
   font-size: 0.8rem;
-  margin-bottom: 0.25rem;
-}
-
-.profesor-nombre {
-  font-size: 0.65rem;
-  opacity: 0.9;
-  margin-bottom: 0.25rem;
-}
-
-.clase-vacia {
+  text-align: center;
   height: 100%;
-  display: flex;
-  align-items: center;
   justify-content: center;
-  opacity: 0.3;
+  box-shadow: 0 10px 25px -18px rgba(37, 99, 235, 0.85);
 }
 
-/* Leyenda */
-.leyenda-horarios {
-  padding: 1rem;
-  background: #f8f9fa;
-  border-radius: 8px;
+.student-schedule-slot strong {
+  font-size: 0.85rem;
 }
 
-.leyenda-item {
+.student-schedule-slot small {
+  font-size: 0.7rem;
+  color: rgba(255,255,255,0.82);
+}
+
+.student-schedule-slot--empty {
+  background: rgba(226, 232, 240, 0.65);
+  color: #475569;
+}
+
+.student-schedule-slot--empty i {
+  opacity: 0.5;
+}
+
+.student-schedule-table-actions {
+  margin-top: 1.5rem;
   display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 1rem;
   align-items: center;
 }
 
-.ejemplo {
-  width: 30px;
-  height: 20px;
-  border-radius: 4px;
+.student-schedule-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.student-schedule-legend {
+  display: flex;
+  gap: 1.25rem;
+  color: #475569;
+  font-size: 0.9rem;
+  align-items: center;
+}
+
+.legend-dot {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
   display: inline-block;
+  margin-right: 0.5rem;
+  border: 2px solid transparent;
 }
 
-.clase-bloque-detallada.ejemplo {
-  font-size: 0.6rem;
-  padding: 2px;
+.legend-dot--class {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
 }
 
-.clase-vacia.ejemplo {
-  background: #f8f9fa;
-  border: 1px dashed #dee2e6;
+.legend-dot--empty {
+  background: rgba(226,232,240,0.7);
+  border-color: #cbd5f5;
 }
 
-/* Acciones */
-.acciones-horario .btn {
-  transition: all 0.3s ease;
+.student-subject-grid {
+  display: grid;
+  gap: 1.2rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
 
-.acciones-horario .btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+.student-subject-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 1rem;
+  padding: 1.35rem;
+  background: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.student-subject-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.student-subject-card__header strong {
+  font-size: 1.1rem;
+  color: #0f172a;
+}
+
+.student-subject-card__code {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  background: #e2e8f0;
+  color: #475569;
+}
+
+.student-subject-card__meta {
+  margin: 0;
+  font-weight: 600;
+  color: #1e293b;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.student-subject-card__progress {
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(148,163,184,0.3);
+  overflow: hidden;
+}
+
+.student-subject-card__progress span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  border-radius: inherit;
+}
+
+.student-quick-grid {
+  display: grid;
+  gap: 1.2rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.student-quick-card {
+  border-radius: 1.05rem;
+  padding: 1.4rem;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  text-decoration: none;
+  box-shadow: 0 18px 42px -26px rgba(15, 23, 42, 0.85);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.student-quick-card i {
+  font-size: 1.6rem;
+}
+
+.student-quick-card strong {
+  font-size: 1.15rem;
+}
+
+.student-quick-card small {
+  color: rgba(255,255,255,0.85);
+}
+
+.student-quick-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 26px 55px -32px rgba(15, 23, 42, 0.9);
+}
+
+.student-empty-state {
+  text-align: center;
+  padding: 2.5rem 1.5rem;
+  color: #64748b;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  align-items: center;
+}
+
+.student-empty-state i {
+  font-size: 2.2rem;
+  color: #94a3b8;
+}
+
+@media (max-width: 992px) {
+  .student-schedule-hero {
+    padding: 2rem;
+  }
+
+  .student-schedule-hero__aside {
+    align-items: flex-start;
+  }
+
+  .student-week-grid,
+  .student-upcoming-grid,
+  .student-subject-grid,
+  .student-quick-grid {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .student-schedule-section {
+    padding: 1.6rem;
+  }
+
+  .student-schedule-hero__metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .tabla-horarios-detallada {
+    font-size: 0.78rem;
+  }
+
+  .horario-cell {
+    min-width: 120px;
+    height: 72px;
+  }
+
+  .student-schedule-slot {
+    font-size: 0.72rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .student-schedule-hero {
+    padding: 1.5rem;
+  }
+
+  .student-schedule-hero__title {
+    font-size: 1.85rem;
+  }
+
+  .student-schedule-hero__metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .tabla-horarios-detallada {
+    font-size: 0.68rem;
+  }
+
+  .horario-cell {
+    min-width: 100px;
+    height: 60px;
+  }
+
+  .student-schedule-slot {
+    padding: 0.45rem;
+    font-size: 0.65rem;
+  }
 }
 
 /* Layout específico para profesores */
@@ -1267,13 +1715,14 @@ document.addEventListener('DOMContentLoaded', function() {
             hour: '2-digit',
             minute: '2-digit'
         };
-        const dateTimeElement = document.getElementById('currentDateTime');
-        const dateTimeElementProfesor = document.getElementById('currentDateTimeProfesor');
-        if (dateTimeElement) {
-            dateTimeElement.textContent = now.toLocaleDateString('es-ES', options);
+        const studentClock = document.getElementById('studentScheduleClock');
+        const profesorClock = document.getElementById('currentDateTimeProfesor');
+        const formatted = now.toLocaleDateString('es-ES', options);
+        if (studentClock) {
+          studentClock.textContent = formatted.charAt(0).toUpperCase() + formatted.slice(1);
         }
-        if (dateTimeElementProfesor) {
-            dateTimeElementProfesor.textContent = now.toLocaleDateString('es-ES', options);
+        if (profesorClock) {
+          profesorClock.textContent = formatted.charAt(0).toUpperCase() + formatted.slice(1);
         }
     }
     
@@ -1281,7 +1730,7 @@ document.addEventListener('DOMContentLoaded', function() {
     setInterval(updateDateTime, 60000); // Actualizar cada minuto
     
     // Animaciones de entrada escalonadas
-    const cards = document.querySelectorAll('.card, .prof-schedule-card');
+      const cards = document.querySelectorAll('.student-schedule-hero, .student-schedule-section, .prof-schedule-card');
     cards.forEach((card, index) => {
         card.style.opacity = '0';
         card.style.transform = 'translateY(30px)';
@@ -1294,7 +1743,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // Tooltip para clases
-    const claseBloques = document.querySelectorAll('.clase-bloque-detallada, .prof-schedule-slot');
+    const claseBloques = document.querySelectorAll('.student-schedule-slot, .prof-schedule-slot');
     claseBloques.forEach(bloque => {
         bloque.addEventListener('mouseenter', function() {
             // Añadir efecto de resaltado

@@ -35,225 +35,235 @@
     </div>
 
     {% if es_alumno and curso_actual %}
-    
-    <!-- Información del curso -->
-    <div class="row mb-4">
-      <div class="col-12">
-        <div class="card border-0 shadow-sm">
-          <div class="card-header bg-primary text-white">
-            <h4 class="mb-0"><i class="fas fa-university me-2"></i>Información del Curso</h4>
-          </div>
-          <div class="card-body">
-            <div class="row">
-              <div class="col-md-6">
-                <div class="info-group mb-3">
-                  <label class="fw-bold text-dark mb-1">Curso:</label>
-                  <p class="mb-0 fs-5">{{ curso_actual.get_nivel_display }}{{ curso_actual.paralelo }}</p>
-                </div>
-                <div class="info-group mb-3">
-                  <label class="fw-bold text-dark mb-1">Año Académico:</label>
-                  <p class="mb-0">{{ curso_actual.anio }}</p>
-                </div>
-                <div class="info-group mb-3">
-                  <label class="fw-bold text-dark mb-1">Profesor Jefe:</label>
-                  {% if profesor_jefe %}
-                    <p class="mb-0">
-                      <i class="fas fa-chalkboard-teacher me-2 text-success"></i>
-                      {{ profesor_jefe.get_nombre_completo }}
-                    </p>
-                    {% if profesor_jefe.email %}
-                    <small class="text-muted">
-                      <i class="fas fa-envelope me-1"></i>{{ profesor_jefe.email }}
-                    </small>
-                    {% endif %}
-                  {% else %}
-                    <p class="mb-0 text-muted">
-                      <i class="fas fa-user-times me-2"></i>No asignado
-                    </p>
-                  {% endif %}
-                </div>
-              </div>
-              <div class="col-md-6">
-                <!-- Estadísticas del curso -->
-                <div class="row g-3">
-                  <div class="col-6">
-                    <div class="stats-card text-center p-3 bg-light rounded border">
-                      <i class="fas fa-users fa-2x text-primary mb-2"></i>
-                      <h4 class="mb-1">{{ total_estudiantes }}</h4>
-                      <small class="text-muted">Estudiantes</small>
-                    </div>
-                  </div>
-                  <div class="col-6">
-                    <div class="stats-card text-center p-3 bg-light rounded border">
-                      <i class="fas fa-book fa-2x text-info mb-2"></i>
-                      <h4 class="mb-1">{{ total_asignaturas }}</h4>
-                      <small class="text-muted">Asignaturas</small>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
 
-    <!-- Panel de compañeros y asignaturas -->
-    <div class="row">
-      <!-- Mis compañeros de curso -->
-      <div class="col-lg-8 mb-4">
-        <div class="card border-0 shadow-sm h-100">
-          <div class="card-header bg-light border-0">
-            <h5 class="mb-0 text-dark">
-              <i class="fas fa-users text-success me-2"></i>
-              Mis Compañeros de Curso
-              <span class="badge bg-success ms-2">{{ companeros.count }}</span>
-            </h5>
-          </div>
-          <div class="card-body">
-            {% if companeros %}
-              <div class="row g-3">
-                {% for companero in companeros %}
-                <div class="col-md-6 col-lg-4">
-                  <div class="companero-card p-3 border rounded bg-light h-100">
-                    <div class="d-flex align-items-center">
-                      <div class="me-3">
-                        <i class="fas fa-user-circle fa-2x text-muted"></i>
-                      </div>
-                      <div>
-                        <h6 class="mb-1 fw-bold">{{ companero.primer_nombre }} {{ companero.apellido_paterno }}</h6>
-                        {% if companero.segundo_nombre %}
-                          <p class="mb-0 small text-muted">{{ companero.segundo_nombre }} {{ companero.apellido_materno|default:"" }}</p>
-                        {% endif %}
-                        {% if companero.numero_documento %}
-                          <small class="text-muted">
-                            <i class="fas fa-id-card me-1"></i>{{ companero.numero_documento }}
-                          </small>
-                        {% endif %}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                {% endfor %}
-              </div>
-              
-              <!-- Paginación simple si hay muchos compañeros -->
-              {% if companeros.count > 12 %}
-              <div class="text-center mt-4">
-                <small class="text-muted">Mostrando los primeros 12 compañeros</small>
-              </div>
+    <div class="course-dashboard fade-in">
+      <section class="course-hero">
+        <div class="course-hero__content">
+          <div class="course-hero__icon"><i class="fas fa-school"></i></div>
+          <div>
+            <span class="course-hero__chip"><i class="fas fa-graduation-cap"></i> Mi curso actual</span>
+            <h2 class="course-hero__title">{{ curso_actual.get_nivel_display }}{{ curso_actual.paralelo }}</h2>
+            <p class="course-hero__subtitle">Hola {{ estudiante.get_nombre_completo|default:user.get_full_name|default:user.username }}, aquí tienes toda la información relevante de tu curso.</p>
+            <div class="course-hero__meta">
+              <span><i class="fas fa-calendar"></i>{{ curso_actual.anio }}</span>
+              {% if profesor_jefe %}
+              <span><i class="fas fa-user-tie"></i>{{ profesor_jefe.get_nombre_completo }}</span>
+              {% else %}
+              <span><i class="fas fa-user-times"></i>Profesor jefe no asignado</span>
               {% endif %}
-              
-            {% else %}
-              <div class="text-center py-4">
-                <i class="fas fa-user-friends fa-3x text-muted mb-3"></i>
-                <h6 class="text-muted">No hay otros compañeros en tu curso</h6>
-                <p class="text-muted small">Eres el único estudiante registrado en este curso.</p>
-              </div>
-            {% endif %}
-          </div>
-        </div>
-      </div>
-
-      <!-- Panel lateral: Asignaturas del curso -->
-      <div class="col-lg-4 mb-4">
-        <div class="card border-0 shadow-sm h-100">
-          <div class="card-header bg-light border-0">
-            <h5 class="mb-0 text-dark">
-              <i class="fas fa-book text-info me-2"></i>
-              Asignaturas del Curso
-            </h5>
-          </div>
-          <div class="card-body">
-            {% if asignaturas_curso %}
-              <div class="list-group list-group-flush">
-                {% for asignatura in asignaturas_curso %}
-                  <div class="list-group-item border-0 px-0 py-3">
-                    <div class="d-flex align-items-start">
-                      <div class="me-3">
-                        <i class="fas fa-book-open fa-lg text-info"></i>
-                      </div>
-                      <div class="flex-grow-1">
-                        <h6 class="mb-1 fw-bold">{{ asignatura.nombre }}</h6>
-                        {% if asignatura.codigo_asignatura %}
-                          <small class="text-muted d-block">Código: {{ asignatura.codigo_asignatura }}</small>
-                        {% endif %}
-                        {% if asignatura.profesor_responsable %}
-                          <small class="text-success">
-                            <i class="fas fa-user me-1"></i>{{ asignatura.profesor_responsable.get_nombre_completo }}
-                          </small>
-                        {% else %}
-                          <small class="text-muted">
-                            <i class="fas fa-user-times me-1"></i>Sin profesor asignado
-                          </small>
-                        {% endif %}
-                      </div>
-                    </div>
-                  </div>
-                {% endfor %}
-              </div>
-              
-              <div class="text-center mt-3">
-                <a href="{% url 'listar_asignaturas' %}" class="btn btn-outline-info btn-sm">
-                  <i class="fas fa-eye me-1"></i>Ver Detalles de Asignaturas
-                </a>
-              </div>
-              
-            {% else %}
-              <div class="text-center py-4">
-                <i class="fas fa-book fa-3x text-muted mb-3"></i>
-                <h6 class="text-muted">Sin asignaturas</h6>
-                <p class="text-muted small">No hay asignaturas asignadas a tu curso.</p>
-              </div>
-            {% endif %}
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Acciones rápidas -->
-    <div class="row mb-4">
-      <div class="col-12">
-        <div class="card border-0 shadow-sm">
-          <div class="card-header bg-light border-0">
-            <h5 class="mb-0 text-dark">
-              <i class="fas fa-rocket text-primary me-2"></i>Acciones Relacionadas con mi Curso
-            </h5>
-          </div>
-          <div class="card-body">
-            <div class="row g-3">
-              <div class="col-md-3">
-                <a href="{% url 'mis_horarios' %}" class="btn btn-outline-primary w-100 py-3">
-                  <i class="fas fa-calendar-alt fa-2x d-block mb-2"></i>
-                  <strong>Ver Horario</strong>
-                  <br><small>Horario de clases</small>
-                </a>
-              </div>
-              <div class="col-md-3">
-                <a href="{% url 'ver_notas_curso' %}" class="btn btn-outline-success w-100 py-3">
-                  <i class="fas fa-chart-line fa-2x d-block mb-2"></i>
-                  <strong>Mis Notas</strong>
-                  <br><small>Ver calificaciones</small>
-                </a>
-              </div>
-              <div class="col-md-3">
-                <a href="{% url 'ver_asistencia_alumno' %}" class="btn btn-outline-info w-100 py-3">
-                  <i class="fas fa-user-check fa-2x d-block mb-2"></i>
-                  <strong>Mi Asistencia</strong>
-                  <br><small>Registro de asistencia</small>
-                </a>
-              </div>
-              <div class="col-md-3">
-                <a href="{% url 'libro_anotaciones' %}" class="btn btn-outline-warning w-100 py-3">
-                  <i class="fas fa-sticky-note fa-2x d-block mb-2"></i>
-                  <strong>Anotaciones</strong>
-                  <br><small>Observaciones</small>
-                </a>
-              </div>
+              <span><i class="fas fa-id-card"></i>{{ estudiante.codigo_estudiante|default:"Sin código" }}</span>
             </div>
           </div>
         </div>
-      </div>
+        <div class="course-hero__metrics">
+          <article class="course-hero-metric">
+            <span>Estudiantes</span>
+            <strong>{{ total_estudiantes }}</strong>
+          </article>
+          <article class="course-hero-metric">
+            <span>Tus compañeros</span>
+            <strong>{{ total_companeros }}</strong>
+          </article>
+          <article class="course-hero-metric">
+            <span>Asignaturas activas</span>
+            <strong>{{ total_asignaturas }}</strong>
+          </article>
+          <article class="course-hero-metric">
+            <span>Docentes en curso</span>
+            <strong>{{ profesores_activos|length }}</strong>
+          </article>
+        </div>
+      </section>
+
+      <section class="course-section">
+        <header class="course-section__header">
+          <div>
+            <h3>Resumen académico</h3>
+            <p>Indicadores clave de tu progreso en este curso.</p>
+          </div>
+        </header>
+        <div class="course-kpi-grid">
+          <article class="course-kpi-card course-kpi-card--blue">
+            <i class="fas fa-chart-line"></i>
+            <div>
+              <span>Promedio general</span>
+              <strong>{{ promedio_general|default_if_none:"--" }}</strong>
+            </div>
+          </article>
+          <article class="course-kpi-card course-kpi-card--green">
+            <i class="fas fa-calendar-check"></i>
+            <div>
+              <span>Asistencia acumulada</span>
+              <strong>{{ porcentaje_asistencia|default_if_none:"0" }}%</strong>
+            </div>
+          </article>
+          <article class="course-kpi-card course-kpi-card--violet">
+            <i class="fas fa-file-alt"></i>
+            <div>
+              <span>Notas registradas</span>
+              <strong>{{ total_notas }}</strong>
+            </div>
+          </article>
+          <article class="course-kpi-card course-kpi-card--amber">
+            <i class="fas fa-user-check"></i>
+            <div>
+              <span>Clases asistidas</span>
+              <strong>{{ presentes }}</strong>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="course-section">
+        <header class="course-section__header">
+          <div>
+            <h3>Asignaturas del curso</h3>
+            <p>{{ total_asignaturas }} asignaturas en total{% if asignaturas_sin_profesor %}, {{ asignaturas_sin_profesor }} sin profesor asignado{% endif %}.</p>
+          </div>
+          <div>
+            <a href="{% url 'listar_asignaturas' %}" class="btn btn-outline-primary btn-sm">
+              <i class="fas fa-eye me-1"></i>Ver todas
+            </a>
+          </div>
+        </header>
+        {% if asignaturas_resumen %}
+        <div class="course-subject-grid">
+          {% for asignatura in asignaturas_resumen %}
+          <article class="course-subject-card">
+            <header>
+              <h4>{{ asignatura.obj.nombre }}</h4>
+              {% if asignatura.codigo %}<span class="course-subject-code">{{ asignatura.codigo }}</span>{% endif %}
+            </header>
+            {% if asignatura.profesor %}
+            <p><i class="fas fa-user me-2 text-success"></i>{{ asignatura.profesor.get_nombre_completo }}</p>
+            {% else %}
+            <p class="text-muted"><i class="fas fa-user-times me-2"></i>Sin profesor asignado</p>
+            {% endif %}
+          </article>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="course-empty">
+          <i class="fas fa-book"></i>
+          <p>No hay asignaturas registradas para este curso.</p>
+        </div>
+        {% endif %}
+      </section>
+
+      <section class="course-section">
+        <header class="course-section__header">
+          <div>
+            <h3>Mis compañeros</h3>
+            <p>Conoce a quienes comparten clases contigo.</p>
+          </div>
+        </header>
+        {% if companeros_destacados %}
+        <div class="course-classmate-grid">
+          {% for companero in companeros_destacados %}
+          <article class="course-classmate-card">
+            <div class="course-classmate-avatar"><i class="fas fa-user"></i></div>
+            <div>
+              <strong>{{ companero.primer_nombre }} {{ companero.apellido_paterno }}</strong>
+              {% if companero.segundo_nombre or companero.apellido_materno %}
+              <small class="text-muted d-block">{{ companero.segundo_nombre|default:"" }} {{ companero.apellido_materno|default:"" }}</small>
+              {% endif %}
+              {% if companero.numero_documento %}
+              <small class="text-muted"><i class="fas fa-id-card me-1"></i>{{ companero.numero_documento }}</small>
+              {% endif %}
+            </div>
+          </article>
+          {% endfor %}
+        </div>
+        {% if total_companeros > companeros_destacados|length %}
+        <p class="course-classmate-note">Se muestran los primeros {{ companeros_destacados|length }} de {{ total_companeros }} compañeros.</p>
+        {% endif %}
+        {% else %}
+        <div class="course-empty">
+          <i class="fas fa-user-friends"></i>
+          <p>Eres el único estudiante registrado en este curso.</p>
+        </div>
+        {% endif %}
+      </section>
+
+      <section class="course-section">
+        <header class="course-section__header">
+          <div>
+            <h3>Docentes vinculados</h3>
+            <p>Profesores que imparten clases en tu curso.</p>
+          </div>
+        </header>
+        {% if profesores_activos %}
+        <ul class="course-teacher-list">
+          {% for profesor in profesores_activos %}
+          <li>
+            <i class="fas fa-user-tie"></i>
+            <div>
+              <strong>{{ profesor.get_nombre_completo }}</strong>
+              {% if profesor.email %}<small class="text-muted d-block"><i class="fas fa-envelope me-1"></i>{{ profesor.email }}</small>{% endif %}
+            </div>
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <div class="course-empty">
+          <i class="fas fa-user-times"></i>
+          <p>No hay docentes registrados aún.</p>
+        </div>
+        {% endif %}
+      </section>
+
+      {% if historial_cursos %}
+      <section class="course-section">
+        <header class="course-section__header">
+          <div>
+            <h3>Historial reciente</h3>
+            <p>Tus cursos anteriores registrados en el sistema.</p>
+          </div>
+        </header>
+        <ul class="course-history">
+          {% for curso in historial_cursos %}
+          <li>
+            <span class="course-history__year">{{ curso.anio }}</span>
+            <div>
+              <strong>{{ curso.get_nivel_display }}{{ curso.paralelo }}</strong>
+              {% if curso.profesor_jefe %}<small class="text-muted d-block">Profesor jefe: {{ curso.profesor_jefe.get_nombre_completo }}</small>{% endif %}
+            </div>
+          </li>
+          {% endfor %}
+        </ul>
+      </section>
+      {% endif %}
+
+      <section class="course-section">
+        <header class="course-section__header">
+          <div>
+            <h3>Accesos directos</h3>
+            <p>Accede rápidamente a tus herramientas frecuentes.</p>
+          </div>
+        </header>
+        <div class="course-quick-grid">
+          <a href="{% url 'mis_horarios' %}" class="course-quick-card" style="background: linear-gradient(135deg, #2563eb, #1d4ed8);">
+            <i class="fas fa-calendar-alt"></i>
+            <strong>Ver horario</strong>
+            <small>Consulta tus clases programadas.</small>
+          </a>
+          <a href="{% url 'ver_notas_curso' %}" class="course-quick-card" style="background: linear-gradient(135deg, #0ea5e9, #0284c7);">
+            <i class="fas fa-chart-bar"></i>
+            <strong>Mis notas</strong>
+            <small>Revisa tus calificaciones recientes.</small>
+          </a>
+          <a href="{% url 'ver_asistencia_alumno' %}" class="course-quick-card" style="background: linear-gradient(135deg, #10b981, #047857);">
+            <i class="fas fa-user-check"></i>
+            <strong>Mi asistencia</strong>
+            <small>Monitorea tus registros de asistencia.</small>
+          </a>
+          <a href="{% url 'libro_anotaciones' %}" class="course-quick-card" style="background: linear-gradient(135deg, #f97316, #ea580c);">
+            <i class="fas fa-sticky-note"></i>
+            <strong>Anotaciones</strong>
+            <small>Revisa observaciones importantes.</small>
+          </a>
+        </div>
+      </section>
     </div>
 
     {% elif error_curso %}
@@ -292,102 +302,423 @@
 </div>
 
 <style>
-.info-group {
-  padding: 0.5rem 0;
-  border-bottom: 1px solid #e9ecef;
+.fade-in {
+  animation: fadeIn 0.6s ease;
 }
 
-.info-group:last-child {
-  border-bottom: none;
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.companero-card {
-  transition: all 0.3s ease;
-  border: 1px solid #e9ecef !important;
+.course-dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
 }
 
-.companero-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-  border-color: #007bff !important;
+.course-hero {
+  background: radial-gradient(circle at 0% 0%, rgba(59,130,246,0.15), transparent 55%), linear-gradient(135deg, #0f172a, #1e3a8a);
+  color: #fff;
+  padding: 2.5rem;
+  border-radius: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 22px 45px -20px rgba(15,23,42,0.6);
 }
 
-.stats-card {
-  transition: all 0.3s ease;
+.course-hero::after {
+  content: "";
+  position: absolute;
+  right: -80px;
+  top: -80px;
+  width: 220px;
+  height: 220px;
+  background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 70%);
 }
 
-.stats-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+.course-hero__content {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-start;
 }
 
-.list-group-item {
-  transition: background-color 0.2s ease;
+.course-hero__icon {
+  width: 64px;
+  height: 64px;
+  display: grid;
+  place-items: center;
+  border-radius: 20px;
+  background: rgba(255,255,255,0.12);
+  font-size: 1.75rem;
 }
 
-.list-group-item:hover {
-  background-color: #f8f9fa;
+.course-hero__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(255,255,255,0.12);
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
 }
 
-.btn-outline-primary:hover,
-.btn-outline-success:hover,
-.btn-outline-info:hover,
-.btn-outline-warning:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+.course-hero__chip i {
+  font-size: 0.85rem;
 }
 
-.card {
-  border: 1px solid #dee2e6;
+.course-hero__title {
+  font-size: 2.4rem;
+  font-weight: 700;
+  margin-bottom: 0.4rem;
 }
 
-.badge {
+.course-hero__subtitle {
+  margin-bottom: 1rem;
+  color: rgba(255,255,255,0.82);
+  max-width: 720px;
+}
+
+.course-hero__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.5rem;
+  font-size: 0.92rem;
+  color: rgba(255,255,255,0.85);
+}
+
+.course-hero__meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.course-hero__metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 1rem;
+}
+
+.course-hero-metric {
+  background: rgba(15,23,42,0.3);
+  border: 1px solid rgba(148,163,184,0.2);
+  border-radius: 1rem;
+  padding: 1.4rem 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
   font-size: 0.75rem;
+  color: rgba(226,232,240,0.85);
 }
 
-.text-dark {
-  color: #212529 !important;
+.course-hero-metric strong {
+  font-size: 1.9rem;
+  color: #fff;
+  letter-spacing: normal;
+}
+
+.course-section {
+  background: #fff;
+  border-radius: 1.1rem;
+  padding: 2rem;
+  box-shadow: 0 18px 35px -22px rgba(15,23,42,0.25);
+  border: 1px solid #eef2ff;
+}
+
+.course-section__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.75rem;
+}
+
+.course-section__header h3 {
+  font-size: 1.45rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.course-section__header p {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.95rem;
+}
+
+.course-kpi-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.course-kpi-card {
+  display: flex;
+  align-items: center;
+  gap: 1.1rem;
+  padding: 1.2rem 1.4rem;
+  border-radius: 1rem;
+  color: #0f172a;
+  background: #f8fafc;
+  border: 1px solid rgba(148,163,184,0.25);
+}
+
+.course-kpi-card i {
+  font-size: 1.75rem;
+}
+
+.course-kpi-card span {
+  display: block;
+  font-size: 0.9rem;
+  color: #475569;
+  margin-bottom: 0.2rem;
+}
+
+.course-kpi-card strong {
+  font-size: 1.6rem;
+  font-weight: 700;
+}
+
+.course-kpi-card--blue {
+  background: linear-gradient(135deg, rgba(59,130,246,0.14), #e0f2fe);
+}
+
+.course-kpi-card--green {
+  background: linear-gradient(135deg, rgba(34,197,94,0.14), #dcfce7);
+}
+
+.course-kpi-card--violet {
+  background: linear-gradient(135deg, rgba(124,58,237,0.12), #ede9fe);
+}
+
+.course-kpi-card--amber {
+  background: linear-gradient(135deg, rgba(249,115,22,0.12), #fff7ed);
+}
+
+.course-subject-grid {
+  display: grid;
+  gap: 1.2rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.course-subject-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 1rem;
+  padding: 1.3rem;
+  background: #f8fafc;
+  min-height: 150px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.course-subject-card header {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.course-subject-card h4 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.course-subject-code {
+  font-size: 0.75rem;
+  background: #e2e8f0;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  color: #334155;
+  text-transform: uppercase;
+}
+
+.course-classmate-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.course-classmate-card {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  border: 1px solid #e2e8f0;
+  border-radius: 1rem;
+  padding: 1rem 1.25rem;
+  background: #f9fafb;
+}
+
+.course-classmate-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #4f46e5, #6366f1);
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-size: 1.1rem;
+}
+
+.course-classmate-card strong {
+  display: block;
+  color: #0f172a;
+  margin-bottom: 0.15rem;
+}
+
+.course-classmate-note {
+  margin-top: 1.2rem;
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.course-teacher-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 0.9rem;
+}
+
+.course-teacher-list li {
+  display: flex;
+  gap: 0.85rem;
+  align-items: center;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.9rem;
+  padding: 0.8rem 1rem;
+  background: #f8fafc;
+}
+
+.course-teacher-list i {
+  color: #1d4ed8;
+}
+
+.course-history {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 1rem;
+}
+
+.course-history li {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  border-radius: 0.9rem;
+  border: 1px solid #e2e8f0;
+  padding: 1rem 1.25rem;
+  background: #f8fafc;
+}
+
+.course-history__year {
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: #1e293b;
+  min-width: 64px;
+}
+
+.course-quick-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.2rem;
+}
+
+.course-quick-card {
+  border-radius: 1rem;
+  padding: 1.4rem;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  text-decoration: none;
+  box-shadow: 0 18px 30px -18px rgba(15,23,42,0.6);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.course-quick-card i {
+  font-size: 1.6rem;
+}
+
+.course-quick-card strong {
+  font-size: 1.15rem;
+}
+
+.course-quick-card small {
+  color: rgba(255,255,255,0.82);
+}
+
+.course-quick-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 24px 45px -24px rgba(15,23,42,0.7);
+}
+
+.course-empty {
+  text-align: center;
+  padding: 2.5rem 1.5rem;
+  color: #64748b;
+}
+
+.course-empty i {
+  font-size: 2rem;
+  margin-bottom: 0.75rem;
+  color: #94a3b8;
+}
+
+@media (max-width: 992px) {
+  .course-hero {
+    padding: 2rem;
+  }
+
+  .course-hero__content {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }
 
 @media (max-width: 768px) {
-  .companero-card {
-    margin-bottom: 1rem;
+  .course-section {
+    padding: 1.5rem;
   }
-  
-  .stats-card {
-    margin-bottom: 1rem;
+
+  .course-hero__title {
+    font-size: 2rem;
+  }
+
+  .course-hero__metrics {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  }
+}
+
+@media (max-width: 576px) {
+  .course-hero {
+    padding: 1.6rem;
+  }
+
+  .course-hero__metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+
+  .course-hero-metric {
+    padding: 1rem;
   }
 }
 </style>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  // Animación de entrada para las tarjetas de compañeros
-  const companeroCards = document.querySelectorAll('.companero-card');
-  companeroCards.forEach((card, index) => {
-    card.style.opacity = '0';
-    card.style.transform = 'translateY(20px)';
-    
-    setTimeout(() => {
-      card.style.transition = 'all 0.6s ease';
-      card.style.opacity = '1';
-      card.style.transform = 'translateY(0)';
-    }, index * 100);
-  });
-  
-  // Animación para las tarjetas de estadísticas
-  const statsCards = document.querySelectorAll('.stats-card');
-  statsCards.forEach((card, index) => {
-    card.style.opacity = '0';
-    card.style.transform = 'scale(0.9)';
-    
-    setTimeout(() => {
-      card.style.transition = 'all 0.4s ease';
-      card.style.opacity = '1';
-      card.style.transform = 'scale(1)';
-    }, 300 + (index * 150));
-  });
-});
-</script>
 
 {% endblock %}
