@@ -2,126 +2,45 @@
 
 {% block extra_css %}
 <style>
+.right_col.right_col--director {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  padding: 0 0 2.5rem !important;
+  box-sizing: border-box;
+  float: none;
+  position: relative;
+}
+
+.nav-md .container.body .right_col.right_col--director,
+.nav-sm .container.body .right_col.right_col--director {
+  margin-left: 0 !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+.director-dashboard-shell {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 0 clamp(1.25rem, 6vw, 4rem);
+  box-sizing: border-box;
+}
+
 .director-dashboard {
   display: flex;
   flex-direction: column;
   gap: 1.75rem;
   padding: 1.5rem 0 2.5rem;
+  width: min(100%, 1120px);
+  margin: 0 auto;
 }
 
 .director-dashboard.container-fluid {
   max-width: 1100px;
   margin: 0 auto;
-  padding-left: clamp(1.75rem, 5vw, 3rem);
-  padding-right: clamp(1.75rem, 5vw, 3rem);
-}
-
-@media (max-width: 767px) {
-  .director-dashboard {
-    padding: 1rem 0.75rem 1.5rem;
-  }
-
-  .director-dashboard.container-fluid {
-    padding-left: 1.1rem;
-    padding-right: 1.1rem;
-  }
-}
-
-.director-dashboard__header {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  align-items: center;
-  text-align: center;
-}
-
-.director-dashboard__title {
-  font-size: 1.75rem;
-  font-weight: 700;
-  margin: 0;
-  color: #1f2937;
-}
-
-.director-dashboard__subtitle {
-  margin: 0;
-  color: #6b7280;
-}
-
-.director-dashboard__subtitle span {
-  color: #2563eb;
-  font-weight: 600;
-}
-
-.director-dashboard__intro {
-  display: flex;
-  flex-direction: column;
-  gap: 1.75rem;
-  align-items: center;
-  width: 100%;
-}
-
-.director-dashboard__stats {
-  display: grid;
-  gap: 1.35rem;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  max-width: 960px;
-  margin: 0 auto;
-}
-
-.director-dashboard__stat-card {
-  border-radius: 14px;
-  padding: 1.1rem 1.25rem;
-  color: #fff;
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-  box-shadow: 0 12px 25px rgba(15, 23, 42, 0.15);
-}
-
-.director-dashboard__stat-value {
-  font-size: 2.1rem;
-  font-weight: 700;
-  line-height: 1.15;
-}
-
-.director-dashboard__stat-card--blue {
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
-}
-
-.director-dashboard__stat-card--green {
-  background: linear-gradient(135deg, #16a34a, #15803d);
-}
-
-.director-dashboard__stat-card--amber {
-  background: linear-gradient(135deg, #f59e0b, #d97706);
-}
-
-.director-dashboard__stat-card--cyan {
-  background: linear-gradient(135deg, #0891b2, #0e7490);
-}
-
-
-.director-dashboard__section {
-  background: #ffffff;
-  border-radius: 18px;
-  padding: 1.75rem;
-  box-shadow: 0 8px 30px rgba(15, 23, 42, 0.08);
-}
-
-.director-dashboard__grid.director-dashboard__grid--split,
-.director-dashboard__grid.director-dashboard__grid--thirds {
-  max-width: 1040px;
-  margin: 0 auto;
-  gap: 1.5rem;
-  justify-content: center;
-}
-
-.director-dashboard__grid--split,
-.director-dashboard__grid--thirds {
-  display: grid;
-  justify-items: center;
-  align-items: stretch;
-  gap: 1.5rem;
 }
 
 .director-dashboard__grid--split {
@@ -132,98 +51,11 @@
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
 }
 
-@media (max-width: 991px) {
-  .director-dashboard__grid.director-dashboard__grid--split,
-  .director-dashboard__grid.director-dashboard__grid--thirds,
-  .director-dashboard__stats {
-    max-width: 100%;
-  }
-}
-
-.director-dashboard__section:not(:last-child) {
-  margin-bottom: 0.25rem;
-}
-
-.director-dashboard__section-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1rem;
-  flex-wrap: wrap;
-  margin-bottom: 1rem;
-}
-
-.director-dashboard__label {
-  background: #e5e7eb;
-  color: #374151;
-  border-radius: 999px;
-  padding: 0.25rem 0.65rem;
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-}
-
-.director-dashboard__grid {
-  display: grid;
-  gap: 1rem;
-}
-
-@media (min-width: 992px) {
-  .director-dashboard__grid--split {
-    grid-template-columns: minmax(0, 1.8fr) minmax(320px, 1.2fr);
-  }
-
-  .director-dashboard__grid--thirds {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-
-.director-dashboard__progress {
-  height: 0.9rem;
-  border-radius: 999px;
-  background: #e5e7eb;
-  overflow: hidden;
-}
-
-.director-dashboard__progress-bar {
-  height: 100%;
-  width: calc(var(--attendance-rate, 0) * 1%);
-  background: linear-gradient(135deg, #22c55e, #16a34a);
-}
-
-.director-dashboard__table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.9rem;
-}
-
-.director-dashboard__table th,
-.director-dashboard__table td {
-  padding: 0.6rem 0.75rem;
-  border-bottom: 1px solid #e5e7eb;
-  white-space: nowrap;
-}
-
-.director-dashboard__table th {
-  background: #f1f5f9;
-  font-weight: 600;
-}
-
-.director-dashboard__list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
 .director-dashboard__item {
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  align-items: flex-start;
-  gap: 0.75rem;
-  border: 1px solid #e5e7eb;
+  gap: 0.85rem;
   border-radius: 12px;
   padding: 0.85rem 1rem;
   background: #f8fafc;
@@ -266,11 +98,736 @@
 .director-dashboard__grid--thirds .director-dashboard__item {
   min-height: 88px;
 }
+
+.dashboard-table-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #e5e7eb;
+  padding: 1.5rem;
+  box-shadow: 0 12px 26px rgba(15, 23, 42, 0.08);
+}
+
+.dashboard-table-card__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.dashboard-table-card__title {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.dashboard-table-card__subtitle {
+  margin: 0.35rem 0 0;
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+.dashboard-table-card__controls {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.dashboard-table-search {
+  border-radius: 12px;
+  border: 1px solid #d1d5db;
+  padding: 0.5rem 0.85rem;
+  font-size: 0.85rem;
+  min-width: 220px;
+  transition: border 0.2s ease, box-shadow 0.2s ease;
+}
+
+.dashboard-table-search:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18);
+}
+
+.dashboard-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+}
+
+.dashboard-table {
+  width: 100%;
+  min-width: 640px;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.dashboard-table thead {
+  background: #f1f5f9;
+}
+
+.dashboard-table th,
+.dashboard-table td {
+  padding: 0.75rem 0.9rem;
+  border-bottom: 1px solid #e2e8f0;
+  white-space: nowrap;
+}
+
+.dashboard-table th {
+  font-weight: 600;
+  color: #475569;
+}
+
+.dashboard-table tbody tr:hover {
+  background: rgba(37, 99, 235, 0.08);
+}
+
+.dashboard-table th[data-sort-type] {
+  cursor: pointer;
+  position: relative;
+}
+
+.dashboard-table th[data-sort-type]::after {
+  content: '';
+  margin-left: 6px;
+  color: #94a3b8;
+  font-size: 0.7rem;
+}
+
+.dashboard-table th[data-sort-type][data-sort-order="asc"]::after {
+  content: '▲';
+}
+
+.dashboard-table th[data-sort-type][data-sort-order="desc"]::after {
+  content: '▼';
+}
+
+.dashboard-table-empty {
+  text-align: center;
+  padding: 1.15rem 0;
+  color: #6b7280;
+}
+
+.dashboard-table-meta {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  align-items: center;
+  color: #6b7280;
+  font-size: 0.8rem;
+}
+
+@media (max-width: 767px) {
+  .dashboard-table-card {
+    padding: 1.15rem;
+  }
+  .dashboard-table-card__head {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .dashboard-table-search {
+    width: 100%;
+  }
+  .dashboard-table {
+    min-width: 100%;
+    font-size: 0.82rem;
+  }
+}
+
+.director-analytics__head {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-bottom: 1.25rem;
+}
+
+.director-analytics__head h4 {
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.director-analytics__head p {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.director-analytics__kpi-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  margin-bottom: 1.5rem;
+}
+
+.director-analytics__kpi-card {
+  position: relative;
+  display: flex;
+  gap: 0.85rem;
+  align-items: flex-start;
+  border-radius: 18px;
+  padding: 1.1rem 1.25rem;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.12), rgba(59, 130, 246, 0.06));
+  border: 1px solid rgba(59, 130, 246, 0.18);
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
+}
+
+.director-analytics__kpi-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  background: rgba(59, 130, 246, 0.15);
+  color: #2563eb;
+  display: grid;
+  place-items: center;
+  font-size: 1.25rem;
+}
+
+.director-analytics__kpi-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.director-analytics__kpi-body span {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #475569;
+}
+
+.director-analytics__kpi-body strong {
+  font-size: 1.5rem;
+  color: #0f172a;
+}
+
+.director-analytics__kpi-body small {
+  font-size: 0.82rem;
+  color: #64748b;
+}
+
+.director-analytics__kpi-delta {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.35rem 0.6rem;
+  border-radius: 999px;
+  background: rgba(59, 130, 246, 0.12);
+  color: #2563eb;
+}
+
+.director-analytics__kpi-delta.positive {
+  background: rgba(34, 197, 94, 0.18);
+  color: #16a34a;
+}
+
+.director-analytics__kpi-delta.negative {
+  background: rgba(239, 68, 68, 0.18);
+  color: #dc2626;
+}
+
+.director-analytics__table-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  margin-bottom: 1.5rem;
+}
+
+.director-analytics__trend-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  margin-bottom: 1.5rem;
+}
+
+.director-analytics__trend-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 1.15rem;
+  background: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.director-analytics__trend-card h5 {
+  margin: 0;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.director-analytics__trend-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.director-analytics__trend-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.director-analytics__trend-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  color: #475569;
+}
+
+.director-analytics__trend-bar {
+  position: relative;
+  height: 10px;
+  border-radius: 999px;
+  background: #e2e8f0;
+  overflow: hidden;
+}
+
+.director-analytics__trend-bar span {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+}
+
+.director-analytics__trend-meta {
+  font-size: 0.78rem;
+  color: #64748b;
+}
+
+.director-analytics__alerts {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.director-analytics__alerts h5 {
+  margin: 0;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.director-analytics__alert-list {
+  display: grid;
+  gap: 0.85rem;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.director-analytics__alert-item {
+  border-radius: 14px;
+  border: 1px solid rgba(248, 113, 113, 0.4);
+  background: rgba(254, 242, 242, 0.9);
+  padding: 0.85rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.director-analytics__alert-item strong {
+  color: #991b1b;
+  font-size: 1rem;
+}
+
+.director-analytics__alert-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
+  font-size: 0.8rem;
+  color: #7f1d1d;
+}
+
+.director-analytics__alert-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(220, 38, 38, 0.18);
+  color: #b91c1c;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.director-analytics__projection {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  align-items: flex-start;
+}
+
+.director-analytics__projection-text {
+  flex: 1 1 280px;
+  padding: 1rem 1.2rem;
+  border-radius: 16px;
+  border: 1px solid #e5e7eb;
+  background: #f8fafc;
+}
+
+.director-analytics__projection-text h5 {
+  margin: 0 0 0.5rem 0;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.director-analytics__projection-text p {
+  margin: 0;
+  color: #475569;
+  font-size: 0.9rem;
+}
+
+.director-analytics__projection-list {
+  flex: 1 1 260px;
+  border-radius: 16px;
+  border: 1px solid #dbeafe;
+  background: #eff6ff;
+  padding: 1rem 1.2rem;
+}
+
+.director-analytics__projection-list h6 {
+  margin: 0 0 0.6rem 0;
+  font-weight: 600;
+  color: #1d4ed8;
+}
+
+.director-analytics__projection-list ul {
+  margin: 0;
+  padding-left: 1.1rem;
+  color: #1e3a8a;
+  font-size: 0.87rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+@media (max-width: 767px) {
+  .director-analytics__kpi-card {
+    padding: 1rem;
+  }
+  .director-analytics__kpi-body strong {
+    font-size: 1.3rem;
+  }
+  .director-analytics__table-grid,
+  .director-analytics__trend-grid,
+  .director-analytics__alert-list {
+    grid-template-columns: 1fr;
+  }
+  .director-analytics__projection {
+    flex-direction: column;
+  }
+}
 </style>
 {% endblock %}
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const table = document.getElementById('director-courses-table');
+
+  class DashboardTable {
+    constructor(tableEl) {
+      this.table = tableEl;
+      this.tbody = tableEl.querySelector('tbody');
+      this.headers = Array.from(tableEl.querySelectorAll('thead th'));
+      this.rows = this.tbody ? Array.from(this.tbody.querySelectorAll('tr')).filter(row => !row.dataset.emptyRow) : [];
+      this.rows.forEach(row => {
+        row.dataset.searchValue = row.textContent.toLowerCase();
+      });
+      this.emptyText = tableEl.dataset.emptyText || 'Sin registros para mostrar.';
+      this.emptyRow = this.createEmptyRow();
+      this.currentSort = { index: null, order: 'asc' };
+      if (!this.rows.length) {
+        this.updateEmptyState(true);
+      }
+      this.attachSortHandlers();
+    }
+
+    attachSortHandlers() {
+      this.headers.forEach((th, index) => {
+        const sortType = th.dataset.sortType;
+        if (!sortType || !this.tbody) {
+          return;
+        }
+        th.addEventListener('click', () => {
+          let order = 'asc';
+          if (this.currentSort.index === index && this.currentSort.order === 'asc') {
+            order = 'desc';
+          }
+          this.sort(index, sortType, order);
+        });
+      });
+    }
+
+    createEmptyRow() {
+      const emptyRow = document.createElement('tr');
+      emptyRow.dataset.emptyRow = 'true';
+      const emptyCell = document.createElement('td');
+      emptyCell.colSpan = this.headers.length || 1;
+      emptyCell.className = 'dashboard-table-empty';
+      emptyCell.textContent = this.emptyText;
+      emptyRow.appendChild(emptyCell);
+      return emptyRow;
+    }
+
+    updateEmptyState(showEmpty) {
+      if (!this.tbody) {
+        return;
+      }
+      if (showEmpty) {
+        if (!this.emptyRow.isConnected) {
+          this.tbody.appendChild(this.emptyRow);
+        }
+      } else if (this.emptyRow.isConnected) {
+        this.emptyRow.remove();
+      }
+    }
+
+    filter(query) {
+      if (!this.tbody) {
+        return;
+      }
+      const normalized = (query || '').toString().trim().toLowerCase();
+      let visibleCount = 0;
+      this.rows.forEach(row => {
+        const matches = !normalized || row.dataset.searchValue.includes(normalized);
+        row.style.display = matches ? '' : 'none';
+        if (matches) {
+          visibleCount += 1;
+        }
+      });
+      this.updateEmptyState(visibleCount === 0);
+    }
+
+    sort(index, sortType, order) {
+      if (!this.tbody || !this.rows.length) {
+        return;
+      }
+      const rowsArray = [...this.rows];
+      const isDescending = order === 'desc';
+      rowsArray.sort((a, b) => {
+        const valueA = this.getCellValue(a, index, sortType);
+        const valueB = this.getCellValue(b, index, sortType);
+        let result = 0;
+        if (sortType === 'number' || sortType === 'time' || sortType === 'date') {
+          result = valueA - valueB;
+        } else {
+          result = valueA.localeCompare(valueB, 'es', { sensitivity: 'base', numeric: true });
+        }
+        return isDescending ? -result : result;
+      });
+      rowsArray.forEach(row => this.tbody.appendChild(row));
+      this.rows = rowsArray;
+      this.currentSort = { index, order };
+      this.updateSortIndicators(index, order);
+    }
+
+    getCellValue(row, index, sortType) {
+      const cells = row.children;
+      if (!cells || !cells[index]) {
+        return sortType === 'number' || sortType === 'time' || sortType === 'date' ? 0 : '';
+      }
+      const cell = cells[index];
+      const rawValue = cell.getAttribute('data-value');
+      if (sortType === 'number') {
+        return parseFloat(rawValue !== null ? rawValue : cell.textContent) || 0;
+      }
+      if (sortType === 'date') {
+        const dateValue = rawValue || cell.textContent;
+        const parsed = Date.parse(dateValue);
+        return Number.isNaN(parsed) ? 0 : parsed;
+      }
+      if (sortType === 'time') {
+        const value = (rawValue || cell.textContent || '').trim();
+        const [hours, minutes] = value.split(':');
+        const h = parseInt(hours, 10);
+        const m = parseInt(minutes, 10);
+        if (Number.isNaN(h) || Number.isNaN(m)) {
+          return 0;
+        }
+        return (h * 60) + m;
+      }
+      return (rawValue || cell.textContent || '').toString().trim().toLowerCase();
+    }
+
+    updateSortIndicators(index, order) {
+      this.headers.forEach((th, idx) => {
+        if (idx === index) {
+          th.setAttribute('data-sort-order', order);
+        } else {
+          th.removeAttribute('data-sort-order');
+        }
+      });
+    }
+  }
+
+  if (table) {
+    const manager = new DashboardTable(table);
+    const searchInput = document.querySelector('.dashboard-table-search[data-table-id="director-courses-table"]');
+    if (searchInput) {
+      searchInput.addEventListener('input', event => {
+        manager.filter(event.target.value);
+      });
+    }
+  }
+
+  const ensureChartJs = callback => {
+    if (typeof Chart !== 'undefined') {
+      callback();
+      return;
+    }
+
+    const existingLoader = document.querySelector('script[data-chartjs-loader="inline"]');
+    if (existingLoader) {
+      existingLoader.addEventListener('load', () => callback(), { once: true });
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.min.js';
+    script.async = true;
+    script.dataset.chartjsLoader = 'inline';
+    script.addEventListener('load', () => callback(), { once: true });
+    script.addEventListener('error', () => console.warn('No se pudo cargar Chart.js para los gráficos del panel.'));
+    document.body.appendChild(script);
+  };
+
+  const renderCharts = () => {
+    if (typeof Chart === 'undefined') {
+      console.warn('Chart.js no está disponible en el momento de renderizar.');
+      return;
+    }
+
+    const chartConfig = (labelsId, dataId) => {
+      const labelsEl = document.getElementById(labelsId);
+      const dataEl = document.getElementById(dataId);
+      if (!labelsEl || !dataEl) {
+        return { labels: [], data: [] };
+      }
+      try {
+        return {
+          labels: JSON.parse(labelsEl.textContent || '[]'),
+          data: JSON.parse(dataEl.textContent || '[]')
+        };
+      } catch (error) {
+        console.warn('No se pudo parsear datos del gráfico', error);
+        return { labels: [], data: [] };
+      }
+    };
+
+    const createPalette = count => {
+      const baseColors = ['#2563eb', '#16a34a', '#f59e0b', '#0ea5e9', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6'];
+      const colors = [];
+      for (let i = 0; i < count; i += 1) {
+        colors.push(baseColors[i % baseColors.length]);
+      }
+      return colors;
+    };
+
+    const barCanvas = document.getElementById('chartPromediosCursos');
+    if (barCanvas) {
+      const { labels, data } = chartConfig('chart-promedios-labels', 'chart-promedios-data');
+      if (labels.length && data.length) {
+        new Chart(barCanvas.getContext('2d'), {
+          type: 'bar',
+          data: {
+            labels,
+            datasets: [{
+              label: 'Promedio general',
+              data,
+              backgroundColor: createPalette(labels.length),
+              borderRadius: 6,
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              yAxes: [{
+                ticks: {
+                  beginAtZero: true,
+                  max: 7,
+                  stepSize: 1,
+                }
+              }]
+            },
+            legend: {
+              display: false
+            },
+            tooltips: {
+              callbacks: {
+                label(ctx) {
+                  const value = typeof ctx.yLabel === 'number' ? ctx.yLabel.toFixed(2) : ctx.yLabel;
+                  return `Promedio: ${value}`;
+                }
+              }
+            }
+          }
+        });
+      }
+    }
+
+    const pieCanvas = document.getElementById('chartDistribucionMatricula');
+    if (pieCanvas) {
+      const { labels, data } = chartConfig('chart-matricula-labels', 'chart-matricula-data');
+      const total = data.reduce((acc, value) => acc + value, 0);
+      if (labels.length && data.length && total > 0) {
+        new Chart(pieCanvas.getContext('2d'), {
+          type: 'doughnut',
+          data: {
+            labels,
+            datasets: [{
+              data,
+              backgroundColor: createPalette(labels.length),
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutoutPercentage: 55,
+            legend: {
+              position: 'bottom',
+            },
+            tooltips: {
+              callbacks: {
+                label(ctx) {
+                  const value = ctx.yLabel || ctx.dataset.data[ctx.index] || 0;
+                  const percentage = total ? ((value / total) * 100).toFixed(1) : 0;
+                  return `${ctx.label}: ${value} estudiantes (${percentage}%)`;
+                }
+              }
+            }
+          }
+        });
+      }
+    }
+  };
+
+  ensureChartJs(() => {
+    if (typeof Chart !== 'undefined') {
+      renderCharts();
+    } else {
+      setTimeout(renderCharts, 200);
+    }
+  });
+});
+</script>
+{% endblock %}
 {% block content %}
-<div class="right_col" role="main">
-  <div class="director-dashboard container-fluid">
+<div class="right_col right_col--director" role="main">
+  <div class="director-dashboard-shell">
+    <div class="director-dashboard container-fluid">
     <div class="director-dashboard__intro">
       <div class="director-dashboard__header">
         <p class="director-dashboard__title">Panel Directivo</p>
@@ -400,6 +957,308 @@
     </div>
 
     <div class="director-dashboard__section">
+      <div class="dashboard-table-card">
+        <div class="dashboard-table-card__head">
+          <div>
+            <h4 class="dashboard-table-card__title">Mapa de cursos activos</h4>
+            <p class="dashboard-table-card__subtitle">Filtra y ordena para detectar rápidamente oportunidades o brechas en {{ anio_actual }}.</p>
+          </div>
+          <div class="dashboard-table-card__controls">
+            <input type="search" class="dashboard-table-search" data-table-id="director-courses-table" placeholder="Buscar por curso o docente">
+          </div>
+        </div>
+        <div class="dashboard-table-wrapper">
+          <table class="dashboard-table" id="director-courses-table" data-empty-text="No hay cursos activos registrados para {{ anio_actual }}.">
+            <thead>
+              <tr>
+                <th data-sort-type="string">Curso</th>
+                <th data-sort-type="string">Nivel</th>
+                <th data-sort-type="number">Estudiantes</th>
+                <th data-sort-type="number">Asignaturas</th>
+                <th data-sort-type="string">Profesor jefe</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% if cursos_activos_director %}
+                {% for curso in cursos_activos_director %}
+                <tr>
+                  <td data-value="{{ curso.get_nivel_display }}{{ curso.paralelo }}">{{ curso.get_nivel_display }}{{ curso.paralelo }}</td>
+                  <td>{{ curso.get_nivel_display }}</td>
+                  <td data-value="{{ curso.total_estudiantes|default:0 }}">{{ curso.total_estudiantes|default:"0" }}</td>
+                  <td data-value="{{ curso.total_asignaturas|default:0 }}">{{ curso.total_asignaturas|default:"0" }}</td>
+                  <td data-value="{% if curso.profesor_jefe %}{{ curso.profesor_jefe.get_nombre_completo }}{% else %}Sin asignar{% endif %}">
+                    {% if curso.profesor_jefe %}
+                      {{ curso.profesor_jefe.get_nombre_completo|truncatechars:32 }}
+                    {% else %}
+                      <span class="text-muted">Sin asignar</span>
+                    {% endif %}
+                  </td>
+                </tr>
+                {% endfor %}
+              {% else %}
+                <tr data-empty-row="true">
+                  <td class="dashboard-table-empty" colspan="5">No hay cursos activos registrados para {{ anio_actual }}.</td>
+                </tr>
+              {% endif %}
+            </tbody>
+          </table>
+        </div>
+        <div class="dashboard-table-meta">
+          <span>Consejo: haz clic en “Estudiantes” o “Asignaturas” para ordenar la tabla según tus prioridades.</span>
+        </div>
+      </div>
+    </div>
+
+    {% if director_academic_kpis %}
+    <div class="director-dashboard__section director-analytics">
+      <div class="director-analytics__head">
+        <h4>Análisis académico integral</h4>
+        <p>Monitoriza el rendimiento y la asistencia del año para anticipar escenarios y definir acciones.</p>
+      </div>
+
+      <div class="director-analytics__table-grid">
+        <div class="dashboard-table-card">
+          <div class="dashboard-table-card__head">
+            <div>
+              <h4 class="dashboard-table-card__title">Rendimiento por curso</h4>
+              <p class="dashboard-table-card__subtitle">Promedios consolidados por curso con detalle de evaluaciones y cobertura estudiantil.</p>
+            </div>
+            <div class="dashboard-table-card__controls">
+              <input type="search" class="dashboard-table-search" data-table-id="director-grades-table" placeholder="Buscar curso o promedio">
+            </div>
+          </div>
+          <div class="dashboard-table-wrapper">
+            <table class="dashboard-table" id="director-grades-table" data-empty-text="Aún no hay calificaciones registradas para este año.">
+              <thead>
+                <tr>
+                  <th data-sort-type="string">Curso</th>
+                  <th data-sort-type="number">Promedio</th>
+                  <th data-sort-type="number">Evaluaciones</th>
+                  <th data-sort-type="number">Estudiantes</th>
+                  <th data-sort-type="number">Asignaturas</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% if director_tabla_promedios %}
+                  {% for fila in director_tabla_promedios %}
+                  <tr>
+                    <td data-value="{{ fila.curso }}">{{ fila.curso }}</td>
+                    <td data-value="{{ fila.promedio }}">{{ fila.promedio|floatformat:2 }}</td>
+                    <td data-value="{{ fila.evaluaciones }}">{{ fila.evaluaciones }}</td>
+                    <td data-value="{{ fila.estudiantes }}">{{ fila.estudiantes }}</td>
+                    <td data-value="{{ fila.asignaturas }}">{{ fila.asignaturas }}</td>
+                  </tr>
+                  {% endfor %}
+                {% else %}
+                  <tr data-empty-row="true">
+                    <td class="dashboard-table-empty" colspan="5">Aún no hay calificaciones registradas para este año.</td>
+                  </tr>
+                {% endif %}
+              </tbody>
+            </table>
+          </div>
+          <div class="dashboard-table-meta">
+            <span>Tip: ordena por “Promedio” para detectar rápidamente cursos sobresalientes o rezagados.</span>
+          </div>
+        </div>
+
+        <div class="dashboard-table-card">
+          <div class="dashboard-table-card__head">
+            <div>
+              <h4 class="dashboard-table-card__title">Asistencia por curso</h4>
+              <p class="dashboard-table-card__subtitle">Comparativa de asistencia registrada, ausentismo y cobertura en cada curso.</p>
+            </div>
+            <div class="dashboard-table-card__controls">
+              <input type="search" class="dashboard-table-search" data-table-id="director-attendance-table" placeholder="Filtrar curso o porcentaje">
+            </div>
+          </div>
+          <div class="dashboard-table-wrapper">
+            <table class="dashboard-table" id="director-attendance-table" data-empty-text="No se han registrado asistencias este año.">
+              <thead>
+                <tr>
+                  <th data-sort-type="string">Curso</th>
+                  <th data-sort-type="number">Asistencia</th>
+                  <th data-sort-type="number">Presentes</th>
+                  <th data-sort-type="number">Ausentes</th>
+                  <th data-sort-type="number">Registros</th>
+                  <th data-sort-type="number">Estudiantes</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% if director_tabla_asistencias %}
+                  {% for fila in director_tabla_asistencias %}
+                  <tr>
+                    <td data-value="{{ fila.curso }}">{{ fila.curso }}</td>
+                    <td data-value="{{ fila.porcentaje }}">{{ fila.porcentaje|floatformat:1 }}%</td>
+                    <td data-value="{{ fila.presentes }}">{{ fila.presentes }}</td>
+                    <td data-value="{{ fila.ausentes }}">{{ fila.ausentes }}</td>
+                    <td data-value="{{ fila.total }}">{{ fila.total }}</td>
+                    <td data-value="{{ fila.estudiantes }}">{{ fila.estudiantes }}</td>
+                  </tr>
+                  {% endfor %}
+                {% else %}
+                  <tr data-empty-row="true">
+                    <td class="dashboard-table-empty" colspan="6">No se han registrado asistencias este año.</td>
+                  </tr>
+                {% endif %}
+              </tbody>
+            </table>
+          </div>
+          <div class="dashboard-table-meta">
+            <span>Observa la relación entre registros totales y estudiantes para validar cobertura del control de asistencia.</span>
+          </div>
+        </div>
+      </div>
+
+      {% if director_chart_promedios_labels or director_chart_matricula_labels %}
+      <div class="director-analytics__chart-grid">
+        {% if director_chart_promedios_labels %}
+        <div class="director-analytics__chart-card">
+          <div class="director-analytics__chart-head">
+            <h5>Promedio por curso</h5>
+            <p>Comparativa de los promedios generales en los cursos destacados.</p>
+          </div>
+          <div class="director-analytics__chart">
+            <canvas id="chartPromediosCursos" aria-label="Gráfico de barras con promedios por curso" role="img"></canvas>
+          </div>
+        </div>
+        {% endif %}
+
+        {% if director_chart_matricula_labels %}
+        <div class="director-analytics__chart-card">
+          <div class="director-analytics__chart-head">
+            <h5>Distribución de matrícula</h5>
+            <p>Porcentaje de estudiantes por nivel en el año académico.</p>
+          </div>
+          <div class="director-analytics__chart">
+            <canvas id="chartDistribucionMatricula" aria-label="Gráfico de torta con distribución de matrícula" role="img"></canvas>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+
+      {% if director_chart_promedios_labels %}
+        {{ director_chart_promedios_labels|json_script:"chart-promedios-labels" }}
+        {{ director_chart_promedios_data|json_script:"chart-promedios-data" }}
+      {% endif %}
+      {% if director_chart_matricula_labels %}
+        {{ director_chart_matricula_labels|json_script:"chart-matricula-labels" }}
+        {{ director_chart_matricula_data|json_script:"chart-matricula-data" }}
+      {% endif %}
+      {% endif %}
+
+      <div class="director-analytics__kpi-grid">
+        {% for kpi in director_academic_kpis %}
+        <article class="director-analytics__kpi-card">
+          <div class="director-analytics__kpi-icon"><i class="{{ kpi.icon }}"></i></div>
+          <div class="director-analytics__kpi-body">
+            <span>{{ kpi.title }}</span>
+            <strong>{{ kpi.value }}</strong>
+            <small>{{ kpi.description }}</small>
+          </div>
+          {% if kpi.delta is not None %}
+          <span class="director-analytics__kpi-delta {% if kpi.delta_positive %}positive{% else %}negative{% endif %}">
+            <i class="fas {% if kpi.delta_positive %}fa-arrow-up{% else %}fa-arrow-down{% endif %}"></i>
+            {% if kpi.delta_precision is not None %}
+              {{ kpi.delta|floatformat:kpi.delta_precision }}
+            {% else %}
+              {{ kpi.delta }}
+            {% endif %}{{ kpi.delta_suffix }}
+          </span>
+          {% endif %}
+        </article>
+        {% endfor %}
+      </div>
+
+      <div class="director-analytics__trend-grid">
+        <div class="director-analytics__trend-card">
+          <h5>Asistencia mensual</h5>
+          {% if director_tendencia_asistencia %}
+          <ul class="director-analytics__trend-list">
+            {% for item in director_tendencia_asistencia %}
+            <li class="director-analytics__trend-item">
+              <div class="director-analytics__trend-header">
+                <span>{{ item.label }}</span>
+                <span>{{ item.porcentaje|floatformat:1 }}%</span>
+              </div>
+              <div class="director-analytics__trend-bar"><span style="width: {{ item.porcentaje }}%;"></span></div>
+              <div class="director-analytics__trend-meta">{{ item.total }} registros de asistencia</div>
+            </li>
+            {% endfor %}
+          </ul>
+          {% else %}
+          <div class="director-dashboard__empty">Aún no hay datos mensuales de asistencia.</div>
+          {% endif %}
+        </div>
+
+        <div class="director-analytics__trend-card">
+          <h5>Promedio mensual</h5>
+          {% if director_tendencia_notas %}
+          <ul class="director-analytics__trend-list">
+            {% for item in director_tendencia_notas %}
+            <li class="director-analytics__trend-item">
+              <div class="director-analytics__trend-header">
+                <span>{{ item.label }}</span>
+                <span>{{ item.porcentaje|floatformat:2 }}</span>
+              </div>
+              <div class="director-analytics__trend-bar"><span style="width: {{ item.barra|default:0 }}%;"></span></div>
+              <div class="director-analytics__trend-meta">{{ item.total }} evaluaciones ingresadas</div>
+            </li>
+            {% endfor %}
+          </ul>
+          {% else %}
+          <div class="director-dashboard__empty">No hay calificaciones suficientes para construir la tendencia.</div>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="director-analytics__alerts">
+        <h5>Cursos con alertas</h5>
+        {% if director_alertas_academicas %}
+        <div class="director-analytics__alert-list">
+          {% for alerta in director_alertas_academicas|slice:":6" %}
+          <div class="director-analytics__alert-item">
+            <div>
+              <strong>{{ alerta.curso }}</strong>
+              <div class="director-analytics__alert-meta">
+                <span>Promedio: {{ alerta.promedio }}</span>
+                <span>Asistencia: {% if alerta.asistencia == '--' %}--{% else %}{{ alerta.asistencia }}%{% endif %}</span>
+                <span>{{ alerta.estudiantes }} estudiantes</span>
+              </div>
+            </div>
+            <div class="director-analytics__alert-meta">
+              {% for motivo in alerta.motivos %}
+              <span class="director-analytics__alert-badge">{{ motivo }}</span>
+              {% endfor %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="director-dashboard__empty">Sin alertas activas al momento.</div>
+        {% endif %}
+      </div>
+
+      <div class="director-analytics__projection">
+        <div class="director-analytics__projection-text">
+          <h5>Proyección del colegio</h5>
+          <p>{{ director_mensaje_proyeccion }}</p>
+        </div>
+        {% if director_recomendaciones_proyeccion %}
+        <div class="director-analytics__projection-list">
+          <h6>Recomendaciones clave</h6>
+          <ul>
+            {% for recomendacion in director_recomendaciones_proyeccion %}
+            <li>{{ recomendacion }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="director-dashboard__section">
       <div class="director-dashboard__section-head">
         <h4 class="mb-0">Actividad reciente</h4>
         <span class="director-dashboard__muted">Últimos registros incorporados</span>
@@ -466,6 +1325,7 @@
           {% endif %}
         </div>
       </div>
+    </div>
     </div>
   </div>
 </div>

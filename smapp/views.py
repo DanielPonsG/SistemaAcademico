@@ -949,7 +949,8 @@ def calendario(request):
 def inicio(request):
     """Vista del panel de inicio personalizado por tipo de usuario"""
     from django.utils import timezone
-    from django.db.models import Avg, Count
+    from django.db.models import Avg, Count, Q, F
+    from django.db.models.functions import TruncMonth
     
     template_name = 'inicio.html'
     context = {
@@ -1279,7 +1280,7 @@ def inicio(request):
         elif user_type in ['administrador', 'director']:
             try:
                 # Estadísticas generales del sistema
-                from .models import Estudiante, Profesor, Curso, Asignatura, EventoCalendario, Anotacion, AsistenciaAlumno
+                from .models import Estudiante, Profesor, Curso, Asignatura, EventoCalendario, Anotacion, AsistenciaAlumno, Calificacion
                 anio_actual = timezone.now().year
                 
                 # Contadores principales
@@ -1291,6 +1292,10 @@ def inicio(request):
                 # Estadísticas de cursos por nivel
                 cursos_por_nivel = {}
                 cursos_activos = Curso.objects.filter(anio=anio_actual)
+                cursos_activos_director = cursos_activos.annotate(
+                    total_estudiantes=Count('estudiantes', distinct=True),
+                    total_asignaturas=Count('asignaturas', distinct=True)
+                ).select_related('profesor_jefe')
                 for curso in cursos_activos:
                     nivel = curso.get_nivel_display()
                     if nivel not in cursos_por_nivel:
@@ -1332,7 +1337,268 @@ def inicio(request):
                 
                 # Estudiantes recientes (últimos agregados)
                 estudiantes_recientes = Estudiante.objects.order_by('-id')[:5]
-                
+
+                niveles_dict = dict(Curso.NIVELES)
+
+                # Analítica de calificaciones globales
+                calificaciones_query = Calificacion.objects.filter(
+                    inscripcion__grupo__asignatura__cursos__anio=anio_actual
+                )
+
+                resumen_promedios = calificaciones_query.aggregate(
+                    promedio_global=Avg('puntaje'),
+                    total_evaluaciones=Count('id'),
+                    aprobaciones=Count('id', filter=Q(puntaje__gte=4))
+                )
+                promedio_global = float(resumen_promedios.get('promedio_global') or 0)
+                total_evaluaciones = resumen_promedios.get('total_evaluaciones') or 0
+                aprobaciones = resumen_promedios.get('aprobaciones') or 0
+                tasa_aprobacion = round((aprobaciones / total_evaluaciones) * 100, 1) if total_evaluaciones else 0
+
+                calificaciones_por_curso_raw = calificaciones_query.values(
+                    'inscripcion__grupo__asignatura__cursos__id',
+                    'inscripcion__grupo__asignatura__cursos__nivel',
+                    'inscripcion__grupo__asignatura__cursos__paralelo'
+                ).annotate(
+                    promedio=Avg('puntaje'),
+                    evaluaciones=Count('id', distinct=True),
+                    estudiantes=Count('inscripcion__estudiante', distinct=True),
+                    asignaturas=Count('inscripcion__grupo__asignatura', distinct=True)
+                )
+
+                promedios_por_curso = []
+                for fila in calificaciones_por_curso_raw:
+                    curso_id = fila.get('inscripcion__grupo__asignatura__cursos__id')
+                    if not curso_id:
+                        continue
+                    nivel_codigo = fila.get('inscripcion__grupo__asignatura__cursos__nivel')
+                    paralelo = fila.get('inscripcion__grupo__asignatura__cursos__paralelo') or ''
+                    nombre_nivel = niveles_dict.get(nivel_codigo, nivel_codigo)
+                    promedio_curso = float(fila.get('promedio') or 0)
+                    promedios_por_curso.append({
+                        'curso_id': curso_id,
+                        'curso': f"{nombre_nivel}{paralelo}",
+                        'promedio': round(promedio_curso, 2),
+                        'evaluaciones': fila.get('evaluaciones') or 0,
+                        'estudiantes': fila.get('estudiantes') or 0,
+                        'asignaturas': fila.get('asignaturas') or 0,
+                    })
+
+                promedios_por_curso.sort(key=lambda item: item.get('promedio', 0), reverse=True)
+
+                calificaciones_mensual_raw = calificaciones_query.annotate(
+                    mes=TruncMonth('fecha_evaluacion')
+                ).values('mes').annotate(
+                    promedio=Avg('puntaje'),
+                    evaluaciones=Count('id')
+                ).order_by('mes')
+
+                meses_nombres = {
+                    1: 'Enero', 2: 'Febrero', 3: 'Marzo', 4: 'Abril',
+                    5: 'Mayo', 6: 'Junio', 7: 'Julio', 8: 'Agosto',
+                    9: 'Septiembre', 10: 'Octubre', 11: 'Noviembre', 12: 'Diciembre'
+                }
+
+                tendencia_notas = []
+                for fila in calificaciones_mensual_raw:
+                    mes = fila.get('mes')
+                    if mes:
+                        promedio_mes = round(float(fila.get('promedio') or 0), 2)
+                        porcentaje_barra = 0
+                        if promedio_mes > 0:
+                            porcentaje_barra = max(0, min(100, round((promedio_mes / 7) * 100)))
+                        tendencia_notas.append({
+                            'label': meses_nombres.get(mes.month, mes.strftime('%b')),
+                            'porcentaje': promedio_mes,
+                            'barra': porcentaje_barra,
+                            'total': fila.get('evaluaciones') or 0,
+                        })
+
+                variacion_promedio = None
+                if len(tendencia_notas) >= 2:
+                    variacion_promedio = round(
+                        tendencia_notas[-1]['porcentaje'] - tendencia_notas[-2]['porcentaje'], 2
+                    )
+
+                asistencia_query = AsistenciaAlumno.objects.filter(curso__anio=anio_actual)
+                resumen_asistencia = asistencia_query.aggregate(
+                    total=Count('id'),
+                    presentes=Count('id', filter=Q(presente=True))
+                )
+                total_asistencias_registradas = resumen_asistencia.get('total') or 0
+                presentes_registrados = resumen_asistencia.get('presentes') or 0
+                tasa_asistencia_global = round(
+                    (presentes_registrados / total_asistencias_registradas) * 100, 1
+                ) if total_asistencias_registradas else 0
+
+                asistencia_por_curso_raw = asistencia_query.values(
+                    'curso__id', 'curso__nivel', 'curso__paralelo'
+                ).annotate(
+                    total=Count('id'),
+                    presentes=Count('id', filter=Q(presente=True)),
+                    ausentes=Count('id', filter=Q(presente=False)),
+                    estudiantes=Count('estudiante', distinct=True)
+                )
+
+                asistencia_por_curso = []
+                asistencia_por_curso_map = {}
+                for fila in asistencia_por_curso_raw:
+                    curso_id = fila.get('curso__id')
+                    if not curso_id:
+                        continue
+                    total_registros = fila.get('total') or 0
+                    presentes = fila.get('presentes') or 0
+                    ausentes = fila.get('ausentes') or 0
+                    porcentaje = round((presentes / total_registros) * 100, 1) if total_registros else 0
+                    nombre_nivel = niveles_dict.get(fila.get('curso__nivel'), fila.get('curso__nivel'))
+                    paralelo = fila.get('curso__paralelo') or ''
+                    info = {
+                        'curso_id': curso_id,
+                        'curso': f"{nombre_nivel}{paralelo}",
+                        'porcentaje': porcentaje,
+                        'presentes': presentes,
+                        'ausentes': ausentes,
+                        'total': total_registros,
+                        'estudiantes': fila.get('estudiantes') or 0,
+                    }
+                    asistencia_por_curso.append(info)
+                    asistencia_por_curso_map[curso_id] = info
+
+                asistencia_por_curso.sort(key=lambda item: item.get('porcentaje', 0), reverse=True)
+
+                asistencia_mensual_raw = asistencia_query.annotate(
+                    mes=TruncMonth('fecha')
+                ).values('mes').annotate(
+                    total=Count('id'),
+                    presentes=Count('id', filter=Q(presente=True))
+                ).order_by('mes')
+
+                tendencia_asistencia = []
+                for fila in asistencia_mensual_raw:
+                    mes = fila.get('mes')
+                    if mes:
+                        total_mes = fila.get('total') or 0
+                        presentes_mes = fila.get('presentes') or 0
+                        porcentaje_mes = round((presentes_mes / total_mes) * 100, 1) if total_mes else 0
+                        tendencia_asistencia.append({
+                            'label': meses_nombres.get(mes.month, mes.strftime('%b')),
+                            'porcentaje': porcentaje_mes,
+                            'total': total_mes,
+                        })
+
+                variacion_asistencia = None
+                if len(tendencia_asistencia) >= 2:
+                    variacion_asistencia = round(
+                        tendencia_asistencia[-1]['porcentaje'] - tendencia_asistencia[-2]['porcentaje'], 1
+                    )
+
+                promedios_por_curso_map = {item['curso_id']: item for item in promedios_por_curso}
+                cursos_alerta_ids = set(promedios_por_curso_map.keys()) | set(asistencia_por_curso_map.keys())
+
+                alertas_academicas = []
+                for curso_id in cursos_alerta_ids:
+                    datos_notas = promedios_por_curso_map.get(curso_id)
+                    datos_asistencia = asistencia_por_curso_map.get(curso_id)
+                    curso_nombre = (datos_notas or datos_asistencia or {}).get('curso', 'Sin curso')
+                    promedio_curso = datos_notas.get('promedio') if datos_notas else None
+                    asistencia_curso = datos_asistencia.get('porcentaje') if datos_asistencia else None
+                    motivos = []
+                    if promedio_curso is not None and promedio_curso < 4.0:
+                        motivos.append('Promedio bajo 4.0')
+                    if asistencia_curso is not None and asistencia_curso < 85.0:
+                        motivos.append('Asistencia bajo 85%')
+                    if motivos:
+                        alertas_academicas.append({
+                            'curso': curso_nombre,
+                            'promedio': promedio_curso if promedio_curso is not None else '--',
+                            'asistencia': asistencia_curso if asistencia_curso is not None else '--',
+                            'estudiantes': (datos_notas or datos_asistencia or {}).get('estudiantes', 0),
+                            'evaluaciones': datos_notas.get('evaluaciones') if datos_notas else 0,
+                            'motivos': motivos,
+                        })
+
+                alertas_academicas.sort(
+                    key=lambda item: (
+                        1 if isinstance(item.get('promedio'), str) else item.get('promedio', 10),
+                        item.get('asistencia') if isinstance(item.get('asistencia'), (int, float)) else 100
+                    )
+                )
+
+                cursos_en_riesgo = len(alertas_academicas)
+
+                director_academic_kpis = [
+                    {
+                        'title': 'Promedio global',
+                        'value': f"{promedio_global:.2f}",
+                        'description': 'Media de todas las evaluaciones registradas este año.',
+                        'icon': 'fas fa-chart-line',
+                        'delta': variacion_promedio,
+                        'delta_positive': (variacion_promedio or 0) >= 0,
+                        'delta_suffix': 'pts' if variacion_promedio is not None else '',
+                        'delta_precision': 2,
+                    },
+                    {
+                        'title': 'Tasa de aprobación',
+                        'value': f"{tasa_aprobacion:.1f}%",
+                        'description': 'Porcentaje de calificaciones iguales o superiores a 4.0.',
+                        'icon': 'fas fa-graduation-cap',
+                        'delta': None,
+                        'delta_positive': True,
+                        'delta_suffix': '',
+                        'delta_precision': None,
+                    },
+                    {
+                        'title': 'Asistencia anual',
+                        'value': f"{tasa_asistencia_global:.1f}%",
+                        'description': 'Promedio de asistencia del estudiantado en el año.',
+                        'icon': 'fas fa-user-check',
+                        'delta': variacion_asistencia,
+                        'delta_positive': (variacion_asistencia or 0) >= 0,
+                        'delta_suffix': 'pp' if variacion_asistencia is not None else '',
+                        'delta_precision': 1,
+                    },
+                    {
+                        'title': 'Cursos en riesgo',
+                        'value': str(cursos_en_riesgo),
+                        'description': 'Cursos con alertas por asistencia o rendimiento.',
+                        'icon': 'fas fa-exclamation-triangle',
+                        'delta': None,
+                        'delta_positive': False,
+                        'delta_suffix': '',
+                        'delta_precision': None,
+                    },
+                ]
+
+                mensaje_proyeccion = (
+                    f"Con un promedio general de {promedio_global:.2f} y una asistencia global de "
+                    f"{tasa_asistencia_global:.1f}%, la proyección institucional sugiere "
+                    f"{'estabilidad' if promedio_global >= 5 and tasa_asistencia_global >= 90 else 'riesgos moderados'} para el cierre del año académico."
+                )
+
+                recomendaciones_proyeccion = []
+                if variacion_promedio is not None and variacion_promedio < 0:
+                    recomendaciones_proyeccion.append('Refuerza tutorías o reforzamientos en los cursos con descenso de promedio mensual.')
+                if variacion_asistencia is not None and variacion_asistencia < 0:
+                    recomendaciones_proyeccion.append('Activa campañas de asistencia y seguimiento personalizado en los cursos con mayor ausentismo.')
+                if cursos_en_riesgo:
+                    curso_prioritario = alertas_academicas[0]
+                    recomendaciones_proyeccion.append(
+                        f"Prioriza acciones correctivas en {curso_prioritario['curso']}, el curso con mayor alerta activa."
+                    )
+                if tasa_aprobacion < 70:
+                    recomendaciones_proyeccion.append('Evalúa planes remediales para elevar la tasa de aprobación por sobre el 70%.')
+                if not recomendaciones_proyeccion:
+                    recomendaciones_proyeccion.append('Mantén los planes de seguimiento actuales y consolida buenas prácticas docentes.')
+
+                chart_promedios_labels = [item['curso'] for item in promedios_por_curso[:6]]
+                chart_promedios_data = [item['promedio'] for item in promedios_por_curso[:6]]
+
+                chart_matricula_labels = []
+                chart_matricula_data = []
+                for nivel, datos in cursos_por_nivel.items():
+                    chart_matricula_labels.append(nivel)
+                    chart_matricula_data.append(datos.get('estudiantes', 0))
+
                 context.update({
                     'total_estudiantes_sistema': total_estudiantes_sistema,
                     'total_profesores_sistema': total_profesores_sistema,
@@ -1350,6 +1616,19 @@ def inicio(request):
                     'profesores_recientes': profesores_recientes,
                     'estudiantes_recientes': estudiantes_recientes,
                     'anio_actual': anio_actual,
+                    'cursos_activos_director': cursos_activos_director,
+                    'director_academic_kpis': director_academic_kpis,
+                    'director_tabla_promedios': promedios_por_curso,
+                    'director_tabla_asistencias': asistencia_por_curso,
+                    'director_tendencia_notas': tendencia_notas,
+                    'director_tendencia_asistencia': tendencia_asistencia,
+                    'director_alertas_academicas': alertas_academicas,
+                    'director_mensaje_proyeccion': mensaje_proyeccion,
+                    'director_recomendaciones_proyeccion': recomendaciones_proyeccion,
+                    'director_chart_promedios_labels': chart_promedios_labels,
+                    'director_chart_promedios_data': chart_promedios_data,
+                    'director_chart_matricula_labels': chart_matricula_labels,
+                    'director_chart_matricula_data': chart_matricula_data,
                 })
 
                 if user_type == 'director':
