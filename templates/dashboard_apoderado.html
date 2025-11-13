@@ -630,7 +630,7 @@ small {
               </h2>
               <p class="mb-0 text-muted lead">
                 <i class="fas fa-calendar-check me-2"></i>
-                Hoy es {{ fecha_actual|date:"l, j \d\e F \d\e Y"|capfirst }}
+                Hoy es {{ fecha_actual|date:"l, j"|capfirst }} de {{ fecha_actual|date:"F" }} de {{ fecha_actual|date:"Y" }}
               </p>
             </div>
             <div class="col-md-4 text-end d-none d-md-block">

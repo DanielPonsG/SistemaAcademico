@@ -3,365 +3,385 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>School Academic Manager - Login</title>
+    <title>School Academic Manager - Acceso</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root {
-            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --brand-primary: #4f46e5;
+            --brand-secondary: #312e81;
+            --brand-accent: #22c55e;
+            --brand-surface: #f1f5ff;
         }
-        
+
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        
-        .login-container {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-        
-        .login-card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border: none;
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-            width: 100%;
-            max-width: 450px;
-            animation: slideIn 0.6s ease-out;
-        }
-        
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        .login-header {
-            background: var(--primary-gradient);
-            color: white;
-            padding: 2rem;
-            text-align: center;
-            position: relative;
-        }
-        
-        .login-header::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-        }
-        
-        .login-header h1 {
-            font-size: 1.8rem;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-            position: relative;
-            z-index: 1;
-        }
-        
-        .login-header p {
             margin: 0;
-            opacity: 0.9;
-            font-size: 1rem;
-            position: relative;
-            z-index: 1;
+            min-height: 100vh;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            background: radial-gradient(circle at 0% 0%, rgba(99, 102, 241, 0.25), transparent 45%),
+                        radial-gradient(circle at 100% 0%, rgba(59, 130, 246, 0.22), transparent 50%),
+                        linear-gradient(135deg, #eef2ff, #e0f2fe 60%, #eff6ff);
         }
-        
-        .login-icon {
-            width: 80px;
-            height: 80px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 1rem;
-            position: relative;
-            z-index: 1;
+
+        .auth-wrapper {
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            padding: 32px 18px;
         }
-        
-        .login-icon i {
-            font-size: 2.5rem;
-            color: white;
-        }
-        
-        .login-body {
-            padding: 2.5rem;
-        }
-        
-        .form-floating {
-            margin-bottom: 1.5rem;
-        }
-        
-        .form-floating > .form-control {
-            border: 2px solid #e9ecef;
-            border-radius: 12px;
-            padding: 1rem 0.75rem;
-            height: auto;
-            transition: all 0.3s ease;
-        }
-        
-        .form-floating > .form-control:focus {
-            border-color: #667eea;
-            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
-        }
-        
-        .form-floating > label {
-            padding: 1rem 0.75rem;
-            color: #6c757d;
-        }
-        
-        .input-group-text {
-            border: 2px solid #e9ecef;
-            border-right: none;
-            background: #f8f9fa;
-            border-radius: 12px 0 0 12px;
-        }
-        
-        .btn-login {
-            background: var(--primary-gradient);
-            border: none;
-            border-radius: 12px;
-            padding: 0.875rem;
-            font-weight: 600;
-            font-size: 1.1rem;
-            transition: all 0.3s ease;
-            position: relative;
+
+        .auth-panel {
+            width: 100%;
+            max-width: 1080px;
+            background: rgba(255, 255, 255, 0.96);
+            border-radius: 28px;
+            box-shadow: 0 20px 60px rgba(15, 23, 42, 0.16);
+            display: grid;
+            grid-template-columns: minmax(320px, 440px) minmax(320px, 1fr);
             overflow: hidden;
         }
-        
-        .btn-login:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+
+        .auth-info {
+            position: relative;
+            background: linear-gradient(135deg, var(--brand-primary), #6366f1);
+            color: #fff;
+            padding: 48px 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 28px;
+            isolation: isolate;
         }
-        
-        .btn-login:active {
-            transform: translateY(0);
-        }
-        
-        .alert-custom {
-            border: none;
-            border-radius: 12px;
-            padding: 1rem;
-            margin-bottom: 1.5rem;
-            animation: shake 0.5s ease-in-out;
-        }
-        
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            75% { transform: translateX(5px); }
-        }
-        
-        .floating-elements {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
+
+        .auth-info::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.18), transparent 52%),
+                        radial-gradient(circle at 80% 30%, rgba(99, 102, 241, 0.32), transparent 55%),
+                        radial-gradient(circle at 50% 80%, rgba(79, 70, 229, 0.22), transparent 60%);
+            mix-blend-mode: screen;
             z-index: -1;
         }
-        
-        .floating-element {
-            position: absolute;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
-            animation: float 6s ease-in-out infinite;
+
+        .brand-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.16);
+            padding: 10px 16px;
+            border-radius: 999px;
+            font-weight: 600;
+            letter-spacing: 0.02em;
         }
-        
-        .floating-element:nth-child(1) {
-            width: 100px;
-            height: 100px;
-            top: 20%;
-            left: 10%;
-            animation-delay: 0s;
+
+        .auth-info h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin: 0;
+            line-height: 1.2;
         }
-        
-        .floating-element:nth-child(2) {
-            width: 60px;
-            height: 60px;
-            top: 60%;
-            right: 20%;
-            animation-delay: 2s;
+
+        .auth-info p {
+            margin: 0;
+            color: rgba(255, 255, 255, 0.88);
+            font-size: 1.02rem;
         }
-        
-        .floating-element:nth-child(3) {
-            width: 80px;
-            height: 80px;
-            bottom: 20%;
-            left: 20%;
-            animation-delay: 4s;
+
+        .info-card {
+            background: rgba(15, 23, 42, 0.2);
+            border-radius: 18px;
+            padding: 18px 20px;
+            display: flex;
+            gap: 14px;
+            align-items: start;
         }
-        
-        @keyframes float {
-            0%, 100% { transform: translateY(0px) rotate(0deg); }
-            50% { transform: translateY(-20px) rotate(180deg); }
+
+        .info-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            display: grid;
+            place-items: center;
+            background: rgba(255, 255, 255, 0.18);
+            font-size: 1.2rem;
         }
-        
+
+        .info-card strong {
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .auth-card {
+            padding: 48px 44px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 24px;
+            background: #fff;
+        }
+
+        .auth-heading h2 {
+            margin: 0;
+            font-size: 1.9rem;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .auth-heading p {
+            margin: 6px 0 0;
+            color: #475569;
+            font-size: 0.96rem;
+        }
+
+        .alert-custom {
+            border: none;
+            border-radius: 14px;
+            padding: 1rem 1.1rem;
+            font-size: 0.95rem;
+            background: rgba(239, 68, 68, 0.1);
+            color: #b91c1c;
+        }
+
+        .form-floating {
+            margin-bottom: 1.4rem;
+        }
+
+        .form-floating > .form-control {
+            border: 1px solid rgba(148, 163, 184, 0.45);
+            border-radius: 14px;
+            padding: 1rem 0.85rem;
+            height: auto;
+            background: #f8fafc;
+            transition: border-color 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+        }
+
+        .form-floating > .form-control:focus {
+            border-color: rgba(79, 70, 229, 0.65);
+            background: #fff;
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.16);
+        }
+
+        .form-floating > label {
+            color: #64748b;
+            padding: 1rem 0.85rem;
+        }
+
+        .password-field {
+            position: relative;
+        }
+
         .password-toggle {
             position: absolute;
-            right: 15px;
+            right: 16px;
             top: 50%;
             transform: translateY(-50%);
             border: none;
             background: none;
-            color: #6c757d;
+            color: #64748b;
             cursor: pointer;
-            z-index: 5;
+            transition: color 0.2s ease;
         }
-        
-        .password-field {
-            position: relative;
+
+        .password-toggle:hover {
+            color: var(--brand-primary);
         }
-        
-        @media (max-width: 768px) {
-            .login-body {
-                padding: 1.5rem;
+
+        .btn-login {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            border: none;
+            border-radius: 14px;
+            padding: 0.9rem 1rem;
+            background: linear-gradient(135deg, var(--brand-primary), var(--brand-secondary));
+            color: #fff;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 28px rgba(79, 70, 229, 0.32);
+        }
+
+        .btn-login:active {
+            transform: translateY(0);
+        }
+
+        .login-footer {
+            text-align: center;
+            color: #94a3b8;
+            font-size: 0.85rem;
+        }
+
+        .login-footer i {
+            color: var(--brand-accent);
+        }
+
+        .support-hint {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            font-size: 0.9rem;
+            color: #475569;
+        }
+
+        .support-hint a {
+            color: var(--brand-primary);
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .support-hint a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 1100px) {
+            .auth-panel {
+                grid-template-columns: 1fr;
             }
-            
-            .login-header {
-                padding: 1.5rem;
+            .auth-info {
+                display: none;
             }
-            
-            .login-header h1 {
-                font-size: 1.5rem;
+        }
+
+        @media (max-width: 520px) {
+            .auth-card {
+                padding: 32px 24px;
+            }
+            .auth-heading h2 {
+                font-size: 1.6rem;
             }
         }
     </style>
 </head>
 <body>
-    <!-- Elementos flotantes decorativos -->
-    <div class="floating-elements">
-        <div class="floating-element"></div>
-        <div class="floating-element"></div>
-        <div class="floating-element"></div>
-    </div>
-
-    <div class="login-container">
-        <div class="login-card">
-            <div class="login-header">
-                <div class="login-icon">
-                    <i class="fas fa-graduation-cap"></i>
+    <div class="auth-wrapper">
+        <div class="auth-panel">
+            <aside class="auth-info">
+                <span class="brand-badge"><i class="fa fa-school"></i> School Academic Manager</span>
+                <div>
+                    <h1>Gestiona tu comunidad educativa con claridad</h1>
+                    <p>Organiza las jornadas académicas, comunica novedades a tu equipo y acompaña a cada estudiante desde un solo lugar.</p>
                 </div>
-                <h1><i class="fas fa-school me-2"></i>SAM</h1>
-                <p>School Academic Manager</p>
-            </div>
-            
-            <div class="login-body">
+                <div class="info-card">
+                    <div class="info-icon"><i class="fa fa-shield-halved"></i></div>
+                    <div>
+                        <strong>Seguridad institucional</strong>
+                        <span>Protocolos de acceso seguro, cifrado de credenciales y seguimiento de actividad administrativa.</span>
+                    </div>
+                </div>
+                <div class="info-card">
+                    <div class="info-icon"><i class="fa fa-users"></i></div>
+                    <div>
+                        <strong>Colaboración transversal</strong>
+                        <span>Dirección, profesores y apoderados comparten información actualizada para tomar mejores decisiones.</span>
+                    </div>
+                </div>
+                <div class="info-card">
+                    <div class="info-icon"><i class="fa fa-chart-line"></i></div>
+                    <div>
+                        <strong>Seguimiento integral</strong>
+                        <span>Indicadores de asistencia, comportamiento y rendimiento académico en tiempo real.</span>
+                    </div>
+                </div>
+            </aside>
+
+            <main class="auth-card">
+                <div class="auth-heading">
+                    <h2>Inicia sesión</h2>
+                    <p>Ingresa tus credenciales institucionales para continuar.</p>
+                </div>
+
                 {% if mensaje %}
-                    <div class="alert alert-danger alert-custom border-0">
-                        <div class="d-flex align-items-center">
-                            <i class="fas fa-exclamation-triangle me-2"></i>
-                            <span>{{ mensaje }}</span>
-                        </div>
+                    <div class="alert alert-custom">
+                        <i class="fa fa-circle-exclamation me-2"></i>{{ mensaje }}
                     </div>
                 {% endif %}
-                
+
                 <form method="post" id="loginForm">
                     {% csrf_token %}
-                    
+
                     <div class="form-floating">
-                        <input type="text" 
-                               name="username" 
-                               id="username" 
-                               class="form-control" 
+                        <input type="text"
+                               name="username"
+                               id="username"
+                               class="form-control"
                                placeholder="Nombre de usuario"
                                required>
-                        <label for="username">
-                            <i class="fas fa-user me-2 text-muted"></i>Nombre de usuario
-                        </label>
+                        <label for="username"><i class="fa fa-user me-2 text-muted"></i>Nombre de usuario</label>
                     </div>
-                    
+
                     <div class="form-floating password-field">
-                        <input type="password" 
-                               name="password" 
-                               id="password" 
-                               class="form-control" 
+                        <input type="password"
+                               name="password"
+                               id="password"
+                               class="form-control"
                                placeholder="Contraseña"
                                required>
-                        <label for="password">
-                            <i class="fas fa-lock me-2 text-muted"></i>Contraseña
-                        </label>
+                        <label for="password"><i class="fa fa-lock me-2 text-muted"></i>Contraseña</label>
                         <button type="button" class="password-toggle" onclick="togglePassword()">
-                            <i class="fas fa-eye" id="passwordIcon"></i>
+                            <i class="fa fa-eye" id="passwordIcon"></i>
                         </button>
                     </div>
-                    
-                    <button type="submit" class="btn btn-primary btn-login w-100" id="loginBtn">
-                        <i class="fas fa-sign-in-alt me-2"></i>
-                        <span id="loginText">Iniciar Sesión</span>
+
+                    <div class="support-hint">
+                        <span><i class="fa fa-circle-info me-1 text-primary"></i>Recuerda cerrar tu sesión al terminar.</span>
+                        <a href="mailto:soporte@sam.cl"><i class="fa fa-headset me-1"></i>Soporte</a>
+                    </div>
+
+                    <button type="submit" class="btn btn-login w-100 mt-3" id="loginBtn">
+                        <i class="fa fa-right-to-bracket"></i>
+                        <span id="loginText">Iniciar sesión</span>
                         <div class="spinner-border spinner-border-sm ms-2 d-none" id="loginSpinner"></div>
                     </button>
                 </form>
-                
-                <div class="text-center mt-4">
-                    <small class="text-muted">
-                        <i class="fas fa-shield-alt me-1"></i>
-                        Acceso seguro al sistema
-                    </small>
+
+                <div class="login-footer">
+                    <small><i class="fa fa-lock"></i> SAM protege tus datos con autenticación segura.</small>
                 </div>
-            </div>
+            </main>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Toggle password visibility
         function togglePassword() {
-            const passwordField = document.getElementById('password');
-            const passwordIcon = document.getElementById('passwordIcon');
-            
+            var passwordField = document.getElementById('password');
+            var passwordIcon = document.getElementById('passwordIcon');
+
             if (passwordField.type === 'password') {
                 passwordField.type = 'text';
-                passwordIcon.className = 'fas fa-eye-slash';
+                passwordIcon.className = 'fa fa-eye-slash';
             } else {
                 passwordField.type = 'password';
-                passwordIcon.className = 'fas fa-eye';
+                passwordIcon.className = 'fa fa-eye';
             }
         }
-        
-        // Form submission with loading state
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
-            const loginBtn = document.getElementById('loginBtn');
-            const loginText = document.getElementById('loginText');
-            const loginSpinner = document.getElementById('loginSpinner');
-            
+
+        document.getElementById('loginForm').addEventListener('submit', function() {
+            var loginBtn = document.getElementById('loginBtn');
+            var loginText = document.getElementById('loginText');
+            var loginSpinner = document.getElementById('loginSpinner');
+
             loginBtn.disabled = true;
-            loginText.textContent = 'Iniciando sesión...';
+            loginText.textContent = 'Iniciando...';
             loginSpinner.classList.remove('d-none');
         });
-        
-        // Add focus effects
-        document.querySelectorAll('.form-control').forEach(input => {
+
+        document.querySelectorAll('.form-control').forEach(function(input) {
             input.addEventListener('focus', function() {
                 this.parentElement.style.transform = 'translateY(-2px)';
-                this.parentElement.style.transition = 'transform 0.3s ease';
+                this.parentElement.style.transition = 'transform 0.25s ease';
             });
-            
             input.addEventListener('blur', function() {
                 this.parentElement.style.transform = 'translateY(0)';
             });
         });
-        
-        // Auto-focus on username field
+
         document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('username').focus();
         });

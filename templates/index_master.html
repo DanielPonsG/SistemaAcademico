@@ -1309,6 +1309,7 @@
 
   <!-- Core JS from CDNs to avoid missing local compiled assets -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/fastclick/1.0.6/fastclick.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/nprogress/0.2.0/nprogress.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.min.js"></script>
@@ -1549,7 +1550,9 @@
         });
       });
     </script>
-    
+
+    {% block extra_js %}{% endblock %}
+
     <!-- Estilos adicionales para el menú de apoderados -->
     <style>
       /* Estilos para el estudiante activo */
