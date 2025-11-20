@@ -1832,6 +1832,7 @@ def mis_horarios(request):
     """Vista para mostrar horarios detallados del curso del estudiante o horarios del profesor"""
     from django.utils import timezone
     from collections import defaultdict
+    from datetime import timedelta
     
     context = {
         'user': request.user,
@@ -1848,6 +1849,7 @@ def mis_horarios(request):
     
     # VISTA PARA ESTUDIANTES
     if user_type == 'alumno':
+        context['es_alumno'] = True
         try:
             estudiante = request.user.estudiante
             anio_actual = timezone.now().year
@@ -2000,11 +2002,11 @@ def mis_horarios(request):
     
     # VISTA PARA PROFESORES
     elif user_type == 'profesor':
+        context['es_profesor'] = True
         try:
             profesor = request.user.profesor
             anio_actual = timezone.now().year
 
-            context['es_profesor'] = True
             context['anio_actual'] = anio_actual
             context['profesor'] = profesor
             

@@ -1,293 +1,447 @@
 {% extends 'index_master.html' %}
 {% load static %}
 
+{% block extra_css %}
+<style>
+  :root {
+    --primary-color: #4f46e5;
+    --primary-light: #eef2ff;
+    --text-dark: #1e293b;
+    --text-gray: #64748b;
+    --bg-light: #f8fafc;
+    --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  }
+
+  .detail-screen {
+    padding: 2rem;
+    background-color: var(--bg-light);
+    min-height: calc(100vh - 60px);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+
+  /* Header & Profile */
+  .profile-header {
+    background: white;
+    border-radius: 1.5rem;
+    padding: 2rem;
+    box-shadow: var(--card-shadow);
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    border: 1px solid rgba(226, 232, 240, 0.8);
+  }
+
+  .profile-main {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+  }
+
+  .profile-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #6366f1, #4338ca);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    font-weight: 700;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+  }
+
+  .profile-info h1 {
+    margin: 0;
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: var(--text-dark);
+    letter-spacing: -0.025em;
+  }
+
+  .profile-meta {
+    display: flex;
+    gap: 1rem;
+    margin-top: 0.5rem;
+    color: var(--text-gray);
+    font-size: 0.9rem;
+  }
+
+  .profile-meta span {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  /* Action Buttons */
+  .action-bar {
+    display: flex;
+    gap: 0.75rem;
+  }
+
+  .btn-action {
+    padding: 0.6rem 1.2rem;
+    border-radius: 0.75rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s;
+    border: 1px solid transparent;
+    text-decoration: none !important;
+  }
+
+  .btn-primary-soft {
+    background: var(--primary-light);
+    color: var(--primary-color);
+  }
+  .btn-primary-soft:hover {
+    background: #e0e7ff;
+    color: #4338ca;
+  }
+
+  .btn-edit {
+    background: #fff7ed;
+    color: #c2410c;
+    border-color: #ffedd5;
+  }
+  .btn-edit:hover { background: #ffedd5; }
+
+  .btn-delete {
+    background: #fef2f2;
+    color: #b91c1c;
+    border-color: #fee2e2;
+  }
+  .btn-delete:hover { background: #fee2e2; }
+
+  .btn-back {
+    background: white;
+    color: var(--text-gray);
+    border-color: #e2e8f0;
+  }
+  .btn-back:hover { background: #f8fafc; color: var(--text-dark); }
+
+  /* Grid Layout */
+  .details-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .info-card {
+    background: white;
+    border-radius: 1.25rem;
+    padding: 1.5rem;
+    box-shadow: var(--card-shadow);
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    height: 100%;
+  }
+
+  .card-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin-bottom: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #f1f5f9;
+  }
+
+  .card-title i { color: var(--primary-color); }
+
+  .info-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #f8fafc;
+  }
+  .info-row:last-child { border-bottom: none; }
+
+  .info-label { color: var(--text-gray); font-weight: 500; font-size: 0.9rem; }
+  .info-value { color: var(--text-dark); font-weight: 600; font-size: 0.9rem; text-align: right; }
+
+  /* Students Table */
+  .students-section {
+    background: white;
+    border-radius: 1.25rem;
+    box-shadow: var(--card-shadow);
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    overflow: hidden;
+  }
+
+  .section-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid #f1f5f9;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .section-header h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-dark);
+  }
+
+  .premium-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  .premium-table th {
+    background: #f8fafc;
+    padding: 1rem 1.5rem;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-gray);
+    font-weight: 600;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  .premium-table td {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
+    color: var(--text-dark);
+  }
+
+  .status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+  .badge-success { background: #dcfce7; color: #166534; }
+  .badge-warning { background: #fef3c7; color: #92400e; }
+  .badge-danger { background: #fee2e2; color: #991b1b; }
+  .badge-info { background: #e0f2fe; color: #075985; }
+
+  @media (max-width: 768px) {
+    .detail-screen { padding: 1rem; }
+    .profile-header { flex-direction: column; }
+    .action-bar { width: 100%; flex-wrap: wrap; }
+    .btn-action { flex: 1; justify-content: center; }
+  }
+</style>
+{% endblock %}
+
 {% block content %}
-<!-- page content -->
 <div class="right_col" role="main">
-  <div class="">
-    <div class="page-title">
-      <div class="title_left">
-        <h3>Detalle del Apoderado</h3>
-      </div>
-    </div>
+  <div class="detail-screen">
 
-    <div class="clearfix"></div>
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert" style="border-radius: 1rem; margin-bottom: 2rem;">
+          {{ message }}
+          <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        </div>
+      {% endfor %}
+    {% endif %}
 
-    <div class="row">
-      <div class="col-md-12 col-sm-12">
-        <div class="x_panel">
-          <div class="x_title">
-            <h2>
-              <i class="fas fa-user"></i> 
-              {{ apoderado.get_nombre_completo }}
-            </h2>
-            <div class="clearfix"></div>
-          </div>
-          <div class="x_content">
-            
-            <!-- Botones de acción -->
-            <div class="row mb-3">
-              <div class="col-md-12">
-                <div class="btn-group" role="group">
-                  <a href="{% url 'gestionar_apoderado' apoderado_id=apoderado.id %}" class="btn btn-warning">
-                    <i class="fas fa-edit"></i> Editar
-                  </a>
-                  <a href="{% url 'eliminar_apoderado' apoderado_id=apoderado.id %}" 
-                     class="btn btn-danger"
-                     onclick="return confirm('¿Está seguro de eliminar este apoderado?')">
-                    <i class="fas fa-trash"></i> Eliminar
-                  </a>
-                  <a href="{% url 'listar_apoderados' %}" class="btn btn-secondary">
-                    <i class="fas fa-arrow-left"></i> Volver al Listado
-                  </a>
-                </div>
-              </div>
-            </div>
-
-            <!-- Información Personal -->
-            <div class="row">
-              <div class="col-md-6">
-                <div class="card">
-                  <div class="card-header">
-                    <h5><i class="fas fa-user"></i> Información Personal</h5>
-                  </div>
-                  <div class="card-body">
-                    <table class="table table-borderless">
-                      <tr>
-                        <td><strong>Código:</strong></td>
-                        <td>{{ apoderado.codigo_apoderado }}</td>
-                      </tr>
-                      <tr>
-                        <td><strong>Nombre Completo:</strong></td>
-                        <td>{{ apoderado.get_nombre_completo }}</td>
-                      </tr>
-                      <tr>
-                        <td><strong>RUT:</strong></td>
-                        <td>{{ apoderado.numero_documento }}</td>
-                      </tr>
-                      <tr>
-                        <td><strong>Fecha de Nacimiento:</strong></td>
-                        <td>{{ apoderado.fecha_nacimiento|date:"d/m/Y" }}</td>
-                      </tr>
-                      <tr>
-                        <td><strong>Género:</strong></td>
-                        <td>{{ apoderado.get_genero_display }}</td>
-                      </tr>
-                      <tr>
-                        <td><strong>Tipo de Documento:</strong></td>
-                        <td>{{ apoderado.get_tipo_documento_display }}</td>
-                      </tr>
-                    </table>
-                  </div>
-                </div>
-              </div>
-
-              <div class="col-md-6">
-                <div class="card">
-                  <div class="card-header">
-                    <h5><i class="fas fa-phone"></i> Información de Contacto</h5>
-                  </div>
-                  <div class="card-body">
-                    <table class="table table-borderless">
-                      <tr>
-                        <td><strong>Email:</strong></td>
-                        <td>{{ apoderado.email|default:"Sin especificar" }}</td>
-                      </tr>
-                      <tr>
-                        <td><strong>Teléfono Principal:</strong></td>
-                        <td>{{ apoderado.telefono|default:"Sin especificar" }}</td>
-                      </tr>
-                      <tr>
-                        <td><strong>Teléfono del Trabajo:</strong></td>
-                        <td>{{ apoderado.telefono_trabajo|default:"Sin especificar" }}</td>
-                      </tr>
-                      <tr>
-                        <td><strong>Teléfono de Emergencia:</strong></td>
-                        <td>{{ apoderado.telefono_emergencia|default:"Sin especificar" }}</td>
-                      </tr>
-                      <tr>
-                        <td><strong>Dirección:</strong></td>
-                        <td>{{ apoderado.direccion|default:"Sin especificar" }}</td>
-                      </tr>
-                    </table>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Información del Apoderado -->
-            <div class="row mt-3">
-              <div class="col-md-6">
-                <div class="card">
-                  <div class="card-header">
-                    <h5><i class="fas fa-briefcase"></i> Información Laboral</h5>
-                  </div>
-                  <div class="card-body">
-                    <table class="table table-borderless">
-                      <tr>
-                        <td><strong>Tipo de Apoderado:</strong></td>
-                        <td>
-                          <span class="badge badge-{% if apoderado.tipo_apoderado == 'titular' %}primary{% elif apoderado.tipo_apoderado == 'suplente' %}warning{% else %}secondary{% endif %}">
-                            {{ apoderado.get_tipo_apoderado_display }}
-                          </span>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td><strong>Ocupación:</strong></td>
-                        <td>{{ apoderado.ocupacion|default:"Sin especificar" }}</td>
-                      </tr>
-                      <tr>
-                        <td><strong>Lugar de Trabajo:</strong></td>
-                        <td>{{ apoderado.lugar_trabajo|default:"Sin especificar" }}</td>
-                      </tr>
-                      <tr>
-                        <td><strong>Fecha de Registro:</strong></td>
-                        <td>{{ apoderado.fecha_registro|date:"d/m/Y" }}</td>
-                      </tr>
-                    </table>
-                  </div>
-                </div>
-              </div>
-
-              <div class="col-md-6">
-                <div class="card">
-                  <div class="card-header">
-                    <h5><i class="fas fa-shield-alt"></i> Permisos y Configuración</h5>
-                  </div>
-                  <div class="card-body">
-                    <table class="table table-borderless">
-                      <tr>
-                        <td><strong>Puede Retirar Estudiante:</strong></td>
-                        <td>
-                          {% if apoderado.puede_retirar %}
-                          <span class="badge badge-success"><i class="fas fa-check"></i> Sí</span>
-                          {% else %}
-                          <span class="badge badge-danger"><i class="fas fa-times"></i> No</span>
-                          {% endif %}
-                        </td>
-                      </tr>
-                      <tr>
-                        <td><strong>Contacto de Emergencia:</strong></td>
-                        <td>
-                          {% if apoderado.contacto_emergencia %}
-                          <span class="badge badge-warning"><i class="fas fa-exclamation-triangle"></i> Sí</span>
-                          {% else %}
-                          <span class="badge badge-secondary"><i class="fas fa-times"></i> No</span>
-                          {% endif %}
-                        </td>
-                      </tr>
-                      <tr>
-                        <td><strong>Usuario del Sistema:</strong></td>
-                        <td>
-                          {% if apoderado.user %}
-                          <span class="badge badge-{% if apoderado.user.is_active %}success{% else %}danger{% endif %}">
-                            {{ apoderado.user.username }}
-                            ({% if apoderado.user.is_active %}Activo{% else %}Inactivo{% endif %})
-                          </span>
-                          {% else %}
-                          <span class="badge badge-secondary">Sin usuario</span>
-                          {% endif %}
-                        </td>
-                      </tr>
-                    </table>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Estudiantes a Cargo -->
-            <div class="row mt-3">
-              <div class="col-md-12">
-                <div class="card">
-                  <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5><i class="fas fa-user-graduate"></i> Estudiantes a Cargo ({{ total_estudiantes }})</h5>
-                  </div>
-                  <div class="card-body">
-                    {% if relaciones %}
-                    <div class="table-responsive">
-                      <table class="table table-striped table-hover">
-                        <thead class="thead-light">
-                          <tr>
-                            <th>Código</th>
-                            <th>Nombre</th>
-                            <th>Curso Actual</th>
-                            <th>Parentesco</th>
-                            <th>Tipo</th>
-                            <th>Autorizado Retiro</th>
-                            <th>Estado</th>
-                            <th>Acciones</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {% for relacion in relaciones %}
-                          <tr>
-                            <td>{{ relacion.estudiante.codigo_estudiante }}</td>
-                            <td>
-                              <strong>{{ relacion.estudiante.get_nombre_completo }}</strong>
-                              <br>
-                              <small class="text-muted">{{ relacion.estudiante.numero_documento }}</small>
-                            </td>
-                            <td>
-                              {% if relacion.estudiante.get_curso_actual %}
-                              <span class="badge badge-info">{{ relacion.estudiante.get_curso_actual }}</span>
-                              {% else %}
-                              <span class="badge badge-secondary">Sin curso</span>
-                              {% endif %}
-                            </td>
-                            <td>{{ relacion.get_parentesco_display }}</td>
-                            <td>
-                              {% if relacion.es_titular %}
-                              <span class="badge badge-primary">Titular</span>
-                              {% else %}
-                              <span class="badge badge-warning">Suplente</span>
-                              {% endif %}
-                            </td>
-                            <td>
-                              {% if relacion.autorizado_retiro %}
-                              <span class="badge badge-success"><i class="fas fa-check"></i> Sí</span>
-                              {% else %}
-                              <span class="badge badge-danger"><i class="fas fa-times"></i> No</span>
-                              {% endif %}
-                            </td>
-                            <td>
-                              {% if relacion.activo %}
-                              <span class="badge badge-success">Activo</span>
-                              {% else %}
-                              <span class="badge badge-danger">Inactivo</span>
-                              {% endif %}
-                            </td>
-                            <td>
-                                <div class="btn-group">
-                                    <a href="{% url 'editar_relacion_apoderado' relacion.id %}" class="btn btn-sm btn-warning" title="Editar Permisos">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-                                    <a href="{% url 'eliminar_relacion_apoderado' relacion.id %}" class="btn btn-sm btn-danger" title="Desvincular Estudiante" onclick="return confirm('¿Está seguro de desvincular este estudiante?');">
-                                        <i class="fas fa-trash"></i>
-                                    </a>
-                                </div>
-                            </td>
-                          </tr>
-                          {% endfor %}
-                        </tbody>
-                      </table>
-                    </div>
-                    {% else %}
-                    <div class="alert alert-warning">
-                      <i class="fas fa-exclamation-triangle"></i> 
-                      Este apoderado no tiene estudiantes asignados actualmente.
-                      <a href="{% url 'gestionar_apoderado' apoderado.id %}" class="btn btn-sm btn-primary ml-2">Asignar Estudiante</a>
-                    </div>
-                    {% endif %}
-                  </div>
-                </div>
-              </div>
-            </div>
-
+    <!-- Profile Header -->
+    <div class="profile-header">
+      <div class="profile-main">
+        <div class="profile-avatar">
+          {{ apoderado.primer_nombre.0 }}{{ apoderado.apellido_paterno.0 }}
+        </div>
+        <div class="profile-info">
+          <h1>{{ apoderado.get_nombre_completo }}</h1>
+          <div class="profile-meta">
+            <span><i class="fa fa-id-card"></i> {{ apoderado.numero_documento }}</span>
+            <span><i class="fa fa-envelope"></i> {{ apoderado.email|default:"Sin email" }}</span>
+            {% if apoderado.profesor %}
+              <span class="text-success"><i class="fa fa-check-circle"></i> Es Profesor</span>
+            {% endif %}
           </div>
         </div>
       </div>
+      
+      <div class="action-bar">
+        <a href="{% url 'listar_apoderados' %}" class="btn-action btn-back">
+          <i class="fa fa-arrow-left"></i> Volver
+        </a>
+        <a href="{% url 'gestionar_apoderado' apoderado_id=apoderado.id %}" class="btn-action btn-edit">
+          <i class="fa fa-pencil-alt"></i> Editar
+        </a>
+        <a href="{% url 'eliminar_apoderado' apoderado_id=apoderado.id %}" class="btn-action btn-delete" onclick="return confirm('¿Está seguro de eliminar este apoderado?')">
+          <i class="fa fa-trash-alt"></i> Eliminar
+        </a>
+      </div>
     </div>
+
+    <!-- Info Grid -->
+    <div class="details-grid">
+      <!-- Personal Info -->
+      <div class="info-card">
+        <div class="card-title">
+          <i class="fa fa-user"></i> Información Personal
+        </div>
+        <div class="info-row">
+          <span class="info-label">Código</span>
+          <span class="info-value">{{ apoderado.codigo_apoderado }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Fecha Nacimiento</span>
+          <span class="info-value">{{ apoderado.fecha_nacimiento|date:"d/m/Y"|default:"-" }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Género</span>
+          <span class="info-value">{{ apoderado.get_genero_display }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Tipo Documento</span>
+          <span class="info-value">{{ apoderado.get_tipo_documento_display }}</span>
+        </div>
+      </div>
+
+      <!-- Contact Info -->
+      <div class="info-card">
+        <div class="card-title">
+          <i class="fa fa-address-book"></i> Contacto & Ubicación
+        </div>
+        <div class="info-row">
+          <span class="info-label">Teléfono Móvil</span>
+          <span class="info-value">{{ apoderado.telefono|default:"-" }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Teléfono Trabajo</span>
+          <span class="info-value">{{ apoderado.telefono_trabajo|default:"-" }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Teléfono Emergencia</span>
+          <span class="info-value text-danger">{{ apoderado.telefono_emergencia|default:"-" }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Dirección</span>
+          <span class="info-value">{{ apoderado.direccion|default:"-" }}</span>
+        </div>
+      </div>
+
+      <!-- Work & System Info -->
+      <div class="info-card">
+        <div class="card-title">
+          <i class="fa fa-briefcase"></i> Laboral & Sistema
+        </div>
+        <div class="info-row">
+          <span class="info-label">Ocupación</span>
+          <span class="info-value">{{ apoderado.ocupacion|default:"-" }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Lugar Trabajo</span>
+          <span class="info-value">{{ apoderado.lugar_trabajo|default:"-" }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Usuario Sistema</span>
+          <span class="info-value">
+            {% if apoderado.user %}
+              <span class="status-badge {% if apoderado.user.is_active %}badge-success{% else %}badge-danger{% endif %}">
+                {{ apoderado.user.username }}
+              </span>
+            {% else %}
+              <span class="text-muted">Sin usuario</span>
+            {% endif %}
+          </span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Registrado el</span>
+          <span class="info-value">{{ apoderado.fecha_registro|date:"d/m/Y" }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Students Section -->
+    <div class="students-section">
+      <div class="section-header">
+        <h3><i class="fa fa-user-graduate text-primary mr-2"></i> Estudiantes a Cargo</h3>
+        <span class="status-badge badge-info">{{ total_estudiantes }} Asignados</span>
+      </div>
+      
+      <div class="table-responsive">
+        {% if relaciones %}
+          <table class="premium-table">
+            <thead>
+              <tr>
+                <th>Estudiante</th>
+                <th>Curso</th>
+                <th>Parentesco</th>
+                <th>Tipo</th>
+                <th>Permisos</th>
+                <th>Estado</th>
+                <th class="text-right">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for relacion in relaciones %}
+                <tr>
+                  <td>
+                    <strong>{{ relacion.estudiante.get_nombre_completo }}</strong>
+                    <div class="small text-muted">{{ relacion.estudiante.numero_documento }}</div>
+                  </td>
+                  <td>
+                    {% if relacion.estudiante.get_curso_actual %}
+                      <span class="status-badge badge-info">{{ relacion.estudiante.get_curso_actual }}</span>
+                    {% else %}
+                      <span class="text-muted small">Sin curso</span>
+                    {% endif %}
+                  </td>
+                  <td>{{ relacion.get_parentesco_display }}</td>
+                  <td>
+                    {% if relacion.es_apoderado_principal %}
+                      <span class="status-badge badge-success">Titular</span>
+                    {% else %}
+                      <span class="status-badge badge-warning">Suplente</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if relacion.puede_retirar %}
+                      <span class="text-success small"><i class="fa fa-check"></i> Puede Retirar</span>
+                    {% else %}
+                      <span class="text-danger small"><i class="fa fa-times"></i> No Retira</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if relacion.activo %}
+                      <span class="status-badge badge-success">Activo</span>
+                    {% else %}
+                      <span class="status-badge badge-danger">Inactivo</span>
+                    {% endif %}
+                  </td>
+                  <td class="text-right">
+                    <div class="d-flex justify-content-end gap-2">
+                      <a href="{% url 'editar_relacion_apoderado' relacion.id %}" class="btn-action btn-primary-soft" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">
+                        <i class="fa fa-cog"></i> Permisos
+                      </a>
+                      <a href="{% url 'eliminar_relacion_apoderado' relacion.id %}" class="btn-action btn-delete" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" onclick="return confirm('¿Está seguro de desvincular este estudiante?');">
+                        <i class="fa fa-unlink"></i>
+                      </a>
+                    </div>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% else %}
+          <div class="p-5 text-center text-muted">
+            <i class="fa fa-user-slash fa-3x mb-3" style="color: #cbd5e1;"></i>
+            <p>No hay estudiantes asignados a este apoderado.</p>
+            <a href="{% url 'gestionar_apoderado' apoderado.id %}" class="btn-action btn-primary-soft">
+              <i class="fa fa-plus"></i> Asignar Estudiante
+            </a>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
   </div>
 </div>
-<!-- /page content -->
 {% endblock %}

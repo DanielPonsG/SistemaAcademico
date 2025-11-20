@@ -1,332 +1,428 @@
 {% extends "index_master.html" %}
 
 {% block extra_css %}
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-/* Estilos específicos para las anotaciones del estudiante */
-.anotacion-card {
-  transition: all 0.3s ease;
-  background: #f8f9fa;
-  border: 1px solid #dee2e6;
-  border-radius: 12px;
-  overflow: hidden;
-  margin-bottom: 1rem;
-}
-
-.anotacion-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
-  background: #ffffff;
-}
-
-.anotacion-header {
-  padding: 1rem;
-  border-bottom: 1px solid #e9ecef;
-}
-
-.anotacion-positiva .anotacion-header {
-  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-  color: white;
-}
-
-.anotacion-negativa .anotacion-header {
-  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
-  color: white;
-}
-
-.anotacion-neutra .anotacion-header {
-  background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
-  color: #212529;
-}
-
-.anotacion-body {
-  padding: 1.5rem;
-}
-
-.estadisticas-anotaciones {
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-  border-radius: 12px;
-  padding: 2rem;
-  margin-bottom: 2rem;
-}
-
-.stat-badge {
-  padding: 0.75rem 1rem;
-  border-radius: 12px;
-  text-align: center;
-  color: white;
-  font-weight: bold;
-}
-
-.stat-positiva { background: linear-gradient(135deg, #28a745 0%, #20c997 100%); }
-.stat-negativa { background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); }
-.stat-neutra { background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%); color: #212529; }
-.stat-total { background: linear-gradient(135deg, #6c757d 0%, #545b62 100%); }
-
-.sin-anotaciones {
-  text-align: center;
-  padding: 3rem;
-  color: #6c757d;
-}
-
-.fecha-anotacion {
-  font-size: 0.875rem;
-  opacity: 0.8;
-}
-
-.profesor-anotacion {
-  font-weight: 600;
-  font-size: 0.9rem;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .anotacion-body {
-    padding: 1rem;
+  :root {
+    --primary-color: #4f46e5;
+    --primary-light: #eef2ff;
+    --secondary-color: #64748b;
+    --success-color: #10b981;
+    --warning-color: #f59e0b;
+    --danger-color: #ef4444;
+    --bg-light: #f8fafc;
+    --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   }
-  
-  .estadisticas-anotaciones {
-    padding: 1rem;
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-light);
   }
-}
+
+  .page-header {
+    background: white;
+    padding: 2rem;
+    border-radius: 1rem;
+    box-shadow: var(--card-shadow);
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .header-title h1 {
+    font-weight: 800;
+    color: #1e293b;
+    margin: 0;
+    font-size: 1.8rem;
+  }
+
+  .header-subtitle {
+    color: var(--secondary-color);
+    margin-top: 0.5rem;
+    font-size: 1rem;
+  }
+
+  /* Stats Cards */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .stat-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 1rem;
+    box-shadow: var(--card-shadow);
+    border: 1px solid #e2e8f0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    transition: transform 0.2s;
+  }
+
+  .stat-card:hover { transform: translateY(-2px); }
+
+  .stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .stat-value {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #1e293b;
+    line-height: 1;
+    margin-bottom: 0.25rem;
+  }
+
+  .stat-label {
+    font-size: 0.85rem;
+    color: var(--secondary-color);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .bg-soft-primary { background-color: var(--primary-light); color: var(--primary-color); }
+  .bg-soft-success { background-color: #ecfdf5; color: var(--success-color); }
+  .bg-soft-warning { background-color: #fffbeb; color: var(--warning-color); }
+  .bg-soft-danger { background-color: #fef2f2; color: var(--danger-color); }
+
+  /* Chart Section */
+  .chart-container {
+    background: white;
+    padding: 2rem;
+    border-radius: 1rem;
+    box-shadow: var(--card-shadow);
+    border: 1px solid #e2e8f0;
+    margin-bottom: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* Timeline Styles */
+  .timeline {
+    position: relative;
+    padding-left: 2rem;
+  }
+
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #e2e8f0;
+    border-radius: 2px;
+  }
+
+  .timeline-item {
+    position: relative;
+    margin-bottom: 2rem;
+  }
+
+  .timeline-marker {
+    position: absolute;
+    left: -2.6rem;
+    top: 1.5rem;
+    width: 1.2rem;
+    height: 1.2rem;
+    border-radius: 50%;
+    border: 3px solid white;
+    box-shadow: 0 0 0 2px #e2e8f0;
+    z-index: 1;
+  }
+
+  .marker-positiva { background-color: var(--success-color); box-shadow: 0 0 0 2px var(--success-color); }
+  .marker-negativa { background-color: var(--danger-color); box-shadow: 0 0 0 2px var(--danger-color); }
+  .marker-neutra { background-color: var(--warning-color); box-shadow: 0 0 0 2px var(--warning-color); }
+
+  .annotation-card {
+    background: white;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    box-shadow: var(--card-shadow);
+    border: 1px solid #e2e8f0;
+    transition: all 0.2s;
+  }
+
+  .annotation-card:hover {
+    transform: translateX(5px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  }
+
+  .annotation-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .annotation-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 0.25rem;
+  }
+
+  .annotation-meta {
+    font-size: 0.85rem;
+    color: var(--secondary-color);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .annotation-badge {
+    padding: 0.35rem 0.75rem;
+    border-radius: 2rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .badge-positiva { background-color: #ecfdf5; color: var(--success-color); }
+  .badge-negativa { background-color: #fef2f2; color: var(--danger-color); }
+  .badge-neutra { background-color: #fffbeb; color: var(--warning-color); }
+
+  .annotation-content {
+    color: #475569;
+    line-height: 1.6;
+    font-size: 0.95rem;
+  }
+
+  .annotation-footer {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #f1f5f9;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.85rem;
+    color: var(--secondary-color);
+  }
+
+  .pagination-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 2rem;
+  }
+
+  .page-link {
+    border-radius: 0.5rem;
+    margin: 0 0.25rem;
+    border: none;
+    color: var(--secondary-color);
+  }
+
+  .page-item.active .page-link {
+    background-color: var(--primary-color);
+    color: white;
+  }
+
+  @media (max-width: 768px) {
+    .timeline { padding-left: 1rem; }
+    .timeline-marker { left: -1.6rem; }
+    .header-title h1 { font-size: 1.5rem; }
+  }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="right_col" role="main">
   <div class="container-fluid">
+    
     <!-- Header -->
-    <div class="row mb-4">
-      <div class="col-12">
-        <div class="bg-white p-4 rounded shadow-sm border">
-          <div class="row align-items-center">
-            <div class="col-md-8">
-              <div class="d-flex align-items-center">
-                <div class="me-3">
-                  <i class="fas fa-book fa-3x text-primary"></i>
-                </div>
-                <div>
-                  <h1 class="h3 mb-1 text-dark">Anotaciones de {{ estudiante.get_nombre_completo }}</h1>
-                  <p class="mb-0 text-muted">
-                    <i class="fas fa-school me-2"></i>
-                    {% if curso_actual %}{{ curso_actual.get_nivel_display }}{{ curso_actual.paralelo }}{% else %}Sin curso asignado{% endif %}
-                    <span class="badge bg-info ms-2">{{ relacion.get_parentesco_display }}</span>
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-4 text-end">
-              <a href="{% url 'estudiantes_a_cargo_profesor_apoderado' %}" class="btn btn-outline-primary">
-                <i class="fas fa-arrow-left me-2"></i>Volver
-              </a>
-            </div>
-          </div>
+    <div class="page-header">
+      <div class="header-title">
+        <h1>Libro de Anotaciones</h1>
+        <div class="header-subtitle">
+          {{ estudiante.get_nombre_completo }} • {{ curso_actual.nombre }}
         </div>
       </div>
-    </div>
-
-    <!-- Estadísticas de Anotaciones -->
-    <div class="row mb-4">
-      <div class="col-12">
-        <div class="estadisticas-anotaciones">
-          <h4 class="mb-3 text-center">
-            <i class="fas fa-chart-pie text-primary me-2"></i>Resumen de Anotaciones
-          </h4>
-          <div class="row">
-            <div class="col-md-3 mb-2">
-              <div class="stat-badge stat-positiva">
-                <div class="h3 mb-1">{{ anotaciones_positivas }}</div>
-                <small>Positivas</small>
-              </div>
-            </div>
-            <div class="col-md-3 mb-2">
-              <div class="stat-badge stat-negativa">
-                <div class="h3 mb-1">{{ anotaciones_negativas }}</div>
-                <small>Negativas</small>
-              </div>
-            </div>
-            <div class="col-md-3 mb-2">
-              <div class="stat-badge stat-neutra">
-                <div class="h3 mb-1">{{ anotaciones_neutras }}</div>
-                <small>Neutras</small>
-              </div>
-            </div>
-            <div class="col-md-3 mb-2">
-              <div class="stat-badge stat-total">
-                <div class="h3 mb-1">{{ total_anotaciones }}</div>
-                <small>Total</small>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Lista de Anotaciones -->
-    {% if anotaciones %}
-    <div class="row">
-      <div class="col-12">
-        {% for anotacion in anotaciones %}
-        <div class="anotacion-card anotacion-{{ anotacion.tipo }}">
-          <!-- Header de la anotación -->
-          <div class="anotacion-header">
-            <div class="row align-items-center">
-              <div class="col">
-                <div class="d-flex align-items-center">
-                  <div class="me-3">
-                    {% if anotacion.tipo == 'positiva' %}
-                      <i class="fas fa-thumbs-up fa-2x"></i>
-                    {% elif anotacion.tipo == 'negativa' %}
-                      <i class="fas fa-thumbs-down fa-2x"></i>
-                    {% else %}
-                      <i class="fas fa-minus fa-2x"></i>
-                    {% endif %}
-                  </div>
-                  <div>
-                    <h6 class="mb-1">
-                      {% if anotacion.tipo == 'positiva' %}
-                        Anotación Positiva
-                      {% elif anotacion.tipo == 'negativa' %}
-                        Anotación Negativa
-                      {% else %}
-                        Anotación Neutra
-                      {% endif %}
-                    </h6>
-                    <p class="mb-0 fecha-anotacion">
-                      <i class="fas fa-calendar me-1"></i>{{ anotacion.fecha_creacion|date:"d/m/Y H:i" }}
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <div class="col-auto">
-                <div class="profesor-anotacion">
-                  <i class="fas fa-user-tie me-1"></i>{{ anotacion.profesor_autor.get_nombre_completo }}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Cuerpo de la anotación -->
-          <div class="anotacion-body">
-            <div class="row">
-              <div class="col-md-8">
-                <h6 class="text-muted mb-2">Descripción:</h6>
-                <p class="mb-3">{{ anotacion.contenido }}</p>
-                
-                {% if anotacion.curso %}
-                <div class="mb-2">
-                  <small class="text-muted">
-                    <i class="fas fa-school me-1"></i>
-                    <strong>Curso:</strong> {{ anotacion.curso.get_nivel_display }}{{ anotacion.curso.paralelo }}
-                  </small>
-                </div>
-                {% endif %}
-              </div>
-              <div class="col-md-4">
-                <div class="text-end">
-                  <div class="badge bg-secondary mb-2">
-                    ID: #{{ anotacion.id }}
-                  </div>
-                  {% if anotacion.fecha_modificacion != anotacion.fecha_creacion %}
-                  <div class="small text-muted">
-                    <i class="fas fa-edit me-1"></i>
-                    Modificada: {{ anotacion.fecha_modificacion|date:"d/m/Y H:i" }}
-                  </div>
-                  {% endif %}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        {% endfor %}
-
-        <!-- Paginación -->
-        {% if page_obj.has_other_pages %}
-        <div class="row mt-4">
-          <div class="col-12">
-            <nav aria-label="Navegación de anotaciones">
-              <ul class="pagination justify-content-center">
-                {% if page_obj.has_previous %}
-                  <li class="page-item">
-                    <a class="page-link" href="?page=1">
-                      <i class="fas fa-angle-double-left"></i>
-                    </a>
-                  </li>
-                  <li class="page-item">
-                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}">
-                      <i class="fas fa-angle-left"></i>
-                    </a>
-                  </li>
-                {% endif %}
-
-                {% for num in page_obj.paginator.page_range %}
-                  {% if page_obj.number == num %}
-                    <li class="page-item active">
-                      <span class="page-link">{{ num }}</span>
-                    </li>
-                  {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-                    <li class="page-item">
-                      <a class="page-link" href="?page={{ num }}">{{ num }}</a>
-                    </li>
-                  {% endif %}
-                {% endfor %}
-
-                {% if page_obj.has_next %}
-                  <li class="page-item">
-                    <a class="page-link" href="?page={{ page_obj.next_page_number }}">
-                      <i class="fas fa-angle-right"></i>
-                    </a>
-                  </li>
-                  <li class="page-item">
-                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">
-                      <i class="fas fa-angle-double-right"></i>
-                    </a>
-                  </li>
-                {% endif %}
-              </ul>
-            </nav>
-          </div>
-        </div>
+      <div>
+        {% if es_profesor_apoderado %}
+        <a href="{% url 'estudiantes_a_cargo_profesor_apoderado' %}" class="btn btn-outline-secondary rounded-pill px-4">
+          <i class="fas fa-arrow-left me-2"></i>Volver
+        </a>
+        {% else %}
+        <a href="{% url 'dashboard_apoderado' %}" class="btn btn-outline-secondary rounded-pill px-4">
+          <i class="fas fa-arrow-left me-2"></i>Volver
+        </a>
         {% endif %}
       </div>
     </div>
-    {% else %}
-    <!-- Sin anotaciones -->
+
     <div class="row">
-      <div class="col-12">
-        <div class="bg-white rounded shadow-sm border">
-          <div class="sin-anotaciones">
-            <i class="fas fa-clipboard fa-4x text-muted mb-3"></i>
-            <h4 class="text-muted mb-2">No hay anotaciones registradas</h4>
-            <p class="text-muted">El estudiante no tiene anotaciones en su historial académico.</p>
-            <div class="mt-3">
-              <span class="badge bg-success me-2">
-                <i class="fas fa-check me-1"></i>¡Excelente comportamiento!
-              </span>
-            </div>
+      <!-- Left Column: Stats & Chart -->
+      <div class="col-lg-4 mb-4">
+        <!-- Stats Grid -->
+        <div class="stats-grid mb-4" style="grid-template-columns: 1fr 1fr;">
+          <div class="stat-card">
+            <div class="stat-icon bg-soft-primary"><i class="fas fa-book"></i></div>
+            <div class="stat-value">{{ total_anotaciones }}</div>
+            <div class="stat-label">Total</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon bg-soft-success"><i class="fas fa-thumbs-up"></i></div>
+            <div class="stat-value">{{ anotaciones_positivas }}</div>
+            <div class="stat-label">Positivas</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon bg-soft-danger"><i class="fas fa-thumbs-down"></i></div>
+            <div class="stat-value">{{ anotaciones_negativas }}</div>
+            <div class="stat-label">Negativas</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon bg-soft-warning"><i class="fas fa-minus"></i></div>
+            <div class="stat-value">{{ anotaciones_neutras }}</div>
+            <div class="stat-label">Neutras</div>
+          </div>
+        </div>
+
+        <!-- Chart -->
+        <div class="chart-container">
+          <h5 class="fw-bold mb-4 text-dark">Distribución de Anotaciones</h5>
+          <div style="height: 250px; width: 100%; position: relative;">
+            <canvas id="annotationsChart"></canvas>
           </div>
         </div>
       </div>
+
+      <!-- Right Column: Timeline -->
+      <div class="col-lg-8">
+        <h4 class="mb-4 fw-bold text-dark ps-2">Historial de Registros</h4>
+        
+        {% if anotaciones %}
+          <div class="timeline">
+            {% for anotacion in anotaciones %}
+              <div class="timeline-item">
+                <div class="timeline-marker marker-{{ anotacion.tipo }}"></div>
+                <div class="annotation-card">
+                  <div class="annotation-header">
+                    <div>
+                      <div class="annotation-title">{{ anotacion.titulo }}</div>
+                      <div class="annotation-meta">
+                        <span><i class="far fa-calendar-alt me-1"></i> {{ anotacion.fecha_creacion|date:"d de F, Y" }}</span>
+                        <span><i class="far fa-clock me-1"></i> {{ anotacion.fecha_creacion|date:"H:i" }}</span>
+                      </div>
+                    </div>
+                    <span class="annotation-badge badge-{{ anotacion.tipo }}">
+                      {{ anotacion.get_tipo_display }}
+                    </span>
+                  </div>
+                  
+                  <div class="annotation-content">
+                    {{ anotacion.descripcion|linebreaks }}
+                  </div>
+
+                  <div class="annotation-footer">
+                    <div>
+                      <i class="fas fa-user-tie me-1"></i>
+                      <strong>Profesor:</strong> {{ anotacion.profesor_autor.get_nombre_completo }}
+                    </div>
+                    {% if anotacion.categoria %}
+                    <div class="badge bg-light text-secondary border">
+                      {{ anotacion.get_categoria_display }}
+                    </div>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+
+          <!-- Pagination -->
+          {% if page_obj.has_other_pages %}
+          <nav class="pagination-container">
+            <ul class="pagination">
+              {% if page_obj.has_previous %}
+                <li class="page-item">
+                  <a class="page-link" href="?page={{ page_obj.previous_page_number }}">&laquo;</a>
+                </li>
+              {% endif %}
+
+              {% for i in page_obj.paginator.page_range %}
+                {% if page_obj.number == i %}
+                  <li class="page-item active"><span class="page-link">{{ i }}</span></li>
+                {% else %}
+                  <li class="page-item"><a class="page-link" href="?page={{ i }}">{{ i }}</a></li>
+                {% endif %}
+              {% endfor %}
+
+              {% if page_obj.has_next %}
+                <li class="page-item">
+                  <a class="page-link" href="?page={{ page_obj.next_page_number }}">&raquo;</a>
+                </li>
+              {% endif %}
+            </ul>
+          </nav>
+          {% endif %}
+
+        {% else %}
+          <div class="text-center py-5">
+            <div class="mb-3 text-muted opacity-50">
+              <i class="fas fa-book-open fa-4x"></i>
+            </div>
+            <h5 class="text-muted">No hay anotaciones registradas</h5>
+            <p class="text-muted small">El historial de comportamiento está limpio.</p>
+          </div>
+        {% endif %}
+      </div>
     </div>
-    {% endif %}
+
   </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-  // Animación de entrada para las tarjetas de anotaciones
-  const anotacionCards = document.querySelectorAll('.anotacion-card');
-  anotacionCards.forEach((card, index) => {
-    card.style.opacity = '0';
-    card.style.transform = 'translateY(20px)';
-    
-    setTimeout(() => {
-      card.style.transition = 'all 0.6s ease';
-      card.style.opacity = '1';
-      card.style.transform = 'translateY(0)';
-    }, index * 150);
+  document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('annotationsChart');
+    if (ctx) {
+      const data = {
+        labels: ['Positivas', 'Negativas', 'Neutras'],
+        datasets: [{
+          data: [{{ anotaciones_positivas }}, {{ anotaciones_negativas }}, {{ anotaciones_neutras }}],
+          backgroundColor: ['#10b981', '#ef4444', '#f59e0b'],
+          borderWidth: 0,
+          hoverOffset: 4
+        }]
+      };
+
+      new Chart(ctx, {
+        type: 'doughnut',
+        data: data,
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '65%',
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: { usePointStyle: true, padding: 20 }
+            }
+          }
+        }
+      });
+    }
   });
-});
 </script>
 {% endblock %}

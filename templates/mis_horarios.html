@@ -258,8 +258,9 @@
       </section>
     </div>
     {% endif %}
+    {% endif %}
     
-    {% elif es_profesor %}
+    {% if es_profesor %}
     <div class="prof-schedule">
       <section class="prof-schedule-card prof-schedule-hero">
         <div class="prof-schedule-hero__content">
@@ -524,6 +525,25 @@
       {% endif %}
     </div>
 
+    {% endif %}
+
+    {% if not es_alumno and not es_profesor %}
+    <div class="row">
+        <div class="col-12">
+            <div class="alert alert-warning text-center p-5 shadow-sm rounded-4 mt-4">
+                <i class="fas fa-exclamation-circle fa-3x mb-3 text-warning"></i>
+                <h3 class="fw-bold">Vista no disponible</h3>
+                <p class="lead">No se ha podido determinar tu rol (Alumno o Profesor) para mostrar el horario.</p>
+                <p class="small text-muted">
+                    Usuario: {{ user.username }} <br>
+                    Tipo de usuario detectado: {{ user.perfil.tipo_usuario|default:"Desconocido" }}
+                </p>
+                <a href="{% url 'inicio' %}" class="btn btn-primary mt-3 px-4 rounded-pill">
+                    <i class="fas fa-home me-2"></i>Volver al Inicio
+                </a>
+            </div>
+        </div>
+    </div>
     {% endif %}
   </div>
 </div>

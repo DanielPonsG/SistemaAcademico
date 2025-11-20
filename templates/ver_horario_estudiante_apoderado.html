@@ -196,9 +196,15 @@
               </div>
             </div>
             <div class="col-md-4 text-end">
+              {% if es_profesor_apoderado %}
               <a href="{% url 'estudiantes_a_cargo_profesor_apoderado' %}" class="btn btn-outline-primary">
                 <i class="fas fa-arrow-left me-2"></i>Volver
               </a>
+              {% else %}
+              <a href="{% url 'dashboard_apoderado' %}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left me-2"></i>Volver
+              </a>
+              {% endif %}
             </div>
           </div>
         </div>

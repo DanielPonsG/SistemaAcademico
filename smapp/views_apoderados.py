@@ -135,10 +135,11 @@ def gestionar_apoderado(request, apoderado_id=None):
             if apoderado_id:
                 mensaje = f'Apoderado {apoderado_obj.get_nombre_completo()} actualizado correctamente.'
                 messages.success(request, mensaje)
-                return redirect('listar_apoderados')
+                return redirect('detalle_apoderado', apoderado_id=apoderado_obj.id)
             else:
                 mensaje = f'Apoderado {apoderado_obj.get_nombre_completo()} creado correctamente.'
-                form = ApoderadoForm()  # Limpiar formulario después de crear
+                messages.success(request, mensaje)
+                return redirect('detalle_apoderado', apoderado_id=apoderado_obj.id)
     else:
         form = ApoderadoForm(instance=apoderado)
     
@@ -814,23 +815,21 @@ def _preparar_contexto_profesor_apoderado(request, profesor, apoderado):
 
 @login_required
 def ver_notas_estudiante_apoderado(request, estudiante_id):
-    """Vista para que un profesor-apoderado vea las notas de un estudiante a su cargo"""
+    """Vista para que un apoderado (o profesor-apoderado) vea las notas de un estudiante a su cargo"""
     
-    # Verificar que el usuario sea un profesor
-    try:
-        profesor = request.user.profesor
-    except AttributeError:
+    apoderado = None
+    es_profesor_apoderado = False
+    
+    # 1. Verificar si es un apoderado normal
+    if hasattr(request.user, 'apoderado'):
+        apoderado = request.user.apoderado
+    # 2. Verificar si es un profesor que también es apoderado
+    elif hasattr(request.user, 'profesor') and hasattr(request.user.profesor, 'apoderado_profile'):
+        apoderado = request.user.profesor.apoderado_profile
+        es_profesor_apoderado = True
+    
+    if not apoderado:
         messages.error(request, "No tienes permisos para acceder a esta sección.")
-        return redirect('inicio')
-    
-    # Verificar que también sea apoderado
-    try:
-        apoderado = profesor.apoderado_profile
-        if not apoderado:
-            messages.error(request, "No tienes permisos de apoderado.")
-            return redirect('inicio')
-    except AttributeError:
-        messages.error(request, "No tienes permisos de apoderado.")
         return redirect('inicio')
     
     # Verificar que el estudiante esté a cargo del apoderado
@@ -845,7 +844,11 @@ def ver_notas_estudiante_apoderado(request, estudiante_id):
     
     if not relacion:
         messages.error(request, "No tienes permisos para ver las notas de este estudiante.")
-        return redirect('estudiantes_a_cargo_profesor_apoderado')
+        # Redirigir según el tipo de usuario
+        if es_profesor_apoderado:
+            return redirect('estudiantes_a_cargo_profesor_apoderado')
+        else:
+            return redirect('dashboard_apoderado')
     
     # Obtener las notas del estudiante
     from .models import Calificacion, Inscripcion, Grupo
@@ -890,36 +893,60 @@ def ver_notas_estudiante_apoderado(request, estudiante_id):
     # Calcular promedio general
     promedio_general = round(promedio_general_total / asignaturas_con_promedio, 1) if asignaturas_con_promedio > 0 else None
     
+    # Obtener asistencia
+    from .models import AsistenciaAlumno
+    from django.utils import timezone
+    
+    anio_actual = timezone.now().year
+    asistencias = AsistenciaAlumno.objects.filter(
+        estudiante=estudiante,
+        fecha__year=anio_actual
+    )
+    
+    total_asistencias = asistencias.count()
+    asistencias_presentes = asistencias.filter(presente=True).count()
+    porcentaje_asistencia = 0
+    
+    if total_asistencias > 0:
+        porcentaje_asistencia = round((asistencias_presentes / total_asistencias) * 100, 0)
+        
+    # Proyección (Simulada: Si promedio > 4.0 -> Aprobado)
+    estado_proyeccion = "Aprobado" if promedio_general and promedio_general >= 4.0 else "En Riesgo"
+    if not promedio_general:
+        estado_proyeccion = "Sin Calificaciones"
+
     context = {
         'estudiante': estudiante,
         'relacion': relacion,
         'asignaturas_con_notas': asignaturas_con_notas,
         'promedio_general': promedio_general,
         'curso_actual': estudiante.get_curso_actual(),
-        'es_profesor_apoderado': True,
+        'es_profesor_apoderado': es_profesor_apoderado,
+        'porcentaje_asistencia': porcentaje_asistencia,
+        'total_asistencias': total_asistencias,
+        'asistencias_presentes': asistencias_presentes,
+        'estado_proyeccion': estado_proyeccion,
     }
     
     return render(request, 'ver_notas_estudiante_apoderado.html', context)
 
 @login_required
 def ver_anotaciones_estudiante_apoderado(request, estudiante_id):
-    """Vista para que un profesor-apoderado vea las anotaciones de un estudiante a su cargo"""
+    """Vista para que un apoderado (o profesor-apoderado) vea las anotaciones de un estudiante a su cargo"""
     
-    # Verificar que el usuario sea un profesor
-    try:
-        profesor = request.user.profesor
-    except AttributeError:
+    apoderado = None
+    es_profesor_apoderado = False
+    
+    # 1. Verificar si es un apoderado normal
+    if hasattr(request.user, 'apoderado'):
+        apoderado = request.user.apoderado
+    # 2. Verificar si es un profesor que también es apoderado
+    elif hasattr(request.user, 'profesor') and hasattr(request.user.profesor, 'apoderado_profile'):
+        apoderado = request.user.profesor.apoderado_profile
+        es_profesor_apoderado = True
+    
+    if not apoderado:
         messages.error(request, "No tienes permisos para acceder a esta sección.")
-        return redirect('inicio')
-    
-    # Verificar que también sea apoderado
-    try:
-        apoderado = profesor.apoderado_profile
-        if not apoderado:
-            messages.error(request, "No tienes permisos de apoderado.")
-            return redirect('inicio')
-    except AttributeError:
-        messages.error(request, "No tienes permisos de apoderado.")
         return redirect('inicio')
     
     # Verificar que el estudiante esté a cargo del apoderado
@@ -934,7 +961,10 @@ def ver_anotaciones_estudiante_apoderado(request, estudiante_id):
     
     if not relacion:
         messages.error(request, "No tienes permisos para ver las anotaciones de este estudiante.")
-        return redirect('estudiantes_a_cargo_profesor_apoderado')
+        if es_profesor_apoderado:
+            return redirect('estudiantes_a_cargo_profesor_apoderado')
+        else:
+            return redirect('dashboard_apoderado')
     
     # Obtener anotaciones del estudiante
     from .models import Anotacion
@@ -967,30 +997,28 @@ def ver_anotaciones_estudiante_apoderado(request, estudiante_id):
         'anotaciones_negativas': anotaciones_negativas,
         'anotaciones_neutras': anotaciones_neutras,
         'curso_actual': estudiante.get_curso_actual(),
-        'es_profesor_apoderado': True,
+        'es_profesor_apoderado': es_profesor_apoderado,
     }
     
     return render(request, 'ver_anotaciones_estudiante_apoderado.html', context)
 
 @login_required
 def ver_horario_estudiante_apoderado(request, estudiante_id):
-    """Vista para que un profesor-apoderado vea el horario de un estudiante a su cargo"""
+    """Vista para que un apoderado (o profesor-apoderado) vea el horario de un estudiante a su cargo"""
     
-    # Verificar que el usuario sea un profesor
-    try:
-        profesor = request.user.profesor
-    except AttributeError:
+    apoderado = None
+    es_profesor_apoderado = False
+    
+    # 1. Verificar si es un apoderado normal
+    if hasattr(request.user, 'apoderado'):
+        apoderado = request.user.apoderado
+    # 2. Verificar si es un profesor que también es apoderado
+    elif hasattr(request.user, 'profesor') and hasattr(request.user.profesor, 'apoderado_profile'):
+        apoderado = request.user.profesor.apoderado_profile
+        es_profesor_apoderado = True
+    
+    if not apoderado:
         messages.error(request, "No tienes permisos para acceder a esta sección.")
-        return redirect('inicio')
-    
-    # Verificar que también sea apoderado
-    try:
-        apoderado = profesor.apoderado_profile
-        if not apoderado:
-            messages.error(request, "No tienes permisos de apoderado.")
-            return redirect('inicio')
-    except AttributeError:
-        messages.error(request, "No tienes permisos de apoderado.")
         return redirect('inicio')
     
     # Verificar que el estudiante esté a cargo del apoderado
@@ -1005,14 +1033,20 @@ def ver_horario_estudiante_apoderado(request, estudiante_id):
     
     if not relacion:
         messages.error(request, "No tienes permisos para ver el horario de este estudiante.")
-        return redirect('estudiantes_a_cargo_profesor_apoderado')
+        if es_profesor_apoderado:
+            return redirect('estudiantes_a_cargo_profesor_apoderado')
+        else:
+            return redirect('dashboard_apoderado')
     
     # Obtener curso del estudiante
     curso_actual = estudiante.get_curso_actual()
     
     if not curso_actual:
         messages.warning(request, "El estudiante no tiene un curso asignado actualmente.")
-        return redirect('estudiantes_a_cargo_profesor_apoderado')
+        if es_profesor_apoderado:
+            return redirect('estudiantes_a_cargo_profesor_apoderado')
+        else:
+            return redirect('dashboard_apoderado')
     
     # Obtener horarios del curso
     from .models import HorarioCurso
@@ -1052,7 +1086,7 @@ def ver_horario_estudiante_apoderado(request, estudiante_id):
         'horarios_matriz': horarios_matriz,
         'horas_unicas': horas_unicas,
         'dias_semana': dias_semana,
-        'es_profesor_apoderado': True,
+        'es_profesor_apoderado': es_profesor_apoderado,
     }
     
     return render(request, 'ver_horario_estudiante_apoderado.html', context)

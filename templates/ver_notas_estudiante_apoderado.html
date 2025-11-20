@@ -1,323 +1,393 @@
 {% extends "index_master.html" %}
+{% load static %}
 
 {% block extra_css %}
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-/* Estilos específicos para las notas del estudiante */
-.asignatura-card {
-  transition: all 0.3s ease;
-  background: #f8f9fa;
-  border: 1px solid #dee2e6;
-  border-radius: 12px;
-  overflow: hidden;
-}
-
-.asignatura-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
-  background: #ffffff;
-}
-
-.asignatura-header {
-  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
-  color: white;
-  padding: 1rem;
-}
-
-.asignatura-body {
-  padding: 1.5rem;
-}
-
-.nota-item {
-  background: #f8f9fa;
-  border: 1px solid #e9ecef;
-  border-radius: 8px;
-  padding: 0.75rem;
-  margin-bottom: 0.5rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  transition: all 0.2s ease;
-}
-
-.nota-item:hover {
-  background: #e9ecef;
-  transform: translateX(5px);
-}
-
-.nota-valor {
-  font-weight: bold;
-  font-size: 1.1rem;
-  padding: 0.25rem 0.75rem;
-  border-radius: 20px;
-  color: white;
-}
-
-.nota-excelente { background-color: #28a745; }
-.nota-buena { background-color: #17a2b8; }
-.nota-regular { background-color: #ffc107; color: #212529; }
-.nota-insuficiente { background-color: #dc3545; }
-
-.promedio-card {
-  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-  color: white;
-  border-radius: 12px;
-  padding: 2rem;
-  text-align: center;
-  margin-bottom: 2rem;
-}
-
-.sin-notas {
-  text-align: center;
-  padding: 2rem;
-  color: #6c757d;
-  font-style: italic;
-}
-
-.estadisticas-resumen {
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-  border-radius: 12px;
-  padding: 1.5rem;
-  margin-bottom: 2rem;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .asignatura-body {
-    padding: 1rem;
+  :root {
+    --primary-color: #4f46e5;
+    --primary-light: #eef2ff;
+    --secondary-color: #64748b;
+    --success-color: #10b981;
+    --warning-color: #f59e0b;
+    --danger-color: #ef4444;
+    --bg-light: #f8fafc;
+    --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   }
-  
-  .promedio-card {
-    padding: 1rem;
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-light);
   }
-}
+
+  .page-header {
+    background: white;
+    padding: 2rem;
+    border-radius: 1rem;
+    box-shadow: var(--card-shadow);
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .header-title h1 {
+    font-weight: 800;
+    color: #1e293b;
+    margin: 0;
+    font-size: 1.8rem;
+  }
+
+  .header-subtitle {
+    color: var(--secondary-color);
+    margin-top: 0.5rem;
+    font-size: 1rem;
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .stat-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 1rem;
+    box-shadow: var(--card-shadow);
+    border: 1px solid #e2e8f0;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s;
+  }
+
+  .stat-card:hover {
+    transform: translateY(-2px);
+  }
+
+  .stat-label {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--secondary-color);
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+
+  .stat-value {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #1e293b;
+    line-height: 1;
+  }
+
+  .stat-desc {
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+    color: var(--secondary-color);
+  }
+
+  .chart-section {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .chart-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 1rem;
+    box-shadow: var(--card-shadow);
+    border: 1px solid #e2e8f0;
+  }
+
+  .chart-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .subject-list {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .subject-card {
+    background: white;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    box-shadow: var(--card-shadow);
+    border: 1px solid #e2e8f0;
+    transition: transform 0.2s;
+  }
+
+  .subject-card:hover {
+    transform: translateY(-2px);
+  }
+
+  .subject-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #f1f5f9;
+  }
+
+  .subject-name {
+    font-weight: 700;
+    color: #1e293b;
+    font-size: 1.1rem;
+  }
+
+  .subject-prof {
+    font-size: 0.9rem;
+    color: var(--secondary-color);
+  }
+
+  .grade-badge {
+    font-size: 1.2rem;
+    font-weight: 800;
+    padding: 0.5rem 1rem;
+    border-radius: 0.75rem;
+    color: white;
+  }
+
+  .grade-excellent { background: linear-gradient(135deg, #10b981, #059669); }
+  .grade-good { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+  .grade-warning { background: linear-gradient(135deg, #f59e0b, #d97706); }
+  .grade-danger { background: linear-gradient(135deg, #ef4444, #dc2626); }
+
+  .grades-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .grade-pill {
+    background: #f1f5f9;
+    padding: 0.25rem 0.75rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    color: #334155;
+    font-size: 0.9rem;
+  }
+
+  @media (max-width: 992px) {
+    .chart-section { grid-template-columns: 1fr; }
+  }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="right_col" role="main">
   <div class="container-fluid">
+    
     <!-- Header -->
-    <div class="row mb-4">
-      <div class="col-12">
-        <div class="bg-white p-4 rounded shadow-sm border">
-          <div class="row align-items-center">
-            <div class="col-md-8">
-              <div class="d-flex align-items-center">
-                <div class="me-3">
-                  <i class="fas fa-star fa-3x text-primary"></i>
-                </div>
-                <div>
-                  <h1 class="h3 mb-1 text-dark">Notas de {{ estudiante.get_nombre_completo }}</h1>
-                  <p class="mb-0 text-muted">
-                    <i class="fas fa-school me-2"></i>
-                    {% if curso_actual %}{{ curso_actual.get_nivel_display }}{{ curso_actual.paralelo }}{% else %}Sin curso asignado{% endif %}
-                    <span class="badge bg-info ms-2">{{ relacion.get_parentesco_display }}</span>
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-4 text-end">
-              <a href="{% url 'estudiantes_a_cargo_profesor_apoderado' %}" class="btn btn-outline-primary">
-                <i class="fas fa-arrow-left me-2"></i>Volver
-              </a>
-            </div>
-          </div>
+    <div class="page-header">
+      <div class="header-title">
+        <h1>Rendimiento Académico</h1>
+        <div class="header-subtitle">
+          {{ estudiante.get_nombre_completo }} • {{ curso_actual.nombre }}
+        </div>
+      </div>
+      <div>
+        {% if es_profesor_apoderado %}
+        <a href="{% url 'estudiantes_a_cargo_profesor_apoderado' %}" class="btn btn-outline-secondary rounded-pill px-4">
+          <i class="fas fa-arrow-left me-2"></i>Volver
+        </a>
+        {% else %}
+        <a href="{% url 'dashboard_apoderado' %}" class="btn btn-outline-secondary rounded-pill px-4">
+          <i class="fas fa-arrow-left me-2"></i>Volver
+        </a>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Stats Overview -->
+    <div class="stats-grid">
+      <!-- Promedio General -->
+      <div class="stat-card">
+        <div class="stat-label">Promedio General</div>
+        <div class="stat-value" style="color: var(--primary-color);">
+          {{ promedio_general|default:"-" }}
+        </div>
+        <div class="stat-desc">
+          {% if promedio_general >= 6.0 %}Excelente Desempeño
+          {% elif promedio_general >= 5.0 %}Buen Rendimiento
+          {% elif promedio_general >= 4.0 %}Aprobado
+          {% else %}Necesita Apoyo{% endif %}
+        </div>
+      </div>
+
+      <!-- Asistencia -->
+      <div class="stat-card">
+        <div class="stat-label">Asistencia Global</div>
+        <div class="stat-value" style="color: {% if porcentaje_asistencia >= 85 %}var(--success-color){% elif porcentaje_asistencia >= 75 %}var(--warning-color){% else %}var(--danger-color){% endif %};">
+          {{ porcentaje_asistencia }}%
+        </div>
+        <div class="stat-desc">{{ asistencias_presentes }} de {{ total_asistencias }} días asistidos</div>
+      </div>
+
+      <!-- Proyección -->
+      <div class="stat-card">
+        <div class="stat-label">Proyección de Cierre</div>
+        <div class="stat-value" style="font-size: 1.8rem; margin-top: 0.5rem;">
+          {{ estado_proyeccion }}
+        </div>
+        <div class="stat-desc">Basado en rendimiento actual</div>
+        <div style="position: absolute; right: -10px; bottom: -10px; font-size: 5rem; opacity: 0.1;">
+          <i class="fas fa-chart-line"></i>
         </div>
       </div>
     </div>
 
-    {% if promedio_general %}
-    <!-- Promedio General -->
-    <div class="row mb-4">
-      <div class="col-12">
-        <div class="promedio-card">
-          <h2 class="mb-2">
-            <i class="fas fa-trophy me-2"></i>Promedio General
-          </h2>
-          <div class="display-4 mb-2">{{ promedio_general }}</div>
-          <p class="mb-0">
-            {% if promedio_general >= 6.0 %}
-              <i class="fas fa-check-circle me-1"></i>¡Excelente desempeño!
-            {% elif promedio_general >= 5.0 %}
-              <i class="fas fa-thumbs-up me-1"></i>Buen rendimiento
-            {% elif promedio_general >= 4.0 %}
-              <i class="fas fa-exclamation-triangle me-1"></i>Puede mejorar
-            {% else %}
-              <i class="fas fa-exclamation-circle me-1"></i>Necesita apoyo
-            {% endif %}
-          </p>
+    <!-- Charts Section -->
+    <div class="chart-section">
+      <!-- Grades Chart -->
+      <div class="chart-card">
+        <div class="chart-title">
+          <i class="fas fa-chart-bar text-primary"></i>
+          Promedios por Asignatura
+        </div>
+        <div style="height: 300px;">
+          <canvas id="gradesChart"></canvas>
         </div>
       </div>
-    </div>
-    {% endif %}
 
-    <!-- Estadísticas Resumen -->
-    <div class="row mb-4">
-      <div class="col-12">
-        <div class="estadisticas-resumen">
-          <h4 class="mb-3 text-center">
-            <i class="fas fa-chart-pie text-primary me-2"></i>Resumen Académico
-          </h4>
-          <div class="row">
-            <div class="col-md-3">
-              <div class="text-center">
-                <div class="h3 text-primary mb-1">{{ asignaturas_con_notas|length }}</div>
-                <small class="text-muted">Asignaturas</small>
-              </div>
-            </div>
-            <div class="col-md-3">
-              <div class="text-center">
-                <div class="h3 text-success mb-1">
-                  {% for asignatura in asignaturas_con_notas %}{{ asignatura.total_notas|add:0 }}{% if not forloop.last %}+{% endif %}{% endfor %}
-                </div>
-                <small class="text-muted">Total Evaluaciones</small>
-              </div>
-            </div>
-            <div class="col-md-3">
-              <div class="text-center">
-                <div class="h3 text-info mb-1">
-                  {% for asignatura in asignaturas_con_notas %}{% if asignatura.promedio %}1{% else %}0{% endif %}{% if not forloop.last %}+{% endif %}{% endfor %}
-                </div>
-                <small class="text-muted">Con Promedio</small>
-              </div>
-            </div>
-            <div class="col-md-3">
-              <div class="text-center">
-                <div class="h3 text-warning mb-1">
-                  {% if promedio_general %}{{ promedio_general }}{% else %}--{% endif %}
-                </div>
-                <small class="text-muted">Promedio General</small>
-              </div>
-            </div>
-          </div>
+      <!-- Attendance Chart -->
+      <div class="chart-card">
+        <div class="chart-title">
+          <i class="fas fa-user-clock text-primary"></i>
+          Resumen de Asistencia
+        </div>
+        <div style="height: 250px; position: relative;">
+          <canvas id="attendanceChart"></canvas>
+        </div>
+        <div class="text-center mt-3 text-muted small">
+          Meta Institucional: 85%
         </div>
       </div>
     </div>
 
-    <!-- Lista de Asignaturas con Notas -->
-    <div class="row">
-      {% for asignatura_info in asignaturas_con_notas %}
-      <div class="col-lg-6 mb-4">
-        <div class="asignatura-card h-100">
-          <!-- Header de la asignatura -->
-          <div class="asignatura-header">
-            <div class="row align-items-center">
-              <div class="col">
-                <h5 class="mb-1">
-                  <i class="fas fa-book me-2"></i>
-                  {{ asignatura_info.asignatura.nombre }}
-                </h5>
-                <p class="mb-0 small">
-                  <i class="fas fa-user-tie me-1"></i>
-                  {{ asignatura_info.profesor.get_nombre_completo }}
-                  {% if asignatura_info.promedio %}
-                    <span class="badge bg-light text-dark ms-2">
-                      Promedio: {{ asignatura_info.promedio }}
-                    </span>
-                  {% endif %}
-                </p>
-              </div>
+    <!-- Subjects List -->
+    <h4 class="mb-4 fw-bold text-dark">Detalle por Asignatura</h4>
+    <div class="subject-list">
+      {% for item in asignaturas_con_notas %}
+      <div class="subject-card">
+        <div class="subject-header">
+          <div>
+            <div class="subject-name">{{ item.asignatura.nombre }}</div>
+            <div class="subject-prof">
+              <i class="fas fa-chalkboard-teacher me-1"></i>
+              {{ item.profesor.get_nombre_completo|default:"Sin profesor asignado" }}
             </div>
           </div>
-
-          <!-- Cuerpo de la asignatura -->
-          <div class="asignatura-body">
-            {% if asignatura_info.calificaciones %}
-              <!-- Lista de notas -->
-              <div class="mb-3">
-                <h6 class="text-muted mb-3">
-                  <i class="fas fa-list me-1"></i>Calificaciones ({{ asignatura_info.total_notas }})
-                </h6>
-                {% for calificacion in asignatura_info.calificaciones %}
-                <div class="nota-item">
-                  <div>
-                    <strong>{{ calificacion.nombre_evaluacion|default:"Evaluación" }}</strong>
-                    <br>
-                    <small class="text-muted">{{ calificacion.fecha_evaluacion|date:"d/m/Y" }}</small>
-                  </div>
-                  <div>
-                    <span class="nota-valor 
-                      {% if calificacion.puntaje >= 6.0 %}nota-excelente
-                      {% elif calificacion.puntaje >= 5.0 %}nota-buena
-                      {% elif calificacion.puntaje >= 4.0 %}nota-regular
-                      {% else %}nota-insuficiente{% endif %}">
-                      {{ calificacion.puntaje }}
-                    </span>
-                  </div>
-                </div>
-                {% endfor %}
-              </div>
-
-              <!-- Promedio de la asignatura -->
-              {% if asignatura_info.promedio %}
-              <div class="text-center mt-3 p-3 rounded" 
-                   style="background: {% if asignatura_info.promedio >= 6.0 %}#d4edda{% elif asignatura_info.promedio >= 5.0 %}#cce8f0{% elif asignatura_info.promedio >= 4.0 %}#fff3cd{% else %}#f8d7da{% endif %};">
-                <h6 class="mb-1">Promedio de la Asignatura</h6>
-                <div class="h4 mb-0 
-                  {% if asignatura_info.promedio >= 6.0 %}text-success
-                  {% elif asignatura_info.promedio >= 5.0 %}text-info
-                  {% elif asignatura_info.promedio >= 4.0 %}text-warning
-                  {% else %}text-danger{% endif %}">
-                  {{ asignatura_info.promedio }}
-                </div>
-              </div>
-              {% endif %}
-            {% else %}
-              <!-- Sin notas -->
-              <div class="sin-notas">
-                <i class="fas fa-clipboard fa-3x text-muted mb-3"></i>
-                <h6 class="text-muted">Sin evaluaciones registradas</h6>
-                <p class="text-muted small">Aún no hay calificaciones para esta asignatura.</p>
-              </div>
-            {% endif %}
+          {% if item.promedio %}
+          <div class="grade-badge 
+            {% if item.promedio >= 6.0 %}grade-excellent
+            {% elif item.promedio >= 5.0 %}grade-good
+            {% elif item.promedio >= 4.0 %}grade-warning
+            {% else %}grade-danger{% endif %}">
+            {{ item.promedio }}
           </div>
+          {% else %}
+          <span class="badge bg-light text-dark">S/N</span>
+          {% endif %}
         </div>
-      </div>
-      {% empty %}
-      <!-- No hay asignaturas -->
-      <div class="col-12">
-        <div class="bg-white rounded shadow-sm border">
-          <div class="sin-notas">
-            <i class="fas fa-book fa-4x text-muted mb-3"></i>
-            <h4 class="text-muted mb-2">No hay asignaturas registradas</h4>
-            <p class="text-muted">El estudiante no tiene asignaturas o inscripciones registradas.</p>
+        
+        <div class="grades-grid">
+          {% for nota in item.calificaciones %}
+          <div class="grade-pill" title="{{ nota.nombre_evaluacion }} - {{ nota.fecha_evaluacion|date:'d/m' }}">
+            {{ nota.puntaje }}
           </div>
+          {% empty %}
+          <span class="text-muted small fst-italic">Sin calificaciones registradas</span>
+          {% endfor %}
         </div>
       </div>
       {% endfor %}
     </div>
+
   </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-  // Animación de entrada para las tarjetas de asignaturas
-  const asignaturaCards = document.querySelectorAll('.asignatura-card');
-  asignaturaCards.forEach((card, index) => {
-    card.style.opacity = '0';
-    card.style.transform = 'translateY(20px)';
-    
-    setTimeout(() => {
-      card.style.transition = 'all 0.6s ease';
-      card.style.opacity = '1';
-      card.style.transform = 'translateY(0)';
-    }, index * 150);
+  document.addEventListener('DOMContentLoaded', function() {
+    // Grades Chart
+    const ctxGrades = document.getElementById('gradesChart');
+    if (ctxGrades) {
+      new Chart(ctxGrades, {
+        type: 'bar',
+        data: {
+          labels: [{% for item in asignaturas_con_notas %}"{{ item.asignatura.nombre|escapejs }}",{% endfor %}],
+          datasets: [{
+            label: 'Promedio',
+            data: [{% for item in asignaturas_con_notas %}{{ item.promedio|stringformat:"f"|default:"0" }},{% endfor %}],
+            backgroundColor: '#4f46e5',
+            borderRadius: 6,
+            barThickness: 20
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              max: 7,
+              grid: { borderDash: [2, 4] }
+            },
+            x: {
+              grid: { display: false },
+              ticks: { font: { size: 11 } }
+            }
+          }
+        }
+      });
+    }
+
+    // Attendance Chart
+    const ctxAttendance = document.getElementById('attendanceChart');
+    if (ctxAttendance) {
+      const present = {{ asistencias_presentes }};
+      const total = {{ total_asistencias }};
+      const absent = total - present;
+      
+      new Chart(ctxAttendance, {
+        type: 'doughnut',
+        data: {
+          labels: ['Presente', 'Ausente'],
+          datasets: [{
+            data: [present, absent],
+            backgroundColor: ['#10b981', '#ef4444'],
+            borderWidth: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '70%',
+          plugins: {
+            legend: { position: 'bottom' }
+          }
+        }
+      });
+    }
   });
-  
-  // Animación para las notas
-  const notaItems = document.querySelectorAll('.nota-item');
-  notaItems.forEach((item, index) => {
-    item.style.opacity = '0';
-    item.style.transform = 'translateX(-20px)';
-    
-    setTimeout(() => {
-      item.style.transition = 'all 0.4s ease';
-      item.style.opacity = '1';
-      item.style.transform = 'translateX(0)';
-    }, 800 + (index * 100));
-  });
-});
 </script>
 {% endblock %}
