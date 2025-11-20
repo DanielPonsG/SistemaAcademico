@@ -6,446 +6,476 @@
 
 {% block extra_css %}
 <style>
-    .form-section {
-        background: #f8f9fa;
-        border-radius: 10px;
-        padding: 20px;
-        margin-bottom: 20px;
-        border-left: 4px solid #007bff;
+    :root {
+        --primary-gradient: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+        --secondary-gradient: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        --success-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        --dark-bg: #0f172a;
+        --card-bg: #ffffff;
+        --text-main: #1e293b;
+        --text-muted: #64748b;
+        --border-color: #e2e8f0;
+        --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        --radius-lg: 1rem;
     }
-    
+
+    .professor-form-container {
+        padding: 2rem;
+        background-color: #f8fafc;
+        min-height: 100vh;
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+
+    .form-card {
+        background: var(--card-bg);
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--border-color);
+        box-shadow: var(--shadow-md);
+        overflow: hidden;
+    }
+
+    .form-header {
+        background: var(--dark-bg);
+        padding: 2rem;
+        color: white;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .form-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(circle at 100% 0%, rgba(99, 102, 241, 0.2) 0%, transparent 50%);
+        pointer-events: none;
+    }
+
+    .form-header h2 {
+        font-weight: 800;
+        margin-bottom: 0.5rem;
+        background: linear-gradient(to right, #fff, #cbd5e1);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .form-section-title {
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--text-muted);
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .form-control,
+    .form-select {
+        border-radius: 0.5rem;
+        border: 1px solid var(--border-color);
+        padding: 0.75rem 1rem;
+        font-size: 0.95rem;
+        transition: all 0.2s;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        border-color: #6366f1;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: var(--text-main);
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+    }
+
     .required-field::after {
         content: " *";
-        color: red;
+        color: #ef4444;
     }
-    
-    .form-group label {
+
+    .btn-gradient-primary {
+        background: var(--primary-gradient);
+        border: none;
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.5rem;
         font-weight: 600;
-        color: #495057;
+        transition: transform 0.2s, box-shadow 0.2s;
     }
-    
-    .select2-container--default .select2-selection--multiple {
-        min-height: 38px;
-        border: 1px solid #ced4da;
-        border-radius: 4px;
+
+    .btn-gradient-primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        color: white;
     }
-    
-    .is-invalid {
-        border-color: #dc3545;
-    }
-    
-    .invalid-feedback {
-        display: block;
-        width: 100%;
-        margin-top: 0.25rem;
-        font-size: 0.875em;
-        color: #dc3545;
-    }
-    
+
     .readonly-field {
-        background-color: #e9ecef;
-        opacity: 1;
+        background-color: #f1f5f9;
+        color: var(--text-muted);
+        cursor: not-allowed;
     }
-    
-    .form-section h5 {
-        color: #007bff;
-        margin-bottom: 15px;
-        font-weight: 600;
+
+    .select2-container--default .select2-selection--multiple {
+        border: 1px solid var(--border-color);
+        border-radius: 0.5rem;
+        min-height: 45px;
+        padding: 0.25rem;
+    }
+
+    .select2-container--default.select2-container--focus .select2-selection--multiple {
+        border-color: #6366f1;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+
+    .info-badge {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        font-size: 0.85rem;
+        backdrop-filter: blur(4px);
     }
 </style>
 {% endblock %}
 
 {% block contenido %}
-<div class="content-wrapper">
-    <!-- Content Header -->
-    <section class="content-header">
-        <div class="container-fluid">
-            <div class="row mb-2">
-                <div class="col-sm-6">
-                    <h1><i class="fas fa-user-plus text-primary"></i> {{ action }} Profesor</h1>
-                </div>
-                <div class="col-sm-6">
-                    <ol class="breadcrumb float-sm-right">
-                        <li class="breadcrumb-item"><a href="{% url 'inicio' %}">Inicio</a></li>
-                        <li class="breadcrumb-item"><a href="{% url 'listar_profesores' %}">Profesores</a></li>
-                        <li class="breadcrumb-item active">{{ action }}</li>
-                    </ol>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Main content -->
-    <section class="content">
-        <div class="container-fluid">
-            <div class="row">
-                <div class="col-md-8 offset-md-2">
-                    <div class="card">
-                        <div class="card-header">
-                            <h3 class="card-title">
-                                <i class="fas fa-user-edit"></i> 
-                                {% if profesor %}
-                                Editando: {{ profesor.primer_nombre }} {{ profesor.apellido_paterno }}
-                                {% else %}
-                                Nuevo Profesor
-                                {% endif %}
-                            </h3>
+<div class="professor-form-container">
+    <div class="row">
+        <div class="col-12">
+            <div class="form-card">
+                <!-- Header -->
+                <div class="form-header">
+                    <div class="d-flex justify-content-between align-items-start relative" style="z-index: 2;">
+                        <div>
+                            <h2>
+                                <i class="fas {% if profesor %}fa-user-edit{% else %}fa-user-plus{% endif %} me-2"></i>
+                                {{ action }} Profesor
+                            </h2>
+                            {% if profesor %}
+                            <div class="d-flex gap-2 mt-2">
+                                <span class="info-badge"><i class="fas fa-id-card me-1"></i>{{
+                                    profesor.get_nombre_completo }}</span>
+                                <span class="info-badge"><i class="fas fa-hashtag me-1"></i>{{ profesor.codigo_profesor
+                                    }}</span>
+                            </div>
+                            {% else %}
+                            <p class="text-white-50 mb-0">Complete el formulario para registrar un nuevo docente.</p>
+                            {% endif %}
                         </div>
-                        
-                        <form method="post">
-                            {% csrf_token %}
-                            <div class="card-body">
-                                
-                                <!-- Información Personal -->
-                                <div class="form-section">
-                                    <h5><i class="fas fa-user"></i> Información Personal</h5>
-                                    
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label for="primer_nombre" class="required-field">Primer Nombre</label>
-                                                <input type="text" 
-                                                       class="form-control" 
-                                                       id="primer_nombre" 
-                                                       name="primer_nombre" 
-                                                       value="{{ profesor.primer_nombre|default:'' }}" 
-                                                       required>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label for="apellido_paterno" class="required-field">Apellido Paterno</label>
-                                                <input type="text" 
-                                                       class="form-control" 
-                                                       id="apellido_paterno" 
-                                                       name="apellido_paterno" 
-                                                       value="{{ profesor.apellido_paterno|default:'' }}" 
-                                                       required>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label for="apellido_materno">Apellido Materno</label>
-                                                <input type="text" 
-                                                       class="form-control" 
-                                                       id="apellido_materno" 
-                                                       name="apellido_materno" 
-                                                       value="{{ profesor.apellido_materno|default:'' }}">
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label for="codigo_profesor" class="required-field">Código de Profesor</label>
-                                                <input type="text" 
-                                                       class="form-control" 
-                                                       id="codigo_profesor" 
-                                                       name="codigo_profesor" 
-                                                       value="{{ profesor.codigo_profesor|default:'' }}" 
-                                                       required>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label for="numero_documento" class="required-field">RUT</label>
-                                                <input type="text" 
-                                                       class="form-control" 
-                                                       id="numero_documento" 
-                                                       name="numero_documento" 
-                                                       value="{% if rut_formateado %}{{ rut_formateado }}{% elif profesor.numero_documento %}{{ profesor.numero_documento|format_rut }}{% endif %}" 
-                                                       placeholder="12.345.678-9"
-                                                       required>
-                                                <small class="form-text text-muted">Formato: 12.345.678-9</small>
-                                                <div class="invalid-feedback" id="rut-error"></div>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label for="especialidad">Especialidad</label>
-                                                <input type="text" 
-                                                       class="form-control" 
-                                                       id="especialidad" 
-                                                       name="especialidad" 
-                                                       value="{{ profesor.especialidad|default:'' }}"
-                                                       placeholder="Ej: Matemáticas, Lenguaje, Historia">
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    {% if profesor %}
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label for="fecha_contratacion">Fecha de Contratación</label>
-                                                <input type="date" 
-                                                       class="form-control readonly-field" 
-                                                       id="fecha_contratacion" 
-                                                       name="fecha_contratacion" 
-                                                       value="{% if profesor.fecha_contratacion %}{{ profesor.fecha_contratacion|date:'Y-m-d' }}{% endif %}"
-                                                       readonly>
-                                                <small class="form-text text-muted">Fecha de ingreso al establecimiento</small>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label for="fecha_nacimiento">Fecha de Nacimiento</label>
-                                                <input type="date" 
-                                                       class="form-control" 
-                                                       id="fecha_nacimiento" 
-                                                       name="fecha_nacimiento" 
-                                                       value="{% if profesor.fecha_nacimiento %}{{ profesor.fecha_nacimiento|date:'Y-m-d' }}{% endif %}">
-                                            </div>
-                                        </div>
-                                    </div>
-                                    {% else %}
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label for="fecha_nacimiento">Fecha de Nacimiento</label>
-                                                <input type="date" 
-                                                       class="form-control" 
-                                                       id="fecha_nacimiento" 
-                                                       name="fecha_nacimiento">
-                                            </div>
-                                        </div>
-                                    </div>
-                                    {% endif %}
-                                            </div>
-                                        </div>
-                                    </div>
-                                    {% endif %}
-                                </div>
-
-                                <!-- Información de Contacto -->
-                                <div class="form-section">
-                                    <h5><i class="fas fa-envelope"></i> Información de Contacto</h5>
-                                    
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label for="email" class="required-field">Email</label>
-                                                <input type="email" 
-                                                       class="form-control" 
-                                                       id="email" 
-                                                       name="email" 
-                                                       value="{{ profesor.email|default:'' }}" 
-                                                       required>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label for="telefono">Teléfono</label>
-                                                <input type="text" 
-                                                       class="form-control" 
-                                                       id="telefono" 
-                                                       name="telefono" 
-                                                       value="{{ profesor.telefono|default:'' }}">
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="form-group">
-                                        <label for="direccion">Dirección</label>
-                                        <textarea class="form-control" 
-                                                  id="direccion" 
-                                                  name="direccion" 
-                                                  rows="2">{{ profesor.direccion|default:'' }}</textarea>
-                                    </div>
-                                </div>
-
-                                <!-- Asignaturas -->
-                                <div class="form-section">
-                                    <h5><i class="fas fa-book"></i> Asignaturas</h5>
-                                    
-                                    <div class="form-group">
-                                        <label for="asignaturas">Asignaturas que puede enseñar</label>
-                                        <select class="form-control select2" 
-                                                id="asignaturas" 
-                                                name="asignaturas" 
-                                                multiple>
-                                            {% for asignatura in asignaturas %}
-                                            <option value="{{ asignatura.id }}" 
-                                                    {% if profesor and asignatura in profesor.asignaturas.all %}selected{% endif %}>
-                                                {{ asignatura.nombre }}
-                                            </option>
-                                            {% endfor %}
-                                        </select>
-                                        <small class="form-text text-muted">
-                                            Seleccione las asignaturas que este profesor puede enseñar
-                                        </small>
-                                    </div>
-                                </div>
-
-                                {% if not profesor %}
-                                <div class="alert alert-info">
-                                    <i class="fas fa-info-circle"></i>
-                                    <strong>Información:</strong> Se creará automáticamente un usuario para este profesor con las siguientes características:
-                                    <ul class="mb-0 mt-2">
-                                        <li>Nombre de usuario: prof_[código]</li>
-                                        <li>Contraseña temporal: temp_[código]123</li>
-                                        <li>Se enviará la información de acceso al email proporcionado</li>
-                                    </ul>
-                                </div>
-                                {% endif %}
-
-                            </div>
-                            
-                            <div class="card-footer">
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <a href="{% url 'listar_profesores' %}" class="btn btn-secondary">
-                                            <i class="fas fa-times"></i> Cancelar
-                                        </a>
-                                    </div>
-                                    <div class="col-md-6 text-right">
-                                        <button type="submit" class="btn btn-primary">
-                                            <i class="fas fa-save"></i> 
-                                            {% if profesor %}Actualizar{% else %}Crear{% endif %} Profesor
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </form>
+                        <a href="{% url 'listar_profesores' %}" class="btn btn-outline-light btn-sm backdrop-blur">
+                            <i class="fas fa-arrow-left me-1"></i>Volver al listado
+                        </a>
                     </div>
                 </div>
+
+                <div class="card-body p-4">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+
+                        <!-- Sección 1: Información Personal -->
+                        <div class="mb-5">
+                            <h6 class="form-section-title"><i class="fas fa-user-circle text-primary"></i> Información
+                                Personal</h6>
+
+                            <div class="row g-4 mb-4">
+                                <div class="col-md-6">
+                                    <label for="primer_nombre" class="form-label required-field">Primer Nombre</label>
+                                    <input type="text" class="form-control" id="primer_nombre" name="primer_nombre"
+                                        value="{{ profesor.primer_nombre|default:'' }}" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="apellido_paterno" class="form-label required-field">Apellido
+                                        Paterno</label>
+                                    <input type="text" class="form-control" id="apellido_paterno"
+                                        name="apellido_paterno" value="{{ profesor.apellido_paterno|default:'' }}"
+                                        required>
+                                </div>
+                            </div>
+
+                            <div class="row g-4 mb-4">
+                                <div class="col-md-6">
+                                    <label for="apellido_materno" class="form-label">Apellido Materno</label>
+                                    <input type="text" class="form-control" id="apellido_materno"
+                                        name="apellido_materno" value="{{ profesor.apellido_materno|default:'' }}">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="codigo_profesor" class="form-label required-field">Código de
+                                        Profesor</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light border-end-0"><i
+                                                class="fas fa-barcode text-muted"></i></span>
+                                        <input type="text" class="form-control border-start-0 ps-0" id="codigo_profesor"
+                                            name="codigo_profesor" value="{{ profesor.codigo_profesor|default:'' }}"
+                                            required>
+                                    </div>
+                                    <div class="form-text small">Se generará automáticamente si se deja vacío.</div>
+                                </div>
+                            </div>
+
+                            <div class="row g-4 mb-4">
+                                <div class="col-md-6">
+                                    <label for="numero_documento" class="form-label required-field">RUT</label>
+                                    <input type="text" class="form-control" id="numero_documento"
+                                        name="numero_documento"
+                                        value="{% if rut_formateado %}{{ rut_formateado }}{% elif profesor.numero_documento %}{{ profesor.numero_documento|format_rut }}{% endif %}"
+                                        placeholder="12.345.678-9" required>
+                                    <div class="invalid-feedback" id="rut-error"></div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="especialidad" class="form-label">Especialidad</label>
+                                    <input type="text" class="form-control" id="especialidad" name="especialidad"
+                                        value="{{ profesor.especialidad|default:'' }}"
+                                        placeholder="Ej: Matemáticas, Lenguaje">
+                                </div>
+                            </div>
+
+                            <div class="row g-4">
+                                <div class="col-md-6">
+                                    <label for="fecha_nacimiento" class="form-label">Fecha de Nacimiento</label>
+                                    <input type="date" class="form-control" id="fecha_nacimiento"
+                                        name="fecha_nacimiento"
+                                        value="{% if profesor.fecha_nacimiento %}{{ profesor.fecha_nacimiento|date:'Y-m-d' }}{% endif %}">
+                                </div>
+                                {% if profesor %}
+                                <div class="col-md-6">
+                                    <label for="fecha_contratacion" class="form-label">Fecha de Contratación</label>
+                                    <input type="date" class="form-control readonly-field" id="fecha_contratacion"
+                                        name="fecha_contratacion"
+                                        value="{% if profesor.fecha_contratacion %}{{ profesor.fecha_contratacion|date:'Y-m-d' }}{% endif %}"
+                                        readonly>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Sección 2: Información de Contacto -->
+                        <div class="mb-5">
+                            <h6 class="form-section-title"><i class="fas fa-address-card text-primary"></i> Información
+                                de Contacto</h6>
+
+                            <div class="row g-4 mb-4">
+                                <div class="col-md-6">
+                                    <label for="email" class="form-label required-field">Correo Electrónico</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light border-end-0"><i
+                                                class="fas fa-envelope text-muted"></i></span>
+                                        <input type="email" class="form-control border-start-0 ps-0" id="email"
+                                            name="email" value="{{ profesor.email|default:'' }}" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="telefono" class="form-label">Teléfono</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light border-end-0"><i
+                                                class="fas fa-phone text-muted"></i></span>
+                                        <input type="text" class="form-control border-start-0 ps-0" id="telefono"
+                                            name="telefono" value="{{ profesor.telefono|default:'' }}">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="direccion" class="form-label">Dirección</label>
+                                <textarea class="form-control" id="direccion" name="direccion"
+                                    rows="2">{{ profesor.direccion|default:'' }}</textarea>
+                            </div>
+                        </div>
+
+                        <!-- Sección 3: Asignaturas -->
+                        <div class="mb-5">
+                            <h6 class="form-section-title"><i class="fas fa-book-open text-primary"></i> Asignaturas
+                            </h6>
+
+                            <div class="mb-3">
+                                <label for="asignaturas" class="form-label">Asignaturas que puede enseñar</label>
+                                <select class="form-control select2" id="asignaturas" name="asignaturas" multiple>
+                                    {% for asignatura in asignaturas %}
+                                    <option value="{{ asignatura.id }}" {% if profesor and asignatura in
+                                        profesor.asignaturas.all %}selected{% endif %}>
+                                        {{ asignatura.nombre }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                <div class="form-text mt-2">
+                                    <i class="fas fa-info-circle me-1"></i>Seleccione todas las asignaturas que el
+                                    profesor está habilitado para impartir.
+                                </div>
+                            </div>
+                        </div>
+
+                        {% if not profesor %}
+                        <div class="alert alert-info border-0 shadow-sm rounded-3 mb-4">
+                            <div class="d-flex">
+                                <div class="me-3">
+                                    <i class="fas fa-user-shield fs-4 text-info"></i>
+                                </div>
+                                <div>
+                                    <h6 class="alert-heading fw-bold mb-1">Creación Automática de Usuario</h6>
+                                    <p class="mb-0 small">Se generará un usuario con el formato
+                                        <strong>prof_[código]</strong> y una contraseña temporal. Las credenciales serán
+                                        enviadas al correo electrónico ingresado.</p>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Acciones -->
+                        <div class="d-flex justify-content-end gap-3 pt-3 border-top">
+                            <a href="{% url 'listar_profesores' %}" class="btn btn-light border px-4">Cancelar</a>
+                            <button type="submit" class="btn btn-gradient-primary px-5">
+                                <i class="fas fa-save me-2"></i>{% if profesor %}Actualizar{% else %}Registrar{% endif
+                                %} Profesor
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
-    </section>
+    </div>
 </div>
-
 {% endblock %}
 
 {% block extra_js %}
 <script>
-$(document).ready(function() {
-    // Inicializar Select2 para las asignaturas
-    $('.select2').select2({
-        placeholder: 'Seleccione las asignaturas...',
-        allowClear: true,
-        width: '100%'
-    });
-    
-    // Función para formatear RUT
-    function formatearRUT(rut) {
-        if (!rut) return '';
-        
-        var rutLimpio = rut.replace(/[^0-9kK]/g, '');
-        if (rutLimpio.length < 2) return rut;
-        
-        var numero = rutLimpio.slice(0, -1);
-        var dv = rutLimpio.slice(-1).toUpperCase();
-        
-        // Formatear número con puntos
-        var numeroFormateado = '';
-        for (var i = numero.length - 1; i >= 0; i--) {
-            var pos = numero.length - 1 - i;
-            if (pos > 0 && pos % 3 === 0) {
-                numeroFormateado = '.' + numeroFormateado;
+    $(document).ready(function () {
+        // Inicializar Select2 para las asignaturas
+        $('.select2').select2({
+            placeholder: 'Seleccione las asignaturas...',
+            allowClear: true,
+            width: '100%',
+            theme: "default" // Asegurar tema por defecto para compatibilidad con CSS custom
+        });
+
+        // Función para formatear RUT
+        function formatearRUT(rut) {
+            if (!rut) return '';
+
+            var rutLimpio = rut.replace(/[^0-9kK]/g, '');
+            if (rutLimpio.length < 2) return rut;
+
+            var numero = rutLimpio.slice(0, -1);
+            var dv = rutLimpio.slice(-1).toUpperCase();
+
+            // Formatear número con puntos
+            var numeroFormateado = '';
+            for (var i = numero.length - 1; i >= 0; i--) {
+                var pos = numero.length - 1 - i;
+                if (pos > 0 && pos % 3 === 0) {
+                    numeroFormateado = '.' + numeroFormateado;
+                }
+                numeroFormateado = numero[i] + numeroFormateado;
             }
-            numeroFormateado = numero[i] + numeroFormateado;
+
+            return numeroFormateado + '-' + dv;
         }
-        
-        return numeroFormateado + '-' + dv;
-    }
-    
-    // Formatear RUT al cargar la página si ya existe un valor
-    var rutInput = $('#numero_documento');
-    var rutValue = rutInput.val();
-    if (rutValue && rutValue.indexOf('-') === -1) {
-        // Si el RUT no está formateado, formatearlo
-        rutInput.val(formatearRUT(rutValue));
-    }
-    
-    // Formateo automático de RUT en tiempo real
-    rutInput.on('input', function() {
-        var rut = $(this).val().replace(/[^0-9kK]/g, '');
-        if (rut.length > 1) {
-            $(this).val(formatearRUT(rut));
+
+        // Formatear RUT al cargar la página si ya existe un valor
+        var rutInput = $('#numero_documento');
+        var rutValue = rutInput.val();
+        if (rutValue && rutValue.indexOf('-') === -1) {
+            rutInput.val(formatearRUT(rutValue));
         }
-    });
-    
-    // Validación del RUT
-    function validarRUT(rut) {
-        if (!rut) return false;
-        
-        var rutLimpio = rut.replace(/[^0-9kK]/g, '');
-        if (rutLimpio.length < 2) return false;
-        
-        var numero = rutLimpio.slice(0, -1);
-        var dv = rutLimpio.slice(-1).toUpperCase();
-        
-        var suma = 0;
-        var multiplo = 2;
-        
-        for (var i = numero.length - 1; i >= 0; i--) {
-            suma += parseInt(numero[i]) * multiplo;
-            multiplo = multiplo < 7 ? multiplo + 1 : 2;
-        }
-        
-        var resto = suma % 11;
-        var dvCalculado = resto < 2 ? resto.toString() : (11 - resto === 10 ? 'K' : (11 - resto).toString());
-        
-        return dv === dvCalculado;
-    }
-    
-    $('#numero_documento').on('blur', function() {
-        var rut = $(this).val();
-        var errorDiv = $('#rut-error');
-        
-        if (rut && !validarRUT(rut)) {
-            $(this).addClass('is-invalid');
-            errorDiv.text('RUT inválido').show();
-        } else {
-            $(this).removeClass('is-invalid');
-            errorDiv.text('').hide();
-        }
-    });
-    
-    // Validación del formulario
-    $('form').on('submit', function(e) {
-        var requiredFields = ['primer_nombre', 'apellido_paterno', 'email', 'codigo_profesor', 'numero_documento'];
-        var valid = true;
-        
-        requiredFields.forEach(function(field) {
-            var value = $(`[name="${field}"]`).val().trim();
-            if (!value) {
-                valid = false;
-                $(`[name="${field}"]`).addClass('is-invalid');
-            } else {
-                $(`[name="${field}"]`).removeClass('is-invalid');
+
+        // Formateo automático de RUT en tiempo real
+        rutInput.on('input', function () {
+            var rut = $(this).val().replace(/[^0-9kK]/g, '');
+            if (rut.length > 1) {
+                $(this).val(formatearRUT(rut));
             }
         });
-        
-        // Validar RUT específicamente
-        var rut = $('#numero_documento').val();
-        if (rut && !validarRUT(rut)) {
-            valid = false;
-            $('#numero_documento').addClass('is-invalid');
-            alert('El RUT ingresado no es válido');
+
+        // Validación del RUT
+        function validarRUT(rut) {
+            if (!rut) return false;
+
+            var rutLimpio = rut.replace(/[^0-9kK]/g, '');
+            if (rutLimpio.length < 2) return false;
+
+            var numero = rutLimpio.slice(0, -1);
+            var dv = rutLimpio.slice(-1).toUpperCase();
+
+            var suma = 0;
+            var multiplo = 2;
+
+            for (var i = numero.length - 1; i >= 0; i--) {
+                suma += parseInt(numero[i]) * multiplo;
+                multiplo = multiplo < 7 ? multiplo + 1 : 2;
+            }
+
+            var resto = suma % 11;
+            var dvCalculado = resto < 2 ? resto.toString() : (11 - resto === 10 ? 'K' : (11 - resto).toString());
+
+            return dv === dvCalculado;
         }
-        
-        if (!valid) {
-            e.preventDefault();
-            alert('Por favor complete todos los campos obligatorios marcados con * y verifique que el RUT sea válido');
-        }
+
+        $('#numero_documento').on('blur', function () {
+            var rut = $(this).val();
+            var errorDiv = $('#rut-error');
+
+            if (rut && !validarRUT(rut)) {
+                $(this).addClass('is-invalid');
+                errorDiv.text('RUT inválido').show();
+            } else {
+                $(this).removeClass('is-invalid');
+                errorDiv.text('').hide();
+            }
+        });
+
+        // Validación del formulario
+        $('form').on('submit', function (e) {
+            var requiredFields = ['primer_nombre', 'apellido_paterno', 'email', 'codigo_profesor', 'numero_documento'];
+            var valid = true;
+
+            requiredFields.forEach(function (field) {
+                var element = $(`[name="${field}"]`);
+                var value = element.val() ? element.val().trim() : '';
+
+                if (!value) {
+                    valid = false;
+                    element.addClass('is-invalid');
+                } else {
+                    element.removeClass('is-invalid');
+                }
+            });
+
+            // Validar RUT específicamente
+            var rut = $('#numero_documento').val();
+            if (rut && !validarRUT(rut)) {
+                valid = false;
+                $('#numero_documento').addClass('is-invalid');
+            }
+
+            if (!valid) {
+                e.preventDefault();
+                // Mostrar mensaje de error genérico o toast si estuviera disponible
+                // Por ahora confiamos en el feedback visual de los campos
+            }
+        });
+
+        // Generar código automático basado en el nombre
+        $('#primer_nombre, #apellido_paterno').on('blur', function () {
+            var primerNombre = $('#primer_nombre').val().trim();
+            var apellidoPaterno = $('#apellido_paterno').val().trim();
+            var codigoActual = $('#codigo_profesor').val().trim();
+
+            if (primerNombre && apellidoPaterno && !codigoActual) {
+                // Tomar primera letra nombre + apellido, todo minúscula, sin espacios
+                var codigo = (primerNombre.charAt(0) + apellidoPaterno).toLowerCase().replace(/\s+/g, '');
+                // Remover tildes para el código
+                codigo = codigo.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                $('#codigo_profesor').val(codigo);
+            }
+        });
     });
-    
-    // Generar código automático basado en el nombre
-    $('#primer_nombre, #apellido_paterno').on('blur', function() {
-        var primerNombre = $('#primer_nombre').val().trim();
-        var apellidoPaterno = $('#apellido_paterno').val().trim();
-        var codigoActual = $('#codigo_profesor').val().trim();
-        
-        if (primerNombre && apellidoPaterno && !codigoActual) {
-            var codigo = (primerNombre.charAt(0) + apellidoPaterno).toLowerCase().replace(/\s+/g, '');
-            $('#codigo_profesor').val(codigo);
-        }
-    });
-});
 </script>
 {% endblock %}

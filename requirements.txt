@@ -1,0 +1,4 @@
+Django>=4.2.7
+whitenoise
+django-widget-tweaks
+python-decouple

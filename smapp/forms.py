@@ -634,6 +634,7 @@ class EventoCalendarioForm(forms.ModelForm):
     
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user', None)
+        self.editando = kwargs.pop('editando', False)
         super().__init__(*args, **kwargs)
         
         if user:
@@ -665,7 +666,7 @@ class EventoCalendarioForm(forms.ModelForm):
         cursos_especificos = cleaned_data.get('cursos_especificos')
         
         # Validar fecha no sea en el pasado
-        if fecha and fecha < timezone.now().date():
+        if not self.editando and fecha and fecha < timezone.now().date():
             raise forms.ValidationError(
                 'La fecha del evento no puede ser en el pasado.'
             )
@@ -890,18 +891,9 @@ class CursoForm(forms.ModelForm):
 class HorarioCursoForm(forms.ModelForm):
     """Formulario para crear y editar horarios de curso"""
     
-    # Campo adicional para profesor (no está en el modelo, pero lo necesitamos en el formulario)
-    profesor = forms.ModelChoiceField(
-        queryset=Profesor.objects.none(),
-        required=False,
-        widget=forms.Select(attrs={'class': 'form-select'}),
-        label='Profesor',
-        help_text='Selecciona el profesor que imparte la clase'
-    )
-    
     class Meta:
         model = HorarioCurso
-        fields = ['dia', 'hora_inicio', 'hora_fin', 'asignatura']
+        fields = ['dia', 'hora_inicio', 'hora_fin', 'asignatura', 'profesor']
         widgets = {
             'dia': forms.Select(attrs={'class': 'form-select'}),
             'hora_inicio': forms.TimeInput(attrs={
@@ -918,18 +910,21 @@ class HorarioCursoForm(forms.ModelForm):
                 'max': '18:00',
                 'step': '300'
             }),
-            'asignatura': forms.Select(attrs={'class': 'form-select'})
+            'asignatura': forms.Select(attrs={'class': 'form-select'}),
+            'profesor': forms.Select(attrs={'class': 'form-select'})
         }
         labels = {
             'dia': 'Día de la semana',
             'hora_inicio': 'Hora de inicio',
             'hora_fin': 'Hora de fin',
-            'asignatura': 'Asignatura'
+            'asignatura': 'Asignatura',
+            'profesor': 'Profesor'
         }
         help_texts = {
             'hora_inicio': 'Hora de inicio de la clase (formato 24h)',
             'hora_fin': 'Hora de fin de la clase (formato 24h)',
-            'asignatura': 'Selecciona la asignatura para esta clase'
+            'asignatura': 'Selecciona la asignatura para esta clase',
+            'profesor': 'Selecciona el profesor que imparte la clase'
         }
 
     def __init__(self, *args, **kwargs):
@@ -1775,6 +1770,289 @@ class AnotacionForm(forms.ModelForm):
                 cleaned_data['puntos'] = 0
         
         return cleaned_data
+    
+    def save(self, commit=True):
+        anotacion = super().save(commit=False)
+        
+        # Establecer automáticamente los puntos según el tipo si no se han configurado manualmente
+        if not hasattr(anotacion, '_puntos_manual'):
+            if anotacion.tipo == 'positiva':
+                anotacion.puntos = 5
+            elif anotacion.tipo == 'negativa':
+                anotacion.puntos = -6 if anotacion.es_grave else -3
+            else:  # neutra
+                anotacion.puntos = 0
+        
+        if commit:
+            anotacion.save()
+        
+        return anotacion
+        self.fields['estudiante'].queryset = Estudiante.objects.all().order_by('primer_nombre', 'apellido_paterno')
+        self.fields['estudiante'].empty_label = "Seleccionar estudiante..."
+        
+        # Filtrar cursos según el tipo de usuario
+        if profesor:
+            # Profesor: solo sus cursos donde es jefe o tiene asignaturas
+            cursos_ids = set()
+            
+            # Cursos donde es jefe
+            cursos_jefe = profesor.cursos_jefatura.filter(anio=anio_actual)
+            cursos_ids.update(cursos_jefe.values_list('id', flat=True))
+            
+            # Obtener cursos donde el profesor tiene asignaturas asignadas
+            try:
+                # Usar solo la relación profesor_responsable
+                cursos_asignaturas = Curso.objects.filter(
+                    asignaturas__profesor_responsable=profesor,
+                    anio=anio_actual
+                ).distinct()
+                cursos_ids.update(cursos_asignaturas.values_list('id', flat=True))
+            except:
+                pass
+            
+            # Si no tiene cursos asignados, permitir ver todos los cursos con estudiantes
+            if not cursos_ids:
+                cursos_disponibles = Curso.objects.filter(
+                    anio=anio_actual,
+                    estudiantes__isnull=False
+                ).distinct()
+            else:
+                cursos_disponibles = Curso.objects.filter(
+                    id__in=cursos_ids,
+                    estudiantes__isnull=False
+                ).distinct()
+            
+            self.fields['curso'].queryset = cursos_disponibles.order_by('nivel', 'paralelo')
+            
+            # Filtrar asignaturas del profesor
+            try:
+                asignaturas_ids = set()
+                
+                # Asignaturas donde el profesor es responsable
+                asignaturas_responsable = Asignatura.objects.filter(profesor_responsable=profesor)
+                asignaturas_ids.update(asignaturas_responsable.values_list('id', flat=True))
+                
+                # Si el profesor tiene una relación many-to-many con asignaturas, incluirlas también
+                try:
+                    asignaturas_profesor = profesor.asignaturas.all()
+                    asignaturas_ids.update(asignaturas_profesor.values_list('id', flat=True))
+                except:
+                    pass
+                
+                if asignaturas_ids:
+                    asignaturas_disponibles = Asignatura.objects.filter(id__in=asignaturas_ids)
+                else:
+                    # Si no tiene asignaturas específicas, mostrar todas
+                    asignaturas_disponibles = Asignatura.objects.all()
+            except:
+                asignaturas_disponibles = Asignatura.objects.all()
+            
+            self.fields['asignatura'].queryset = asignaturas_disponibles.order_by('nombre')
+        else:
+            # Admin/Director: todos los cursos del año actual con estudiantes
+            cursos_con_estudiantes = Curso.objects.filter(
+                anio=anio_actual,
+                estudiantes__isnull=False
+            ).distinct().order_by('nivel', 'paralelo')
+            
+            self.fields['curso'].queryset = cursos_con_estudiantes
+            self.fields['asignatura'].queryset = Asignatura.objects.all().order_by('nombre')
+        
+        # Si estamos editando una anotación existente, configurar los campos
+        if self.instance.pk:  # Editando anotación existente
+            # Hacer que curso y estudiante no sean editables
+            self.fields['curso'].widget.attrs['disabled'] = True
+            self.fields['estudiante'].widget.attrs['disabled'] = True
+            
+            # Configurar el queryset del estudiante para mostrar solo el actual
+            if self.instance.estudiante:
+                self.fields['estudiante'].queryset = Estudiante.objects.filter(id=self.instance.estudiante.id)
+            
+            # Configurar el queryset del curso para mostrar solo el actual
+            if self.instance.curso:
+                self.fields['curso'].queryset = Curso.objects.filter(id=self.instance.curso.id)
+        else:
+            # Configurar valores por defecto para nuevas anotaciones
+            self.fields['puntos'].initial = 0
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        
+        # Validar que el estudiante pertenezca al curso seleccionado
+        estudiante = cleaned_data.get('estudiante')
+        curso = cleaned_data.get('curso')
+        
+        if estudiante and curso:
+            if not curso.estudiantes.filter(id=estudiante.id).exists():
+                raise forms.ValidationError(
+                    f'El estudiante {estudiante.get_nombre_completo()} no pertenece al curso {curso}.',
+                    code='estudiante_no_pertenece_curso'
+                )
+        
+        # Ajustar puntos automáticamente si no se especificaron
+        puntos = cleaned_data.get('puntos')
+        tipo = cleaned_data.get('tipo')
+        es_grave = cleaned_data.get('es_grave')
+        
+        if puntos == 0 and tipo:
+            if tipo == 'positiva':
+                cleaned_data['puntos'] = 5
+            elif tipo == 'negativa':
+                cleaned_data['puntos'] = -3 * (2 if es_grave else 1)
+            else:  # neutra
+                cleaned_data['puntos'] = 0
+        
+        return cleaned_data
+    
+    def save(self, commit=True):
+        anotacion = super().save(commit=False)
+        
+        # Establecer automáticamente los puntos según el tipo si no se han configurado manualmente
+        if not hasattr(anotacion, '_puntos_manual'):
+            if anotacion.tipo == 'positiva':
+                anotacion.puntos = 5
+            elif anotacion.tipo == 'negativa':
+                anotacion.puntos = -6 if anotacion.es_grave else -3
+            else:  # neutra
+                anotacion.puntos = 0
+        
+        if commit:
+            anotacion.save()
+        
+        return anotacion
+        self.fields['estudiante'].queryset = Estudiante.objects.all().order_by('primer_nombre', 'apellido_paterno')
+        self.fields['estudiante'].empty_label = "Seleccionar estudiante..."
+        
+        # Filtrar cursos según el tipo de usuario
+        if profesor:
+            # Profesor: solo sus cursos donde es jefe o tiene asignaturas
+            cursos_ids = set()
+            
+            # Cursos donde es jefe
+            cursos_jefe = profesor.cursos_jefatura.filter(anio=anio_actual)
+            cursos_ids.update(cursos_jefe.values_list('id', flat=True))
+            
+            # Obtener cursos donde el profesor tiene asignaturas asignadas
+            try:
+                # Usar solo la relación profesor_responsable
+                cursos_asignaturas = Curso.objects.filter(
+                    asignaturas__profesor_responsable=profesor,
+                    anio=anio_actual
+                ).distinct()
+                cursos_ids.update(cursos_asignaturas.values_list('id', flat=True))
+            except:
+                pass
+            
+            # Si no tiene cursos asignados, permitir ver todos los cursos con estudiantes
+            if not cursos_ids:
+                cursos_disponibles = Curso.objects.filter(
+                    anio=anio_actual,
+                    estudiantes__isnull=False
+                ).distinct()
+            else:
+                cursos_disponibles = Curso.objects.filter(
+                    id__in=cursos_ids,
+                    estudiantes__isnull=False
+                ).distinct()
+            
+            self.fields['curso'].queryset = cursos_disponibles.order_by('nivel', 'paralelo')
+            
+            # Filtrar asignaturas del profesor
+            try:
+                asignaturas_ids = set()
+                
+                # Asignaturas donde el profesor es responsable
+                asignaturas_responsable = Asignatura.objects.filter(profesor_responsable=profesor)
+                asignaturas_ids.update(asignaturas_responsable.values_list('id', flat=True))
+                
+                # Si el profesor tiene una relación many-to-many con asignaturas, incluirlas también
+                try:
+                    asignaturas_profesor = profesor.asignaturas.all()
+                    asignaturas_ids.update(asignaturas_profesor.values_list('id', flat=True))
+                except:
+                    pass
+                
+                if asignaturas_ids:
+                    asignaturas_disponibles = Asignatura.objects.filter(id__in=asignaturas_ids)
+                else:
+                    # Si no tiene asignaturas específicas, mostrar todas
+                    asignaturas_disponibles = Asignatura.objects.all()
+            except:
+                asignaturas_disponibles = Asignatura.objects.all()
+            
+            self.fields['asignatura'].queryset = asignaturas_disponibles.order_by('nombre')
+        else:
+            # Admin/Director: todos los cursos del año actual con estudiantes
+            cursos_con_estudiantes = Curso.objects.filter(
+                anio=anio_actual,
+                estudiantes__isnull=False
+            ).distinct().order_by('nivel', 'paralelo')
+            
+            self.fields['curso'].queryset = cursos_con_estudiantes
+            self.fields['asignatura'].queryset = Asignatura.objects.all().order_by('nombre')
+        
+        # Si estamos editando una anotación existente, configurar los campos
+        if self.instance.pk:  # Editando anotación existente
+            # Hacer que curso y estudiante no sean editables
+            self.fields['curso'].widget.attrs['disabled'] = True
+            self.fields['estudiante'].widget.attrs['disabled'] = True
+            
+            # Configurar el queryset del estudiante para mostrar solo el actual
+            if self.instance.estudiante:
+                self.fields['estudiante'].queryset = Estudiante.objects.filter(id=self.instance.estudiante.id)
+            
+            # Configurar el queryset del curso para mostrar solo el actual
+            if self.instance.curso:
+                self.fields['curso'].queryset = Curso.objects.filter(id=self.instance.curso.id)
+        else:
+            # Configurar valores por defecto para nuevas anotaciones
+            self.fields['puntos'].initial = 0
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        
+        # Validar que el estudiante pertenezca al curso seleccionado
+        estudiante = cleaned_data.get('estudiante')
+        curso = cleaned_data.get('curso')
+        
+        if estudiante and curso:
+            if not curso.estudiantes.filter(id=estudiante.id).exists():
+                raise forms.ValidationError(
+                    f'El estudiante {estudiante.get_nombre_completo()} no pertenece al curso {curso}.',
+                    code='estudiante_no_pertenece_curso'
+                )
+        
+        # Ajustar puntos automáticamente si no se especificaron
+        puntos = cleaned_data.get('puntos')
+        tipo = cleaned_data.get('tipo')
+        es_grave = cleaned_data.get('es_grave')
+        
+        if puntos == 0 and tipo:
+            if tipo == 'positiva':
+                cleaned_data['puntos'] = 5
+            elif tipo == 'negativa':
+                cleaned_data['puntos'] = -3 * (2 if es_grave else 1)
+            else:  # neutra
+                cleaned_data['puntos'] = 0
+        
+        return cleaned_data
+    
+    def save(self, commit=True):
+        anotacion = super().save(commit=False)
+        
+        # Establecer automáticamente los puntos según el tipo si no se han configurado manualmente
+        if not hasattr(anotacion, '_puntos_manual'):
+            if anotacion.tipo == 'positiva':
+                anotacion.puntos = 5
+            elif anotacion.tipo == 'negativa':
+                anotacion.puntos = -6 if anotacion.es_grave else -3
+            else:  # neutra
+                anotacion.puntos = 0
+        
+        if commit:
+            anotacion.save()
+        
+        return anotacion
 
 class FiltroAnotacionesForm(forms.Form):
     """Formulario para filtrar las anotaciones en el libro"""
@@ -2108,9 +2386,16 @@ class DirectorForm(forms.Form):
             return numero_documento
 
     def clean_username(self):
-        username = self.cleaned_data['username']
-        if User.objects.filter(username=username).exists():
-            raise forms.ValidationError('Ya existe un usuario con este nombre.')
+        username = self.cleaned_data.get('username')
+        if username:
+            from django.contrib.auth.models import User
+            # Verificar si el nombre de usuario ya existe
+            qs = User.objects.filter(username=username)
+            if self.instance and self.instance.user:
+                qs = qs.exclude(pk=self.instance.user.pk)
+            
+            if qs.exists():
+                raise forms.ValidationError("Este nombre de usuario ya está en uso. Por favor elija otro.")
         return username
     
     def clean_email(self):
@@ -2398,6 +2683,19 @@ class ApoderadoForm(forms.ModelForm):
                 
         return fecha_nacimiento
 
+    def clean_username(self):
+        username = self.cleaned_data.get('username')
+        if username:
+            from django.contrib.auth.models import User
+            # Verificar si el nombre de usuario ya existe
+            qs = User.objects.filter(username=username)
+            if self.instance and self.instance.user:
+                qs = qs.exclude(pk=self.instance.user.pk)
+            
+            if qs.exists():
+                raise forms.ValidationError("Este nombre de usuario ya está en uso. Por favor elija otro.")
+        return username
+
     def save(self, commit=True):
         # Guardar el apoderado sin usuario primero
         apoderado = super().save(commit=False)
@@ -2429,14 +2727,22 @@ class ApoderadoForm(forms.ModelForm):
             apoderado.save()
             # Manejar relaciones con estudiantes
             estudiantes_seleccionados = self.cleaned_data.get('estudiantes', [])
-            # Eliminar todas las relaciones previas
-            RelacionApoderadoEstudiante.objects.filter(apoderado=apoderado).delete()
-            # Si hay estudiantes seleccionados, crear nuevas relaciones
+            
+            # Obtener relaciones existentes
+            relaciones_existentes = RelacionApoderadoEstudiante.objects.filter(apoderado=apoderado)
+            estudiantes_existentes_ids = set(relaciones_existentes.values_list('estudiante_id', flat=True))
+            estudiantes_seleccionados_ids = set(e.id for e in estudiantes_seleccionados)
+            
+            # Eliminar relaciones que ya no están seleccionadas
+            relaciones_existentes.exclude(estudiante_id__in=estudiantes_seleccionados_ids).delete()
+            
+            # Crear nuevas relaciones para estudiantes que no estaban asignados
             for estudiante in estudiantes_seleccionados:
-                RelacionApoderadoEstudiante.objects.create(
-                    apoderado=apoderado,
-                    estudiante=estudiante,
-                    parentesco=apoderado.parentesco_principal,
-                    es_apoderado_principal=True
-                )
+                if estudiante.id not in estudiantes_existentes_ids:
+                    RelacionApoderadoEstudiante.objects.create(
+                        apoderado=apoderado,
+                        estudiante=estudiante,
+                        parentesco=apoderado.parentesco_principal,
+                        es_apoderado_principal=True
+                    )
         return apoderado

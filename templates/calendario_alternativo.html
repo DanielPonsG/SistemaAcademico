@@ -206,7 +206,7 @@
           {% if eventos %}
             <div class="timeline">
               {% for evento in eventos|slice:":12" %}
-                <div class="timeline-item" onclick="mostrarDetalleEvento('{{ evento.titulo|escapejs }}', '{{ evento.fecha|date:"j F Y" }}', '{{ evento.descripcion|default:""|escapejs }}')">
+                <div class="timeline-item" onclick="mostrarDetalleEvento({{ evento.id }}, '{{ evento.titulo|escapejs }}', '{{ evento.fecha|date:"j F Y" }}', '{{ evento.descripcion|default:""|escapejs }}', '{{ evento.get_tipo_evento_display|escapejs }}')">
                   <div class="d-flex justify-content-between align-items-start">
                     <div>
                       <h5>{{ evento.titulo }}</h5>
@@ -242,6 +242,137 @@
       </div>
     </div>
 
+  </div>
+</div>
+
+<!-- Modal Nuevo Evento -->
+<div class="modal fade" id="modalNuevoEvento" tabindex="-1" role="dialog" aria-labelledby="modalNuevoEventoLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white" style="background: linear-gradient(135deg, #6366f1, #4338ca); color: white;">
+        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close" style="opacity: 1; color: white;">
+          <span aria-hidden="true">&times;</span>
+        </button>
+        <h4 class="modal-title" id="modalNuevoEventoLabel"><i class="fa fa-calendar-plus-o me-2"></i> Nuevo Evento</h4>
+      </div>
+      <div class="modal-body">
+        <form id="formNuevoEvento">
+          {% csrf_token %}
+          <div class="row">
+            <div class="col-md-8 form-group">
+              <label class="control-label fw-bold">Título del evento *</label>
+              <input type="text" name="titulo" class="form-control" required placeholder="Ej: Reunión de Apoderados">
+            </div>
+            <div class="col-md-4 form-group">
+              <label class="control-label fw-bold">Fecha *</label>
+              <input type="date" name="fecha" class="form-control" required>
+            </div>
+          </div>
+          
+          <div class="row">
+            <div class="col-md-6 form-group">
+              <label class="control-label fw-bold">Hora inicio</label>
+              <input type="time" name="hora_inicio" class="form-control">
+            </div>
+            <div class="col-md-6 form-group">
+              <label class="control-label fw-bold">Hora fin</label>
+              <input type="time" name="hora_fin" class="form-control">
+            </div>
+          </div>
+          
+          <div class="row">
+            <div class="col-md-6 form-group">
+              <label class="control-label fw-bold">Tipo de evento</label>
+              <select name="tipo_evento" class="form-control">
+                {% for tipo_val, tipo_label in tipos_evento %}
+                <option value="{{ tipo_val }}">{{ tipo_label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-6 form-group">
+              <label class="control-label fw-bold">Prioridad</label>
+              <select name="prioridad" class="form-control">
+                {% for prio_val, prio_label in prioridades %}
+                <option value="{{ prio_val }}" {% if prio_val == 'media' %}selected{% endif %}>{{ prio_label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label class="control-label fw-bold">Descripción</label>
+            <textarea name="descripcion" class="form-control" rows="3" placeholder="Detalles adicionales del evento..."></textarea>
+          </div>
+          
+          <div class="form-group">
+            <label class="control-label fw-bold">Dirigido a</label>
+            <div class="radio">
+              <label>
+                <input type="radio" name="dirigido_a" value="todos" checked onchange="toggleCursosModal(false)"> Todos los cursos
+              </label>
+            </div>
+            <div class="radio">
+              <label>
+                <input type="radio" name="dirigido_a" value="solo_profesores" onchange="toggleCursosModal(false)"> Solo profesores
+              </label>
+            </div>
+            {% if cursos %}
+            <div class="radio">
+              <label>
+                <input type="radio" name="dirigido_a" value="cursos_especificos" onchange="toggleCursosModal(true)"> Cursos específicos
+              </label>
+            </div>
+            <div id="modalCursosEspecificos" class="well" style="display: none; margin-top: 10px; max-height: 150px; overflow-y: auto;">
+              <div class="row">
+                {% for curso in cursos %}
+                <div class="col-md-6">
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="cursos_especificos" value="{{ curso.id }}">
+                      {{ curso.nivel }} {{ curso.paralelo }}
+                    </label>
+                  </div>
+                </div>
+                {% endfor %}
+              </div>
+            </div>
+            {% endif %}
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-primary" onclick="guardarEvento()">Guardar Evento</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Detalle Evento -->
+<div class="modal fade" id="modalDetalleEvento" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+        <h4 class="modal-title" id="detalleTitulo">Titulo del Evento</h4>
+      </div>
+      <div class="modal-body">
+        <p><strong>Fecha:</strong> <span id="detalleFecha"></span></p>
+        <p><strong>Tipo:</strong> <span id="detalleTipo" class="label label-info"></span></p>
+        <hr>
+        <p><strong>Descripción:</strong></p>
+        <p id="detalleDescripcion"></p>
+      </div>
+      <div class="modal-footer">
+        {% if puede_crear_eventos %}
+        <a href="#" id="btnEditarEvento" class="btn btn-warning"><i class="fa fa-pencil"></i> Editar</a>
+        <button type="button" id="btnEliminarEvento" class="btn btn-danger"><i class="fa fa-trash"></i> Eliminar</button>
+        {% endif %}
+        <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
   </div>
 </div>
 {% endblock %}
@@ -347,7 +478,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     chip.title = evento.etiquetaTipo + ' • ' + evento.fechaTexto;
                     chip.addEventListener('click', function(ev) {
                       ev.stopPropagation();
-                      window.mostrarDetalleEvento(evento.titulo, evento.fechaTexto, evento.descripcion);
+                      window.mostrarDetalleEvento(evento.id, evento.titulo, evento.fechaTexto, evento.descripcion, evento.etiquetaTipo);
                     });
                     celda.appendChild(chip);
                 });
@@ -384,16 +515,74 @@ document.addEventListener('DOMContentLoaded', function() {
         generarCalendario();
     };
 
-    window.mostrarDetalleEvento = function(titulo, fecha, descripcion) {
-        var mensaje = 'Evento: ' + titulo + '\nFecha: ' + fecha;
-        if (descripcion) {
-          mensaje += '\nDescripcion: ' + descripcion;
+    window.mostrarDetalleEvento = function(id, titulo, fecha, descripcion, tipo) {
+        $('#detalleTitulo').text(titulo);
+        $('#detalleFecha').text(fecha);
+        $('#detalleDescripcion').text(descripcion || 'Sin descripción');
+        $('#detalleTipo').text(tipo || 'Evento');
+        
+        // Update Edit/Delete buttons
+        var btnEditar = $('#btnEditarEvento');
+        var btnEliminar = $('#btnEliminarEvento');
+        
+        if (btnEditar.length) {
+            btnEditar.attr('href', '/calendario/editar/' + id + '/');
         }
-        alert(mensaje);
+        
+        if (btnEliminar.length) {
+            // Unbind previous click handlers to avoid multiple deletions
+            btnEliminar.off('click').on('click', function() {
+                eliminarEvento(id, titulo);
+            });
+        }
+        
+        $('#modalDetalleEvento').modal('show');
     };
 
     window.abrirModalEvento = function() {
-        alert('Función de crear evento - Integra tu modal aquí.');
+        $('#modalNuevoEvento').modal('show');
+    };
+
+    window.toggleCursosModal = function(mostrar) {
+        var container = document.getElementById('modalCursosEspecificos');
+        if (container) {
+            container.style.display = mostrar ? 'block' : 'none';
+        }
+    };
+
+    window.guardarEvento = function() {
+        var form = document.getElementById('formNuevoEvento');
+        var formData = new FormData(form);
+        
+        // Validar campos requeridos
+        if (!formData.get('titulo') || !formData.get('fecha')) {
+            alert('Por favor complete el título y la fecha.');
+            return;
+        }
+
+        $.ajax({
+            url: window.location.href,
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            headers: {
+                'X-CSRFToken': $('[name=csrfmiddlewaretoken]').val(),
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            success: function(response) {
+                if (response.success) {
+                    $('#modalNuevoEvento').modal('hide');
+                    // Recargar para mostrar el nuevo evento
+                    window.location.reload();
+                } else {
+                    alert('Error: ' + (response.error || 'No se pudo crear el evento'));
+                }
+            },
+            error: function() {
+                alert('Error de conexión. Inténtalo nuevamente.');
+            }
+        });
     };
 
     window.filtrarPorEstudiante = function() {
@@ -427,7 +616,7 @@ function eliminarEvento(eventoId, titulo) {
     }
 
     $.ajax({
-        url: '/eventos/eliminar/' + eventoId + '/',
+        url: '/calendario/eliminar/' + eventoId + '/',
         type: 'POST',
         headers: {
             'X-CSRFToken': $('[name=csrfmiddlewaretoken]').val(),
@@ -435,7 +624,7 @@ function eliminarEvento(eventoId, titulo) {
         },
         success: function(response) {
             if (response.success) {
-                alert('Evento eliminado correctamente');
+                // alert('Evento eliminado correctamente'); // Removed alert to be less intrusive or use a toast
                 window.location.reload();
             } else {
                 alert('Error: ' + (response.error || 'No se pudo eliminar el evento'));

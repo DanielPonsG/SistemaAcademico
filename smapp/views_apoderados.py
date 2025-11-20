@@ -1056,3 +1056,44 @@ def ver_horario_estudiante_apoderado(request, estudiante_id):
     }
     
     return render(request, 'ver_horario_estudiante_apoderado.html', context)
+
+@login_required
+def editar_relacion_apoderado(request, relacion_id):
+    """Vista para editar permisos de una relación apoderado-estudiante"""
+    # Verificar permisos
+    if not verificar_permisos_admin_director(request.user):
+        messages.error(request, "No tienes permisos para acceder a esta sección.")
+        return redirect('inicio')
+        
+    relacion = get_object_or_404(RelacionApoderadoEstudiante, id=relacion_id)
+    
+    if request.method == 'POST':
+        # Actualizar permisos
+        relacion.es_apoderado_principal = request.POST.get('es_apoderado_principal') == 'on'
+        relacion.puede_retirar = request.POST.get('puede_retirar') == 'on'
+        relacion.puede_autorizar = request.POST.get('puede_autorizar') == 'on'
+        relacion.parentesco = request.POST.get('parentesco')
+        relacion.save()
+        
+        messages.success(request, 'Permisos actualizados correctamente.')
+        return redirect('detalle_apoderado', apoderado_id=relacion.apoderado.id)
+        
+    return render(request, 'editar_relacion_apoderado.html', {'relacion': relacion})
+
+@login_required
+def eliminar_relacion_apoderado(request, relacion_id):
+    """Vista para eliminar una relación apoderado-estudiante"""
+    # Verificar permisos
+    if not verificar_permisos_admin_director(request.user):
+        messages.error(request, "No tienes permisos para acceder a esta sección.")
+        return redirect('inicio')
+        
+    relacion = get_object_or_404(RelacionApoderadoEstudiante, id=relacion_id)
+    apoderado_id = relacion.apoderado.id
+    
+    if request.method == 'POST':
+        relacion.delete()
+        messages.success(request, 'Estudiante desvinculado correctamente.')
+        return redirect('detalle_apoderado', apoderado_id=apoderado_id)
+        
+    return render(request, 'confirmar_eliminar_relacion.html', {'relacion': relacion})

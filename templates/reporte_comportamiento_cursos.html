@@ -1,0 +1,113 @@
+{% extends "index_master.html" %}
+{% load static %}
+
+{% block content %}
+<div class="right_col" role="main">
+  <div class="row">
+    <div class="col-md-12 col-sm-12">
+      <div class="x_panel">
+        <div class="x_title">
+          <h2><i class="fas fa-chart-bar"></i> Comportamiento por Curso</h2>
+          <div class="clearfix"></div>
+        </div>
+        <div class="x_content">
+          <div class="row">
+            <div class="col-md-12">
+              <p class="text-muted">
+                Este gráfico muestra la distribución de anotaciones positivas y negativas por curso.
+              </p>
+              <div style="height: 400px;">
+                <canvas id="comportamientoChart"></canvas>
+              </div>
+            </div>
+          </div>
+          
+          <div class="row mt-4">
+            <div class="col-md-12">
+              <table class="table table-striped table-bordered">
+                <thead>
+                  <tr>
+                    <th>Curso</th>
+                    <th class="text-success">Positivas</th>
+                    <th class="text-danger">Negativas</th>
+                    <th>Total</th>
+                    <th>Índice (Pos - Neg)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for dato in datos_cursos %}
+                  <tr>
+                    <td>{{ dato.curso }}</td>
+                    <td class="text-success">{{ dato.positivas }}</td>
+                    <td class="text-danger">{{ dato.negativas }}</td>
+                    <td>{{ dato.total }}</td>
+                    <td>
+                      {% if dato.indice > 0 %}
+                        <span class="badge bg-success">+{{ dato.indice }}</span>
+                      {% elif dato.indice < 0 %}
+                        <span class="badge bg-danger">{{ dato.indice }}</span>
+                      {% else %}
+                        <span class="badge bg-secondary">{{ dato.indice }}</span>
+                      {% endif %}
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  var ctx = document.getElementById('comportamientoChart').getContext('2d');
+  
+  var cursos = [{% for dato in datos_cursos %}"{{ dato.curso }}",{% endfor %}];
+  var positivas = [{% for dato in datos_cursos %}{{ dato.positivas }},{% endfor %}];
+  var negativas = [{% for dato in datos_cursos %}{{ dato.negativas }},{% endfor %}];
+  
+  var chart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: cursos,
+      datasets: [
+        {
+          label: 'Anotaciones Positivas',
+          data: positivas,
+          backgroundColor: 'rgba(40, 167, 69, 0.6)',
+          borderColor: 'rgba(40, 167, 69, 1)',
+          borderWidth: 1
+        },
+        {
+          label: 'Anotaciones Negativas',
+          data: negativas,
+          backgroundColor: 'rgba(220, 53, 69, 0.6)',
+          borderColor: 'rgba(220, 53, 69, 1)',
+          borderWidth: 1
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        yAxes: [{
+          ticks: {
+            beginAtZero: true,
+            stepSize: 1
+          }
+        }]
+      },
+      title: {
+        display: true,
+        text: 'Balance de Comportamiento por Curso'
+      }
+    }
+  });
+});
+</script>
+{% endblock %}

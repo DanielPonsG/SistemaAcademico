@@ -1,0 +1,70 @@
+{% extends "index_master.html" %}
+{% load widget_tweaks %}
+
+{% block content %}
+<div class="right_col" role="main">
+  <div class="container-fluid">
+    <div class="row justify-content-center">
+      <div class="col-md-8">
+        <div class="card border-0 shadow-sm">
+          <div class="card-header bg-gradient-header text-white" style="border-radius: 18px 18px 0 0; background: linear-gradient(90deg, #3a8dde 0%, #6a5af9 100%);">
+            <h4 class="mb-0 fw-bold d-flex align-items-center">
+              <i class="fas fa-user-cog me-3" style="font-size: 1.8rem;"></i>
+              <span>Editar Permisos de Apoderado</span>
+            </h4>
+          </div>
+          
+          <div class="card-body">
+            <div class="alert alert-info">
+              <div class="row">
+                <div class="col-md-6">
+                  <strong>Apoderado:</strong> {{ relacion.apoderado.get_nombre_completo }}
+                </div>
+                <div class="col-md-6">
+                  <strong>Estudiante:</strong> {{ relacion.estudiante.get_nombre_completo }}
+                </div>
+              </div>
+            </div>
+
+            <form method="post">
+              {% csrf_token %}
+              
+              <div class="mb-3">
+                <label for="parentesco" class="form-label">Parentesco</label>
+                <select name="parentesco" id="parentesco" class="form-control">
+                  {% for value, label in relacion.PARENTESCO_CHOICES %}
+                  <option value="{{ value }}" {% if relacion.parentesco == value %}selected{% endif %}>{{ label }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <div class="mb-3 form-check">
+                <input type="checkbox" class="form-check-input" id="es_apoderado_principal" name="es_apoderado_principal" {% if relacion.es_apoderado_principal %}checked{% endif %}>
+                <label class="form-check-label" for="es_apoderado_principal">Es Apoderado Principal</label>
+                <div class="form-text">El apoderado principal es el contacto primario para el colegio.</div>
+              </div>
+
+              <div class="mb-3 form-check">
+                <input type="checkbox" class="form-check-input" id="puede_retirar" name="puede_retirar" {% if relacion.puede_retirar %}checked{% endif %}>
+                <label class="form-check-label" for="puede_retirar">Autorizado para Retirar al Estudiante</label>
+                <div class="form-text">Permite al apoderado retirar al estudiante del establecimiento durante la jornada.</div>
+              </div>
+
+              <div class="mb-3 form-check">
+                <input type="checkbox" class="form-check-input" id="puede_autorizar" name="puede_autorizar" {% if relacion.puede_autorizar %}checked{% endif %}>
+                <label class="form-check-label" for="puede_autorizar">Puede Autorizar Actividades</label>
+                <div class="form-text">Permite firmar autorizaciones para salidas pedagógicas y otras actividades.</div>
+              </div>
+
+              <div class="d-flex justify-content-end gap-2 mt-4">
+                <a href="{% url 'detalle_apoderado' relacion.apoderado.id %}" class="btn btn-secondary">Cancelar</a>
+                <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

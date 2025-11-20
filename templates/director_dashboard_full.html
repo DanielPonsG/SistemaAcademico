@@ -2,1330 +2,841 @@
 
 {% block extra_css %}
 <style>
-.right_col.right_col--director {
-  display: flex;
-  justify-content: center;
-  width: 100%;
-  margin-left: 0 !important;
-  margin-right: 0 !important;
-  padding: 0 0 2.5rem !important;
-  box-sizing: border-box;
-  float: none;
-  position: relative;
-}
-
-.nav-md .container.body .right_col.right_col--director,
-.nav-sm .container.body .right_col.right_col--director {
-  margin-left: 0 !important;
-  padding-left: 0 !important;
-  padding-right: 0 !important;
-}
-
-.director-dashboard-shell {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  padding: 0 clamp(1.25rem, 6vw, 4rem);
-  box-sizing: border-box;
-}
-
-.director-dashboard {
-  display: flex;
-  flex-direction: column;
-  gap: 1.75rem;
-  padding: 1.5rem 0 2.5rem;
-  width: min(100%, 1120px);
-  margin: 0 auto;
-}
-
-.director-dashboard.container-fluid {
-  max-width: 1100px;
-  margin: 0 auto;
-}
-
-.director-dashboard__grid--split {
-  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
-}
-
-.director-dashboard__grid--thirds {
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-}
-
-.director-dashboard__item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.85rem;
-  border-radius: 12px;
-  padding: 0.85rem 1rem;
-  background: #f8fafc;
-}
-
-.director-dashboard__badge {
-  display: inline-block;
-  border-radius: 999px;
-  padding: 0.25rem 0.6rem;
-  font-size: 0.75rem;
-  background: #e5e7eb;
-  color: #374151;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-}
-
-.director-dashboard__muted {
-  color: #6b7280;
-  font-size: 0.85rem;
-}
-
-.director-dashboard__item strong {
-  font-weight: 600;
-  color: #111827;
-}
-
-.director-dashboard__empty {
-  text-align: center;
-  border: 1px dashed #cbd5f5;
-  border-radius: 12px;
-  padding: 1rem;
-  color: #6b7280;
-  background: #f9fafc;
-}
-
-.director-dashboard__section > .director-dashboard__list {
-  margin-top: 0.5rem;
-}
-
-.director-dashboard__grid--thirds .director-dashboard__item {
-  min-height: 88px;
-}
-
-.dashboard-table-card {
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-  background: #ffffff;
-  border-radius: 16px;
-  border: 1px solid #e5e7eb;
-  padding: 1.5rem;
-  box-shadow: 0 12px 26px rgba(15, 23, 42, 0.08);
-}
-
-.dashboard-table-card__head {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 1.25rem;
-  flex-wrap: wrap;
-}
-
-.dashboard-table-card__title {
-  margin: 0;
-  font-size: 1.2rem;
-  font-weight: 700;
-  color: #1f2937;
-}
-
-.dashboard-table-card__subtitle {
-  margin: 0.35rem 0 0;
-  color: #6b7280;
-  font-size: 0.9rem;
-}
-
-.dashboard-table-card__controls {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.dashboard-table-search {
-  border-radius: 12px;
-  border: 1px solid #d1d5db;
-  padding: 0.5rem 0.85rem;
-  font-size: 0.85rem;
-  min-width: 220px;
-  transition: border 0.2s ease, box-shadow 0.2s ease;
-}
-
-.dashboard-table-search:focus {
-  outline: none;
-  border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18);
-}
-
-.dashboard-table-wrapper {
-  width: 100%;
-  overflow-x: auto;
-  border-radius: 12px;
-  border: 1px solid #e5e7eb;
-}
-
-.dashboard-table {
-  width: 100%;
-  min-width: 640px;
-  border-collapse: collapse;
-  font-size: 0.9rem;
-}
-
-.dashboard-table thead {
-  background: #f1f5f9;
-}
-
-.dashboard-table th,
-.dashboard-table td {
-  padding: 0.75rem 0.9rem;
-  border-bottom: 1px solid #e2e8f0;
-  white-space: nowrap;
-}
-
-.dashboard-table th {
-  font-weight: 600;
-  color: #475569;
-}
-
-.dashboard-table tbody tr:hover {
-  background: rgba(37, 99, 235, 0.08);
-}
-
-.dashboard-table th[data-sort-type] {
-  cursor: pointer;
-  position: relative;
-}
-
-.dashboard-table th[data-sort-type]::after {
-  content: '';
-  margin-left: 6px;
-  color: #94a3b8;
-  font-size: 0.7rem;
-}
-
-.dashboard-table th[data-sort-type][data-sort-order="asc"]::after {
-  content: '▲';
-}
-
-.dashboard-table th[data-sort-type][data-sort-order="desc"]::after {
-  content: '▼';
-}
-
-.dashboard-table-empty {
-  text-align: center;
-  padding: 1.15rem 0;
-  color: #6b7280;
-}
-
-.dashboard-table-meta {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.5rem;
-  align-items: center;
-  color: #6b7280;
-  font-size: 0.8rem;
-}
-
-@media (max-width: 767px) {
-  .dashboard-table-card {
-    padding: 1.15rem;
+  /* --- PREMIUM DASHBOARD STYLES --- */
+  :root {
+    --primary-gradient: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+    --secondary-gradient: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    --success-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    --warning-gradient: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    --danger-gradient: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    --dark-bg: #0f172a;
+    --card-bg: #ffffff;
+    --text-main: #1e293b;
+    --text-muted: #64748b;
+    --border-color: #e2e8f0;
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --radius-lg: 1rem;
+    --radius-xl: 1.5rem;
   }
-  .dashboard-table-card__head {
-    flex-direction: column;
-    align-items: stretch;
+
+  .director-dashboard-container {
+    padding: 2rem;
+    background-color: #f8fafc;
+    min-height: 100vh;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    color: var(--text-main);
   }
-  .dashboard-table-search {
+
+  /* Hero Section */
+  .director-hero {
+    background: var(--dark-bg);
+    border-radius: var(--radius-xl);
+    padding: 3rem 2.5rem;
+    color: white;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 2.5rem;
+    box-shadow: var(--shadow-lg);
+  }
+
+  .director-hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
     width: 100%;
+    height: 100%;
+    background:
+      radial-gradient(circle at 100% 0%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
+      radial-gradient(circle at 0% 100%, rgba(16, 185, 129, 0.1) 0%, transparent 50%);
+    pointer-events: none;
   }
-  .dashboard-table {
-    min-width: 100%;
-    font-size: 0.82rem;
+
+  .director-hero__content {
+    position: relative;
+    z-index: 2;
+    margin-bottom: 2.5rem;
   }
-}
 
-.director-analytics__head {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  margin-bottom: 1.25rem;
-}
+  .director-hero h1 {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(to right, #fff, #cbd5e1);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -0.025em;
+  }
 
-.director-analytics__head h4 {
-  margin: 0;
-  font-size: 1.3rem;
-  font-weight: 700;
-  color: #1f2937;
-}
+  .director-hero p {
+    font-size: 1.1rem;
+    color: #94a3b8;
+    max-width: 600px;
+  }
 
-.director-analytics__head p {
-  margin: 0;
-  color: #64748b;
-  font-size: 0.9rem;
-}
+  /* Stats Grid in Hero */
+  .hero-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.5rem;
+    position: relative;
+    z-index: 2;
+  }
 
-.director-analytics__kpi-grid {
-  display: grid;
-  gap: 1rem;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  margin-bottom: 1.5rem;
-}
+  .hero-stat-card {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    transition: transform 0.2s ease, background 0.2s ease;
+  }
 
-.director-analytics__kpi-card {
-  position: relative;
-  display: flex;
-  gap: 0.85rem;
-  align-items: flex-start;
-  border-radius: 18px;
-  padding: 1.1rem 1.25rem;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.12), rgba(59, 130, 246, 0.06));
-  border: 1px solid rgba(59, 130, 246, 0.18);
-  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
-}
+  .hero-stat-card:hover {
+    transform: translateY(-4px);
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.2);
+  }
 
-.director-analytics__kpi-icon {
-  width: 46px;
-  height: 46px;
-  border-radius: 14px;
-  background: rgba(59, 130, 246, 0.15);
-  color: #2563eb;
-  display: grid;
-  place-items: center;
-  font-size: 1.25rem;
-}
+  .hero-stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: grid;
+    place-items: center;
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+  }
 
-.director-analytics__kpi-body {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-}
+  .hero-stat-value {
+    font-size: 2.25rem;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 0.25rem;
+    color: white;
+  }
 
-.director-analytics__kpi-body span {
-  font-size: 0.85rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: #475569;
-}
+  .hero-stat-label {
+    font-size: 0.875rem;
+    color: #cbd5e1;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+  }
 
-.director-analytics__kpi-body strong {
-  font-size: 1.5rem;
-  color: #0f172a;
-}
+  /* Main Layout */
+  .dashboard-layout {
+    display: grid;
+    grid-template-columns: 1fr 350px;
+    gap: 2rem;
+  }
 
-.director-analytics__kpi-body small {
-  font-size: 0.82rem;
-  color: #64748b;
-}
+  @media (max-width: 1024px) {
+    .dashboard-layout {
+      grid-template-columns: 1fr;
+    }
+  }
 
-.director-analytics__kpi-delta {
-  position: absolute;
-  top: 12px;
-  right: 14px;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-size: 0.8rem;
-  font-weight: 600;
-  padding: 0.35rem 0.6rem;
-  border-radius: 999px;
-  background: rgba(59, 130, 246, 0.12);
-  color: #2563eb;
-}
+  /* Cards */
+  .dashboard-card {
+    background: var(--card-bg);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-sm);
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    transition: box-shadow 0.2s ease;
+  }
 
-.director-analytics__kpi-delta.positive {
-  background: rgba(34, 197, 94, 0.18);
-  color: #16a34a;
-}
+  .dashboard-card:hover {
+    box-shadow: var(--shadow-md);
+  }
 
-.director-analytics__kpi-delta.negative {
-  background: rgba(239, 68, 68, 0.18);
-  color: #dc2626;
-}
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+  }
 
-.director-analytics__table-grid {
-  display: grid;
-  gap: 1rem;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  margin-bottom: 1.5rem;
-}
+  .card-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-main);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
 
-.director-analytics__trend-grid {
-  display: grid;
-  gap: 1rem;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  margin-bottom: 1.5rem;
-}
+  .card-title i {
+    color: #6366f1;
+  }
 
-.director-analytics__trend-card {
-  border: 1px solid #e5e7eb;
-  border-radius: 16px;
-  padding: 1.15rem;
-  background: #f8fafc;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
+  .card-subtitle {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+  }
 
-.director-analytics__trend-card h5 {
-  margin: 0;
-  font-weight: 600;
-  color: #0f172a;
-}
+  /* Progress Bars */
+  .progress-container {
+    margin: 1.5rem 0;
+  }
 
-.director-analytics__trend-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.65rem;
-}
+  .progress-label {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
 
-.director-analytics__trend-item {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-}
+  .progress-bar-bg {
+    height: 10px;
+    background: #f1f5f9;
+    border-radius: 999px;
+    overflow: hidden;
+  }
 
-.director-analytics__trend-header {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.85rem;
-  color: #475569;
-}
+  .progress-bar-fill {
+    height: 100%;
+    background: var(--primary-gradient);
+    border-radius: 999px;
+    transition: width 1s ease;
+  }
 
-.director-analytics__trend-bar {
-  position: relative;
-  height: 10px;
-  border-radius: 999px;
-  background: #e2e8f0;
-  overflow: hidden;
-}
+  /* Tables */
+  .modern-table-wrapper {
+    overflow-x: auto;
+    border-radius: 0.75rem;
+    border: 1px solid var(--border-color);
+  }
 
-.director-analytics__trend-bar span {
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 100%;
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
-}
+  .modern-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+  }
 
-.director-analytics__trend-meta {
-  font-size: 0.78rem;
-  color: #64748b;
-}
-
-.director-analytics__alerts {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  margin-bottom: 1.5rem;
-}
-
-.director-analytics__alerts h5 {
-  margin: 0;
-  font-weight: 600;
-  color: #0f172a;
-}
-
-.director-analytics__alert-list {
-  display: grid;
-  gap: 0.85rem;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-}
-
-.director-analytics__alert-item {
-  border-radius: 14px;
-  border: 1px solid rgba(248, 113, 113, 0.4);
-  background: rgba(254, 242, 242, 0.9);
-  padding: 0.85rem 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.director-analytics__alert-item strong {
-  color: #991b1b;
-  font-size: 1rem;
-}
-
-.director-analytics__alert-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem 0.75rem;
-  font-size: 0.8rem;
-  color: #7f1d1d;
-}
-
-.director-analytics__alert-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.25rem 0.55rem;
-  border-radius: 999px;
-  background: rgba(220, 38, 38, 0.18);
-  color: #b91c1c;
-  font-size: 0.75rem;
-  font-weight: 600;
-}
-
-.director-analytics__projection {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1.25rem;
-  align-items: flex-start;
-}
-
-.director-analytics__projection-text {
-  flex: 1 1 280px;
-  padding: 1rem 1.2rem;
-  border-radius: 16px;
-  border: 1px solid #e5e7eb;
-  background: #f8fafc;
-}
-
-.director-analytics__projection-text h5 {
-  margin: 0 0 0.5rem 0;
-  font-weight: 600;
-  color: #0f172a;
-}
-
-.director-analytics__projection-text p {
-  margin: 0;
-  color: #475569;
-  font-size: 0.9rem;
-}
-
-.director-analytics__projection-list {
-  flex: 1 1 260px;
-  border-radius: 16px;
-  border: 1px solid #dbeafe;
-  background: #eff6ff;
-  padding: 1rem 1.2rem;
-}
-
-.director-analytics__projection-list h6 {
-  margin: 0 0 0.6rem 0;
-  font-weight: 600;
-  color: #1d4ed8;
-}
-
-.director-analytics__projection-list ul {
-  margin: 0;
-  padding-left: 1.1rem;
-  color: #1e3a8a;
-  font-size: 0.87rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.45rem;
-}
-
-@media (max-width: 767px) {
-  .director-analytics__kpi-card {
+  .modern-table th {
+    background: #f8fafc;
     padding: 1rem;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border-color);
   }
-  .director-analytics__kpi-body strong {
-    font-size: 1.3rem;
+
+  .modern-table td {
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-main);
   }
-  .director-analytics__table-grid,
-  .director-analytics__trend-grid,
-  .director-analytics__alert-list {
-    grid-template-columns: 1fr;
+
+  .modern-table tr:last-child td {
+    border-bottom: none;
   }
-  .director-analytics__projection {
+
+  .modern-table tr:hover td {
+    background: #f8fafc;
+  }
+
+  /* Lists */
+  .activity-list {
+    display: flex;
     flex-direction: column;
+    gap: 1rem;
   }
-}
+
+  .activity-item {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem;
+    border-radius: 0.75rem;
+    background: #f8fafc;
+    border: 1px solid transparent;
+    transition: all 0.2s ease;
+  }
+
+  .activity-item:hover {
+    background: white;
+    border-color: var(--border-color);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .activity-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    font-size: 1.1rem;
+  }
+
+  .activity-icon.blue {
+    background: #eff6ff;
+    color: #3b82f6;
+  }
+
+  .activity-icon.green {
+    background: #ecfdf5;
+    color: #10b981;
+  }
+
+  .activity-icon.amber {
+    background: #fffbeb;
+    color: #f59e0b;
+  }
+
+  .activity-icon.red {
+    background: #fef2f2;
+    color: #ef4444;
+  }
+
+  .activity-content h6 {
+    margin: 0 0 0.25rem 0;
+    font-weight: 600;
+    font-size: 0.95rem;
+  }
+
+  .activity-content p {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+  }
+
+  /* Badges */
+  .badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .badge-success {
+    background: #ecfdf5;
+    color: #059669;
+  }
+
+  .badge-warning {
+    background: #fffbeb;
+    color: #d97706;
+  }
+
+  .badge-danger {
+    background: #fef2f2;
+    color: #dc2626;
+  }
+
+  .badge-info {
+    background: #eff6ff;
+    color: #2563eb;
+  }
+
+  /* Grid for Mini Cards */
+  .mini-card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 1rem;
+  }
+
+  .mini-card {
+    background: #f8fafc;
+    padding: 1rem;
+    border-radius: 0.75rem;
+    text-align: center;
+    border: 1px solid transparent;
+    transition: all 0.2s;
+  }
+
+  .mini-card:hover {
+    background: white;
+    border-color: var(--border-color);
+    box-shadow: var(--shadow-sm);
+    transform: translateY(-2px);
+  }
+
+  /* Search Input */
+  .search-input {
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    border: 1px solid var(--border-color);
+    font-size: 0.9rem;
+    width: 250px;
+    transition: border-color 0.2s;
+  }
+
+  .search-input:focus {
+    outline: none;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  }
 </style>
 {% endblock %}
+
 {% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-  const table = document.getElementById('director-courses-table');
+  document.addEventListener('DOMContentLoaded', () => {
+    // Inicialización de tablas con búsqueda
+    const initTableSearch = (inputId, tableId) => {
+      const input = document.getElementById(inputId);
+      const table = document.getElementById(tableId);
+      if (!input || !table) return;
 
-  class DashboardTable {
-    constructor(tableEl) {
-      this.table = tableEl;
-      this.tbody = tableEl.querySelector('tbody');
-      this.headers = Array.from(tableEl.querySelectorAll('thead th'));
-      this.rows = this.tbody ? Array.from(this.tbody.querySelectorAll('tr')).filter(row => !row.dataset.emptyRow) : [];
-      this.rows.forEach(row => {
-        row.dataset.searchValue = row.textContent.toLowerCase();
-      });
-      this.emptyText = tableEl.dataset.emptyText || 'Sin registros para mostrar.';
-      this.emptyRow = this.createEmptyRow();
-      this.currentSort = { index: null, order: 'asc' };
-      if (!this.rows.length) {
-        this.updateEmptyState(true);
-      }
-      this.attachSortHandlers();
-    }
+      input.addEventListener('input', (e) => {
+        const term = e.target.value.toLowerCase();
+        const rows = table.querySelectorAll('tbody tr');
 
-    attachSortHandlers() {
-      this.headers.forEach((th, index) => {
-        const sortType = th.dataset.sortType;
-        if (!sortType || !this.tbody) {
-          return;
-        }
-        th.addEventListener('click', () => {
-          let order = 'asc';
-          if (this.currentSort.index === index && this.currentSort.order === 'asc') {
-            order = 'desc';
-          }
-          this.sort(index, sortType, order);
+        rows.forEach(row => {
+          const text = row.textContent.toLowerCase();
+          row.style.display = text.includes(term) ? '' : 'none';
         });
       });
-    }
-
-    createEmptyRow() {
-      const emptyRow = document.createElement('tr');
-      emptyRow.dataset.emptyRow = 'true';
-      const emptyCell = document.createElement('td');
-      emptyCell.colSpan = this.headers.length || 1;
-      emptyCell.className = 'dashboard-table-empty';
-      emptyCell.textContent = this.emptyText;
-      emptyRow.appendChild(emptyCell);
-      return emptyRow;
-    }
-
-    updateEmptyState(showEmpty) {
-      if (!this.tbody) {
-        return;
-      }
-      if (showEmpty) {
-        if (!this.emptyRow.isConnected) {
-          this.tbody.appendChild(this.emptyRow);
-        }
-      } else if (this.emptyRow.isConnected) {
-        this.emptyRow.remove();
-      }
-    }
-
-    filter(query) {
-      if (!this.tbody) {
-        return;
-      }
-      const normalized = (query || '').toString().trim().toLowerCase();
-      let visibleCount = 0;
-      this.rows.forEach(row => {
-        const matches = !normalized || row.dataset.searchValue.includes(normalized);
-        row.style.display = matches ? '' : 'none';
-        if (matches) {
-          visibleCount += 1;
-        }
-      });
-      this.updateEmptyState(visibleCount === 0);
-    }
-
-    sort(index, sortType, order) {
-      if (!this.tbody || !this.rows.length) {
-        return;
-      }
-      const rowsArray = [...this.rows];
-      const isDescending = order === 'desc';
-      rowsArray.sort((a, b) => {
-        const valueA = this.getCellValue(a, index, sortType);
-        const valueB = this.getCellValue(b, index, sortType);
-        let result = 0;
-        if (sortType === 'number' || sortType === 'time' || sortType === 'date') {
-          result = valueA - valueB;
-        } else {
-          result = valueA.localeCompare(valueB, 'es', { sensitivity: 'base', numeric: true });
-        }
-        return isDescending ? -result : result;
-      });
-      rowsArray.forEach(row => this.tbody.appendChild(row));
-      this.rows = rowsArray;
-      this.currentSort = { index, order };
-      this.updateSortIndicators(index, order);
-    }
-
-    getCellValue(row, index, sortType) {
-      const cells = row.children;
-      if (!cells || !cells[index]) {
-        return sortType === 'number' || sortType === 'time' || sortType === 'date' ? 0 : '';
-      }
-      const cell = cells[index];
-      const rawValue = cell.getAttribute('data-value');
-      if (sortType === 'number') {
-        return parseFloat(rawValue !== null ? rawValue : cell.textContent) || 0;
-      }
-      if (sortType === 'date') {
-        const dateValue = rawValue || cell.textContent;
-        const parsed = Date.parse(dateValue);
-        return Number.isNaN(parsed) ? 0 : parsed;
-      }
-      if (sortType === 'time') {
-        const value = (rawValue || cell.textContent || '').trim();
-        const [hours, minutes] = value.split(':');
-        const h = parseInt(hours, 10);
-        const m = parseInt(minutes, 10);
-        if (Number.isNaN(h) || Number.isNaN(m)) {
-          return 0;
-        }
-        return (h * 60) + m;
-      }
-      return (rawValue || cell.textContent || '').toString().trim().toLowerCase();
-    }
-
-    updateSortIndicators(index, order) {
-      this.headers.forEach((th, idx) => {
-        if (idx === index) {
-          th.setAttribute('data-sort-order', order);
-        } else {
-          th.removeAttribute('data-sort-order');
-        }
-      });
-    }
-  }
-
-  if (table) {
-    const manager = new DashboardTable(table);
-    const searchInput = document.querySelector('.dashboard-table-search[data-table-id="director-courses-table"]');
-    if (searchInput) {
-      searchInput.addEventListener('input', event => {
-        manager.filter(event.target.value);
-      });
-    }
-  }
-
-  const ensureChartJs = callback => {
-    if (typeof Chart !== 'undefined') {
-      callback();
-      return;
-    }
-
-    const existingLoader = document.querySelector('script[data-chartjs-loader="inline"]');
-    if (existingLoader) {
-      existingLoader.addEventListener('load', () => callback(), { once: true });
-      return;
-    }
-
-    const script = document.createElement('script');
-    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.min.js';
-    script.async = true;
-    script.dataset.chartjsLoader = 'inline';
-    script.addEventListener('load', () => callback(), { once: true });
-    script.addEventListener('error', () => console.warn('No se pudo cargar Chart.js para los gráficos del panel.'));
-    document.body.appendChild(script);
-  };
-
-  const renderCharts = () => {
-    if (typeof Chart === 'undefined') {
-      console.warn('Chart.js no está disponible en el momento de renderizar.');
-      return;
-    }
-
-    const chartConfig = (labelsId, dataId) => {
-      const labelsEl = document.getElementById(labelsId);
-      const dataEl = document.getElementById(dataId);
-      if (!labelsEl || !dataEl) {
-        return { labels: [], data: [] };
-      }
-      try {
-        return {
-          labels: JSON.parse(labelsEl.textContent || '[]'),
-          data: JSON.parse(dataEl.textContent || '[]')
-        };
-      } catch (error) {
-        console.warn('No se pudo parsear datos del gráfico', error);
-        return { labels: [], data: [] };
-      }
     };
 
-    const createPalette = count => {
-      const baseColors = ['#2563eb', '#16a34a', '#f59e0b', '#0ea5e9', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6'];
-      const colors = [];
-      for (let i = 0; i < count; i += 1) {
-        colors.push(baseColors[i % baseColors.length]);
-      }
-      return colors;
+    initTableSearch('search-courses', 'table-courses');
+    initTableSearch('search-grades', 'table-grades');
+    initTableSearch('search-attendance', 'table-attendance');
+
+    // Renderizado de gráficos si existen datos
+    const renderChart = (canvasId, type, labels, data, label) => {
+      const ctx = document.getElementById(canvasId);
+      if (!ctx) return;
+
+      new Chart(ctx, {
+        type: type,
+        data: {
+          labels: labels,
+          datasets: [{
+            label: label,
+            data: data,
+            backgroundColor: [
+              'rgba(99, 102, 241, 0.8)',
+              'rgba(59, 130, 246, 0.8)',
+              'rgba(16, 185, 129, 0.8)',
+              'rgba(245, 158, 11, 0.8)',
+              'rgba(239, 68, 68, 0.8)',
+              'rgba(139, 92, 246, 0.8)'
+            ],
+            borderRadius: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: type === 'doughnut' }
+          },
+          scales: type === 'bar' ? {
+            y: { beginAtZero: true }
+          } : {}
+        }
+      });
     };
 
-    const barCanvas = document.getElementById('chartPromediosCursos');
-    if (barCanvas) {
-      const { labels, data } = chartConfig('chart-promedios-labels', 'chart-promedios-data');
-      if (labels.length && data.length) {
-        new Chart(barCanvas.getContext('2d'), {
-          type: 'bar',
-          data: {
-            labels,
-            datasets: [{
-              label: 'Promedio general',
-              data,
-              backgroundColor: createPalette(labels.length),
-              borderRadius: 6,
-            }]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-              yAxes: [{
-                ticks: {
-                  beginAtZero: true,
-                  max: 7,
-                  stepSize: 1,
-                }
-              }]
-            },
-            legend: {
-              display: false
-            },
-            tooltips: {
-              callbacks: {
-                label(ctx) {
-                  const value = typeof ctx.yLabel === 'number' ? ctx.yLabel.toFixed(2) : ctx.yLabel;
-                  return `Promedio: ${value}`;
-                }
-              }
-            }
-          }
-        });
-      }
-    }
+    // Datos inyectados desde Django
+    {% if director_chart_promedios_labels %}
+    renderChart('chartPromedios', 'bar',
+      {{ director_chart_promedios_labels| safe }},
+    {{ director_chart_promedios_data| safe }},
+    'Promedio General'
+  );
+  {% endif %}
 
-    const pieCanvas = document.getElementById('chartDistribucionMatricula');
-    if (pieCanvas) {
-      const { labels, data } = chartConfig('chart-matricula-labels', 'chart-matricula-data');
-      const total = data.reduce((acc, value) => acc + value, 0);
-      if (labels.length && data.length && total > 0) {
-        new Chart(pieCanvas.getContext('2d'), {
-          type: 'doughnut',
-          data: {
-            labels,
-            datasets: [{
-              data,
-              backgroundColor: createPalette(labels.length),
-            }]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            cutoutPercentage: 55,
-            legend: {
-              position: 'bottom',
-            },
-            tooltips: {
-              callbacks: {
-                label(ctx) {
-                  const value = ctx.yLabel || ctx.dataset.data[ctx.index] || 0;
-                  const percentage = total ? ((value / total) * 100).toFixed(1) : 0;
-                  return `${ctx.label}: ${value} estudiantes (${percentage}%)`;
-                }
-              }
-            }
-          }
-        });
-      }
-    }
-  };
-
-  ensureChartJs(() => {
-    if (typeof Chart !== 'undefined') {
-      renderCharts();
-    } else {
-      setTimeout(renderCharts, 200);
-    }
-  });
+  {% if director_chart_matricula_labels %}
+  renderChart('chartMatricula', 'doughnut',
+    {{ director_chart_matricula_labels| safe }},
+    {{ director_chart_matricula_data| safe }},
+    'Estudiantes'
+  );
+  {% endif %}
 });
 </script>
 {% endblock %}
+
 {% block content %}
-<div class="right_col right_col--director" role="main">
-  <div class="director-dashboard-shell">
-    <div class="director-dashboard container-fluid">
-    <div class="director-dashboard__intro">
-      <div class="director-dashboard__header">
-        <p class="director-dashboard__title">Panel Directivo</p>
-        <p class="director-dashboard__subtitle">Resumen ejecutivo del sistema académico · Año <span>{{ anio_actual }}</span></p>
-      </div>
-
-      <div class="director-dashboard__stats">
-      <div class="director-dashboard__stat-card director-dashboard__stat-card--blue">
-        <span class="director-dashboard__stat-value">{{ total_estudiantes_sistema|default:0 }}</span>
-        <span>Estudiantes registrados</span>
-      </div>
-      <div class="director-dashboard__stat-card director-dashboard__stat-card--green">
-        <span class="director-dashboard__stat-value">{{ total_profesores_sistema|default:0 }}</span>
-        <span>Docentes activos</span>
-      </div>
-      <div class="director-dashboard__stat-card director-dashboard__stat-card--amber">
-        <span class="director-dashboard__stat-value">{{ total_cursos_activos|default:0 }}</span>
-        <span>Cursos {{ anio_actual }}</span>
-      </div>
-      <div class="director-dashboard__stat-card director-dashboard__stat-card--cyan">
-        <span class="director-dashboard__stat-value">{{ porcentaje_asistencia_hoy|default:0 }}%</span>
-        <span>Asistencia de hoy ({{ presentes_hoy|default:0 }}/{{ total_asistencias_hoy|default:0 }})</span>
-      </div>
+<div class="director-dashboard-container">
+  <!-- Hero Section -->
+  <div class="director-hero">
+    <div class="director-hero__content">
+      <h1>Panel Directivo</h1>
+      <p>Resumen ejecutivo del sistema académico · Año {{ anio_actual }}</p>
     </div>
 
-    <div class="director-dashboard__grid director-dashboard__grid--split">
-      <div class="director-dashboard__section">
+    <div class="hero-stats-grid">
+      <div class="hero-stat-card">
+        <div class="hero-stat-icon">
+          <i class="fas fa-user-graduate"></i>
+        </div>
+        <div class="hero-stat-value">{{ total_estudiantes_sistema|default:"0" }}</div>
+        <div class="hero-stat-label">Estudiantes Registrados</div>
+      </div>
 
-    <div class="director-dashboard__grid director-dashboard__grid--split">
-      <div class="director-dashboard__section">
-        <div class="director-dashboard__section-head">
-          <h4 class="mb-0">Panorama diario</h4>
-          <span class="director-dashboard__label">{{ anio_actual }}</span>
+      <div class="hero-stat-card">
+        <div class="hero-stat-icon">
+          <i class="fas fa-chalkboard-teacher"></i>
+        </div>
+        <div class="hero-stat-value">{{ total_profesores_sistema|default:"0" }}</div>
+        <div class="hero-stat-label">Docentes Activos</div>
+      </div>
+
+      <div class="hero-stat-card">
+        <div class="hero-stat-icon">
+          <i class="fas fa-school"></i>
+        </div>
+        <div class="hero-stat-value">{{ total_cursos_activos|default:"0" }}</div>
+        <div class="hero-stat-label">Cursos {{ anio_actual }}</div>
+      </div>
+
+      <div class="hero-stat-card">
+        <div class="hero-stat-icon">
+          <i class="fas fa-clipboard-check"></i>
+        </div>
+        <div class="hero-stat-value">{{ porcentaje_asistencia_hoy|default:"0" }}%</div>
+        <div class="hero-stat-label">Asistencia Hoy</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="dashboard-layout">
+    <!-- Main Column -->
+    <div class="dashboard-main">
+
+      <!-- Panorama Diario -->
+      <div class="dashboard-card">
+        <div class="card-header">
+          <div class="card-title">
+            <i class="fas fa-sun"></i> Panorama Diario
+          </div>
+          <span class="badge badge-info">{{ anio_actual }}</span>
         </div>
 
-  {% if total_asistencias_hoy > 0 %}
-          <p class="director-dashboard__muted">Asistencia general</p>
-          <div class="director-dashboard__progress" aria-hidden="true">
-            <div class="director-dashboard__progress-bar" style="--attendance-rate: {{ porcentaje_asistencia_hoy|default:0 }};"></div>
+        {% if total_asistencias_hoy > 0 %}
+        <div class="progress-container">
+          <div class="progress-label">
+            <span>Asistencia General</span>
+            <span>{{ porcentaje_asistencia_hoy|default:"0" }}%</span>
           </div>
-          <div class="director-dashboard__muted" style="display: flex; justify-content: space-between; gap: 0.75rem; margin: 0.75rem 0 1.5rem;">
-            <span>Presentes: {{ presentes_hoy|default:0 }}</span>
-            <span>Ausentes: {{ ausentes_hoy|default:0 }}</span>
-            <span>Total: {{ total_asistencias_hoy|default:0 }}</span>
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill" style="width: {{ porcentaje_asistencia_hoy|default:0 }}%"></div>
           </div>
+          <div class="d-flex justify-content-between mt-2 text-muted small">
+            <span><i class="fas fa-check-circle text-success me-1"></i>Presentes: {{ presentes_hoy|default:"0" }}</span>
+            <span><i class="fas fa-times-circle text-danger me-1"></i>Ausentes: {{ ausentes_hoy|default:"0" }}</span>
+            <span>Total: {{ total_asistencias_hoy|default:"0" }}</span>
+          </div>
+        </div>
         {% else %}
-          <div class="director-dashboard__empty">Aún no hay registros de asistencia para hoy.</div>
+        <div class="text-center py-4 text-muted">
+          <i class="fas fa-clipboard-list fa-3x mb-3 opacity-50"></i>
+          <p>Aún no hay registros de asistencia para hoy.</p>
+        </div>
         {% endif %}
 
-        <p class="director-dashboard__muted" style="margin-bottom: 0.75rem;">Oferta por nivel</p>
+        <h6 class="mt-4 mb-3 fw-bold text-muted text-uppercase small">Oferta por Nivel</h6>
         {% if cursos_por_nivel %}
-          <table class="director-dashboard__table">
-            <thead>
-              <tr>
-                <th>Nivel</th>
-                <th>Cursos</th>
-                <th>Matrícula</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for nivel, datos in cursos_por_nivel.items %}
-              <tr>
-                <td>{{ nivel }}</td>
-                <td>{{ datos.cursos }}</td>
-                <td>{{ datos.estudiantes }}</td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
+        <div class="mini-card-grid">
+          {% for nivel, stats in cursos_por_nivel.items %}
+          <div class="mini-card">
+            <div class="fw-bold text-primary mb-1">{{ nivel }}</div>
+            <div class="h5 mb-0">{{ stats.cursos }} <small class="text-muted fs-6">cursos</small></div>
+            <small class="text-muted">{{ stats.estudiantes }} estudiantes</small>
+          </div>
+          {% endfor %}
+        </div>
         {% else %}
-          <div class="director-dashboard__empty">No hay cursos configurados para {{ anio_actual }}.</div>
+        <p class="text-muted text-center">No hay cursos configurados.</p>
         {% endif %}
       </div>
 
-      <div class="director-dashboard__grid" style="gap: 1rem;">
-        <div class="director-dashboard__section">
-          <div class="director-dashboard__section-head">
-            <h4 class="mb-0">Próximos eventos</h4>
-            <span class="director-dashboard__label">7 días</span>
+      <!-- Mapa de Cursos Activos -->
+      <div class="dashboard-card">
+        <div class="card-header">
+          <div class="card-title">
+            <i class="fas fa-layer-group"></i> Mapa de Cursos Activos
           </div>
-          {% if proximos_eventos %}
-            <ul class="director-dashboard__list">
-              {% for evento in proximos_eventos %}
-              <li class="director-dashboard__item">
-                <div>
-                  <strong>{{ evento.titulo|default:"Sin título"|truncatechars:40 }}</strong>
-                  <div class="director-dashboard__muted">{{ evento.descripcion|default:"Sin descripción"|truncatechars:70 }}</div>
-                </div>
-                <span class="director-dashboard__badge">{{ evento.fecha|date:"d/m" }}</span>
-              </li>
-              {% endfor %}
-            </ul>
-          {% else %}
-            <div class="director-dashboard__empty">No hay eventos programados en los próximos 7 días.</div>
-          {% endif %}
+          <input type="text" id="search-courses" class="search-input" placeholder="Buscar curso...">
         </div>
 
-        <div class="director-dashboard__section">
-          <div class="director-dashboard__section-head">
-            <h4 class="mb-0">Anotaciones recientes</h4>
-            <span class="director-dashboard__label">Últimas 5</span>
-          </div>
-          {% if anotaciones_recientes_sistema %}
-            <ul class="director-dashboard__list">
-              {% for anotacion in anotaciones_recientes_sistema|slice:":5" %}
-              <li class="director-dashboard__item">
-                <div>
-                  <strong>
-                    {% if anotacion.estudiante %}
-                      {{ anotacion.estudiante.get_nombre_completo|truncatechars:28 }}
-                    {% else %}
-                      {{ anotacion.curso.get_nivel_display }}{{ anotacion.curso.paralelo }}
-                    {% endif %}
-                  </strong>
-                  <div class="director-dashboard__muted">{{ anotacion.contenido|truncatechars:80 }}</div>
-                  <div class="director-dashboard__muted">{{ anotacion.profesor_autor.get_nombre_completo|truncatechars:26 }}</div>
-                </div>
-                <span class="director-dashboard__badge">{{ anotacion.tipo|default:"" }}</span>
-              </li>
-              {% endfor %}
-            </ul>
-          {% else %}
-            <div class="director-dashboard__empty">Sin anotaciones registradas recientemente.</div>
-          {% endif %}
-        </div>
-      </div>
-    </div>
-
-    <div class="director-dashboard__section">
-      <div class="dashboard-table-card">
-        <div class="dashboard-table-card__head">
-          <div>
-            <h4 class="dashboard-table-card__title">Mapa de cursos activos</h4>
-            <p class="dashboard-table-card__subtitle">Filtra y ordena para detectar rápidamente oportunidades o brechas en {{ anio_actual }}.</p>
-          </div>
-          <div class="dashboard-table-card__controls">
-            <input type="search" class="dashboard-table-search" data-table-id="director-courses-table" placeholder="Buscar por curso o docente">
-          </div>
-        </div>
-        <div class="dashboard-table-wrapper">
-          <table class="dashboard-table" id="director-courses-table" data-empty-text="No hay cursos activos registrados para {{ anio_actual }}.">
+        <div class="modern-table-wrapper">
+          <table class="modern-table" id="table-courses">
             <thead>
               <tr>
-                <th data-sort-type="string">Curso</th>
-                <th data-sort-type="string">Nivel</th>
-                <th data-sort-type="number">Estudiantes</th>
-                <th data-sort-type="number">Asignaturas</th>
-                <th data-sort-type="string">Profesor jefe</th>
+                <th>Curso</th>
+                <th>Nivel</th>
+                <th>Estudiantes</th>
+                <th>Asignaturas</th>
+                <th>Profesor Jefe</th>
               </tr>
             </thead>
             <tbody>
-              {% if cursos_activos_director %}
-                {% for curso in cursos_activos_director %}
-                <tr>
-                  <td data-value="{{ curso.get_nivel_display }}{{ curso.paralelo }}">{{ curso.get_nivel_display }}{{ curso.paralelo }}</td>
-                  <td>{{ curso.get_nivel_display }}</td>
-                  <td data-value="{{ curso.total_estudiantes|default:0 }}">{{ curso.total_estudiantes|default:"0" }}</td>
-                  <td data-value="{{ curso.total_asignaturas|default:0 }}">{{ curso.total_asignaturas|default:"0" }}</td>
-                  <td data-value="{% if curso.profesor_jefe %}{{ curso.profesor_jefe.get_nombre_completo }}{% else %}Sin asignar{% endif %}">
-                    {% if curso.profesor_jefe %}
-                      {{ curso.profesor_jefe.get_nombre_completo|truncatechars:32 }}
-                    {% else %}
-                      <span class="text-muted">Sin asignar</span>
-                    {% endif %}
-                  </td>
-                </tr>
-                {% endfor %}
-              {% else %}
-                <tr data-empty-row="true">
-                  <td class="dashboard-table-empty" colspan="5">No hay cursos activos registrados para {{ anio_actual }}.</td>
-                </tr>
-              {% endif %}
+              {% for curso in cursos_activos_director %}
+              <tr>
+                <td class="fw-bold">{{ curso.get_nivel_display }}{{ curso.paralelo }}</td>
+                <td>{{ curso.get_nivel_display }}</td>
+                <td>
+                  <span class="badge badge-info">{{ curso.total_estudiantes|default:"0" }}</span>
+                </td>
+                <td>{{ curso.total_asignaturas|default:"0" }}</td>
+                <td>
+                  {% if curso.profesor_jefe %}
+                  <div class="d-flex align-items-center gap-2">
+                    <div class="activity-icon blue" style="width: 24px; height: 24px; font-size: 0.8rem;">
+                      <i class="fas fa-user"></i>
+                    </div>
+                    {{ curso.profesor_jefe.get_nombre_completo|truncatechars:30 }}
+                  </div>
+                  {% else %}
+                  <span class="text-muted fst-italic">Sin asignar</span>
+                  {% endif %}
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="5" class="text-center py-4 text-muted">No hay cursos activos.</td>
+              </tr>
+              {% endfor %}
             </tbody>
           </table>
         </div>
-        <div class="dashboard-table-meta">
-          <span>Consejo: haz clic en “Estudiantes” o “Asignaturas” para ordenar la tabla según tus prioridades.</span>
+      </div>
+
+      <!-- Análisis Académico (Gráficos y Tablas) -->
+      {% if director_academic_kpis %}
+      <div class="dashboard-card">
+        <div class="card-header">
+          <div class="card-title">
+            <i class="fas fa-chart-line"></i> Análisis Académico
+          </div>
         </div>
-      </div>
-    </div>
 
-    {% if director_academic_kpis %}
-    <div class="director-dashboard__section director-analytics">
-      <div class="director-analytics__head">
-        <h4>Análisis académico integral</h4>
-        <p>Monitoriza el rendimiento y la asistencia del año para anticipar escenarios y definir acciones.</p>
-      </div>
-
-      <div class="director-analytics__table-grid">
-        <div class="dashboard-table-card">
-          <div class="dashboard-table-card__head">
-            <div>
-              <h4 class="dashboard-table-card__title">Rendimiento por curso</h4>
-              <p class="dashboard-table-card__subtitle">Promedios consolidados por curso con detalle de evaluaciones y cobertura estudiantil.</p>
-            </div>
-            <div class="dashboard-table-card__controls">
-              <input type="search" class="dashboard-table-search" data-table-id="director-grades-table" placeholder="Buscar curso o promedio">
+        <!-- KPIs Grid -->
+        <div class="row g-3 mb-4">
+          {% for kpi in director_academic_kpis %}
+          <div class="col-md-3">
+            <div class="mini-card h-100 d-flex flex-column justify-content-center">
+              <div class="text-muted small text-uppercase mb-1">{{ kpi.title }}</div>
+              <div class="h3 fw-bold mb-1 text-dark">{{ kpi.value }}</div>
+              <small class="text-muted">{{ kpi.description }}</small>
+              {% if kpi.delta is not None %}
+              <div class="mt-2 badge {% if kpi.delta_positive %}badge-success{% else %}badge-danger{% endif %}">
+                <i class="fas {% if kpi.delta_positive %}fa-arrow-up{% else %}fa-arrow-down{% endif %} me-1"></i>
+                {{ kpi.delta }}%
+              </div>
+              {% endif %}
             </div>
           </div>
-          <div class="dashboard-table-wrapper">
-            <table class="dashboard-table" id="director-grades-table" data-empty-text="Aún no hay calificaciones registradas para este año.">
-              <thead>
-                <tr>
-                  <th data-sort-type="string">Curso</th>
-                  <th data-sort-type="number">Promedio</th>
-                  <th data-sort-type="number">Evaluaciones</th>
-                  <th data-sort-type="number">Estudiantes</th>
-                  <th data-sort-type="number">Asignaturas</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% if director_tabla_promedios %}
+          {% endfor %}
+        </div>
+
+        <!-- Charts Row -->
+        <div class="row g-4 mb-4">
+          {% if director_chart_promedios_labels %}
+          <div class="col-md-8">
+            <h6 class="text-center mb-3 text-muted">Promedios por Curso</h6>
+            <div style="height: 300px;">
+              <canvas id="chartPromedios"></canvas>
+            </div>
+          </div>
+          {% endif %}
+
+          {% if director_chart_matricula_labels %}
+          <div class="col-md-4">
+            <h6 class="text-center mb-3 text-muted">Distribución Matrícula</h6>
+            <div style="height: 300px;">
+              <canvas id="chartMatricula"></canvas>
+            </div>
+          </div>
+          {% endif %}
+        </div>
+
+        <!-- Tablas de Rendimiento y Asistencia -->
+        <div class="row g-4">
+          <div class="col-lg-6">
+            <div class="card-header px-0">
+              <h6 class="fw-bold m-0">Rendimiento por Curso</h6>
+              <input type="text" id="search-grades" class="search-input py-1" style="width: 150px; font-size: 0.8rem;"
+                placeholder="Filtrar...">
+            </div>
+            <div class="modern-table-wrapper" style="max-height: 400px; overflow-y: auto;">
+              <table class="modern-table" id="table-grades">
+                <thead>
+                  <tr>
+                    <th>Curso</th>
+                    <th>Promedio</th>
+                    <th>Evals</th>
+                  </tr>
+                </thead>
+                <tbody>
                   {% for fila in director_tabla_promedios %}
                   <tr>
-                    <td data-value="{{ fila.curso }}">{{ fila.curso }}</td>
-                    <td data-value="{{ fila.promedio }}">{{ fila.promedio|floatformat:2 }}</td>
-                    <td data-value="{{ fila.evaluaciones }}">{{ fila.evaluaciones }}</td>
-                    <td data-value="{{ fila.estudiantes }}">{{ fila.estudiantes }}</td>
-                    <td data-value="{{ fila.asignaturas }}">{{ fila.asignaturas }}</td>
+                    <td class="fw-bold">{{ fila.curso }}</td>
+                    <td>
+                      <span
+                        class="badge {% if fila.promedio >= 6.0 %}badge-success{% elif fila.promedio >= 4.0 %}badge-warning{% else %}badge-danger{% endif %}">
+                        {{ fila.promedio|floatformat:2 }}
+                      </span>
+                    </td>
+                    <td>{{ fila.evaluaciones }}</td>
                   </tr>
                   {% endfor %}
-                {% else %}
-                  <tr data-empty-row="true">
-                    <td class="dashboard-table-empty" colspan="5">Aún no hay calificaciones registradas para este año.</td>
-                  </tr>
-                {% endif %}
-              </tbody>
-            </table>
+                </tbody>
+              </table>
+            </div>
           </div>
-          <div class="dashboard-table-meta">
-            <span>Tip: ordena por “Promedio” para detectar rápidamente cursos sobresalientes o rezagados.</span>
-          </div>
-        </div>
 
-        <div class="dashboard-table-card">
-          <div class="dashboard-table-card__head">
-            <div>
-              <h4 class="dashboard-table-card__title">Asistencia por curso</h4>
-              <p class="dashboard-table-card__subtitle">Comparativa de asistencia registrada, ausentismo y cobertura en cada curso.</p>
+          <div class="col-lg-6">
+            <div class="card-header px-0">
+              <h6 class="fw-bold m-0">Asistencia por Curso</h6>
+              <input type="text" id="search-attendance" class="search-input py-1"
+                style="width: 150px; font-size: 0.8rem;" placeholder="Filtrar...">
             </div>
-            <div class="dashboard-table-card__controls">
-              <input type="search" class="dashboard-table-search" data-table-id="director-attendance-table" placeholder="Filtrar curso o porcentaje">
-            </div>
-          </div>
-          <div class="dashboard-table-wrapper">
-            <table class="dashboard-table" id="director-attendance-table" data-empty-text="No se han registrado asistencias este año.">
-              <thead>
-                <tr>
-                  <th data-sort-type="string">Curso</th>
-                  <th data-sort-type="number">Asistencia</th>
-                  <th data-sort-type="number">Presentes</th>
-                  <th data-sort-type="number">Ausentes</th>
-                  <th data-sort-type="number">Registros</th>
-                  <th data-sort-type="number">Estudiantes</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% if director_tabla_asistencias %}
+            <div class="modern-table-wrapper" style="max-height: 400px; overflow-y: auto;">
+              <table class="modern-table" id="table-attendance">
+                <thead>
+                  <tr>
+                    <th>Curso</th>
+                    <th>% Asist.</th>
+                    <th>Ausentes</th>
+                  </tr>
+                </thead>
+                <tbody>
                   {% for fila in director_tabla_asistencias %}
                   <tr>
-                    <td data-value="{{ fila.curso }}">{{ fila.curso }}</td>
-                    <td data-value="{{ fila.porcentaje }}">{{ fila.porcentaje|floatformat:1 }}%</td>
-                    <td data-value="{{ fila.presentes }}">{{ fila.presentes }}</td>
-                    <td data-value="{{ fila.ausentes }}">{{ fila.ausentes }}</td>
-                    <td data-value="{{ fila.total }}">{{ fila.total }}</td>
-                    <td data-value="{{ fila.estudiantes }}">{{ fila.estudiantes }}</td>
+                    <td class="fw-bold">{{ fila.curso }}</td>
+                    <td>
+                      <div class="d-flex align-items-center gap-2">
+                        <span class="fw-bold">{{ fila.porcentaje|floatformat:1 }}%</span>
+                        <div class="progress-bar-bg flex-grow-1" style="height: 6px; width: 60px;">
+                          <div class="progress-bar-fill" style="width: {{ fila.porcentaje }}%"></div>
+                        </div>
+                      </div>
+                    </td>
+                    <td>{{ fila.ausentes }}</td>
                   </tr>
                   {% endfor %}
-                {% else %}
-                  <tr data-empty-row="true">
-                    <td class="dashboard-table-empty" colspan="6">No se han registrado asistencias este año.</td>
-                  </tr>
-                {% endif %}
-              </tbody>
-            </table>
-          </div>
-          <div class="dashboard-table-meta">
-            <span>Observa la relación entre registros totales y estudiantes para validar cobertura del control de asistencia.</span>
-          </div>
-        </div>
-      </div>
-
-      {% if director_chart_promedios_labels or director_chart_matricula_labels %}
-      <div class="director-analytics__chart-grid">
-        {% if director_chart_promedios_labels %}
-        <div class="director-analytics__chart-card">
-          <div class="director-analytics__chart-head">
-            <h5>Promedio por curso</h5>
-            <p>Comparativa de los promedios generales en los cursos destacados.</p>
-          </div>
-          <div class="director-analytics__chart">
-            <canvas id="chartPromediosCursos" aria-label="Gráfico de barras con promedios por curso" role="img"></canvas>
-          </div>
-        </div>
-        {% endif %}
-
-        {% if director_chart_matricula_labels %}
-        <div class="director-analytics__chart-card">
-          <div class="director-analytics__chart-head">
-            <h5>Distribución de matrícula</h5>
-            <p>Porcentaje de estudiantes por nivel en el año académico.</p>
-          </div>
-          <div class="director-analytics__chart">
-            <canvas id="chartDistribucionMatricula" aria-label="Gráfico de torta con distribución de matrícula" role="img"></canvas>
-          </div>
-        </div>
-        {% endif %}
-      </div>
-
-      {% if director_chart_promedios_labels %}
-        {{ director_chart_promedios_labels|json_script:"chart-promedios-labels" }}
-        {{ director_chart_promedios_data|json_script:"chart-promedios-data" }}
-      {% endif %}
-      {% if director_chart_matricula_labels %}
-        {{ director_chart_matricula_labels|json_script:"chart-matricula-labels" }}
-        {{ director_chart_matricula_data|json_script:"chart-matricula-data" }}
-      {% endif %}
-      {% endif %}
-
-      <div class="director-analytics__kpi-grid">
-        {% for kpi in director_academic_kpis %}
-        <article class="director-analytics__kpi-card">
-          <div class="director-analytics__kpi-icon"><i class="{{ kpi.icon }}"></i></div>
-          <div class="director-analytics__kpi-body">
-            <span>{{ kpi.title }}</span>
-            <strong>{{ kpi.value }}</strong>
-            <small>{{ kpi.description }}</small>
-          </div>
-          {% if kpi.delta is not None %}
-          <span class="director-analytics__kpi-delta {% if kpi.delta_positive %}positive{% else %}negative{% endif %}">
-            <i class="fas {% if kpi.delta_positive %}fa-arrow-up{% else %}fa-arrow-down{% endif %}"></i>
-            {% if kpi.delta_precision is not None %}
-              {{ kpi.delta|floatformat:kpi.delta_precision }}
-            {% else %}
-              {{ kpi.delta }}
-            {% endif %}{{ kpi.delta_suffix }}
-          </span>
-          {% endif %}
-        </article>
-        {% endfor %}
-      </div>
-
-      <div class="director-analytics__trend-grid">
-        <div class="director-analytics__trend-card">
-          <h5>Asistencia mensual</h5>
-          {% if director_tendencia_asistencia %}
-          <ul class="director-analytics__trend-list">
-            {% for item in director_tendencia_asistencia %}
-            <li class="director-analytics__trend-item">
-              <div class="director-analytics__trend-header">
-                <span>{{ item.label }}</span>
-                <span>{{ item.porcentaje|floatformat:1 }}%</span>
-              </div>
-              <div class="director-analytics__trend-bar"><span style="width: {{ item.porcentaje }}%;"></span></div>
-              <div class="director-analytics__trend-meta">{{ item.total }} registros de asistencia</div>
-            </li>
-            {% endfor %}
-          </ul>
-          {% else %}
-          <div class="director-dashboard__empty">Aún no hay datos mensuales de asistencia.</div>
-          {% endif %}
-        </div>
-
-        <div class="director-analytics__trend-card">
-          <h5>Promedio mensual</h5>
-          {% if director_tendencia_notas %}
-          <ul class="director-analytics__trend-list">
-            {% for item in director_tendencia_notas %}
-            <li class="director-analytics__trend-item">
-              <div class="director-analytics__trend-header">
-                <span>{{ item.label }}</span>
-                <span>{{ item.porcentaje|floatformat:2 }}</span>
-              </div>
-              <div class="director-analytics__trend-bar"><span style="width: {{ item.barra|default:0 }}%;"></span></div>
-              <div class="director-analytics__trend-meta">{{ item.total }} evaluaciones ingresadas</div>
-            </li>
-            {% endfor %}
-          </ul>
-          {% else %}
-          <div class="director-dashboard__empty">No hay calificaciones suficientes para construir la tendencia.</div>
-          {% endif %}
-        </div>
-      </div>
-
-      <div class="director-analytics__alerts">
-        <h5>Cursos con alertas</h5>
-        {% if director_alertas_academicas %}
-        <div class="director-analytics__alert-list">
-          {% for alerta in director_alertas_academicas|slice:":6" %}
-          <div class="director-analytics__alert-item">
-            <div>
-              <strong>{{ alerta.curso }}</strong>
-              <div class="director-analytics__alert-meta">
-                <span>Promedio: {{ alerta.promedio }}</span>
-                <span>Asistencia: {% if alerta.asistencia == '--' %}--{% else %}{{ alerta.asistencia }}%{% endif %}</span>
-                <span>{{ alerta.estudiantes }} estudiantes</span>
-              </div>
+                </tbody>
+              </table>
             </div>
-            <div class="director-analytics__alert-meta">
-              {% for motivo in alerta.motivos %}
-              <span class="director-analytics__alert-badge">{{ motivo }}</span>
-              {% endfor %}
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+    </div>
+
+    <!-- Sidebar -->
+    <div class="dashboard-sidebar">
+
+      <!-- Próximos Eventos -->
+      <div class="dashboard-card">
+        <div class="card-header mb-3">
+          <div class="card-title fs-6">
+            <i class="fas fa-calendar-alt"></i> Próximos 7 días
+          </div>
+        </div>
+
+        {% if proximos_eventos %}
+        <div class="activity-list">
+          {% for evento in proximos_eventos %}
+          <div class="activity-item">
+            <div class="activity-icon amber">
+              <i class="fas fa-clock"></i>
+            </div>
+            <div class="activity-content">
+              <h6>{{ evento.titulo|default:"Evento"|truncatechars:25 }}</h6>
+              <p>{{ evento.fecha|date:"d M, Y" }}</p>
             </div>
           </div>
           {% endfor %}
         </div>
         {% else %}
-        <div class="director-dashboard__empty">Sin alertas activas al momento.</div>
+        <p class="text-muted small text-center">No hay eventos programados.</p>
         {% endif %}
       </div>
 
-      <div class="director-analytics__projection">
-        <div class="director-analytics__projection-text">
-          <h5>Proyección del colegio</h5>
-          <p>{{ director_mensaje_proyeccion }}</p>
+      <!-- Anotaciones Recientes -->
+      <div class="dashboard-card">
+        <div class="card-header mb-3">
+          <div class="card-title fs-6">
+            <i class="fas fa-book-open"></i> Anotaciones
+          </div>
+          <span class="badge badge-warning">Últimas 5</span>
         </div>
-        {% if director_recomendaciones_proyeccion %}
-        <div class="director-analytics__projection-list">
-          <h6>Recomendaciones clave</h6>
-          <ul>
-            {% for recomendacion in director_recomendaciones_proyeccion %}
-            <li>{{ recomendacion }}</li>
-            {% endfor %}
-          </ul>
+
+        {% if anotaciones_recientes_sistema %}
+        <div class="activity-list">
+          {% for anotacion in anotaciones_recientes_sistema|slice:":5" %}
+          <div class="activity-item">
+            <div
+              class="activity-icon {% if anotacion.tipo == 'Positiva' %}green{% elif anotacion.tipo == 'Negativa' %}red{% else %}blue{% endif %}">
+              <i
+                class="fas {% if anotacion.tipo == 'Positiva' %}fa-thumbs-up{% elif anotacion.tipo == 'Negativa' %}fa-thumbs-down{% else %}fa-info{% endif %}"></i>
+            </div>
+            <div class="activity-content">
+              <h6>
+                {% if anotacion.estudiante %}
+                {{ anotacion.estudiante.get_nombre_completo|truncatechars:20 }}
+                {% else %}
+                {{ anotacion.curso.get_nivel_display }}
+                {% endif %}
+              </h6>
+              <p>{{ anotacion.contenido|truncatechars:40 }}</p>
+              <small class="text-muted d-block mt-1" style="font-size: 0.75rem;">
+                {{ anotacion.profesor_autor.get_nombre_completo|truncatechars:20 }}
+              </small>
+            </div>
+          </div>
+          {% endfor %}
         </div>
+        {% else %}
+        <p class="text-muted small text-center">Sin anotaciones recientes.</p>
         {% endif %}
       </div>
-    </div>
-    {% endif %}
 
-    <div class="director-dashboard__section">
-      <div class="director-dashboard__section-head">
-        <h4 class="mb-0">Actividad reciente</h4>
-        <span class="director-dashboard__muted">Últimos registros incorporados</span>
-      </div>
-      <div class="director-dashboard__grid director-dashboard__grid--thirds">
-        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
-          <h5 class="mb-0">Cursos</h5>
-          {% if cursos_recientes %}
-            <ul class="director-dashboard__list">
-              {% for curso in cursos_recientes|slice:":4" %}
-              <li class="director-dashboard__item">
-                <div>
-                  <strong>{{ curso.get_nivel_display }}{{ curso.paralelo }}</strong>
-                  <div class="director-dashboard__muted">{{ curso.estudiantes.count }} estudiante{{ curso.estudiantes.count|pluralize:",s" }}</div>
-                </div>
-                <span class="director-dashboard__badge">{{ curso.anio }}</span>
-              </li>
-              {% endfor %}
-            </ul>
-          {% else %}
-            <div class="director-dashboard__empty">Sin cursos recientes.</div>
-          {% endif %}
+      <!-- Alertas Académicas -->
+      {% if director_alertas_academicas %}
+      <div class="dashboard-card border-danger" style="border-left: 4px solid #ef4444;">
+        <div class="card-header mb-3">
+          <div class="card-title fs-6 text-danger">
+            <i class="fas fa-exclamation-triangle"></i> Alertas
+          </div>
         </div>
-
-        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
-          <h5 class="mb-0">Profesores</h5>
-          {% if profesores_recientes %}
-            <ul class="director-dashboard__list">
-              {% for profesor in profesores_recientes|slice:":4" %}
-              <li class="director-dashboard__item">
-                <div>
-                  <strong>{{ profesor.get_nombre_completo|truncatechars:30 }}</strong>
-                  <div class="director-dashboard__muted">{{ profesor.asignaturas.count }} asignatura{{ profesor.asignaturas.count|pluralize:",s" }}</div>
-                </div>
-                <span class="director-dashboard__badge">ID {{ profesor.id }}</span>
-              </li>
-              {% endfor %}
-            </ul>
-          {% else %}
-            <div class="director-dashboard__empty">Sin profesores recientes.</div>
-          {% endif %}
-        </div>
-
-        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
-          <h5 class="mb-0">Estudiantes</h5>
-          {% if estudiantes_recientes %}
-            <ul class="director-dashboard__list">
-              {% for estudiante in estudiantes_recientes|slice:":4" %}
-              <li class="director-dashboard__item">
-                <div>
-                  <strong>{{ estudiante.get_nombre_completo|truncatechars:30 }}</strong>
-                  {% if estudiante.cursos.exists %}
-                    <div class="director-dashboard__muted">{{ estudiante.cursos.first.get_nivel_display }}{{ estudiante.cursos.first.paralelo }}</div>
-                  {% else %}
-                    <div class="director-dashboard__muted">Sin curso asignado</div>
-                  {% endif %}
-                </div>
-                <span class="director-dashboard__badge">ID {{ estudiante.id }}</span>
-              </li>
-              {% endfor %}
-            </ul>
-          {% else %}
-            <div class="director-dashboard__empty">Sin estudiantes recientes.</div>
-          {% endif %}
+        <div class="activity-list">
+          {% for alerta in director_alertas_academicas|slice:":4" %}
+          <div class="activity-item bg-white border">
+            <div class="activity-content w-100">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <h6 class="text-danger mb-0">{{ alerta.curso }}</h6>
+                <span class="badge badge-danger">{{ alerta.promedio }}</span>
+              </div>
+              <div class="d-flex flex-wrap gap-1 mt-2">
+                {% for motivo in alerta.motivos %}
+                <span class="badge badge-warning" style="font-size: 0.65rem;">{{ motivo }}</span>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+          {% endfor %}
         </div>
       </div>
-    </div>
+      {% endif %}
+
+      <!-- Proyección -->
+      {% if director_mensaje_proyeccion %}
+      <div class="dashboard-card bg-primary text-white" style="background: var(--secondary-gradient);">
+        <h6 class="fw-bold mb-2"><i class="fas fa-rocket me-2"></i>Proyección</h6>
+        <p class="small mb-0 opacity-90">{{ director_mensaje_proyeccion }}</p>
+      </div>
+      {% endif %}
+
     </div>
   </div>
 </div>

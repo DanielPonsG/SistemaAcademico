@@ -4242,7 +4242,7 @@ def ajax_crear_horario(request):
     
     try:
         # Obtener datos del POST
-        curso_id = request.POST.get('curso_id')
+        curso_id = request.POST.get('curso')
         if not curso_id:
             return JsonResponse({'success': False, 'error': 'ID de curso requerido'})
         
@@ -4265,7 +4265,7 @@ def ajax_crear_horario(request):
                     'hora_inicio': horario.hora_inicio.strftime('%H:%M'),
                     'hora_fin': horario.hora_fin.strftime('%H:%M'),
                     'asignatura': horario.asignatura.nombre if horario.asignatura else 'Sin asignatura',
-                    'profesor': 'Sin asignar'  # El modelo no tiene campo profesor por ahora
+                    'profesor': horario.profesor.get_nombre_completo() if horario.profesor else 'Sin asignar'
                 }
             })
         else:
@@ -4317,7 +4317,7 @@ def ajax_editar_horario(request):
                     'hora_inicio': horario_actualizado.hora_inicio.strftime('%H:%M'),
                     'hora_fin': horario_actualizado.hora_fin.strftime('%H:%M'),
                     'asignatura': horario_actualizado.asignatura.nombre if horario_actualizado.asignatura else 'Sin asignatura',
-                    'profesor': 'Sin asignar'  # El modelo no tiene campo profesor por ahora
+                    'profesor': horario_actualizado.profesor.get_nombre_completo() if horario_actualizado.profesor else 'Sin asignar'
                 }
             })
         else:
@@ -4361,9 +4361,9 @@ def ajax_obtener_horario(request):
                 'hora_inicio': horario.hora_inicio.strftime('%H:%M'),
                 'hora_fin': horario.hora_fin.strftime('%H:%M'),
                 'asignatura_id': horario.asignatura.id if horario.asignatura else '',
-                'profesor_id': '',  # No hay campo profesor en el modelo
+                'profesor_id': horario.profesor.id if horario.profesor else '',
                 'asignatura_nombre': horario.asignatura.nombre if horario.asignatura else 'Sin asignatura',
-                'profesor_nombre': 'Sin asignar'  # No hay campo profesor en el modelo
+                'profesor_nombre': horario.profesor.get_nombre_completo() if horario.profesor else 'Sin asignar'
             }
         })
     
@@ -4499,6 +4499,31 @@ def editar_evento(request, evento_id):
 @login_required
 def eliminar_evento(request, evento_id):
     """Vista para eliminar evento"""
+    from django.http import JsonResponse
+    from django.shortcuts import get_object_or_404
+    from .models import EventoCalendario
+    
+    if request.method == 'POST':
+        evento = get_object_or_404(EventoCalendario, id=evento_id)
+        
+        # Verificar permisos
+        puede_eliminar = False
+        if request.user.is_superuser:
+            puede_eliminar = True
+        elif hasattr(request.user, 'perfil') and request.user.perfil.tipo_usuario in ['administrador', 'director']:
+            puede_eliminar = True
+        elif hasattr(request.user, 'profesor') and evento.creado_por == request.user:
+            puede_eliminar = True
+            
+        if not puede_eliminar:
+             return JsonResponse({'success': False, 'error': 'No tienes permisos para eliminar este evento'})
+
+        try:
+            evento.delete()
+            return JsonResponse({'success': True})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+            
     context = {'user': request.user, 'evento_id': evento_id}
     return render(request, 'eliminar_evento.html', context)
 
@@ -5667,3 +5692,30 @@ def ajax_obtener_estudiantes_filtro(request):
             return JsonResponse({'error': 'ID de curso requerido'}, status=400)
     
     return JsonResponse({'error': 'Método no permitido'}, status=405)
+
+@login_required
+def reporte_comportamiento_cursos(request):
+    """
+    Vista para generar un reporte gráfico del comportamiento por curso.
+    """
+    # Obtener cursos del año actual
+    anio_actual = timezone.now().year
+    cursos = Curso.objects.filter(anio=anio_actual).order_by('nivel', 'paralelo')
+    datos_cursos = []
+
+    for curso in cursos:
+        positivas = Anotacion.objects.filter(curso=curso, tipo='positiva').count()
+        negativas = Anotacion.objects.filter(curso=curso, tipo='negativa').count()
+        
+        datos_cursos.append({
+            'curso': str(curso),
+            'positivas': positivas,
+            'negativas': negativas,
+            'total': positivas + negativas,
+            'indice': positivas - negativas
+        })
+
+    context = {
+        'datos_cursos': datos_cursos
+    }
+    return render(request, 'reporte_comportamiento_cursos.html', context)

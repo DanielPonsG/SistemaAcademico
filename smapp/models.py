@@ -403,7 +403,8 @@ class HorarioCurso(models.Model):
         ('DO', 'Domingo'),
     ]
     curso = models.ForeignKey(Curso, on_delete=models.CASCADE, related_name='horarios')
-    asignatura = models.ForeignKey(Asignatura, on_delete=models.CASCADE, related_name='horarios', null=True, blank=True)  # <-- AGREGAR ESTA LÍNEA
+    asignatura = models.ForeignKey(Asignatura, on_delete=models.CASCADE, related_name='horarios', null=True, blank=True)
+    profesor = models.ForeignKey(Profesor, on_delete=models.SET_NULL, null=True, blank=True, related_name='horarios')
     dia = models.CharField(max_length=2, choices=DIAS_SEMANA)
     hora_inicio = models.TimeField()
     hora_fin = models.TimeField()

@@ -1,188 +1,246 @@
 {% extends "index_master.html" %}
+{% load static %}
+
 {% block content %}
-<div class="right_col" role="main">
-  <div class="container-fluid">
-    <div class="row">
-      <div class="col-md-12">
-        <div class="page-title">
-          <div class="title_left">
-            <h3>{{ titulo|default:"Agregar Asignatura" }}</h3>
-          </div>
-          <div class="title_right">
-            <div class="col-md-5 col-sm-5 col-xs-12 form-group pull-right top_search">
-              <a href="{% url 'listar_asignaturas' %}" class="btn btn-default">
-                <i class="fa fa-arrow-left"></i> Volver a Lista
-              </a>
+<style>
+  :root {
+    --primary-gradient: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+    --secondary-gradient: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    --success-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    --dark-bg: #0f172a;
+    --card-bg: #ffffff;
+    --text-main: #1e293b;
+    --text-muted: #64748b;
+    --border-color: #e2e8f0;
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --radius-lg: 1rem;
+  }
+
+  .user-form-container {
+    padding: 2rem;
+    background-color: #f8fafc;
+    min-height: 100vh;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+
+  .form-card {
+    background: var(--card-bg);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+  }
+
+  .form-header {
+    background: var(--dark-bg);
+    padding: 2rem;
+    color: white;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .form-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at 100% 0%, rgba(99, 102, 241, 0.2) 0%, transparent 50%);
+    pointer-events: none;
+  }
+
+  .form-header h2 {
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(to right, #fff, #cbd5e1);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .form-section-title {
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .form-control,
+  .form-select {
+    border-radius: 0.5rem;
+    border: 1px solid var(--border-color);
+    padding: 0.75rem 1rem;
+    font-size: 0.95rem;
+    transition: all 0.2s;
+  }
+
+  .form-control:focus,
+  .form-select:focus {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  }
+
+  .form-label {
+    font-weight: 600;
+    color: var(--text-main);
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+  }
+
+  .required-field::after {
+    content: " *";
+    color: #ef4444;
+  }
+
+  .btn-gradient-primary {
+    background: var(--primary-gradient);
+    border: none;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .btn-gradient-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    color: white;
+  }
+</style>
+
+<div class="user-form-container">
+  <div class="row">
+    <div class="col-12">
+      <div class="form-card">
+        <!-- Header -->
+        <div class="form-header">
+          <div class="d-flex justify-content-between align-items-start relative" style="z-index: 2;">
+            <div>
+              <h2>
+                <i class="fas fa-book-open me-2"></i>
+                {{ titulo|default:"Agregar Asignatura" }}
+              </h2>
+              <p class="text-white-50 mb-0">
+                Complete el formulario para registrar una nueva asignatura en el sistema.
+              </p>
             </div>
+            <a href="{% url 'listar_asignaturas' %}" class="btn btn-outline-light btn-sm backdrop-blur">
+              <i class="fas fa-arrow-left me-1"></i>Volver
+            </a>
           </div>
         </div>
-      </div>
-    </div>
 
-    <!-- Mostrar errores si existen -->
-    {% if errores %}
-    <div class="row">
-      <div class="col-md-12">
-        <div class="alert alert-danger">
-          <h4><i class="fa fa-exclamation-triangle"></i> Errores encontrados:</h4>
-          <ul>
-            {% for error in errores %}
-            <li>{{ error }}</li>
-            {% endfor %}
-          </ul>
-        </div>
-      </div>
-    </div>
-    {% endif %}
-
-    <!-- Mostrar mensaje de éxito -->
-    {% if mensaje %}
-    <div class="row">
-      <div class="col-md-12">
-        <div class="alert alert-success">
-          <i class="fa fa-check"></i> {{ mensaje }}
-        </div>
-      </div>
-    </div>
-    {% endif %}
-
-    <!-- Formulario principal -->
-    <div class="row">
-      <div class="col-md-12">
-        <div class="x_panel">
-          <div class="x_title">
-            <h2>Información de la Asignatura</h2>
-            <div class="clearfix"></div>
+        <div class="card-body p-4">
+          <!-- Mensajes de Error -->
+          {% if errores %}
+          <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm mb-4" role="alert">
+            <div class="d-flex align-items-start">
+              <i class="fas fa-exclamation-circle fs-4 me-3 text-danger mt-1"></i>
+              <div>
+                <h6 class="alert-heading fw-bold mb-1">Errores encontrados:</h6>
+                <ul class="mb-0 ps-3">
+                  {% for error in errores %}
+                  <li>{{ error }}</li>
+                  {% endfor %}
+                </ul>
+              </div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
           </div>
-          <div class="x_content">
-            <form method="post" class="form-horizontal form-label-left">
-              {% csrf_token %}
-              
-              <div class="form-group">
-                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="nombre">
-                  Nombre de la Asignatura <span class="required">*</span>
-                </label>
-                <div class="col-md-6 col-sm-6 col-xs-12">
-                  <input type="text" id="nombre" name="nombre" class="form-control" 
-                         placeholder="Ej: Matemáticas Aplicadas" required>
+          {% endif %}
+
+          <!-- Mensaje de Éxito -->
+          {% if mensaje %}
+          <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm mb-4" role="alert">
+            <div class="d-flex align-items-center">
+              <i class="fas fa-check-circle fs-4 me-3 text-success"></i>
+              <div>{{ mensaje }}</div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+          {% endif %}
+
+          <form method="post" autocomplete="off">
+            {% csrf_token %}
+
+            <!-- Sección: Información Básica -->
+            <div class="mb-5">
+              <h6 class="form-section-title"><i class="fas fa-info-circle text-primary"></i> Información Básica</h6>
+
+              <div class="row g-4 mb-4">
+                <div class="col-md-8">
+                  <label for="nombre" class="form-label required-field">Nombre de la Asignatura</label>
+                  <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0"><i class="fas fa-heading text-muted"></i></span>
+                    <input type="text" id="nombre" name="nombre" class="form-control border-start-0 ps-0" 
+                           value="{{ form_data.nombre|default:'' }}" placeholder="Ej: Matemáticas Aplicadas" required>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <label for="codigo_asignatura" class="form-label required-field">Código</label>
+                  <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0"><i class="fas fa-barcode text-muted"></i></span>
+                    <input type="text" id="codigo_asignatura" name="codigo_asignatura" class="form-control border-start-0 ps-0" 
+                           value="{{ form_data.codigo_asignatura|default:'' }}" placeholder="Ej: MAT-01" required>
+                  </div>
+                  <div class="form-text small">Identificador único (ej: MAT-01)</div>
                 </div>
               </div>
 
-              <div class="form-group">
-                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="codigo_asignatura">
-                  Código de Asignatura <span class="required">*</span>
-                </label>
-                <div class="col-md-6 col-sm-6 col-xs-12">
-                  <input type="text" id="codigo_asignatura" name="codigo_asignatura" class="form-control" 
-                         placeholder="Ej: MAT-01" required>
-                  <small class="form-text text-muted">Código único para identificar la asignatura (ej: MAT-01, HIS-02)</small>
-                </div>
+              <div class="mb-4">
+                <label for="descripcion" class="form-label">Descripción</label>
+                <textarea id="descripcion" name="descripcion" class="form-control" rows="3"
+                          placeholder="Descripción de la asignatura y sus objetivos...">{{ form_data.descripcion|default:'' }}</textarea>
               </div>
+            </div>
 
-              <div class="form-group">
-                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="descripcion">
-                  Descripción
-                </label>
-                <div class="col-md-6 col-sm-6 col-xs-12">
-                  <textarea id="descripcion" name="descripcion" class="form-control" rows="3"
-                            placeholder="Descripción de la asignatura..."></textarea>
-                  <small class="form-text text-muted">Descripción opcional de la asignatura y sus objetivos</small>
-                </div>
-              </div>
+            <!-- Sección: Responsable -->
+            <div class="mb-5">
+              <h6 class="form-section-title"><i class="fas fa-chalkboard-teacher text-primary"></i> Responsable Académico</h6>
 
-              <div class="form-group">
-                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="profesor_responsable">
-                  Profesor Responsable
-                </label>
-                <div class="col-md-6 col-sm-6 col-xs-12">
-                  <select id="profesor_responsable" name="profesor_responsable" class="form-control">
-                    <option value="">Seleccionar profesor...</option>
-                    {% for profesor in profesores %}
-                      <option value="{{ profesor.id }}">
-                        {{ profesor.primer_nombre }} {{ profesor.apellido_paterno }} {{ profesor.apellido_materno }}
+              <div class="row g-4">
+                <div class="col-md-12">
+                  <label for="profesor_responsable" class="form-label">Profesor Responsable</label>
+                  <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0"><i class="fas fa-user-tie text-muted"></i></span>
+                    <select id="profesor_responsable" name="profesor_responsable" class="form-select border-start-0 ps-0">
+                      <option value="">Seleccionar profesor...</option>
+                      {% for profesor in profesores %}
+                      <option value="{{ profesor.id }}" {% if form_data.profesor_responsable|stringformat:"s" == profesor.id|stringformat:"s" %}selected{% endif %}>
+                        {{ profesor.get_nombre_completo }} ({{ profesor.especialidad }})
                       </option>
-                    {% endfor %}
-                  </select>
-                  <small class="form-text text-muted">Selecciona el profesor responsable de esta asignatura.</small>
+                      {% endfor %}
+                    </select>
+                  </div>
+                  <div class="form-text small">Profesor encargado de la coordinación de la asignatura.</div>
                 </div>
               </div>
+            </div>
 
-              <div class="ln_solid"></div>
-              
-              <div class="form-group">
-                <div class="col-md-6 col-sm-6 col-xs-12 col-md-offset-3">
-                  <button type="button" class="btn btn-default" onclick="window.history.back();">
-                    <i class="fa fa-times"></i> Cancelar
-                  </button>
-                  <button type="submit" class="btn btn-success">
-                    <i class="fa fa-save"></i> {{ accion|default:"Crear" }}
-                  </button>
-                </div>
-              </div>
-            </form>
-          </div>
+            <!-- Acciones -->
+            <div class="d-flex justify-content-end gap-3 pt-3 border-top">
+              <a href="{% url 'listar_asignaturas' %}" class="btn btn-light border px-4">
+                Cancelar
+              </a>
+              <button type="submit" class="btn btn-gradient-primary px-5">
+                <i class="fas fa-save me-2"></i>
+                Guardar Asignatura
+              </button>
+            </div>
+          </form>
         </div>
       </div>
     </div>
   </div>
 </div>
-
-<style>
-.required {
-    color: #e74c3c;
-}
-
-.form-control {
-    border-radius: 4px;
-    border: 1px solid #ddd;
-}
-
-.form-control:focus {
-    border-color: #3498db;
-    box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
-}
-
-.text-danger {
-    color: #e74c3c;
-    font-size: 12px;
-    margin-top: 5px;
-}
-
-.form-text {
-    font-size: 12px;
-    color: #7f8c8d;
-    margin-top: 5px;
-}
-</style>
-
-<script>
-$(document).ready(function() {
-    // Agregar clases de Bootstrap a los campos del formulario
-    $('#id_nombre').addClass('form-control').attr('placeholder', 'Ej: Matemáticas Aplicadas');
-    $('#id_codigo_asignatura').addClass('form-control').attr('placeholder', 'Ej: MAT-01');
-    $('#id_descripcion').addClass('form-control').attr('placeholder', 'Descripción de la asignatura...');
-    $('#profesor_responsable').addClass('form-control');
-    
-    // Validación del formulario en el cliente
-    $('form').on('submit', function(e) {
-        let errores = [];
-        
-        // Validar nombre
-        if (!$('#id_nombre').val().trim()) {
-            errores.push('El nombre de la asignatura es obligatorio');
-        }
-        
-        // Validar código
-        if (!$('#id_codigo_asignatura').val().trim()) {
-            errores.push('El código de la asignatura es obligatorio');
-        }
-        
-        if (errores.length > 0) {
-            e.preventDefault();
-            alert('Errores encontrados:\n- ' + errores.join('\n- '));
-            return false;
-        }
-    });
-});
-</script>
 {% endblock %}
