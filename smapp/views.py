@@ -960,9 +960,13 @@ def inicio(request):
     }
     
     # Datos específicos según el tipo de usuario
+    user_type = None
     if hasattr(request.user, 'perfil'):
         user_type = request.user.perfil.tipo_usuario
-        
+    elif request.user.is_superuser:
+        user_type = 'administrador'
+
+    if user_type:
         if user_type == 'alumno':
             try:
                 estudiante = request.user.estudiante
@@ -1631,7 +1635,7 @@ def inicio(request):
                     'director_chart_matricula_data': chart_matricula_data,
                 })
 
-                if user_type == 'director':
+                if user_type in ['director', 'administrador']:
                     template_name = 'director_dashboard_full.html'
                 
             except Exception as e:
@@ -2010,10 +2014,22 @@ def mis_horarios(request):
             context['anio_actual'] = anio_actual
             context['profesor'] = profesor
             
-            # Obtener asignaturas del profesor (solo como responsable)
-            asignaturas_profesor = Asignatura.objects.filter(
-                profesor_responsable=profesor
-            ).prefetch_related('cursos').order_by('nombre')
+            # Obtener horarios donde el profesor está asignado directamente O es responsable de la asignatura
+            horarios_profesor_qs = HorarioCurso.objects.filter(
+                Q(profesor=profesor) | Q(asignatura__profesor_responsable=profesor),
+                curso__anio=anio_actual
+            ).select_related('curso', 'asignatura').order_by('dia', 'hora_inicio').distinct()
+            
+            horarios_profesor = list(horarios_profesor_qs)
+
+            # Obtener asignaturas basadas en los horarios encontrados
+            asignaturas_ids = set(h.asignatura.id for h in horarios_profesor if h.asignatura)
+            # También incluir asignaturas donde es responsable aunque no tenga horario
+            asignaturas_responsable_ids = Asignatura.objects.filter(profesor_responsable=profesor).values_list('id', flat=True)
+            asignaturas_ids.update(asignaturas_responsable_ids)
+            
+            asignaturas_profesor = Asignatura.objects.filter(id__in=asignaturas_ids).prefetch_related('cursos').order_by('nombre')
+            
             context['asignaturas_profesor'] = asignaturas_profesor
             context.setdefault('total_asignaturas', asignaturas_profesor.count())
             context.setdefault('total_horas_semanales', 0)
@@ -2024,25 +2040,13 @@ def mis_horarios(request):
             context.setdefault('asignaturas_resumen', [])
             context.setdefault('dias_semana_display', [])
             
-            if asignaturas_profesor.exists():
-                # Obtener horarios de las asignaturas del profesor
-                horarios_profesor_qs = HorarioCurso.objects.filter(
-                    asignatura__in=asignaturas_profesor,
-                    curso__anio=anio_actual
-                ).select_related('curso', 'asignatura').order_by('dia', 'hora_inicio')
-
-                horarios_profesor = list(horarios_profesor_qs)
-                
+            if horarios_profesor:
                 # Organizar horarios y crear matriz
                 horario_semanal_matriz, dias_semana, total_clases_semana, clases_por_asignatura = organizar_horarios_matriz(horarios_profesor)
                 
-                # Obtener cursos donde enseña
-                cursos_profesor_qs = Curso.objects.filter(
-                    horarios__asignatura__in=asignaturas_profesor,
-                    anio=anio_actual
-                ).distinct()
-
-                cursos_profesor = list(cursos_profesor_qs)
+                # Obtener cursos donde enseña (basado en los horarios)
+                cursos_ids = set(h.curso.id for h in horarios_profesor)
+                cursos_profesor = Curso.objects.filter(id__in=cursos_ids).order_by('nivel', 'paralelo')
                 
                 # Estadísticas del profesor
                 total_estudiantes = sum(curso.estudiantes.count() for curso in cursos_profesor)
@@ -2341,6 +2345,7 @@ def mi_curso(request):
     
     elif tipo_usuario == 'profesor':
         try:
+            from .models import HorarioCurso  # Importar modelo necesario
             profesor = request.user.profesor
             anio_actual = timezone.now().year
             cursos_jefe_qs = profesor.cursos_jefatura.filter(anio=anio_actual).order_by('nivel', 'paralelo')
@@ -2353,8 +2358,17 @@ def mi_curso(request):
 
             for curso in cursos_asignados_qs:
                 estudiantes_total = curso.estudiantes.count()
-                mis_asignaturas_qs = curso.asignaturas.filter(profesor_responsable=profesor).order_by('nombre')
-                otros_profesores_raw = curso.asignaturas.exclude(profesor_responsable=profesor) \
+                
+                # Obtener asignaturas donde el profesor enseña en este curso
+                # 1. Por ser responsable de la asignatura
+                asignaturas_ids = set(curso.asignaturas.filter(profesor_responsable=profesor).values_list('id', flat=True))
+                # 2. Por tener horarios asignados en este curso
+                horarios_asignaturas_ids = HorarioCurso.objects.filter(curso=curso, profesor=profesor).values_list('asignatura_id', flat=True)
+                asignaturas_ids.update(horarios_asignaturas_ids)
+                
+                mis_asignaturas_qs = Asignatura.objects.filter(id__in=asignaturas_ids).order_by('nombre')
+                
+                otros_profesores_raw = curso.asignaturas.exclude(id__in=asignaturas_ids) \
                     .exclude(profesor_responsable__isnull=True) \
                     .values_list('profesor_responsable__primer_nombre', 'profesor_responsable__apellido_paterno') \
                     .distinct()
@@ -2414,8 +2428,9 @@ def mi_curso(request):
                     codigo_dia = dias_weekday_a_codigo[fecha.weekday()]
                     horarios = HorarioCurso.objects.filter(
                         curso__in=cursos_objs,
-                        dia=codigo_dia,
-                        asignatura__profesor_responsable=profesor
+                        dia=codigo_dia
+                    ).filter(
+                        Q(profesor=profesor) | Q(asignatura__profesor_responsable=profesor)
                     ).select_related('curso', 'asignatura').order_by('hora_inicio')
                     if horarios.exists():
                         proximas_clases.append({
@@ -3701,12 +3716,19 @@ def registrar_asistencia_alumno(request):
                     asignaturas__profesores=profesor_actual,
                     anio=timezone.now().year
                 ).distinct()
+
+                # 4. Cursos donde tiene horarios asignados
+                cursos_con_horarios = Curso.objects.filter(
+                    horarios__profesor=profesor_actual,
+                    anio=timezone.now().year
+                ).distinct()
                 
                 # Combinar usando IDs para evitar el error de QuerySet
                 cursos_ids = list(set(
                     list(cursos_como_jefe.values_list('id', flat=True)) +
                     list(cursos_con_asignaturas_responsable.values_list('id', flat=True)) +
-                    list(cursos_con_asignaturas_asignadas.values_list('id', flat=True))
+                    list(cursos_con_asignaturas_asignadas.values_list('id', flat=True)) +
+                    list(cursos_con_horarios.values_list('id', flat=True))
                 ))
                 
                 cursos_disponibles = Curso.objects.filter(id__in=cursos_ids).order_by('nivel', 'paralelo')
@@ -3793,9 +3815,26 @@ def registrar_asistencia_alumno(request):
                         curso_seleccionado.asignaturas.add(asignatura_seleccionada)
                 else:
                     # Buscar asignatura del profesor
+                    # 1. Como responsable
                     asignatura_seleccionada = curso_seleccionado.asignaturas.filter(
                         profesor_responsable=profesor_actual
                     ).first()
+                    
+                    # 2. Si no, buscar en ManyToMany
+                    if not asignatura_seleccionada:
+                        asignatura_seleccionada = curso_seleccionado.asignaturas.filter(
+                            profesores=profesor_actual
+                        ).first()
+                        
+                    # 3. Si no, buscar en Horarios (priorizar horarios con asignatura)
+                    if not asignatura_seleccionada:
+                        horario = HorarioCurso.objects.filter(
+                            curso=curso_seleccionado,
+                            profesor=profesor_actual,
+                            asignatura__isnull=False
+                        ).first()
+                        if horario:
+                            asignatura_seleccionada = horario.asignatura
                 
                 if not asignatura_seleccionada:
                     messages.error(request, 'No se encontró una asignatura válida para registrar asistencia.')
@@ -3868,9 +3907,26 @@ def registrar_asistencia_alumno(request):
                         curso_seleccionado.asignaturas.add(asignatura_seleccionada)
                 else:
                     # Buscar asignatura del profesor
+                    # 1. Como responsable
                     asignatura_seleccionada = curso_seleccionado.asignaturas.filter(
                         profesor_responsable=profesor_actual
                     ).first()
+                    
+                    # 2. Si no, buscar en ManyToMany
+                    if not asignatura_seleccionada:
+                        asignatura_seleccionada = curso_seleccionado.asignaturas.filter(
+                            profesores=profesor_actual
+                        ).first()
+                        
+                    # 3. Si no, buscar en Horarios (priorizar horarios con asignatura)
+                    if not asignatura_seleccionada:
+                        horario = HorarioCurso.objects.filter(
+                            curso=curso_seleccionado,
+                            profesor=profesor_actual,
+                            asignatura__isnull=False
+                        ).first()
+                        if horario:
+                            asignatura_seleccionada = horario.asignatura
                 
                 if not asignatura_seleccionada:
                     messages.error(request, 'No tienes asignaturas asignadas a este curso.')
@@ -3879,7 +3935,7 @@ def registrar_asistencia_alumno(request):
                 else:
                     mostrar_lista = True
             else:
-                messages.error(request, 'Por favor selecciona un curso válido.')
+                messages.error(request, f'Por favor selecciona un curso válido. {form.errors}')
     else:
         form = RegistroMasivoAsistenciaForm()
         form.fields['curso'].queryset = cursos_disponibles
@@ -3950,12 +4006,19 @@ def ver_asistencia_alumno(request):
                     asignaturas__profesores=profesor_actual,
                     anio=timezone.now().year
                 ).distinct()
+
+                # 4. Cursos donde tiene horarios asignados
+                cursos_con_horarios = Curso.objects.filter(
+                    horarios__profesor=profesor_actual,
+                    anio=timezone.now().year
+                ).distinct()
                 
                 # Combinar usando IDs para evitar el error de QuerySet
                 cursos_ids = list(set(
                     list(cursos_como_jefe.values_list('id', flat=True)) +
                     list(cursos_con_asignaturas_responsable.values_list('id', flat=True)) +
-                    list(cursos_con_asignaturas_asignadas.values_list('id', flat=True))
+                    list(cursos_con_asignaturas_asignadas.values_list('id', flat=True)) +
+                    list(cursos_con_horarios.values_list('id', flat=True))
                 ))
                 
                 cursos_disponibles = Curso.objects.filter(id__in=cursos_ids).order_by('nivel', 'paralelo')

@@ -112,9 +112,15 @@ class Profesor(Persona):
             asignaturas__profesor_responsable=self,
             anio=anio_actual
         ).values_list('id', flat=True)
+
+        # Obtener IDs de cursos donde tiene horarios asignados
+        cursos_horarios_ids = Curso.objects.filter(
+            horarios__profesor=self,
+            anio=anio_actual
+        ).values_list('id', flat=True)
         
-        # Combinar ambos conjuntos de IDs
-        todos_los_ids = set(list(cursos_jefe_ids) + list(cursos_asignaturas_ids))
+        # Combinar todos los conjuntos de IDs
+        todos_los_ids = set(list(cursos_jefe_ids) + list(cursos_asignaturas_ids) + list(cursos_horarios_ids))
         
         # Retornar cursos únicos
         return Curso.objects.filter(id__in=todos_los_ids).order_by('nivel', 'paralelo')

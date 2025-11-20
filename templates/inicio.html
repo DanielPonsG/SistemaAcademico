@@ -2782,7 +2782,7 @@
                     </div>
                     {% endif %}
                   </div>
-    {% elif user.perfil.tipo_usuario == 'director' %}
+    {% elif user.perfil.tipo_usuario == 'director' or user.perfil.tipo_usuario == 'administrador' or user.is_superuser %}
     <!-- ################################################## -->
     <!-- ######### PANEL RENOVADO PARA DIRECTORES ######### -->
     <!-- ################################################## -->
@@ -3126,7 +3126,7 @@
           </div>
           <div class="card-body bg-white">
             <div class="row g-3">
-              {% if user.perfil.tipo_usuario == 'administrador' %}
+              {% if user.perfil.tipo_usuario == 'administrador' or user.is_superuser %}
                 <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
                   <a href="{% url 'listar_estudiantes' %}" class="quick-access-link text-decoration-none">
                     <div class="quick-access-card text-center p-3 rounded-3 h-100">
@@ -3364,7 +3364,7 @@
             </h5>
           </div>
           <div class="card-body">
-            {% if user.perfil.tipo_usuario == 'administrador' %}
+            {% if user.perfil.tipo_usuario == 'administrador' or user.is_superuser %}
               <div class="alert alert-danger border-0 mb-3">
                 <div class="d-flex align-items-center">
                   <i class="fas fa-crown fa-2x text-danger me-3"></i>

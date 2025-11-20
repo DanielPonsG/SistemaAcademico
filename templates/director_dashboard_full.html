@@ -509,6 +509,67 @@
     <!-- Main Column -->
     <div class="dashboard-main">
 
+      <!-- Accesos Rápidos (Solo Admin) -->
+      {% if user.perfil.tipo_usuario == 'administrador' or user.is_superuser %}
+      <div class="dashboard-card">
+        <div class="card-header">
+          <div class="card-title">
+            <i class="fas fa-rocket"></i> Accesos Rápidos
+          </div>
+        </div>
+        <div class="row g-3">
+          <div class="col-xl-3 col-lg-4 col-md-6">
+            <a href="{% url 'listar_estudiantes' %}" class="text-decoration-none">
+              <div class="mini-card h-100 p-3 d-flex flex-column align-items-center justify-content-center">
+                <i class="fas fa-users fa-2x text-primary mb-2"></i>
+                <h6 class="mb-0 text-dark">Gestionar Estudiantes</h6>
+              </div>
+            </a>
+          </div>
+          <div class="col-xl-3 col-lg-4 col-md-6">
+            <a href="{% url 'listar_estudiantes' %}?tipo=profesor" class="text-decoration-none">
+              <div class="mini-card h-100 p-3 d-flex flex-column align-items-center justify-content-center">
+                <i class="fas fa-chalkboard-teacher fa-2x text-success mb-2"></i>
+                <h6 class="mb-0 text-dark">Gestionar Profesores</h6>
+              </div>
+            </a>
+          </div>
+          <div class="col-xl-3 col-lg-4 col-md-6">
+            <a href="{% url 'listar_cursos' %}" class="text-decoration-none">
+              <div class="mini-card h-100 p-3 d-flex flex-column align-items-center justify-content-center">
+                <i class="fas fa-school fa-2x text-warning mb-2"></i>
+                <h6 class="mb-0 text-dark">Gestionar Cursos</h6>
+              </div>
+            </a>
+          </div>
+          <div class="col-xl-3 col-lg-4 col-md-6">
+            <a href="{% url 'listar_asignaturas' %}" class="text-decoration-none">
+              <div class="mini-card h-100 p-3 d-flex flex-column align-items-center justify-content-center">
+                <i class="fas fa-book-open fa-2x text-info mb-2"></i>
+                <h6 class="mb-0 text-dark">Mis Asignaturas</h6>
+              </div>
+            </a>
+          </div>
+          <div class="col-xl-3 col-lg-4 col-md-6">
+            <a href="{% url 'ver_notas_curso' %}" class="text-decoration-none">
+              <div class="mini-card h-100 p-3 d-flex flex-column align-items-center justify-content-center">
+                <i class="fas fa-chart-bar fa-2x text-danger mb-2"></i>
+                <h6 class="mb-0 text-dark">Ver Calificaciones</h6>
+              </div>
+            </a>
+          </div>
+          <div class="col-xl-3 col-lg-4 col-md-6">
+            <a href="{% url 'calendario' %}" class="text-decoration-none">
+              <div class="mini-card h-100 p-3 d-flex flex-column align-items-center justify-content-center">
+                <i class="fas fa-calendar-alt fa-2x text-secondary mb-2"></i>
+                <h6 class="mb-0 text-dark">Calendario</h6>
+              </div>
+            </a>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
       <!-- Panorama Diario -->
       <div class="dashboard-card">
         <div class="card-header">

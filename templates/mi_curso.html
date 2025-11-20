@@ -280,6 +280,170 @@
       </div>
     </div>
 
+    {% elif es_profesor %}
+    
+    <!-- Vista para Profesores -->
+    <div class="course-dashboard fade-in">
+      <section class="course-hero">
+        <div class="course-hero__content">
+          <div class="course-hero__icon"><i class="fas fa-chalkboard-teacher"></i></div>
+          <div>
+            <span class="course-hero__chip"><i class="fas fa-user-tie"></i> Panel de Profesor</span>
+            <h2 class="course-hero__title">Mis Cursos</h2>
+            <p class="course-hero__subtitle">Hola {{ profesor.get_nombre_completo }}, aquí tienes el resumen de tus cursos y asignaturas.</p>
+            <div class="course-hero__meta">
+              <span><i class="fas fa-calendar"></i>{{ anio_actual }}</span>
+              <span><i class="fas fa-book"></i>{{ resumen_profesor.total_asignaturas_propias }} Asignaturas</span>
+              <span><i class="fas fa-users"></i>{{ resumen_profesor.total_estudiantes }} Estudiantes</span>
+            </div>
+          </div>
+        </div>
+        <div class="course-hero__metrics">
+          <article class="course-hero-metric">
+            <span>Cursos Asignados</span>
+            <strong>{{ resumen_profesor.total_cursos }}</strong>
+          </article>
+          <article class="course-hero-metric">
+            <span>Jefaturas</span>
+            <strong>{{ resumen_profesor.total_cursos_jefe }}</strong>
+          </article>
+          <article class="course-hero-metric">
+            <span>Próximas Clases</span>
+            <strong>{{ proximas_clases|length }}</strong>
+          </article>
+        </div>
+      </section>
+
+      <!-- Cursos donde enseña -->
+      <section class="course-section">
+        <header class="course-section__header">
+          <div>
+            <h3><i class="fas fa-chalkboard me-2 text-primary"></i>Cursos Asignados</h3>
+            <p>Listado de cursos donde impartes clases este año.</p>
+          </div>
+        </header>
+        
+        {% if cursos_profesor %}
+        <div class="row">
+          {% for curso_info in cursos_profesor %}
+          <div class="col-md-6 col-xl-4 mb-4">
+            <div class="card h-100 border shadow-sm {% if curso_info.soy_profesor_jefe %}border-primary{% endif %}">
+              <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+                <h5 class="mb-0 font-weight-bold text-dark">
+                  {{ curso_info.nombre }}
+                  {% if curso_info.soy_profesor_jefe %}
+                  <span class="badge bg-primary ms-2" style="font-size: 0.7rem;">Jefatura</span>
+                  {% endif %}
+                </h5>
+                <span class="badge bg-light text-dark border">{{ curso_info.total_estudiantes }} est.</span>
+              </div>
+              <div class="card-body">
+                <div class="mb-3">
+                  <h6 class="text-muted text-uppercase small font-weight-bold mb-2">Tus Asignaturas:</h6>
+                  {% if curso_info.mis_asignaturas %}
+                  <ul class="list-unstyled mb-0">
+                    {% for asig in curso_info.mis_asignaturas %}
+                    <li class="mb-1 d-flex align-items-center">
+                      <i class="fas fa-book text-info me-2 small"></i>
+                      <span>{{ asig.nombre }}</span>
+                    </li>
+                    {% endfor %}
+                  </ul>
+                  {% else %}
+                  <p class="text-muted small fst-italic mb-0">Sin asignaturas registradas como responsable.</p>
+                  {% endif %}
+                </div>
+                
+                {% if curso_info.profesor_jefe and not curso_info.soy_profesor_jefe %}
+                <div class="mt-3 pt-3 border-top">
+                  <small class="text-muted d-block">Profesor Jefe:</small>
+                  <div class="d-flex align-items-center mt-1">
+                    <div class="avatar-circle-sm bg-light text-secondary me-2">
+                      {{ curso_info.profesor_jefe.primer_nombre|slice:":1" }}{{ curso_info.profesor_jefe.apellido_paterno|slice:":1" }}
+                    </div>
+                    <span class="small">{{ curso_info.profesor_jefe.get_nombre_completo }}</span>
+                  </div>
+                </div>
+                {% endif %}
+              </div>
+              <div class="card-footer bg-light border-top-0 p-3">
+                <div class="d-grid gap-2">
+                  <a href="{% url 'ver_notas_curso' %}?curso_id={{ curso_info.obj.id }}" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-star me-1"></i> Notas
+                  </a>
+                  <a href="{% url 'registrar_asistencia_alumno' %}?curso_id={{ curso_info.obj.id }}" class="btn btn-sm btn-outline-success">
+                    <i class="fas fa-check-circle me-1"></i> Asistencia
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="alert alert-warning">
+          <i class="fas fa-exclamation-circle me-2"></i> No tienes cursos asignados para este año académico.
+        </div>
+        {% endif %}
+      </section>
+
+      <!-- Próximas Clases -->
+      {% if proximas_clases %}
+      <section class="course-section">
+        <header class="course-section__header">
+          <div>
+            <h3><i class="fas fa-clock me-2 text-warning"></i>Próximas Clases</h3>
+            <p>Tu agenda para los próximos días.</p>
+          </div>
+        </header>
+        
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead class="bg-light">
+              <tr>
+                <th>Fecha</th>
+                <th>Horario</th>
+                <th>Curso</th>
+                <th>Asignatura</th>
+                <th>Sala</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for dia_clases in proximas_clases %}
+                {% for clase in dia_clases.horarios %}
+                <tr>
+                  <td>
+                    <div class="d-flex flex-column">
+                      <span class="fw-bold">{{ dia_clases.dia_nombre }}</span>
+                      <small class="text-muted">{{ dia_clases.fecha|date:"d M" }}</small>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="badge bg-light text-dark border">
+                      {{ clase.hora_inicio|time:"H:i" }} - {{ clase.hora_fin|time:"H:i" }}
+                    </span>
+                  </td>
+                  <td>
+                    <span class="fw-bold text-primary">{{ clase.curso.nombre }}</span>
+                  </td>
+                  <td>{{ clase.asignatura.nombre }}</td>
+                  <td>
+                    {% if clase.grupo_set.first.salon %}
+                      {{ clase.grupo_set.first.salon.numero_salon }}
+                    {% else %}
+                      <span class="text-muted">-</span>
+                    {% endif %}
+                  </td>
+                </tr>
+                {% endfor %}
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </section>
+      {% endif %}
+    </div>
+
     {% else %}
     
     <!-- Vista para no estudiantes -->

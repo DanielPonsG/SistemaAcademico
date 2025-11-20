@@ -12,7 +12,7 @@ Determina los enlaces a mostrar según el tipo de usuario autenticado.
       <span>Inicio</span>
     </a>
 
-    {% if user_type == 'administrador' or user_type == 'director' %}
+    {% if user_type == 'administrador' or user_type == 'director' or request.user.is_superuser %}
     <a href="{% url 'listar_cursos' %}"
       class="horizontal-nav__link{% if '/cursos/' in request.path %} horizontal-nav__link--active{% endif %}">
       <i class="fa-solid fa-layer-group horizontal-nav__icon" aria-hidden="true"></i>
@@ -94,7 +94,7 @@ Determina los enlaces a mostrar según el tipo de usuario autenticado.
       <span>Calendario</span>
     </a>
 
-    {% if user_type == 'administrador' or user_type == 'director' or user_type == 'profesor' %}
+    {% if user_type == 'administrador' or user_type == 'director' or user_type == 'profesor' or request.user.is_superuser %}
     <a href="{% url 'libro_anotaciones' %}"
       class="horizontal-nav__link{% if '/anotaciones/' in request.path %} horizontal-nav__link--active{% endif %}">
       <i class="fa-solid fa-clipboard-list horizontal-nav__icon" aria-hidden="true"></i>
