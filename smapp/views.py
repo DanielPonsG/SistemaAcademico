@@ -1115,9 +1115,12 @@ def inicio(request):
                 niveles_dict = dict(Curso.NIVELES)
 
                 # Analítica de calificaciones globales
+                # Usamos distinct() para evitar duplicados si hay relaciones múltiples, 
+                # pero filtramos por el curso del estudiante en el año actual y notas del año actual
                 calificaciones_query = Calificacion.objects.filter(
-                    inscripcion__grupo__asignatura__cursos__anio=anio_actual
-                )
+                    inscripcion__estudiante__cursos__anio=anio_actual,
+                    fecha_evaluacion__year=anio_actual
+                ).distinct()
 
                 resumen_promedios = calificaciones_query.aggregate(
                     promedio_global=Avg('puntaje'),
@@ -1130,9 +1133,9 @@ def inicio(request):
                 tasa_aprobacion = round((aprobaciones / total_evaluaciones) * 100, 1) if total_evaluaciones else 0
 
                 calificaciones_por_curso_raw = calificaciones_query.values(
-                    'inscripcion__grupo__asignatura__cursos__id',
-                    'inscripcion__grupo__asignatura__cursos__nivel',
-                    'inscripcion__grupo__asignatura__cursos__paralelo'
+                    'inscripcion__estudiante__cursos__id',
+                    'inscripcion__estudiante__cursos__nivel',
+                    'inscripcion__estudiante__cursos__paralelo'
                 ).annotate(
                     promedio=Avg('puntaje'),
                     evaluaciones=Count('id', distinct=True),
@@ -1142,11 +1145,11 @@ def inicio(request):
 
                 promedios_por_curso = []
                 for fila in calificaciones_por_curso_raw:
-                    curso_id = fila.get('inscripcion__grupo__asignatura__cursos__id')
+                    curso_id = fila.get('inscripcion__estudiante__cursos__id')
                     if not curso_id:
                         continue
-                    nivel_codigo = fila.get('inscripcion__grupo__asignatura__cursos__nivel')
-                    paralelo = fila.get('inscripcion__grupo__asignatura__cursos__paralelo') or ''
+                    nivel_codigo = fila.get('inscripcion__estudiante__cursos__nivel')
+                    paralelo = fila.get('inscripcion__estudiante__cursos__paralelo') or ''
                     nombre_nivel = niveles_dict.get(nivel_codigo, nivel_codigo)
                     promedio_curso = float(fila.get('promedio') or 0)
                     promedios_por_curso.append({
@@ -2388,8 +2391,12 @@ def listar_cursos(request):
     form_asignar = AsignarEstudianteForm() if user_type != 'profesor' else None
     
     # Verificar permisos del usuario
-    puede_editar = (hasattr(request.user, 'perfil') and 
-                   request.user.perfil.tipo_usuario in ['director', 'administrador', 'profesor_jefe'])
+    puede_editar = False
+    if request.user.is_superuser or request.user.is_staff:
+        puede_editar = True
+    elif hasattr(request.user, 'perfil'):
+        if request.user.perfil.tipo_usuario in ['director', 'administrador']:
+            puede_editar = True
     
     context = {
         'cursos': cursos,
@@ -2796,11 +2803,18 @@ def ingresar_notas(request):
             else:
                 cursos_por_manytomany = Curso.objects.none()
             
+            # 3. A través de HorarioCurso (donde dicta clases)
+            cursos_por_horario = Curso.objects.filter(
+                horarios__profesor=profesor, anio=anio_actual
+            ).distinct()
+
             # Combinar todos los tipos de cursos usando IDs para evitar error de combinación
             ids_jefe = list(cursos_como_jefe.values_list('id', flat=True))
             ids_responsabilidad = list(cursos_por_responsabilidad.values_list('id', flat=True))
             ids_manytomany = list(cursos_por_manytomany.values_list('id', flat=True))
-            todos_ids = list(set(ids_jefe + ids_responsabilidad + ids_manytomany))
+            ids_horarios = list(cursos_por_horario.values_list('id', flat=True))
+            
+            todos_ids = list(set(ids_jefe + ids_responsabilidad + ids_manytomany + ids_horarios))
             
             cursos_disponibles = Curso.objects.filter(
                 id__in=todos_ids, anio=anio_actual
@@ -2825,6 +2839,12 @@ def ingresar_notas(request):
                         # Asignaturas asignadas (ManyToMany)
                         asignaturas_manytomany = profesor.asignaturas.all()
                         ids_asignaturas.update(asignaturas_manytomany.values_list('id', flat=True))
+                        
+                        # Asignaturas por HorarioCurso
+                        from .models import HorarioCurso
+                        ids_asignaturas.update(HorarioCurso.objects.filter(
+                            profesor=profesor, curso=curso_seleccionado
+                        ).values_list('asignatura_id', flat=True))
                         
                         # Filtrar solo las asignaturas del curso que tiene asignadas
                         asignaturas_disponibles = asignaturas_curso.filter(id__in=ids_asignaturas).distinct().order_by('nombre')
@@ -2865,10 +2885,18 @@ def ingresar_notas(request):
                 if user_type == 'profesor':
                     profesor_actual = Profesor.objects.get(user=request.user)
                     # Si el profesor actual puede dar esta asignatura, usar el profesor actual
+                    # Verificar si tiene horario asignado para este curso y asignatura
+                    tiene_horario = HorarioCurso.objects.filter(
+                        profesor=profesor_actual, 
+                        curso=curso_seleccionado, 
+                        asignatura=asignatura_seleccionada
+                    ).exists()
+                    
                     puede_dar_asignatura = (
                         asignatura_seleccionada.profesor_responsable == profesor_actual or
                         profesor_actual.asignaturas.filter(id=asignatura_seleccionada.id).exists() or
-                        curso_seleccionado.profesor_jefe == profesor_actual
+                        curso_seleccionado.profesor_jefe == profesor_actual or
+                        tiene_horario
                     )
                     if puede_dar_asignatura:
                         profesor_grupo = profesor_actual
@@ -2890,25 +2918,38 @@ def ingresar_notas(request):
                     Inscripcion.objects.get_or_create(estudiante=estudiante, grupo=grupo)
                 
                 # Obtener inscripciones
+                # FIX: Filtrar explícitamente por el grupo actual para evitar duplicados
+                # si existen múltiples grupos para la misma asignatura
                 inscripciones_filtradas = Inscripcion.objects.filter(
                     estudiante__in=estudiantes_curso,
-                    grupo__asignatura=asignatura_seleccionada
+                    grupo=grupo
                 ).select_related('estudiante', 'grupo')
                 
                 # Para profesores, aplicar filtros adicionales
                 if user_type == 'profesor':
                     profesor_actual = Profesor.objects.get(user=request.user)
-                    # Un profesor puede ver estudiantes si:
-                    # 1. Es el profesor del grupo
-                    # 2. Es el profesor responsable de la asignatura
-                    # 3. Es el profesor jefe del curso
-                    # 4. Tiene la asignatura asignada (ManyToMany)
-                    inscripciones_filtradas = inscripciones_filtradas.filter(
-                        models.Q(grupo__profesor=profesor_actual) |
-                        models.Q(grupo__asignatura__profesor_responsable=profesor_actual) |
-                        models.Q(estudiante__cursos__profesor_jefe=profesor_actual) |
-                        models.Q(grupo__asignatura__profesores=profesor_actual)
-                    ).distinct()
+                    
+                    # Verificar si tiene horario asignado para este curso y asignatura
+                    tiene_horario = HorarioCurso.objects.filter(
+                        profesor=profesor_actual, 
+                        curso=curso_seleccionado, 
+                        asignatura=asignatura_seleccionada
+                    ).exists()
+                    
+                    # Si tiene horario, puede ver a todos los estudiantes del curso en esa asignatura
+                    # Si NO tiene horario, aplicar los filtros restrictivos
+                    if not tiene_horario:
+                        # Un profesor puede ver estudiantes si:
+                        # 1. Es el profesor del grupo
+                        # 2. Es el profesor responsable de la asignatura
+                        # 3. Es el profesor jefe del curso
+                        # 4. Tiene la asignatura asignada (ManyToMany)
+                        inscripciones_filtradas = inscripciones_filtradas.filter(
+                            models.Q(grupo__profesor=profesor_actual) |
+                            models.Q(grupo__asignatura__profesor_responsable=profesor_actual) |
+                            models.Q(estudiante__cursos__profesor_jefe=profesor_actual) |
+                            models.Q(grupo__asignatura__profesores=profesor_actual)
+                        ).distinct()
                 
                 estudiantes_curso_asignatura = inscripciones_filtradas.order_by('estudiante__primer_nombre', 'estudiante__apellido_paterno')
                 
@@ -2992,6 +3033,13 @@ def ver_notas_curso(request):
     anio_actual = timezone.now().year
     user_type_obj = getattr(request.user, 'perfil', None)
     user_type = user_type_obj.tipo_usuario if user_type_obj else None
+
+    # Permitir que superusuarios y staff actúen como administradores
+    if request.user.is_superuser or request.user.is_staff:
+        # Si no tiene perfil o su tipo no es estándar, tratar como administrador
+        if not user_type or user_type not in ['director', 'administrador', 'profesor', 'alumno']:
+            user_type = 'administrador'
+
     cursos_disponibles = []
     curso_seleccionado = None
     asignaturas_disponibles = []
@@ -3061,12 +3109,19 @@ def ver_notas_curso(request):
                 ).distinct()
             else:
                 cursos_por_manytomany = Curso.objects.none()
+
+            # 3. A través de HorarioCurso (NUEVO)
+            cursos_por_horario = Curso.objects.filter(
+                horarios__profesor=profesor,
+                anio=anio_actual
+            ).distinct()
             
             # Combinar todos los tipos de cursos usando IDs para evitar error de combinación
             ids_jefe = list(cursos_como_jefe.values_list('id', flat=True))
             ids_responsabilidad = list(cursos_por_responsabilidad.values_list('id', flat=True))
             ids_manytomany = list(cursos_por_manytomany.values_list('id', flat=True))
-            todos_ids = list(set(ids_jefe + ids_responsabilidad + ids_manytomany))
+            ids_horario = list(cursos_por_horario.values_list('id', flat=True))
+            todos_ids = list(set(ids_jefe + ids_responsabilidad + ids_manytomany + ids_horario))
             
             cursos_disponibles = Curso.objects.filter(
                 id__in=todos_ids, anio=anio_actual
@@ -3084,16 +3139,24 @@ def ver_notas_curso(request):
                         # Si no es profesor jefe, solo ve asignaturas donde es responsable o tiene asignadas
                         ids_asignaturas = set()
                         
-                        # Asignaturas donde es responsable (ForeignKey)
-                        asignaturas_responsable = profesor.asignaturas_responsable.all()
-                        ids_asignaturas.update(asignaturas_responsable.values_list('id', flat=True))
+                        # Asignaturas donde es responsable
+                        ids_asignaturas.update(asignaturas_curso.filter(
+                            profesor_responsable=profesor
+                        ).values_list('id', flat=True))
                         
-                        # Asignaturas asignadas (ManyToMany)
-                        asignaturas_manytomany = profesor.asignaturas.all()
-                        ids_asignaturas.update(asignaturas_manytomany.values_list('id', flat=True))
+                        # Asignaturas asignadas via ManyToMany
+                        ids_asignaturas.update(asignaturas_curso.filter(
+                            profesores=profesor
+                        ).values_list('id', flat=True))
+
+                        # Asignaturas asignadas via HorarioCurso (NUEVO)
+                        ids_asignaturas.update(asignaturas_curso.filter(
+                            horarios__profesor=profesor
+                        ).values_list('id', flat=True))
                         
-                        # Filtrar solo las asignaturas del curso que tiene asignadas
-                        asignaturas_disponibles = asignaturas_curso.filter(id__in=ids_asignaturas).distinct().order_by('nombre')
+                        asignaturas_disponibles = Asignatura.objects.filter(
+                            id__in=ids_asignaturas
+                        ).order_by('nombre')
                 except Curso.DoesNotExist:
                     pass
         except Profesor.DoesNotExist:
@@ -3131,11 +3194,13 @@ def ver_notas_curso(request):
                     # 2. Es el profesor responsable de la asignatura
                     # 3. Es el profesor jefe del curso
                     # 4. Tiene la asignatura asignada (ManyToMany)
+                    # 5. Tiene horario asignado en el curso (HorarioCurso)
                     inscripciones = inscripciones.filter(
                         models.Q(grupo__profesor=profesor_actual) |
                         models.Q(grupo__asignatura__profesor_responsable=profesor_actual) |
                         models.Q(estudiante__cursos__profesor_jefe=profesor_actual) |
-                        models.Q(grupo__asignatura__profesores=profesor_actual)
+                        models.Q(grupo__asignatura__profesores=profesor_actual) |
+                        models.Q(grupo__asignatura__horarios__profesor=profesor_actual)
                     ).distinct()
                 
                 # Obtener estudiantes únicos (evitar duplicados)
@@ -3212,7 +3277,13 @@ def ver_notas_curso(request):
             if user_type == 'profesor':
                 try:
                     profesor = Profesor.objects.get(user=request.user)
-                    inscripciones = inscripciones.filter(grupo__profesor=profesor)
+                    inscripciones = inscripciones.filter(
+                        models.Q(grupo__profesor=profesor) |
+                        models.Q(grupo__asignatura__profesor_responsable=profesor) |
+                        models.Q(estudiante__cursos__profesor_jefe=profesor) |
+                        models.Q(grupo__asignatura__profesores=profesor) |
+                        models.Q(grupo__asignatura__horarios__profesor=profesor)
+                    ).distinct()
                 except Profesor.DoesNotExist:
                     pass
             
@@ -4512,7 +4583,36 @@ def editar_curso(request, curso_id):
 @login_required
 def eliminar_curso(request, curso_id):
     """Vista para eliminar curso"""
-    context = {'user': request.user, 'curso_id': curso_id}
+    from django.shortcuts import get_object_or_404
+    
+    # Verificar permisos
+    user_type = 'otro'
+    if request.user.is_superuser:
+        user_type = 'administrador'
+    elif hasattr(request.user, 'perfil'):
+        user_type = request.user.perfil.tipo_usuario
+    
+    if user_type not in ['administrador', 'director']:
+        messages.error(request, 'No tienes permisos para eliminar cursos.')
+        return redirect('listar_cursos')
+
+    curso = get_object_or_404(Curso, id=curso_id)
+    
+    if request.method == 'POST':
+        nombre_curso = f"{curso.get_nivel_display()}{curso.paralelo}"
+        try:
+            curso.delete()
+            messages.success(request, f'Curso {nombre_curso} eliminado exitosamente.')
+            return redirect('listar_cursos')
+        except Exception as e:
+            messages.error(request, f'Error al eliminar el curso: {str(e)}')
+            return redirect('listar_cursos')
+            
+    context = {
+        'user': request.user, 
+        'curso': curso,
+        'curso_id': curso_id
+    }
     return render(request, 'eliminar_curso.html', context)
 
 @login_required
@@ -4731,16 +4831,47 @@ def editar_nota(request, nota_id):
     # Verificar permisos del usuario
     user_type_obj = getattr(request.user, 'perfil', None)
     user_type = user_type_obj.tipo_usuario if user_type_obj else None
+
+    # Permitir que superusuarios y staff actúen como administradores
+    if request.user.is_superuser or request.user.is_staff:
+        if not user_type or user_type not in ['director', 'administrador', 'profesor', 'alumno']:
+            user_type = 'administrador'
     
     # Solo admin, director o profesor responsable puede editar
     if user_type not in ['director', 'administrador']:
         if user_type == 'profesor':
             try:
                 profesor = request.user.profesor
-                if not (asignatura.profesor_responsable == profesor):
+                tiene_permiso = False
+                
+                # 1. Profesor responsable de la asignatura
+                if asignatura.profesor_responsable == profesor:
+                    tiene_permiso = True
+                
+                # 2. Profesor asignado (ManyToMany)
+                elif asignatura.profesores.filter(id=profesor.id).exists():
+                    tiene_permiso = True
+                    
+                # 3. Profesor del grupo
+                elif nota.inscripcion.grupo.profesor == profesor:
+                    tiene_permiso = True
+                    
+                # 4. Profesor con horario en el curso del estudiante
+                else:
+                    curso_estudiante = estudiante.get_curso_actual()
+                    if curso_estudiante:
+                        # Profesor jefe
+                        if curso_estudiante.profesor_jefe == profesor:
+                            tiene_permiso = True
+                        # Horario
+                        elif HorarioCurso.objects.filter(curso=curso_estudiante, asignatura=asignatura, profesor=profesor).exists():
+                            tiene_permiso = True
+                            
+                if not tiene_permiso:
                     messages.error(request, 'No tienes permisos para editar esta nota.')
                     return redirect('ver_notas_curso')
-            except:
+            except Exception as e:
+                print(f"Error verificando permisos: {e}")
                 messages.error(request, 'No tienes permisos para editar esta nota.')
                 return redirect('ver_notas_curso')
         else:
@@ -4752,6 +4883,11 @@ def editar_nota(request, nota_id):
         if form.is_valid():
             form.save()
             messages.success(request, f'Nota de {estudiante.get_nombre_completo()} actualizada exitosamente.')
+            
+            # Redirigir manteniendo los filtros
+            curso = estudiante.get_curso_actual()
+            if curso:
+                return redirect(f"{reverse('ver_notas_curso')}?curso_id={curso.id}&asignatura_id={asignatura.id}")
             return redirect('ver_notas_curso')
         else:
             messages.error(request, 'Por favor corrige los errores del formulario.')
@@ -4784,26 +4920,74 @@ def eliminar_nota(request, nota_id):
     # Verificar permisos del usuario
     user_type_obj = getattr(request.user, 'perfil', None)
     user_type = user_type_obj.tipo_usuario if user_type_obj else None
+
+    # Permitir que superusuarios y staff actúen como administradores
+    if request.user.is_superuser or request.user.is_staff:
+        if not user_type or user_type not in ['director', 'administrador', 'profesor', 'alumno']:
+            user_type = 'administrador'
     
     # Solo admin, director o profesor responsable puede eliminar
     if user_type not in ['director', 'administrador']:
         if user_type == 'profesor':
             try:
                 profesor = request.user.profesor
-                if not (asignatura.profesor_responsable == profesor):
+                tiene_permiso = False
+                
+                # 1. Profesor responsable de la asignatura
+                if asignatura.profesor_responsable == profesor:
+                    tiene_permiso = True
+                
+                # 2. Profesor asignado (ManyToMany)
+                elif asignatura.profesores.filter(id=profesor.id).exists():
+                    tiene_permiso = True
+                    
+                # 3. Profesor del grupo
+                elif nota.inscripcion.grupo.profesor == profesor:
+                    tiene_permiso = True
+                    
+                # 4. Profesor con horario en el curso del estudiante
+                else:
+                    curso_estudiante = estudiante.get_curso_actual()
+                    if curso_estudiante:
+                        # Profesor jefe
+                        if curso_estudiante.profesor_jefe == profesor:
+                            tiene_permiso = True
+                        # Horario
+                        elif HorarioCurso.objects.filter(curso=curso_estudiante, asignatura=asignatura, profesor=profesor).exists():
+                            tiene_permiso = True
+                            
+                if not tiene_permiso:
                     messages.error(request, 'No tienes permisos para eliminar esta nota.')
                     return redirect('ver_notas_curso')
-            except:
+            except Exception as e:
+                print(f"Error verificando permisos: {e}")
                 messages.error(request, 'No tienes permisos para eliminar esta nota.')
                 return redirect('ver_notas_curso')
         else:
             messages.error(request, 'No tienes permisos para eliminar esta nota.')
             return redirect('ver_notas_curso')
     
+    # Permitir eliminación directa por GET si se confirma (para el botón de la tabla)
+    if request.method == 'GET' and request.GET.get('confirm') == 'true':
+        nombre_evaluacion = nota.nombre_evaluacion
+        nota.delete()
+        messages.success(request, f'Nota "{nombre_evaluacion}" de {estudiante.get_nombre_completo()} eliminada exitosamente.')
+        
+        # Redirigir manteniendo los filtros
+        curso = estudiante.get_curso_actual()
+        if curso:
+            return redirect(f"{reverse('ver_notas_curso')}?curso_id={curso.id}&asignatura_id={asignatura.id}")
+        return redirect('ver_notas_curso')
+
     if request.method == 'POST':
         nombre_evaluacion = nota.nombre_evaluacion
         nota.delete()
         messages.success(request, f'Nota "{nombre_evaluacion}" de {estudiante.get_nombre_completo()} eliminada exitosamente.')
+        
+        # Redirigir manteniendo los filtros
+        curso = estudiante.get_curso_actual()
+        if curso:
+            return redirect(f"{reverse('ver_notas_curso')}?curso_id={curso.id}&asignatura_id={asignatura.id}")
         return redirect('ver_notas_curso')
     
     context = {

@@ -397,6 +397,64 @@
     </div>
     {% endif %}
 
+    <!-- Estadísticas del Curso (Solo para Admin/Director/Profesor) -->
+    {% if user_type != 'alumno' and estadisticas_curso %}
+    <div class="row mb-4">
+      <div class="col-xl-3 col-md-6 mb-3 mb-xl-0">
+        <div class="card border-0 shadow-sm h-100 overflow-hidden">
+          <div class="card-body p-3 d-flex align-items-center justify-content-between">
+            <div>
+              <h6 class="text-muted text-uppercase small fw-bold mb-1">Aprobados</h6>
+              <h3 class="mb-0 text-success">{{ estadisticas_curso.aprobados }}</h3>
+            </div>
+            <div class="rounded-circle bg-success bg-opacity-10 p-3 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+              <i class="fas fa-check text-success"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-xl-3 col-md-6 mb-3 mb-xl-0">
+        <div class="card border-0 shadow-sm h-100 overflow-hidden">
+          <div class="card-body p-3 d-flex align-items-center justify-content-between">
+            <div>
+              <h6 class="text-muted text-uppercase small fw-bold mb-1">Reprobados</h6>
+              <h3 class="mb-0 text-danger">{{ estadisticas_curso.reprobados }}</h3>
+            </div>
+            <div class="rounded-circle bg-danger bg-opacity-10 p-3 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+              <i class="fas fa-times text-danger"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-xl-3 col-md-6 mb-3 mb-xl-0">
+        <div class="card border-0 shadow-sm h-100 overflow-hidden">
+          <div class="card-body p-3 d-flex align-items-center justify-content-between">
+            <div>
+              <h6 class="text-muted text-uppercase small fw-bold mb-1">Promedio</h6>
+              <h3 class="mb-0 text-primary">{{ estadisticas_curso.promedio_curso }}</h3>
+            </div>
+            <div class="rounded-circle bg-primary bg-opacity-10 p-3 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+              <i class="fas fa-chart-line text-primary"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-xl-3 col-md-6 mb-3 mb-xl-0">
+        <div class="card border-0 shadow-sm h-100 overflow-hidden">
+          <div class="card-body p-3 d-flex align-items-center justify-content-between">
+            <div>
+              <h6 class="text-muted text-uppercase small fw-bold mb-1">Estudiantes</h6>
+              <h3 class="mb-0 text-warning">{{ estadisticas_curso.total_estudiantes }}</h3>
+            </div>
+            <div class="rounded-circle bg-warning bg-opacity-10 p-3 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+              <i class="fas fa-users text-warning"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
     <!-- Tabla de Notas -->
     <div class="modern-card">
       <div class="card-header-custom">
@@ -504,31 +562,7 @@
                 {% endif %}
               </div>
               
-              <!-- Estadísticas rápidas -->
-              {% if estadisticas_curso %}
-              <div class="row mt-3">
-                <div class="col-md-12">
-                  <div class="d-flex justify-content-around text-center">
-                    <div class="stat-item">
-                      <div class="text-success fw-bold">{{ estadisticas_curso.aprobados }}</div>
-                      <small class="text-muted">Aprobados</small>
-                    </div>
-                    <div class="stat-item">
-                      <div class="text-danger fw-bold">{{ estadisticas_curso.reprobados }}</div>
-                      <small class="text-muted">Reprobados</small>
-                    </div>
-                    <div class="stat-item">
-                      <div class="text-primary fw-bold">{{ estadisticas_curso.promedio_curso }}</div>
-                      <small class="text-muted">Promedio Curso</small>
-                    </div>
-                    <div class="stat-item">
-                      <div class="text-warning fw-bold">{{ estadisticas_curso.total_estudiantes }}</div>
-                      <small class="text-muted">Total Estudiantes</small>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              {% endif %}
+              <!-- Estadísticas rápidas eliminadas de aquí -->
             </div>
           </div>
         </div>
@@ -646,7 +680,7 @@
                               <a href="{% url 'editar_nota' nota.id %}" class="nota-btn" title="Editar">
                                 {{ nota.puntaje }}
                               </a>
-                              <a href="{% url 'eliminar_nota' nota.id %}" class="eliminar-btn" title="Eliminar" onclick="return confirm('¿Eliminar esta nota?');">
+                              <a href="{% url 'eliminar_nota' nota.id %}?confirm=true" class="eliminar-btn" title="Eliminar" onclick="return confirm('¿Eliminar esta nota?');">
                                 ×
                               </a>
                             {% else %}

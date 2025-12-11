@@ -305,7 +305,10 @@ class Grupo(models.Model):
     capacidad_maxima = models.IntegerField(default=30)
 
     def __str__(self):
-        return f"{self.asignatura.nombre} - {self.periodo_academico.nombre} ({self.profesor.primer_nombre} {self.profesor.apellido_paterno if self.profesor else 'Sin Profesor'})"
+        profesor_str = "Sin Profesor"
+        if self.profesor:
+            profesor_str = f"{self.profesor.primer_nombre} {self.profesor.apellido_paterno}"
+        return f"{self.asignatura.nombre} - {self.periodo_academico.nombre} ({profesor_str})"
 
 class Inscripcion(models.Model):
     """

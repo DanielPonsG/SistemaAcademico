@@ -902,7 +902,11 @@
       </div>
     </div>
   </div>
+{% endif %}
+{% endblock %}
 
+{% block extra_js %}
+{% if puede_editar %}
   <script>
     (function($) {
       'use strict';
