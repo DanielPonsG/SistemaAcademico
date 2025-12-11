@@ -20,7 +20,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from smapp.views import (
     index_master, index, agregar, modificar, eliminar,
-    listar_estudiantes, listar_profesores, gestionar_profesor,
+    listar_estudiantes, listar_profesores, gestionar_profesor, gestionar_estudiante,
     calendario, inicio, login_view, logout_view, mis_horarios, mi_curso,
     listar_cursos, listar_asignaturas, ingresar_notas, ver_notas_curso,
     asignar_asignaturas_curso,
@@ -40,7 +40,7 @@ from smapp.views import (
     # Vistas del libro de anotaciones
     libro_anotaciones, crear_anotacion, editar_anotacion, eliminar_anotacion,
     detalle_comportamiento_estudiante, ajax_obtener_estudiantes_curso, ajax_obtener_estudiantes_filtro,
-    reporte_comportamiento_cursos
+    reporte_comportamiento_cursos, reset_password_profesor
 )
 # Importaciones para vistas de apoderados
 from smapp.views_apoderados import (
@@ -48,7 +48,7 @@ from smapp.views_apoderados import (
     dashboard_apoderado, dashboard_profesor_apoderado, inicio_apoderado,
     estudiantes_a_cargo_profesor_apoderado, ver_notas_estudiante_apoderado,
     ver_anotaciones_estudiante_apoderado, ver_horario_estudiante_apoderado,
-    editar_relacion_apoderado, eliminar_relacion_apoderado
+    editar_relacion_apoderado, eliminar_relacion_apoderado, contacto_establecimiento
 )
 
 
@@ -64,11 +64,14 @@ urlpatterns = [
     path('modificar', modificar, name='modificar'),
     path('eliminar', eliminar, name='eliminar'),
     path('estudiantes/listar/', listar_estudiantes, name='listar_estudiantes'),
+    path('estudiantes/agregar/', gestionar_estudiante, name='gestionar_estudiante'),
+    path('estudiantes/editar/<int:estudiante_id>/', gestionar_estudiante, name='gestionar_estudiante'),
     
     # Gestión de Profesores (solo administrador)
     path('profesores/', listar_profesores, name='listar_profesores'),
     path('profesores/agregar/', gestionar_profesor, name='gestionar_profesor'),
     path('profesores/editar/<int:profesor_id>/', gestionar_profesor, name='gestionar_profesor'),
+    path('profesores/reset-password/<int:profesor_id>/', reset_password_profesor, name='reset_password_profesor'),
     
     # Gestión de Apoderados (solo administrador y director)
     path('apoderados/', listar_apoderados, name='listar_apoderados'),
@@ -83,6 +86,7 @@ urlpatterns = [
     path('dashboard-apoderado/', dashboard_apoderado, name='dashboard_apoderado'),
     path('dashboard-profesor-apoderado/', dashboard_profesor_apoderado, name='dashboard_profesor_apoderado'),
     path('inicio-apoderado/', inicio_apoderado, name='inicio_apoderado'),
+    path('contacto-establecimiento/', contacto_establecimiento, name='contacto_establecimiento'),
     
     # Vista específica para profesores-apoderados
     path('mis-estudiantes-a-cargo/', estudiantes_a_cargo_profesor_apoderado, name='estudiantes_a_cargo_profesor_apoderado'),

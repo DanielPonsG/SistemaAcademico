@@ -1,329 +1,584 @@
 ﻿{% extends "index_master.html" %}
+{% load static %}
 
 {% block extra_css %}
 <style>
-  .user-screen { padding: 24px 18px 48px; background: #f4f6fb; min-height: calc(100vh - 140px); }
-  .user-header h1 { margin: 0; font-size: 28px; font-weight: 700; color: #0f172a; }
-  .user-header p { margin: 6px 0 0; color: #64748b; }
-  .quick-metrics { margin: 26px 0 30px; }
-  .quick-card { border-radius: 14px; padding: 18px 20px; color: #fff; box-shadow: 0 16px 34px rgba(15, 23, 42, 0.12); }
-  .quick-card h3 { margin: 0; font-size: 32px; font-weight: 700; }
-  .quick-card span { opacity: 0.85; font-size: 15px; }
-  .quick-card.blue { background: linear-gradient(135deg, #2563eb, #1d4ed8); }
-  .quick-card.purple { background: linear-gradient(135deg, #7c3aed, #5b21b6); }
-  .quick-card.green { background: linear-gradient(135deg, #16a34a, #15803d); }
-  .user-tabs { margin-bottom: 22px; }
-  .user-tabs > li > a { border-radius: 999px !important; padding: 11px 26px; font-weight: 600; color: #475569; }
-  .user-tabs > li.active > a,
-  .user-tabs > li > a:hover,
-  .user-tabs > li > a:focus { color: #fff; background: linear-gradient(135deg, #2563eb, #1d4ed8); box-shadow: 0 12px 26px rgba(37, 99, 235, 0.28); }
-  .filter-panel,
-  .table-panel { border-radius: 16px; border: none; box-shadow: 0 20px 48px rgba(15, 23, 42, 0.12); margin-bottom: 24px; }
-  .filter-panel .panel-heading,
-  .table-panel .panel-heading { border-radius: 16px 16px 0 0; border-bottom: 1px solid rgba(148, 163, 184, 0.2); padding: 18px 22px; background: #fff; }
-  .filter-panel .panel-body,
-  .table-panel .panel-body { background: #fff; padding: 22px; }
-  .filters-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px; }
-  .filters-grid label { font-weight: 600; color: #1f2937; margin-bottom: 8px; }
-  .filters-grid input,
-  .filters-grid select { width: 100%; padding: 10px 14px; border-radius: 12px; border: 1px solid rgba(148, 163, 184, 0.45); background: #f8fafc; transition: border-color 0.2s ease, box-shadow 0.2s ease; }
-  .filters-grid input:focus,
-  .filters-grid select:focus { outline: none; border-color: rgba(37, 99, 235, 0.6); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.16); background: #fff; }
-  .filter-actions { margin-top: 16px; display: flex; flex-wrap: wrap; gap: 12px; }
-  .filter-actions button { border: none; border-radius: 12px; padding: 10px 20px; font-weight: 600; color: #fff; background: linear-gradient(135deg, #2563eb, #1d4ed8); box-shadow: 0 14px 30px rgba(37, 99, 235, 0.28); }
-  .filter-actions a { border-radius: 12px; padding: 10px 20px; font-weight: 600; color: #1f2937; background: rgba(15, 23, 42, 0.05); border: 1px solid rgba(148, 163, 184, 0.35); }
-  .table-panel table { margin-bottom: 0; }
-  .table-panel thead { background: #f8fafc; }
-  .table-panel thead th { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: #475569; border-bottom: 1px solid rgba(148, 163, 184, 0.3) !important; }
-  .table-panel tbody td { vertical-align: middle !important; }
-  .table-meta { margin: 0; color: #64748b; font-size: 13px; }
-  .badge-soft { display: inline-block; border-radius: 999px; padding: 6px 12px; background: rgba(148, 163, 184, 0.28); color: #475569; font-weight: 600; }
-  .chip { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 6px 12px; font-size: 13px; background: rgba(37, 99, 235, 0.12); color: #1d4ed8; }
-  .chip-muted { background: rgba(148, 163, 184, 0.25); color: #475569; }
-  .empty-state { text-align: center; padding: 40px 16px; color: #64748b; }
-  .empty-state h4 { margin-bottom: 8px; color: #1f2937; font-weight: 600; }
-  @media (max-width: 768px) { .filter-actions { justify-content: center; } .quick-card { margin-bottom: 18px; } }
+  /* Premium Design for Students Page */
+  .students-page {
+    padding: 2rem;
+    background-color: #f8f9fa;
+    min-height: 100vh;
+    font-family: 'Inter', sans-serif;
+  }
+
+  /* Header Section */
+  .students-header {
+    background: white;
+    padding: 1.5rem 2rem;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .students-title h2 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .students-title h2 i {
+    color: #3b82f6;
+  }
+
+  .students-subtitle {
+    color: #64748b;
+    margin: 0.5rem 0 0;
+    font-size: 0.95rem;
+  }
+
+  .btn-new-student {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+    text-decoration: none;
+  }
+
+  .btn-new-student:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(37, 99, 235, 0.3);
+    color: white;
+  }
+
+  /* Stats Cards */
+  .students-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .students-stat-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 16px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: transform 0.3s ease;
+    border: 1px solid rgba(0,0,0,0.05);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .students-stat-card:hover {
+    transform: translateY(-5px);
+  }
+
+  .students-stat-card::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 6px;
+  }
+
+  .students-stat-card--primary::after { background: #3b82f6; }
+  .students-stat-card--success::after { background: #10b981; }
+  .students-stat-card--info::after { background: #0ea5e9; }
+  .students-stat-card--warning::after { background: #f59e0b; }
+
+  .students-stat-card__icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+  }
+
+  .students-stat-card--primary .students-stat-card__icon { background: #eff6ff; color: #3b82f6; }
+  .students-stat-card--success .students-stat-card__icon { background: #ecfdf5; color: #10b981; }
+  .students-stat-card--info .students-stat-card__icon { background: #e0f2fe; color: #0ea5e9; }
+  .students-stat-card--warning .students-stat-card__icon { background: #fffbeb; color: #f59e0b; }
+
+  .students-stat-card__metric {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
+    line-height: 1.2;
+  }
+
+  .students-stat-card__label {
+    color: #64748b;
+    font-size: 0.875rem;
+    margin: 0;
+  }
+
+  /* Search Section */
+  .students-search-section {
+    background: white;
+    padding: 2rem;
+    border-radius: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    margin-bottom: 2rem;
+  }
+
+  .students-search-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .students-search-title i {
+    color: #3b82f6;
+  }
+
+  .students-search-form {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+  }
+
+  .students-search-input-wrapper {
+    flex: 1;
+    position: relative;
+  }
+
+  .students-search-input-wrapper i {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+  }
+
+  .students-search-input {
+    width: 100%;
+    padding: 1rem 1rem 1rem 3rem;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background: #f8fafc;
+  }
+
+  .students-search-input:focus {
+    border-color: #3b82f6;
+    background: white;
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+  }
+
+  .btn-search {
+    background: #3b82f6;
+    color: white;
+    border: none;
+    padding: 0 2rem;
+    height: 54px;
+    border-radius: 12px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+  }
+
+  .btn-search:hover {
+    background: #2563eb;
+    transform: translateY(-1px);
+  }
+
+  /* Table Section */
+  .students-table-container {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    padding: 1.5rem;
+    overflow: hidden;
+  }
+
+  .students-table-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  .students-table-header h3 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
+  }
+
+  .students-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  .students-table th {
+    background: #f8fafc;
+    color: #64748b;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    padding: 1rem 1.5rem;
+    text-align: left;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  .students-table td {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
+    color: #334155;
+  }
+
+  .students-table tr:last-child td {
+    border-bottom: none;
+  }
+
+  .students-table tr:hover td {
+    background: #f8fafc;
+  }
+
+  .student-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .student-avatar {
+    width: 40px;
+    height: 40px;
+    background: #eff6ff;
+    color: #3b82f6;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 1.1rem;
+  }
+
+  .student-details h4 {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #1e293b;
+  }
+
+  .student-meta {
+    display: flex;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+    color: #64748b;
+    margin-top: 0.25rem;
+  }
+
+  .student-meta span {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  .status-badge {
+    padding: 0.35rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .status-badge--active {
+    background: #ecfdf5;
+    color: #10b981;
+  }
+
+  .status-badge--inactive {
+    background: #fef2f2;
+    color: #ef4444;
+  }
+
+  .status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  .action-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-right: 0.25rem;
+  }
+
+  .action-btn--edit {
+    background: #eff6ff;
+    color: #3b82f6;
+  }
+
+  .action-btn--edit:hover {
+    background: #3b82f6;
+    color: white;
+  }
+
+  .action-btn--delete {
+    background: #fef2f2;
+    color: #ef4444;
+  }
+
+  .action-btn--delete:hover {
+    background: #ef4444;
+    color: white;
+  }
+
+  .action-btn--key {
+    background: #fffbeb;
+    color: #f59e0b;
+  }
+
+  .action-btn--key:hover {
+    background: #f59e0b;
+    color: white;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: #64748b;
+  }
+
+  .empty-state i {
+    font-size: 3rem;
+    color: #cbd5e1;
+    margin-bottom: 1rem;
+  }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="right_col" role="main">
-  <div class="container-fluid user-screen">
-    {% if messages %}
-      {% for message in messages %}
-        <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible" role="alert">
-          <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-          {{ message }}
-        </div>
-      {% endfor %}
-    {% endif %}
-
-    <div class="user-header">
-      <h1><i class="fa fa-users text-primary"></i> Gestión integral de usuarios</h1>
-      <p>Consulta y administra estudiantes y profesores desde una sola vista.</p>
-    </div>
-
-    <div class="row quick-metrics">
-      <div class="col-sm-4">
-        <div class="quick-card blue">
-          <h3>{{ total_estudiantes_registrados }}</h3>
-          <span>Estudiantes registrados</span>
-        </div>
+  <div class="container-fluid students-page">
+    
+    <!-- Header -->
+    <header class="students-header">
+      <div class="students-title">
+        <h2><i class="fas fa-user-graduate"></i> Gestión de Estudiantes</h2>
+        <p class="students-subtitle">Administra la nómina estudiantil, cursos y accesos al sistema académico.</p>
       </div>
-      <div class="col-sm-4">
-        <div class="quick-card purple">
-          <h3>{{ total_profesores_registrados }}</h3>
-          <span>Profesores registrados</span>
+      <a href="{% url 'agregar' %}?tipo=estudiante" class="btn-new-student">
+        <i class="fas fa-plus"></i> Nuevo estudiante
+      </a>
+    </header>
+
+    <!-- Stats -->
+    <section class="students-stats">
+      <article class="students-stat-card students-stat-card--primary">
+        <span class="students-stat-card__icon"><i class="fas fa-users"></i></span>
+        <div>
+          <p class="students-stat-card__metric">{{ total_estudiantes|default:"0" }}</p>
+          <p class="students-stat-card__label">Estudiantes registrados</p>
         </div>
+      </article>
+      
+      <article class="students-stat-card students-stat-card--success">
+        <span class="students-stat-card__icon"><i class="fas fa-user-check"></i></span>
+        <div>
+          <p class="students-stat-card__metric">{{ estudiantes_activos|default:"0" }}</p>
+          <p class="students-stat-card__label">Estudiantes activos</p>
+        </div>
+      </article>
+      
+      <article class="students-stat-card students-stat-card--info">
+        <span class="students-stat-card__icon"><i class="fas fa-chalkboard"></i></span>
+        <div>
+          <p class="students-stat-card__metric">{{ cursos_count|default:"0" }}</p>
+          <p class="students-stat-card__label">Cursos activos</p>
+        </div>
+      </article>
+      
+      <article class="students-stat-card students-stat-card--warning">
+        <span class="students-stat-card__icon"><i class="fas fa-user-clock"></i></span>
+        <div>
+          <p class="students-stat-card__metric">{{ estudiantes_sin_curso|default:"0" }}</p>
+          <p class="students-stat-card__label">Sin curso asignado</p>
+        </div>
+      </article>
+    </section>
+
+    <!-- Search -->
+    <section class="students-search-section">
+      <h3 class="students-search-title">
+        <i class="fas fa-search"></i> Filtra el listado estudiantil
+      </h3>
+      <form method="get" class="students-search-form">
+        <div class="students-search-input-wrapper">
+          <i class="fas fa-search"></i>
+          <input 
+            type="text" 
+            name="q_estudiante" 
+            class="students-search-input" 
+            placeholder="Buscar por nombre, apellido, RUT o código..." 
+            value="{{ q_estudiante }}"
+          >
+        </div>
+        <button type="submit" class="btn-search">
+          <i class="fas fa-filter"></i> Buscar
+        </button>
+      </form>
+    </section>
+
+    <!-- Table -->
+    <section class="students-table-container">
+      <div class="students-table-header">
+        <h3><i class="fas fa-list"></i> Listado de estudiantes</h3>
       </div>
-      <div class="col-sm-4">
-        <div class="quick-card green">
-          <h3>{{ estudiantes_visibles|add:profesores_visibles }}</h3>
-          <span>Usuarios visibles con los filtros actuales</span>
-        </div>
-      </div>
-    </div>
 
-    <ul class="nav nav-pills user-tabs" role="tablist">
-      <li role="presentation" class="{% if tab_activa == 'estudiantes' %}active{% endif %}">
-        <a href="#tab-estudiantes" role="tab" data-toggle="tab" data-tab-key="estudiantes">
-          <i class="fa fa-graduation-cap"></i> Estudiantes
-          <span class="badge badge-soft">{{ estudiantes_visibles }}</span>
-        </a>
-      </li>
-      <li role="presentation" class="{% if tab_activa == 'profesores' %}active{% endif %}">
-        <a href="#tab-profesores" role="tab" data-toggle="tab" data-tab-key="profesores">
-          <i class="fa fa-chalkboard-teacher"></i> Profesores
-          <span class="badge badge-soft">{{ profesores_visibles }}</span>
-        </a>
-      </li>
-    </ul>
-
-    <div class="tab-content">
-      <div role="tabpanel" class="tab-pane fade {% if tab_activa == 'estudiantes' %}in active{% endif %}" id="tab-estudiantes">
-        <div class="panel panel-default filter-panel">
-          <div class="panel-heading"><strong><i class="fa fa-filter text-primary"></i> Filtros de estudiantes</strong></div>
-          <div class="panel-body">
-            <form method="get">
-              <input type="hidden" name="tab" value="estudiantes">
-              <div class="filters-grid">
-                <div>
-                  <label for="q_estudiante">Buscar</label>
-                  <input id="q_estudiante" type="text" name="q_estudiante" placeholder="Nombre, apellido o código" value="{{ request.GET.q_estudiante }}">
-                </div>
-                <div>
-                  <label for="genero_estudiante">Género</label>
-                  <select id="genero_estudiante" name="genero_estudiante">
-                    <option value="">Todos</option>
-                    <option value="M" {% if request.GET.genero_estudiante == 'M' %}selected{% endif %}>Masculino</option>
-                    <option value="F" {% if request.GET.genero_estudiante == 'F' %}selected{% endif %}>Femenino</option>
-                  </select>
-                </div>
-                <div>
-                  <label for="tipo_doc_estudiante">Tipo de documento</label>
-                  <select id="tipo_doc_estudiante" name="tipo_doc_estudiante">
-                    <option value="">Todos</option>
-                    <option value="CC" {% if request.GET.tipo_doc_estudiante == 'CC' %}selected{% endif %}>Cédula de Ciudadanía</option>
-                    <option value="TI" {% if request.GET.tipo_doc_estudiante == 'TI' %}selected{% endif %}>Tarjeta de Identidad</option>
-                    <option value="PA" {% if request.GET.tipo_doc_estudiante == 'PA' %}selected{% endif %}>Pasaporte</option>
-                    <option value="CE" {% if request.GET.tipo_doc_estudiante == 'CE' %}selected{% endif %}>Cédula de Extranjería</option>
-                  </select>
-                </div>
-                <div>
-                  <label for="fecha_ingreso">Fecha de ingreso</label>
-                  <input id="fecha_ingreso" type="date" name="fecha_ingreso" value="{{ request.GET.fecha_ingreso }}">
-                </div>
-              </div>
-              <div class="filter-actions">
-                <button type="submit"><i class="fa fa-search"></i> Aplicar filtros</button>
-                {% if request.GET.q_estudiante or request.GET.genero_estudiante or request.GET.tipo_doc_estudiante or request.GET.fecha_ingreso %}
-                  <a href="?tab=estudiantes"><i class="fa fa-times"></i> Limpiar</a>
-                {% endif %}
-              </div>
-            </form>
-          </div>
-        </div>
-
-        <div class="panel panel-default table-panel">
-          <div class="panel-heading clearfix">
-            <h3 class="panel-title pull-left"><i class="fa fa-graduation-cap text-primary"></i> Lista de estudiantes</h3>
-            <p class="table-meta pull-right">Resultados mostrados: {{ estudiantes_visibles }}</p>
-          </div>
-          <div class="panel-body">
-            {% if estudiantes %}
-              <div class="table-responsive">
-                <table class="table table-striped table-hover">
-                  <thead>
-                    <tr>
-                      <th>ID</th>
-                      <th>Código</th>
-                      <th>Estudiante</th>
-                      <th>Documento</th>
-                      <th>Contacto</th>
-                      <th>Género</th>
-                      <th class="text-right">Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {% for estudiante in estudiantes %}
-                      <tr>
-                        <td><span class="badge-soft">{{ estudiante.id }}</span></td>
-                        <td><span class="chip"><i class="fa fa-hashtag"></i> {{ estudiante.codigo_estudiante|default:"Sin código" }}</span></td>
-                        <td>
-                          <strong>{{ estudiante.primer_nombre }} {{ estudiante.segundo_nombre|default:"" }} {{ estudiante.apellido_paterno }} {{ estudiante.apellido_materno|default:"" }}</strong><br>
-                          <small>ID interno #{{ estudiante.id }}</small>
-                        </td>
-                        <td>
-                          <div>{{ estudiante.get_tipo_documento_display }}</div>
-                          <small>{{ estudiante.numero_documento|default:"Sin dato" }}</small>
-                        </td>
-                        <td>
-                          <div><i class="fa fa-envelope"></i> {{ estudiante.email|default:"Sin correo" }}</div>
-                          <div><i class="fa fa-phone"></i> {{ estudiante.telefono|default:"Sin teléfono" }}</div>
-                        </td>
-                        <td>
-                          {% if estudiante.genero == 'M' %}
-                            <span class="chip chip-muted"><i class="fa fa-mars"></i> Masculino</span>
-                          {% elif estudiante.genero == 'F' %}
-                            <span class="chip chip-muted"><i class="fa fa-venus"></i> Femenino</span>
-                          {% else %}
-                            <span class="chip chip-muted"><i class="fa fa-genderless"></i> Sin registro</span>
+      {% if estudiantes %}
+        <div class="table-responsive">
+          <table class="students-table">
+            <thead>
+              <tr>
+                <th>Código</th>
+                <th>Estudiante</th>
+                <th>Contacto</th>
+                <th>Curso</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for estudiante in estudiantes %}
+                <tr>
+                  <td>
+                    <span style="font-family: monospace; color: #3b82f6; font-weight: 600;">
+                      #{{ estudiante.codigo_estudiante|default:"--" }}
+                    </span>
+                  </td>
+                  <td>
+                    <div class="student-info">
+                      <div class="student-avatar">
+                        {{ estudiante.primer_nombre|first }}{{ estudiante.apellido_paterno|first }}
+                      </div>
+                      <div class="student-details">
+                        <h4>{{ estudiante.primer_nombre }} {{ estudiante.apellido_paterno }}</h4>
+                        <div class="student-meta">
+                          <span><i class="fas fa-id-card"></i> {{ estudiante.numero_documento }}</span>
+                          {% if estudiante.user %}
+                            <span><i class="fas fa-user"></i> {{ estudiante.user.username }}</span>
                           {% endif %}
-                        </td>
-                        <td class="text-right">
-                          <div class="btn-group">
-                            <a class="btn btn-default" title="Editar" href="{% url 'modificar' %}?tipo=estudiante&id={{ estudiante.id }}"><i class="fa fa-edit"></i></a>
-                            <a class="btn btn-danger" title="Eliminar" href="{% url 'eliminar' %}?tipo=estudiante&id={{ estudiante.id }}" onclick="return confirm('¿Estás seguro de eliminar este estudiante?');"><i class="fa fa-trash"></i></a>
-                          </div>
-                        </td>
-                      </tr>
-                    {% endfor %}
-                  </tbody>
-                </table>
-              </div>
-            {% else %}
-              <div class="empty-state">
-                <i class="fa fa-user-graduate fa-2x"></i>
-                <h4>No se encontraron estudiantes</h4>
-                <p>Prueba con otros filtros o registra un nuevo estudiante.</p>
-                <a class="btn btn-primary" href="{% url 'agregar' %}?tipo=estudiante"><i class="fa fa-plus"></i> Nuevo estudiante</a>
-              </div>
-            {% endif %}
-          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="student-details">
+                      <div class="student-meta" style="flex-direction: column; gap: 0.25rem;">
+                        {% if estudiante.email %}
+                          <span><i class="fas fa-envelope"></i> {{ estudiante.email }}</span>
+                        {% endif %}
+                        {% if estudiante.telefono %}
+                          <span><i class="fas fa-phone"></i> {{ estudiante.telefono }}</span>
+                        {% endif %}
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    {% with curso=estudiante.get_curso_actual %}
+                      {% if curso %}
+                        <span class="status-badge status-badge--active" style="background: #e0f2fe; color: #0284c7;">
+                          <i class="fas fa-graduation-cap"></i> {{ curso.nombre }}
+                        </span>
+                      {% else %}
+                        <span class="status-badge status-badge--inactive" style="background: #f1f5f9; color: #64748b;">
+                          Sin curso
+                        </span>
+                      {% endif %}
+                    {% endwith %}
+                  </td>
+                  <td>
+                    {% if estudiante.user and estudiante.user.is_active %}
+                      <span class="status-badge status-badge--active">
+                        <span class="status-dot"></span> Activo
+                      </span>
+                    {% else %}
+                      <span class="status-badge status-badge--inactive">
+                        <span class="status-dot"></span> Inactivo
+                      </span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    <div style="display: flex;">
+                      <a href="{% url 'modificar' %}?tipo=estudiante&id={{ estudiante.id }}" class="action-btn action-btn--edit" title="Editar">
+                        <i class="fas fa-edit"></i>
+                      </a>
+                      <form method="post" action="{% url 'eliminar' %}?tipo=estudiante" style="display: inline;" onsubmit="return confirm('¿Está seguro de eliminar este estudiante?');">
+                        {% csrf_token %}
+                        <input type="hidden" name="eliminar_por_id" value="true">
+                        <input type="hidden" name="id_a_eliminar" value="{{ estudiante.id }}">
+                        <button type="submit" class="action-btn action-btn--delete" title="Eliminar">
+                          <i class="fas fa-trash"></i>
+                        </button>
+                      </form>
+                      {% if estudiante.user %}
+                        <button type="button" class="action-btn action-btn--key" title="Resetear contraseña" onclick="alert('Funcionalidad pendiente de implementación')">
+                          <i class="fas fa-key"></i>
+                        </button>
+                      {% endif %}
+                    </div>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
         </div>
-      </div>
-
-      <div role="tabpanel" class="tab-pane fade {% if tab_activa == 'profesores' %}in active{% endif %}" id="tab-profesores">
-        <div class="panel panel-default filter-panel">
-          <div class="panel-heading"><strong><i class="fa fa-filter text-primary"></i> Filtros de profesores</strong></div>
-          <div class="panel-body">
-            <form method="get">
-              <input type="hidden" name="tab" value="profesores">
-              <div class="filters-grid">
-                <div>
-                  <label for="q_profesor">Buscar</label>
-                  <input id="q_profesor" type="text" name="q_profesor" placeholder="Nombre, apellido o código" value="{{ request.GET.q_profesor }}">
-                </div>
-                <div>
-                  <label for="especialidad_profesor">Especialidad</label>
-                  <input id="especialidad_profesor" type="text" name="especialidad_profesor" placeholder="Especialidad" value="{{ request.GET.especialidad_profesor }}">
-                </div>
-                <div>
-                  <label for="genero_profesor">Género</label>
-                  <select id="genero_profesor" name="genero_profesor">
-                    <option value="">Todos</option>
-                    <option value="M" {% if request.GET.genero_profesor == 'M' %}selected{% endif %}>Masculino</option>
-                    <option value="F" {% if request.GET.genero_profesor == 'F' %}selected{% endif %}>Femenino</option>
-                  </select>
-                </div>
-                <div>
-                  <label for="tipo_doc_profesor">Tipo de documento</label>
-                  <select id="tipo_doc_profesor" name="tipo_doc_profesor">
-                    <option value="">Todos</option>
-                    <option value="CC" {% if request.GET.tipo_doc_profesor == 'CC' %}selected{% endif %}>Cédula de Ciudadanía</option>
-                    <option value="TI" {% if request.GET.tipo_doc_profesor == 'TI' %}selected{% endif %}>Tarjeta de Identidad</option>
-                    <option value="PA" {% if request.GET.tipo_doc_profesor == 'PA' %}selected{% endif %}>Pasaporte</option>
-                    <option value="CE" {% if request.GET.tipo_doc_profesor == 'CE' %}selected{% endif %}>Cédula de Extranjería</option>
-                  </select>
-                </div>
-              </div>
-              <div class="filter-actions">
-                <button type="submit"><i class="fa fa-search"></i> Aplicar filtros</button>
-                {% if request.GET.q_profesor or request.GET.especialidad_profesor or request.GET.genero_profesor or request.GET.tipo_doc_profesor %}
-                  <a href="?tab=profesores"><i class="fa fa-times"></i> Limpiar</a>
-                {% endif %}
-              </div>
-            </form>
-          </div>
+      {% else %}
+        <div class="empty-state">
+          <i class="fas fa-user-graduate"></i>
+          <h4>No se encontraron estudiantes</h4>
+          <p>Intenta ajustar los filtros de búsqueda o agrega un nuevo estudiante.</p>
         </div>
-
-        <div class="panel panel-default table-panel">
-          <div class="panel-heading clearfix">
-            <h3 class="panel-title pull-left"><i class="fa fa-chalkboard-teacher text-primary"></i> Lista de profesores</h3>
-            <p class="table-meta pull-right">Resultados mostrados: {{ profesores_visibles }}</p>
-          </div>
-          <div class="panel-body">
-            {% if profesores %}
-              <div class="table-responsive">
-                <table class="table table-striped table-hover">
-                  <thead>
-                    <tr>
-                      <th>ID</th>
-                      <th>Código</th>
-                      <th>Profesor</th>
-                      <th>Especialidad</th>
-                      <th>Documento</th>
-                      <th>Contacto</th>
-                      <th class="text-right">Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {% for profesor in profesores %}
-                      <tr>
-                        <td><span class="badge-soft">{{ profesor.id }}</span></td>
-                        <td><span class="chip"><i class="fa fa-hashtag"></i> {{ profesor.codigo_profesor|default:"Sin código" }}</span></td>
-                        <td>
-                          <strong>{{ profesor.primer_nombre }} {{ profesor.segundo_nombre|default:"" }} {{ profesor.apellido_paterno }} {{ profesor.apellido_materno|default:"" }}</strong><br>
-                          <small>ID interno #{{ profesor.id }}</small>
-                        </td>
-                        <td>
-                          {% if profesor.especialidad %}
-                            <span class="chip chip-muted"><i class="fa fa-lightbulb"></i> {{ profesor.especialidad }}</span>
-                          {% else %}
-                            <span class="chip chip-muted"><i class="fa fa-question"></i> Sin asignar</span>
-                          {% endif %}
-                        </td>
-                        <td>
-                          <div>{{ profesor.get_tipo_documento_display }}</div>
-                          <small>{{ profesor.numero_documento|default:"Sin dato" }}</small>
-                        </td>
-                        <td>
-                          <div><i class="fa fa-envelope"></i> {{ profesor.email|default:"Sin correo" }}</div>
-                          <div><i class="fa fa-phone"></i> {{ profesor.telefono|default:"Sin teléfono" }}</div>
-                        </td>
-                        <td class="text-right">
-                          <div class="btn-group">
-                            <a class="btn btn-default" title="Editar" href="{% url 'modificar' %}?tipo=profesor&id={{ profesor.id }}"><i class="fa fa-edit"></i></a>
-                            <a class="btn btn-danger" title="Eliminar" href="{% url 'eliminar' %}?tipo=profesor&id={{ profesor.id }}" onclick="return confirm('¿Estás seguro de eliminar este profesor?');"><i class="fa fa-trash"></i></a>
-                          </div>
-                        </td>
-                      </tr>
-                    {% endfor %}
-                  </tbody>
-                </table>
-              </div>
-            {% else %}
-              <div class="empty-state">
-                <i class="fa fa-user-tie fa-2x"></i>
-                <h4>No se encontraron profesores</h4>
-                <p>Prueba con otros filtros o registra un nuevo profesor.</p>
-                <a class="btn btn-primary" href="{% url 'agregar' %}?tipo=profesor"><i class="fa fa-plus"></i> Nuevo profesor</a>
-              </div>
-            {% endif %}
-          </div>
-        </div>
-      </div>
-    </div>
+      {% endif %}
+    </section>
   </div>
 </div>
 {% endblock %}

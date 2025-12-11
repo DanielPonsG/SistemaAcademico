@@ -1,15 +1,254 @@
 {% extends "index_master.html" %}
 {% load custom_filters %}
+
+{% block extra_css %}
+<style>
+    /* Modern Reset & Variables */
+    :root {
+        --primary: #4f46e5;
+        --primary-dark: #4338ca;
+        --secondary: #64748b;
+        --success: #10b981;
+        --danger: #ef4444;
+        --warning: #f59e0b;
+        --info: #3b82f6;
+        --dark: #0f172a;
+        --light: #f8fafc;
+        --white: #ffffff;
+        --border: #e2e8f0;
+        --text-main: #1e293b;
+        --text-muted: #64748b;
+        --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        --radius: 0.75rem;
+    }
+
+    /* Layout & Typography */
+    .modern-card {
+        background: var(--white);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-md);
+        border: 1px solid var(--border);
+        margin-bottom: 2rem;
+        overflow: hidden;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .modern-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .card-header-custom {
+        background: linear-gradient(135deg, var(--dark) 0%, #1e293b 100%);
+        padding: 1.5rem 2rem;
+        color: white;
+        position: relative;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .card-header-custom::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--primary), var(--info));
+    }
+
+    .card-body-custom {
+        padding: 2rem;
+    }
+
+    /* Course Hero Styles */
+    .course-hero {
+        background: radial-gradient(circle at 0% 0%, rgba(59,130,246,0.15), transparent 55%), linear-gradient(135deg, #0f172a, #1e3a8a);
+        color: #fff;
+        padding: 2.5rem;
+        border-radius: 1.25rem;
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 22px 45px -20px rgba(15,23,42,0.6);
+        margin-bottom: 2rem;
+    }
+
+    .course-hero::after {
+        content: "";
+        position: absolute;
+        right: -80px;
+        top: -80px;
+        width: 220px;
+        height: 220px;
+        background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 70%);
+    }
+
+    .course-hero__content {
+        display: flex;
+        gap: 1.5rem;
+        align-items: flex-start;
+    }
+
+    .course-hero__icon {
+        width: 64px;
+        height: 64px;
+        display: grid;
+        place-items: center;
+        border-radius: 20px;
+        background: rgba(255,255,255,0.12);
+        font-size: 1.75rem;
+        flex-shrink: 0;
+    }
+
+    .course-hero__chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: rgba(255,255,255,0.12);
+        padding: 0.35rem 0.85rem;
+        border-radius: 999px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        margin-bottom: 0.5rem;
+    }
+
+    .course-hero__title {
+        font-size: 2.4rem;
+        font-weight: 700;
+        margin-bottom: 0.4rem;
+        color: #fff;
+    }
+
+    .course-hero__subtitle {
+        margin-bottom: 1rem;
+        color: rgba(255,255,255,0.82);
+        max-width: 720px;
+    }
+
+    .course-hero__metrics {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 1rem;
+    }
+
+    .course-hero-metric {
+        background: rgba(15,23,42,0.3);
+        border: 1px solid rgba(148,163,184,0.2);
+        border-radius: 1rem;
+        padding: 1.4rem 1.2rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        font-size: 0.75rem;
+        color: rgba(226,232,240,0.85);
+    }
+
+    .course-hero-metric strong {
+        font-size: 1.9rem;
+        color: #fff;
+        letter-spacing: normal;
+    }
+
+    /* Modern Table */
+    .table-modern {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    .table-modern th {
+        background-color: #f8fafc;
+        color: var(--text-muted);
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.05em;
+        padding: 1rem;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .table-modern td {
+        padding: 1rem;
+        border-bottom: 1px solid var(--border);
+        vertical-align: middle;
+        color: var(--text-main);
+    }
+
+    .table-modern tr:last-child td {
+        border-bottom: none;
+    }
+
+    .table-modern tbody tr {
+        transition: background-color 0.2s;
+    }
+
+    .table-modern tbody tr:hover {
+        background-color: #f8fafc;
+    }
+
+    /* Badges & Buttons */
+    .badge-modern {
+        padding: 0.5em 0.8em;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+    
+    /* Date Picker Custom */
+    .date-picker-modern {
+        background: rgba(255,255,255,0.1);
+        border: 1px solid rgba(255,255,255,0.2);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+    }
+    
+    .date-picker-modern:focus {
+        background: rgba(255,255,255,0.2);
+        outline: none;
+        border-color: rgba(255,255,255,0.4);
+    }
+    
+    /* Calendar Day */
+    .calendar-day {
+        border-radius: 0.75rem;
+        padding: 1rem;
+        text-align: center;
+        transition: all 0.2s;
+        border: 1px solid transparent;
+    }
+    
+    .calendar-day:hover {
+        background-color: var(--light);
+        border-color: var(--border);
+        transform: translateY(-2px);
+    }
+    
+    .calendar-day.active {
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        color: white;
+        box-shadow: var(--shadow-md);
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="right_col" role="main">
   <div class="container-fluid">
+    {% if user_type != 'alumno' %}
     <h3><i class="fa fa-chart-area"></i> 
-      {% if user_type == 'alumno' %}
-        Mi Asistencia
-      {% else %}
         Asistencia por Curso
-      {% endif %}
     </h3>
+    {% endif %}
     
     {% if messages %}
       {% for message in messages %}
@@ -40,32 +279,46 @@
       </div>
     {% endif %}
 
-    <!-- Información del Curso para Estudiantes -->
+    <!-- Información del Curso para Estudiantes (Hero Style) -->
     {% if user_type == 'alumno' and curso_seleccionado %}
-    <div class="card mb-4">
-      <div class="card-header bg-primary text-white">
-        <h5><i class="fa fa-graduation-cap me-2"></i>Mi Curso Actual</h5>
-      </div>
-      <div class="card-body">
-        <div class="row">
-          <div class="col-md-8">
-            <h4 class="mb-2">{{ curso_seleccionado.get_nivel_display }}{{ curso_seleccionado.paralelo }} - {{ curso_seleccionado.anio }}</h4>
-            {% if curso_seleccionado.profesor_jefe %}
-            <p class="mb-1"><strong>Profesor Jefe:</strong> {{ curso_seleccionado.profesor_jefe.get_nombre_completo }}</p>
-            {% endif %}
-            <p class="mb-0"><strong>Compañeros:</strong> {{ curso_seleccionado.estudiantes.count }} estudiantes</p>
-          </div>
-          <div class="col-md-4 text-end">
-            <div class="form-group">
-              <label class="form-label fw-bold">Cambiar Semana:</label>
-              <form method="get" class="d-inline">
-                <input type="date" name="semana" class="form-control" value="{{ fecha_lunes|date:'Y-m-d' }}" onchange="this.form.submit()">
-              </form>
+    <section class="course-hero">
+        <div class="course-hero__content">
+            <div class="course-hero__icon">
+                <i class="fas fa-calendar-check text-white"></i>
             </div>
-          </div>
+            <div>
+                <span class="course-hero__chip">
+                    <i class="fas fa-user-check"></i> Mi Asistencia
+                </span>
+                <h2 class="course-hero__title">{{ curso_seleccionado.get_nivel_display }}{{ curso_seleccionado.paralelo }}</h2>
+                <p class="course-hero__subtitle">
+                    <i class="fas fa-user-tie me-2"></i>
+                    Profesor Jefe: {{ curso_seleccionado.profesor_jefe.get_nombre_completo }}
+                </p>
+            </div>
         </div>
-      </div>
-    </div>
+        
+        <div class="course-hero__metrics">
+            <div class="course-hero-metric">
+                <span>Compañeros</span>
+                <strong>{{ curso_seleccionado.estudiantes.count }}</strong>
+            </div>
+            <div class="course-hero-metric">
+                <span>Cambiar Semana</span>
+                <form method="get" class="mt-1">
+                    <input type="date" name="semana" class="form-control form-control-sm bg-transparent text-white border-white" value="{{ fecha_lunes|date:'Y-m-d' }}" onchange="this.form.submit()" style="color-scheme: dark;">
+                </form>
+            </div>
+            {% if estadisticas %}
+            <div class="course-hero-metric">
+                <span>% Asistencia</span>
+                <strong class="{% if estadisticas.porcentaje_asistencia >= 85 %}text-success{% elif estadisticas.porcentaje_asistencia >= 70 %}text-warning{% else %}text-danger{% endif %}">
+                    {{ estadisticas.porcentaje_asistencia }}%
+                </strong>
+            </div>
+            {% endif %}
+        </div>
+    </section>
     {% endif %}
 
     <!-- Selector de Curso y Filtros - Solo para Profesores y Admin -->
@@ -133,43 +386,44 @@
 
     {% if curso_seleccionado %}
     <!-- Navegación de Semana -->
-    <div class="card mb-4">
-      <div class="card-header d-flex justify-content-between align-items-center">
-        <h5><i class="fa fa-calendar"></i> Semana del {{ fecha_lunes|date:"d/m/Y" }} al {{ fecha_domingo|date:"d/m/Y" }}</h5>
+    <div class="modern-card mb-4">
+      <div class="card-header-custom">
+        <h5 class="mb-0 fw-bold"><i class="fas fa-calendar-alt me-2"></i> Semana del {{ fecha_lunes|date:"d/m/Y" }} al {{ fecha_domingo|date:"d/m/Y" }}</h5>
         <div class="btn-group">
           {% if user_type == 'alumno' %}
-          <a href="?semana={{ semana_anterior|date:'Y-m-d' }}" class="btn btn-outline-primary btn-sm">
-            <i class="fa fa-chevron-left"></i> Anterior
+          <a href="?semana={{ semana_anterior|date:'Y-m-d' }}" class="btn btn-light btn-sm text-primary fw-bold">
+            <i class="fas fa-chevron-left me-1"></i> Anterior
           </a>
-          <a href="{% url 'ver_asistencia_alumno' %}" class="btn btn-outline-primary btn-sm">
+          <a href="{% url 'ver_asistencia_alumno' %}" class="btn btn-light btn-sm text-primary fw-bold">
             Hoy
           </a>
-          <a href="?semana={{ semana_siguiente|date:'Y-m-d' }}" class="btn btn-outline-primary btn-sm">
-            Siguiente <i class="fa fa-chevron-right"></i>
+          <a href="?semana={{ semana_siguiente|date:'Y-m-d' }}" class="btn btn-light btn-sm text-primary fw-bold">
+            Siguiente <i class="fas fa-chevron-right ms-1"></i>
           </a>
           {% else %}
           <a href="?curso={{ curso_seleccionado.id }}{% if estudiante_seleccionado %}&estudiante={{ estudiante_seleccionado.id }}{% endif %}{% if rut_filtro %}&rut={{ rut_filtro }}{% endif %}&semana={{ semana_anterior|date:'Y-m-d' }}" 
-             class="btn btn-outline-primary btn-sm">
-            <i class="fa fa-chevron-left"></i> Anterior
+             class="btn btn-light btn-sm text-primary fw-bold">
+            <i class="fas fa-chevron-left me-1"></i> Anterior
           </a>
           <a href="?curso={{ curso_seleccionado.id }}{% if estudiante_seleccionado %}&estudiante={{ estudiante_seleccionado.id }}{% endif %}{% if rut_filtro %}&rut={{ rut_filtro }}{% endif %}" 
-             class="btn btn-outline-primary btn-sm">
+             class="btn btn-light btn-sm text-primary fw-bold">
             Hoy
           </a>
           <a href="?curso={{ curso_seleccionado.id }}{% if estudiante_seleccionado %}&estudiante={{ estudiante_seleccionado.id }}{% endif %}{% if rut_filtro %}&rut={{ rut_filtro }}{% endif %}&semana={{ semana_siguiente|date:'Y-m-d' }}" 
-             class="btn btn-outline-primary btn-sm">
-            Siguiente <i class="fa fa-chevron-right"></i>
+             class="btn btn-light btn-sm text-primary fw-bold">
+            Siguiente <i class="fas fa-chevron-right ms-1"></i>
           </a>
           {% endif %}
         </div>
       </div>
-      <div class="card-body">
-        <div class="row">
+      <div class="card-body-custom py-3">
+        <div class="row g-2">
           {% for fecha_info in fechas_semana %}
           <div class="col">
-            <div class="text-center p-2 {% if fecha_info.es_hoy %}bg-primary text-white{% else %}bg-light{% endif %} rounded">
-              <small class="fw-bold">{{ fecha_info.dia_nombre }}</small><br>
-              <span>{{ fecha_info.fecha|date:"d/m" }}</span>
+            <div class="calendar-day {% if fecha_info.es_hoy %}active{% endif %}">
+              <small class="d-block text-uppercase fw-bold mb-1" style="font-size: 0.7rem; opacity: 0.8;">{{ fecha_info.dia_nombre }}</small>
+              <span class="fs-5 fw-bold">{{ fecha_info.fecha|date:"d" }}</span>
+              <small class="d-block mt-1" style="font-size: 0.7rem;">{{ fecha_info.fecha|date:"M" }}</small>
             </div>
           </div>
           {% endfor %}
@@ -181,35 +435,39 @@
     {% if asistencias %}
     <div class="row mb-4">
       <div class="col-md-3">
-        <div class="card text-center border-primary">
-          <div class="card-body">
-            <h5 class="card-title text-primary">{{ estadisticas.total }}</h5>
-            <p class="card-text">Total Registros</p>
-          </div>
+        <div class="modern-card p-3 text-center h-100 d-flex flex-column justify-content-center">
+            <div class="text-primary mb-2">
+                <i class="fas fa-clipboard-list fa-2x"></i>
+            </div>
+            <h3 class="fw-bold mb-0">{{ estadisticas.total }}</h3>
+            <small class="text-muted text-uppercase fw-bold" style="font-size: 0.7rem;">Total Registros</small>
         </div>
       </div>
       <div class="col-md-3">
-        <div class="card text-center border-success">
-          <div class="card-body">
-            <h5 class="card-title text-success">{{ estadisticas.presentes }}</h5>
-            <p class="card-text">Presentes</p>
-          </div>
+        <div class="modern-card p-3 text-center h-100 d-flex flex-column justify-content-center">
+            <div class="text-success mb-2">
+                <i class="fas fa-check-circle fa-2x"></i>
+            </div>
+            <h3 class="fw-bold mb-0">{{ estadisticas.presentes }}</h3>
+            <small class="text-muted text-uppercase fw-bold" style="font-size: 0.7rem;">Presentes</small>
         </div>
       </div>
       <div class="col-md-3">
-        <div class="card text-center border-danger">
-          <div class="card-body">
-            <h5 class="card-title text-danger">{{ estadisticas.ausentes }}</h5>
-            <p class="card-text">Ausentes</p>
-          </div>
+        <div class="modern-card p-3 text-center h-100 d-flex flex-column justify-content-center">
+            <div class="text-danger mb-2">
+                <i class="fas fa-times-circle fa-2x"></i>
+            </div>
+            <h3 class="fw-bold mb-0">{{ estadisticas.ausentes }}</h3>
+            <small class="text-muted text-uppercase fw-bold" style="font-size: 0.7rem;">Ausentes</small>
         </div>
       </div>
       <div class="col-md-3">
-        <div class="card text-center border-info">
-          <div class="card-body">
-            <h5 class="card-title text-info">{{ estadisticas.porcentaje_asistencia }}%</h5>
-            <p class="card-text">% Asistencia</p>
-          </div>
+        <div class="modern-card p-3 text-center h-100 d-flex flex-column justify-content-center">
+            <div class="text-info mb-2">
+                <i class="fas fa-chart-pie fa-2x"></i>
+            </div>
+            <h3 class="fw-bold mb-0">{{ estadisticas.porcentaje_asistencia }}%</h3>
+            <small class="text-muted text-uppercase fw-bold" style="font-size: 0.7rem;">% Asistencia</small>
         </div>
       </div>
     </div>
@@ -245,9 +503,9 @@
     {% endif %}
 
     <!-- Tabla de asistencias -->
-    <div class="card">
-      <div class="card-header d-flex justify-content-between align-items-center">
-        <h5><i class="fa fa-table"></i> 
+    <div class="modern-card">
+      <div class="card-header-custom">
+        <h5 class="mb-0 fw-bold"><i class="fas fa-list-alt me-2"></i> 
           {% if user_type == 'alumno' %}
             Mi Registro de Asistencia
           {% else %}
@@ -258,41 +516,43 @@
           {% elif curso_seleccionado %}
             - {{ curso_seleccionado }}
           {% endif %}
-          {% if asistencias %}({{ asistencias.count }} registros){% endif %}
+          {% if asistencias %}<span class="badge bg-white text-primary ms-2">{{ asistencias.count }} registros</span>{% endif %}
         </h5>
         {% if user_type != 'alumno' %}
-        <a href="{% url 'registrar_asistencia_alumno' %}" class="btn btn-success">
-          <i class="fa fa-plus"></i> Registrar Asistencia
+        <a href="{% url 'registrar_asistencia_alumno' %}" class="btn btn-light btn-sm text-success fw-bold">
+          <i class="fa fa-plus me-1"></i> Registrar Asistencia
         </a>
         {% endif %}
       </div>
-      <div class="card-body">
+      <div class="card-body p-0">
         {% if asistencias %}
         <div class="table-responsive">
-          <table class="table table-striped table-hover">
-            <thead class="table-dark">
+          <table class="table-modern mb-0">
+            <thead>
               <tr>
                 {% if user_type != 'alumno' %}
-                <th>Estudiante</th>
+                <th class="ps-4">Estudiante</th>
                 <th>RUT</th>
                 {% endif %}
-                <th>Fecha</th>
+                <th class="{% if user_type == 'alumno' %}ps-4{% endif %}">Fecha</th>
                 <th>Asignatura</th>
                 <th>Estado</th>
                 <th>Hora</th>
                 <th>Profesor</th>
                 {% if user_type != 'alumno' %}
-                <th>Acciones</th>
+                <th class="pe-4">Acciones</th>
                 {% endif %}
               </tr>
             </thead>
             <tbody>
               {% for asistencia in asistencias %}
-              <tr {% if not asistencia.presente %}class="table-warning"{% endif %}>
+              <tr>
                 {% if user_type != 'alumno' %}
-                <td>
+                <td class="ps-4">
                   <div class="d-flex align-items-center">
-                    <i class="fa fa-user text-secondary me-2"></i>
+                    <div class="bg-light rounded-circle p-2 me-2 text-primary">
+                        <i class="fas fa-user"></i>
+                    </div>
                     <div>
                       <div class="fw-bold">{{ asistencia.estudiante.primer_nombre }} {{ asistencia.estudiante.apellido_paterno }}</div>
                       <small class="text-muted">{{ asistencia.estudiante.codigo_estudiante }}</small>
@@ -303,40 +563,44 @@
                   <span class="badge bg-secondary">{{ asistencia.estudiante.numero_documento }}</span>
                 </td>
                 {% endif %}
-                <td>
-                  <span class="fw-medium">{{ asistencia.fecha|date:"d/m/Y" }}</span><br>
-                  <small class="text-muted">{{ asistencia.fecha|date:"l" }}</small>
+                <td class="{% if user_type == 'alumno' %}ps-4{% endif %}">
+                    <div class="d-flex flex-column">
+                        <span class="fw-bold">{{ asistencia.fecha|date:"d/m/Y" }}</span>
+                        <small class="text-muted">{{ asistencia.fecha|date:"l" }}</small>
+                    </div>
                 </td>
                 <td>
-                  <span class="badge bg-info">{{ asistencia.asignatura.nombre }}</span>
+                    <span class="fw-medium">{{ asistencia.asignatura.nombre }}</span>
                 </td>
                 <td>
                   {% if asistencia.presente %}
-                    <span class="badge bg-success">
-                      <i class="fa fa-check"></i> Presente
+                    <span class="badge-modern bg-success text-white">
+                      <i class="fas fa-check me-1"></i> Presente
                     </span>
                   {% else %}
-                    <span class="badge bg-danger">
-                      <i class="fa fa-times"></i> Ausente
+                    <span class="badge-modern bg-danger text-white">
+                      <i class="fas fa-times me-1"></i> Ausente
                     </span>
                     {% if asistencia.justificacion %}
-                      <button type="button" class="btn btn-sm btn-outline-info ms-1" 
-                              data-bs-toggle="modal" data-bs-target="#justificacionModal{{ asistencia.id }}"
-                              title="Ver justificación">
-                        <i class="fa fa-info-circle"></i>
+                      <button type="button" class="btn btn-link btn-sm p-0 ms-2 text-muted" data-bs-toggle="modal" data-bs-target="#justificacionModal{{ asistencia.id }}" title="Ver justificación">
+                        <i class="fas fa-info-circle"></i>
                       </button>
                     {% endif %}
                   {% endif %}
                 </td>
                 <td>
-                  <small>{{ asistencia.hora_registro|time:"H:i" }}</small>
+                    {% if asistencia.hora_registro %}
+                        <span class="badge bg-light text-dark border">{{ asistencia.hora_registro|time:"H:i" }}</span>
+                    {% else %}
+                        <span class="text-muted">-</span>
+                    {% endif %}
                 </td>
                 <td>
-                  {% if asistencia.profesor_registro %}
-                    <small>{{ asistencia.profesor_registro.primer_nombre }} {{ asistencia.profesor_registro.apellido_paterno }}</small>
-                  {% else %}
-                    <small class="text-muted">Sistema</small>
-                  {% endif %}
+                    {% if asistencia.profesor_registro %}
+                        {{ asistencia.profesor_registro.primer_nombre }} {{ asistencia.profesor_registro.apellido_paterno }}
+                    {% else %}
+                        <span class="text-muted">Sistema</span>
+                    {% endif %}
                 </td>
                 {% if user_type != 'alumno' %}
                 <td>
@@ -355,9 +619,11 @@
         </div>
         {% else %}
         <div class="text-center py-5">
-          <i class="fa fa-calendar-times fa-3x text-muted mb-3"></i>
-          <h5>No hay registros de asistencia</h5>
-          <p class="text-muted">
+          <div class="mb-3">
+            <i class="fas fa-calendar-times fa-3x text-muted opacity-50"></i>
+          </div>
+          <h5 class="text-muted fw-normal">No hay registros de asistencia</h5>
+          <p class="text-muted small">
             {% if user_type == 'alumno' %}
               No tienes registros de asistencia en esta semana
             {% elif estudiante_seleccionado %}
@@ -369,8 +635,8 @@
             {% endif %}
           </p>
           {% if user_type != 'alumno' and curso_seleccionado %}
-          <a href="{% url 'registrar_asistencia_alumno' %}" class="btn btn-primary">
-            <i class="fa fa-plus"></i> Registrar Asistencia
+          <a href="{% url 'registrar_asistencia_alumno' %}" class="btn btn-primary mt-2">
+            <i class="fas fa-plus me-2"></i> Registrar Asistencia
           </a>
           {% endif %}
         </div>

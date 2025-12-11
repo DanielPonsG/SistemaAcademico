@@ -1,537 +1,747 @@
 {% extends "index_master.html" %}
+{% load static %}
+{% load custom_filters %}
+
+{% block extra_css %}
+<style>
+    /* Modern Reset & Variables for Bootstrap 3 override */
+    :root {
+        --primary: #4f46e5;
+        --primary-dark: #4338ca;
+        --secondary: #64748b;
+        --success: #10b981;
+        --danger: #ef4444;
+        --warning: #f59e0b;
+        --info: #3b82f6;
+        --dark: #0f172a;
+        --light: #f8fafc;
+        --white: #ffffff;
+        --border: #e2e8f0;
+        --text-main: #1e293b;
+        --text-muted: #64748b;
+        --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        --radius: 0.75rem;
+    }
+
+    /* Layout & Typography */
+    .form-container {
+        font-family: 'Inter', 'Segoe UI', sans-serif;
+        background-color: #f1f5f9;
+        padding: 2rem;
+        min-height: 100vh;
+    }
+
+    .modern-card {
+        background: var(--white);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-md);
+        border: 1px solid var(--border);
+        margin-bottom: 2rem;
+        overflow: hidden;
+    }
+
+    .card-header-custom {
+        background: linear-gradient(135deg, var(--dark) 0%, #1e293b 100%);
+        padding: 2rem;
+        color: white;
+        position: relative;
+    }
+
+    .card-header-custom::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--primary), var(--info));
+    }
+
+    .card-body-custom {
+        padding: 2.5rem;
+    }
+
+    /* Form Elements Override */
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        display: block;
+        font-weight: 600;
+        color: var(--text-main);
+        margin-bottom: 0.5rem;
+        font-size: 0.95rem;
+    }
+
+    .form-control {
+        display: block;
+        width: 100%;
+        height: 45px;
+        padding: 0.75rem 1rem;
+        font-size: 1rem;
+        line-height: 1.5;
+        color: var(--text-main);
+        background-color: #fff;
+        background-clip: padding-box;
+        border: 1px solid var(--border);
+        border-radius: 0.5rem;
+        box-shadow: var(--shadow-sm);
+        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    }
+
+    .form-control:focus {
+        border-color: var(--primary);
+        outline: 0;
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    }
+
+    /* Toggle Switch */
+    .toggle-switch {
+        position: relative;
+        display: inline-block;
+        width: 50px;
+        height: 26px;
+        vertical-align: middle;
+    }
+
+    .toggle-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #cbd5e1;
+        transition: .4s;
+        border-radius: 34px;
+    }
+
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 20px;
+        width: 20px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        transition: .4s;
+        border-radius: 50%;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    input:checked + .slider {
+        background-color: var(--success);
+    }
+
+    input:checked + .slider:before {
+        transform: translateX(24px);
+    }
+
+    /* Buttons */
+    .btn-custom {
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.5rem;
+        font-weight: 600;
+        transition: all 0.2s;
+        border: none;
+    }
+
+    .btn-primary-custom {
+        background-color: var(--primary);
+        color: white;
+        box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);
+    }
+
+    .btn-primary-custom:hover {
+        background-color: var(--primary-dark);
+        transform: translateY(-1px);
+        box-shadow: 0 6px 8px -1px rgba(79, 70, 229, 0.3);
+        color: white;
+    }
+
+    .btn-light-custom {
+        background-color: white;
+        color: var(--text-muted);
+        border: 1px solid var(--border);
+    }
+
+    .btn-light-custom:hover {
+        background-color: #f8fafc;
+        color: var(--text-main);
+    }
+
+    /* Section Titles */
+    .section-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--secondary);
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #f1f5f9;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    /* Input Groups */
+    .input-group-custom {
+        position: relative;
+        display: flex;
+        width: 100%;
+    }
+
+    .input-group-icon {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-muted);
+        z-index: 10;
+    }
+
+    .input-with-icon {
+        padding-left: 2.75rem !important;
+    }
+
+    .password-toggle {
+        position: absolute;
+        right: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        cursor: pointer;
+        color: var(--text-muted);
+        z-index: 10;
+    }
+
+    /* Alerts */
+    .alert-custom {
+        border-radius: 0.5rem;
+        border: none;
+        box-shadow: var(--shadow-sm);
+        padding: 1rem 1.5rem;
+        margin-bottom: 2rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .alert-success-custom {
+        background-color: #dcfce7;
+        color: #166534;
+    }
+
+    .alert-error-custom {
+        background-color: #fee2e2;
+        color: #991b1b;
+    }
+
+    .required-mark {
+        color: var(--danger);
+        margin-left: 2px;
+    }
+    
+    .status-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 2rem;
+        font-size: 0.85rem;
+        font-weight: 600;
+        display: inline-block;
+        margin-left: 1rem;
+    }
+    
+    .status-active {
+        background-color: #dcfce7;
+        color: #166534;
+    }
+    
+    .status-inactive {
+        background-color: #fee2e2;
+        color: #991b1b;
+    }
+
+    /* Surface Card (from libro_anotaciones) */
+    .surface-card { background: #fff; border-radius: 18px; border: 1px solid rgba(148, 163, 184, 0.18); box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08); margin-bottom: 2rem; }
+    .surface-card .card-heading { padding: 18px 20px; border-bottom: 1px solid rgba(148, 163, 184, 0.18); border-radius: 18px 18px 0 0; display: flex; align-items: center; justify-content: space-between; gap: 12px; background: linear-gradient(to right, #f8fafc, #fff); }
+    .surface-card .card-heading h3 { margin: 0; font-size: 18px; font-weight: 700; color: #1f2937; display: flex; align-items: center; gap: 10px; }
+    .surface-card .card-body { padding: 20px; border-radius: 0 0 18px 18px; }
+    
+    .search-input-group {
+        position: relative;
+    }
+    .search-input-group input {
+        padding-left: 2.5rem;
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+        height: 48px;
+    }
+    .search-input-group i {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #94a3b8;
+    }
+    
+    .results-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+    .results-table th { background: #f8fafc; padding: 16px; font-weight: 600; color: #475569; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid #e2e8f0; }
+    .results-table td { padding: 16px; vertical-align: middle; border-bottom: 1px solid #f1f5f9; }
+    .results-table tr:last-child td { border-bottom: none; }
+    .results-table tr:hover td { background: #f8fafc; }
+    
+    .avatar-circle {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        color: white;
+        margin-right: 12px;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="right_col" role="main">
   <div class="container-fluid">
-    <div class="row mb-4">
-      <div class="col-12">
-        <div class="bg-white p-4 rounded shadow-sm border">
-          <div class="title_left">
-            <h1 class="h3 text-dark">
-              <i class="fa fa-edit text-warning me-2"></i>Modificar Usuario
-            </h1>
-            <p class="text-muted mb-0">Busca y edita la información de estudiantes y profesores</p>
-          </div>
-        </div>
-      </div>
-    </div>
+
     <div class="row justify-content-center">
       <div class="col-xl-12">
-        <div class="card border shadow-sm">
-          <!-- Encabezado -->
-          <div class="card-header bg-light border-bottom">
-            <div class="row align-items-center">
-              <div class="col">
-                <h3 class="mb-0 text-dark">
-                  <i class="fa fa-search me-2"></i>Buscar y Modificar {{ tipo|title }}
-                </h3>
-              </div>
-              <div class="col-auto">
-                <!-- Botones de selección -->
+        {% if not form %}
+        <div class="surface-card">
+            <div class="card-heading">
+                <h3><i class="fas fa-search text-primary"></i> Buscar y Modificar {{ tipo|title }}</h3>
                 <div class="btn-group" role="group">
-                  <a href="?tipo=estudiante" class="btn btn-{% if tipo == 'estudiante' %}primary{% else %}light{% endif %} btn-sm border">
+                  <a href="?tipo=estudiante" class="btn btn-{% if tipo == 'estudiante' %}primary{% else %}light{% endif %} btn-sm" style="border-radius: 8px 0 0 8px;">
                     <i class="fa fa-graduation-cap"></i> Estudiante
                   </a>
-                  <a href="?tipo=profesor" class="btn btn-{% if tipo == 'profesor' %}primary{% else %}light{% endif %} btn-sm border">
+                  <a href="?tipo=profesor" class="btn btn-{% if tipo == 'profesor' %}primary{% else %}light{% endif %} btn-sm" style="border-radius: 0 8px 8px 0;">
                     <i class="fa fa-chalkboard-teacher"></i> Profesor
                   </a>
                 </div>
-              </div>
             </div>
-          </div>
-
-          <div class="card-body p-4">
-            <!-- Formulario de búsqueda mejorado -->
-            <div class="card mb-4 border bg-light">
-              <div class="card-header bg-white border-bottom">
-                <h5 class="mb-0 text-dark"><i class="fa fa-search me-2"></i>Buscar {{ tipo|title }}</h5>
-              </div>
-              <div class="card-body bg-white">
-                <form method="get" class="row g-3">
-                  <input type="hidden" name="tipo" value="{{ tipo }}">
-                  
-                  <!-- Búsqueda por texto -->
-                  <div class="col-lg-4">
-                    <label class="form-label text-dark fw-medium">
-                      <i class="fa fa-user text-muted me-1"></i>Buscar por nombre o apellido
-                    </label>
-                    <div class="input-group">
-                      <span class="input-group-text bg-white border">
-                        <i class="fa fa-search text-muted"></i>
-                      </span>
-                      <input type="text" name="q" class="form-control border" 
-                             placeholder="{% if tipo == 'estudiante' %}Nombre o apellido del estudiante...{% else %}Nombre o apellido del profesor...{% endif %}" 
-                             value="{{ query }}">
+            
+            <div class="card-body">
+                <!-- Search Form -->
+                <form method="get" class="row g-3 mb-4">
+                    <input type="hidden" name="tipo" value="{{ tipo }}">
+                    
+                    <div class="col-lg-4">
+                        <label class="form-label small text-muted text-uppercase">Nombre o Apellido</label>
+                        <div class="search-input-group">
+                            <i class="fa fa-user"></i>
+                            <input type="text" name="q" class="form-control" 
+                                   placeholder="Buscar por nombre..." 
+                                   value="{{ query }}">
+                        </div>
                     </div>
-                  </div>
-                  
-                  <!-- Búsqueda por código -->
-                  <div class="col-lg-3">
-                    <label class="form-label text-dark fw-medium">
-                      <i class="fa fa-barcode text-muted me-1"></i>Buscar por código
-                    </label>
-                    <div class="input-group">
-                      <span class="input-group-text bg-white border">
-                        <i class="fa fa-{% if tipo == 'estudiante' %}graduation-cap{% else %}chalkboard-teacher{% endif %} text-muted"></i>
-                      </span>
-                      <input type="text" name="codigo" class="form-control border" 
-                             placeholder="Código del {{ tipo }}" 
-                             value="{{ request.GET.codigo }}">
+                    
+                    <div class="col-lg-3">
+                        <label class="form-label small text-muted text-uppercase">Código</label>
+                        <div class="search-input-group">
+                            <i class="fa fa-barcode"></i>
+                            <input type="text" name="codigo" class="form-control" 
+                                   placeholder="Código..." 
+                                   value="{{ request.GET.codigo }}">
+                        </div>
                     </div>
-                  </div>
-                  
-                  <!-- Búsqueda por ID -->
-                  <div class="col-lg-3">
-                    <label class="form-label text-dark fw-medium">
-                      <i class="fa fa-hashtag text-muted me-1"></i>Buscar por ID
-                    </label>
-                    <div class="input-group">
-                      <span class="input-group-text bg-white border">
-                        <i class="fa fa-hashtag text-muted"></i>
-                      </span>
-                      <input type="number" name="id" class="form-control border" 
-                             placeholder="ID del {{ tipo }}" 
-                             value="{{ seleccionado_id }}">
+                    
+                    <div class="col-lg-3">
+                        <label class="form-label small text-muted text-uppercase">ID Sistema</label>
+                        <div class="search-input-group">
+                            <i class="fa fa-hashtag"></i>
+                            <input type="number" name="id" class="form-control" 
+                                   placeholder="ID..." 
+                                   value="{{ seleccionado_id }}">
+                        </div>
                     </div>
-                  </div>
-                  
-                  <!-- Botón de búsqueda -->
-                  <div class="col-lg-2">
-                    <label class="form-label">&nbsp;</label>
-                    <button type="submit" class="btn btn-primary w-100 d-block">
-                      <i class="fa fa-search me-1"></i> Buscar
-                    </button>
-                  </div>
+                    
+                    <div class="col-lg-2">
+                        <label class="form-label d-none d-lg-block">&nbsp;</label>
+                        <button type="submit" class="btn btn-primary-custom w-100 h-100" style="min-height: 48px;">
+                            <i class="fa fa-search me-2"></i> Buscar
+                        </button>
+                    </div>
                 </form>
                 
-                <!-- Búsqueda rápida -->
-                <div class="row mt-3">
-                  <div class="col-12">
-                    <div class="d-flex gap-2 flex-wrap">
-                      <small class="text-muted me-2">Búsqueda rápida:</small>
-                      <a href="?tipo={{ tipo }}&q=" class="badge bg-secondary text-decoration-none">
-                        <i class="fa fa-list me-1"></i>Ver todos
-                      </a>
-                      <a href="?tipo={{ tipo }}&q=A" class="badge bg-info text-decoration-none">A</a>
-                      <a href="?tipo={{ tipo }}&q=B" class="badge bg-info text-decoration-none">B</a>
-                      <a href="?tipo={{ tipo }}&q=C" class="badge bg-info text-decoration-none">C</a>
-                      <a href="?tipo={{ tipo }}&q=D" class="badge bg-info text-decoration-none">D</a>
-                      <a href="?tipo={{ tipo }}&q=E" class="badge bg-info text-decoration-none">E</a>
-                    </div>
-                  </div>
+                <!-- Quick Filters -->
+                <div class="d-flex align-items-center gap-2 mb-4 pb-4 border-bottom overflow-auto">
+                    <span class="text-muted small fw-bold text-nowrap">Búsqueda rápida:</span>
+                    <a href="?tipo={{ tipo }}&q=" class="badge bg-light text-dark border text-decoration-none px-3 py-2 rounded-pill">Todos</a>
+                    {% for letter in "ABCDE" %}
+                    <a href="?tipo={{ tipo }}&q={{ letter }}" class="badge bg-light text-dark border text-decoration-none px-3 py-2 rounded-pill">{{ letter }}</a>
+                    {% endfor %}
                 </div>
-              </div>
-            </div>
 
-            <!-- Resultados de búsqueda -->
-            {% if resultados %}
-              <div class="card mb-4 border-0">
-                <div class="card-header bg-gradient-info text-white">
-                  <div class="row align-items-center">
-                    <div class="col">
-                      <h5 class="mb-0">
-                        <i class="fa fa-list me-2"></i>Resultados de Búsqueda 
-                        <span class="badge bg-light text-dark ms-2">{{ resultados|length }}</span>
-                      </h5>
+                <!-- Results -->
+                {% if resultados %}
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="mb-0 fw-bold text-dark">Resultados <span class="badge bg-primary-light text-primary ms-2">{{ resultados|length }}</span></h5>
+                        <button class="btn btn-light-custom btn-sm" onclick="exportarResultados()">
+                            <i class="fa fa-download me-2"></i>Exportar
+                        </button>
                     </div>
-                    <div class="col-auto">
-                      <button class="btn btn-light btn-sm" onclick="exportarResultados()">
-                        <i class="fa fa-download"></i> Exportar
-                      </button>
+                    
+                    <div class="table-responsive rounded-3 border">
+                        <table class="results-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Usuario</th>
+                                    <th>Información</th>
+                                    <th>Contacto</th>
+                                    <th>{% if tipo == 'profesor' %}Especialidad{% else %}Ingreso{% endif %}</th>
+                                    <th class="text-end">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for obj in resultados %}
+                                <tr {% if obj.id|stringformat:"s" == seleccionado_id %}style="background-color: #f0f9ff;"{% endif %}>
+                                    <td><span class="text-muted">#{{ obj.id }}</span></td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-circle bg-gradient-{% if tipo == 'estudiante' %}primary{% else %}success{% endif %}" style="background: linear-gradient(135deg, {% if tipo == 'estudiante' %}#4f46e5, #4338ca{% else %}#10b981, #059669{% endif %});">
+                                                {{ obj.primer_nombre|first }}{{ obj.apellido_paterno|first }}
+                                            </div>
+                                            <div>
+                                                <div class="fw-bold text-dark">
+                                                    {% if tipo == 'estudiante' %}{{ obj.codigo_estudiante }}{% else %}{{ obj.codigo_profesor }}{% endif %}
+                                                </div>
+                                                <div class="small text-muted">{{ obj.get_tipo_documento_display }}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold text-dark">{{ obj.primer_nombre }} {{ obj.apellido_paterno }}</div>
+                                        <div class="small text-muted">{{ obj.numero_documento }}</div>
+                                    </td>
+                                    <td>
+                                        <div class="text-dark">{{ obj.email|default:"Sin email" }}</div>
+                                    </td>
+                                    <td>
+                                        {% if tipo == 'profesor' %}
+                                            <span class="badge bg-light text-dark border">{{ obj.especialidad|default:"General" }}</span>
+                                        {% else %}
+                                            <span class="text-muted">{{ obj.fecha_ingreso|date:"d M, Y" }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end">
+                                        <a href="?tipo={{ tipo }}&id={{ obj.id }}" class="btn btn-primary-custom btn-sm">
+                                            <i class="fa fa-edit"></i> Editar
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
                     </div>
-                  </div>
-                </div>
-                <div class="card-body p-0">
-                  <div class="table-responsive">
-                    <table class="table table-hover mb-0">
-                      <thead class="table-dark">
-                        <tr>
-                          <th style="width: 8%;">ID</th>
-                          <th style="width: 15%;">Código</th>
-                          <th style="width: 30%;">Nombre Completo</th>
-                          <th style="width: 15%;">Documento</th>
-                          <th style="width: 17%;">Email</th>
-                          {% if tipo == 'profesor' %}
-                            <th style="width: 15%;">Especialidad</th>
-                          {% else %}
-                            <th style="width: 15%;">F. Ingreso</th>
-                          {% endif %}
-                          <th style="width: 10%;" class="text-center">Acción</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {% for obj in resultados %}
-                          <tr {% if obj.id|stringformat:"s" == seleccionado_id %}class="table-warning"{% endif %}>
-                            <td>
-                              <span class="badge bg-{% if tipo == 'estudiante' %}primary{% else %}success{% endif %} rounded-pill">
-                                {{ obj.id }}
-                              </span>
-                            </td>
-                            <td>
-                              <div class="d-flex align-items-center">
-                                <div class="avatar-sm bg-{% if tipo == 'estudiante' %}primary{% else %}success{% endif %} bg-gradient rounded-circle me-2 d-flex align-items-center justify-content-center">
-                                  <i class="fa fa-{% if tipo == 'estudiante' %}graduation-cap{% else %}chalkboard-teacher{% endif %} text-white"></i>
-                                </div>
-                                {% if tipo == 'estudiante' %}
-                                  <span class="fw-bold text-primary">{{ obj.codigo_estudiante }}</span>
-                                {% else %}
-                                  <span class="fw-bold text-success">{{ obj.codigo_profesor }}</span>
-                                {% endif %}
-                              </div>
-                            </td>
-                            <td>
-                              <div>
-                                <div class="fw-bold">{{ obj.primer_nombre }} {{ obj.segundo_nombre|default:"" }}</div>
-                                <div class="text-muted small">{{ obj.apellido_paterno }} {{ obj.apellido_materno|default:"" }}</div>
-                              </div>
-                            </td>
-                            <td>
-                              <div>
-                                <span class="badge bg-light text-dark">{{ obj.get_tipo_documento_display }}</span>
-                                <div class="small text-muted mt-1">{{ obj.numero_documento }}</div>
-                              </div>
-                            </td>
-                            <td>
-                              <a href="mailto:{{ obj.email }}" class="text-decoration-none">
-                                <i class="fa fa-envelope text-muted me-1"></i>
-                                <span class="small">{{ obj.email|truncatechars:25 }}</span>
-                              </a>
-                            </td>
-                            {% if tipo == 'profesor' %}
-                              <td>
-                                <span class="badge bg-info text-dark">{{ obj.especialidad|truncatechars:15 }}</span>
-                              </td>
-                            {% else %}
-                              <td>
-                                <span class="small text-muted">{{ obj.fecha_ingreso|date:"d/m/Y" }}</span>
-                              </td>
-                            {% endif %}
-                            <td class="text-center">
-                              <a href="?tipo={{ tipo }}&id={{ obj.id }}" 
-                                 class="btn btn-sm btn-warning">
-                                <i class="fa fa-edit"></i> Editar
-                              </a>
-                            </td>
-                          </tr>
-                        {% endfor %}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-            {% else %}
-              <div class="alert alert-info text-center">
-                <i class="fa fa-info-circle fa-2x mb-2"></i>
-                <h5>No se encontraron resultados</h5>
-                <p class="mb-0">
-                  {% if query %}
-                    No hay {{ tipo }}s que coincidan con "{{ query }}".
-                  {% else %}
-                    Utiliza el formulario de búsqueda para encontrar {{ tipo }}s.
-                  {% endif %}
-                </p>
-                <br><small>Intenta con otros términos de búsqueda.</small>
-              </div>
-            {% endif %}
+                {% else %}
+                    <div class="text-center py-5">
+                        <div class="mb-3">
+                            <i class="fas fa-search fa-3x text-muted opacity-25"></i>
+                        </div>
+                        <h5 class="text-muted">No se encontraron resultados</h5>
+                        <p class="text-muted small">Intenta ajustar los filtros de búsqueda</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
 
             <!-- Formulario de modificación -->
             {% if form %}
-              <div class="card">
-                <div class="card-header bg-success text-white">
-                  <h5 class="mb-0">
-                    <i class="fa fa-edit"></i> Modificar Datos del {{ tipo|title }}
-                    {% if tipo == 'profesor' %}
-                      <span class="badge bg-light text-dark ms-2">
-                        <i class="fa fa-info-circle"></i> Incluye opciones de apoderado
-                      </span>
-                    {% endif %}
-                  </h5>
+              <div class="surface-card">
+                <div class="card-heading">
+                  <div class="d-flex align-items-center justify-content-between w-100">
+                    <div>
+                      <h3>
+                        <i class="fas {% if tipo == 'estudiante' %}fa-user-graduate{% else %}fa-chalkboard-teacher{% endif %} text-primary"></i>
+                        Modificar {{ tipo|title }}
+                      </h3>
+                      <p class="text-muted small mb-0 ms-1">
+                        Editando perfil de <strong>{{ form.instance.primer_nombre }} {{ form.instance.apellido_paterno }}</strong>
+                      </p>
+                    </div>
+                    <a href="{% if tipo == 'estudiante' %}{% url 'listar_estudiantes' %}{% else %}{% url 'listar_profesores' %}{% endif %}" class="btn btn-light btn-sm border">
+                        <i class="fas fa-arrow-left"></i> Volver
+                    </a>
+                  </div>
                 </div>
+
                 <div class="card-body">
                   <!-- Mostrar mensajes de Django -->
                   {% if messages %}
                     {% for message in messages %}
-                      <div class="alert alert-{% if message.tags == 'success' %}success{% elif message.tags == 'error' %}danger{% else %}info{% endif %} alert-dismissible fade show" role="alert">
-                        <i class="fa fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}exclamation-triangle{% else %}info-circle{% endif %}"></i> {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                      <div class="alert alert-{% if message.tags == 'success' %}success{% else %}danger{% endif %} d-flex align-items-center" role="alert">
+                        <i class="fas {% if message.tags == 'success' %}fa-check-circle{% else %}fa-exclamation-circle{% endif %} me-2"></i>
+                        <div>{{ message }}</div>
                       </div>
                     {% endfor %}
                   {% endif %}
                   
-                  <!-- Mensajes antiguos (mantener por compatibilidad) -->
                   {% if mensaje %}
-                    <div class="alert alert-success alert-dismissible fade show" role="alert">
-                      <i class="fa fa-check-circle"></i> {{ mensaje }}
-                      <button type="button" class="close" data-dismiss="alert">
-                        <span>&times;</span>
-                      </button>
+                    <div class="alert alert-success d-flex align-items-center" role="alert">
+                      <i class="fas fa-check-circle me-2"></i>
+                      <div>{{ mensaje }}</div>
                     </div>
                   {% endif %}
 
                   <form method="post" novalidate id="modificar-form">
                     {% csrf_token %}
                     
-                    <!-- Información Personal -->
-                    <div class="card mb-4">
-                      <div class="card-header bg-primary text-white">
-                        <h6 class="mb-0"><i class="fa fa-user"></i> Información Personal</h6>
-                      </div>
-                      <div class="card-body">
-                        <div class="row">
-                          <!-- Primera columna -->
-                          <div class="col-md-6">
-                            {% for field in form %}
-                              {% if field.name in 'primer_nombre,segundo_nombre,apellido_paterno,apellido_materno,tipo_documento,numero_documento' %}
-                                <div class="form-group mb-3">
-                                  <label class="form-label font-weight-bold">
-                                    {% if field.name == 'primer_nombre' %}<i class="fa fa-user text-primary"></i>
-                                    {% elif field.name == 'segundo_nombre' %}<i class="fa fa-user text-primary"></i>
-                                    {% elif field.name == 'apellido_paterno' %}<i class="fa fa-user text-primary"></i>
-                                    {% elif field.name == 'apellido_materno' %}<i class="fa fa-user text-primary"></i>
-                                    {% elif field.name == 'tipo_documento' %}<i class="fa fa-id-card text-info"></i>
-                                    {% elif field.name == 'numero_documento' %}<i class="fa fa-id-card-alt text-info"></i>
-                                    {% endif %}
-                                    {{ field.label }}
-                                    {% if field.field.required %} <span class="text-danger">*</span>{% endif %}
-                                  </label>
-                                  {{ field }}
-                                  {% if field.help_text %}
-                                    <small class="form-text text-muted">{{ field.help_text }}</small>
-                                  {% endif %}
-                                  {% for error in field.errors %}
-                                    <div class="text-danger small">
-                                      <i class="fa fa-exclamation-circle"></i> {{ error }}
-                                    </div>
-                                  {% endfor %}
-                                </div>
-                              {% endif %}
-                            {% endfor %}
-                          </div>
-                          
-                          <!-- Segunda columna -->
-                          <div class="col-md-6">
-                            {% for field in form %}
-                              {% if field.name in 'fecha_nacimiento,genero,direccion,telefono,email' %}
-                                <div class="form-group mb-3">
-                                  <label class="form-label font-weight-bold">
-                                    {% if field.name == 'fecha_nacimiento' %}<i class="fa fa-calendar text-warning"></i>
-                                    {% elif field.name == 'genero' %}<i class="fa fa-venus-mars text-success"></i>
-                                    {% elif field.name == 'direccion' %}<i class="fa fa-map-marker-alt text-danger"></i>
-                                    {% elif field.name == 'telefono' %}<i class="fa fa-phone text-info"></i>
-                                    {% elif field.name == 'email' %}<i class="fa fa-envelope text-primary"></i>
-                                    {% endif %}
-                                    {{ field.label }}
-                                    {% if field.field.required %} <span class="text-danger">*</span>{% endif %}
-                                  </label>
-                                  {{ field }}
-                                  {% if field.help_text %}
-                                    <small class="form-text text-muted">{{ field.help_text }}</small>
-                                  {% endif %}
-                                  {% for error in field.errors %}
-                                    <div class="text-danger small">
-                                      <i class="fa fa-exclamation-circle"></i> {{ error }}
-                                    </div>
-                                  {% endfor %}
-                                </div>
-                              {% endif %}
-                            {% endfor %}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                    <div class="row g-4">
+                        <!-- Left Column: Personal Info -->
+                        <div class="col-md-8">
+                            <!-- Personal Information -->
+                            <h5 class="mb-3 fw-bold text-dark border-bottom pb-2">
+                                <i class="fas fa-user text-primary me-2"></i> Información Personal
+                            </h5>
 
-                    <!-- Información Específica del Rol -->
-                    <div class="card mb-4">
-                      <div class="card-header bg-info text-white">
-                        <h6 class="mb-0">
-                          <i class="fa fa-{% if tipo == 'estudiante' %}graduation-cap{% else %}chalkboard-teacher{% endif %}"></i> 
-                          Información del {{ tipo|title }}
-                        </h6>
-                      </div>
-                      <div class="card-body">
-                        <div class="row">
-                          <div class="col-md-6">
-                            {% for field in form %}
-                              {% if field.name in 'codigo_estudiante,codigo_profesor,especialidad' %}
-                                <div class="form-group mb-3">
-                                  <label class="form-label font-weight-bold">
-                                    {% if field.name == 'codigo_estudiante' %}<i class="fa fa-barcode text-primary"></i>
-                                    {% elif field.name == 'codigo_profesor' %}<i class="fa fa-barcode text-success"></i>
-                                    {% elif field.name == 'especialidad' %}<i class="fa fa-graduation-cap text-info"></i>
-                                    {% endif %}
-                                    {{ field.label }}
-                                    {% if field.field.required %} <span class="text-danger">*</span>{% endif %}
-                                  </label>
-                                  {{ field }}
-                                  {% if field.help_text %}
-                                    <small class="form-text text-muted">{{ field.help_text }}</small>
-                                  {% endif %}
-                                  {% for error in field.errors %}
-                                    <div class="text-danger small">
-                                      <i class="fa fa-exclamation-circle"></i> {{ error }}
-                                    </div>
-                                  {% endfor %}
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label small text-muted text-uppercase">Primer Nombre <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" name="primer_nombre" value="{{ form.primer_nombre.value|default:'' }}" required>
+                                    {{ form.primer_nombre.errors }}
                                 </div>
-                              {% endif %}
-                            {% endfor %}
-                          </div>
-                          
-                          <div class="col-md-6">
-                            {% for field in form %}
-                              {% if field.name in 'username,password' %}
-                                <div class="form-group mb-3">
-                                  <label class="form-label font-weight-bold">
-                                    {% if field.name == 'username' %}<i class="fa fa-user-circle text-primary"></i>
-                                    {% elif field.name == 'password' %}<i class="fa fa-lock text-warning"></i>
-                                    {% endif %}
-                                    {{ field.label }}
-                                    {% if field.field.required %} <span class="text-danger">*</span>{% endif %}
-                                  </label>
-                                  {{ field }}
-                                  {% if field.help_text %}
-                                    <small class="form-text text-muted">{{ field.help_text }}</small>
-                                  {% endif %}
-                                  {% for error in field.errors %}
-                                    <div class="text-danger small">
-                                      <i class="fa fa-exclamation-circle"></i> {{ error }}
-                                    </div>
-                                  {% endfor %}
+                                <div class="col-md-6">
+                                    <label class="form-label small text-muted text-uppercase">Segundo Nombre</label>
+                                    <input type="text" class="form-control" name="segundo_nombre" value="{{ form.segundo_nombre.value|default:'' }}">
+                                    {{ form.segundo_nombre.errors }}
                                 </div>
-                              {% endif %}
-                            {% endfor %}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                            </div>
 
-                    <!-- Información de Apoderado (solo para profesores) -->
-                    {% if tipo == 'profesor' %}
-                    <div class="card mb-4" id="apoderado-section">
-                      <div class="card-header bg-warning text-dark">
-                        <h6 class="mb-0">
-                          <i class="fa fa-users"></i> Información de Apoderado
-                          <small class="text-muted">(Opcional)</small>
-                        </h6>
-                      </div>
-                      <div class="card-body">
-                        <div class="row">
-                          <div class="col-12 mb-3">
-                            {% for field in form %}
-                              {% if field.name == 'es_apoderado' %}
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label small text-muted text-uppercase">Apellido Paterno <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" name="apellido_paterno" value="{{ form.apellido_paterno.value|default:'' }}" required>
+                                    {{ form.apellido_paterno.errors }}
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small text-muted text-uppercase">Apellido Materno</label>
+                                    <input type="text" class="form-control" name="apellido_materno" value="{{ form.apellido_materno.value|default:'' }}">
+                                    {{ form.apellido_materno.errors }}
+                                </div>
+                            </div>
+
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label small text-muted text-uppercase">RUT <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light"><i class="fas fa-id-card text-muted"></i></span>
+                                        <input type="text" class="form-control rut-input" name="numero_documento" 
+                                               value="{{ form.numero_documento.value|default:'' }}" 
+                                               placeholder="12.345.678-9" required>
+                                    </div>
+                                    {{ form.numero_documento.errors }}
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small text-muted text-uppercase">
+                                        {% if tipo == 'estudiante' %}Código Estudiante{% else %}Código Profesor{% endif %} 
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light"><i class="fas fa-barcode text-muted"></i></span>
+                                        <input type="text" class="form-control" 
+                                               name="{% if tipo == 'estudiante' %}codigo_estudiante{% else %}codigo_profesor{% endif %}" 
+                                               value="{% if tipo == 'estudiante' %}{{ form.codigo_estudiante.value|default:'' }}{% else %}{{ form.codigo_profesor.value|default:'' }}{% endif %}" required>
+                                    </div>
+                                    {% if tipo == 'estudiante' %}
+                                        {{ form.codigo_estudiante.errors }}
+                                    {% else %}
+                                        {{ form.codigo_profesor.errors }}
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label small text-muted text-uppercase">Género</label>
+                                    {{ form.genero }}
+                                    {{ form.genero.errors }}
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small text-muted text-uppercase">Tipo Documento</label>
+                                    {{ form.tipo_documento }}
+                                    {{ form.tipo_documento.errors }}
+                                </div>
+                            </div>
+
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label small text-muted text-uppercase">Fecha Nacimiento</label>
+                                    <input type="date" class="form-control" name="fecha_nacimiento" value="{{ form.fecha_nacimiento.value|date:'Y-m-d'|default:'' }}">
+                                    {{ form.fecha_nacimiento.errors }}
+                                </div>
+                                {% if tipo == 'profesor' %}
+                                <div class="col-md-6">
+                                    <label class="form-label small text-muted text-uppercase">Especialidad</label>
+                                    <input type="text" class="form-control" name="especialidad" value="{{ form.especialidad.value|default:'' }}" placeholder="Ej: Matemáticas">
+                                    {{ form.especialidad.errors }}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Contact Info -->
+                            <h5 class="mb-3 fw-bold text-dark border-bottom pb-2 mt-4">
+                                <i class="fas fa-address-book text-primary me-2"></i> Contacto
+                            </h5>
+
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label small text-muted text-uppercase">Email <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light"><i class="fas fa-envelope text-muted"></i></span>
+                                        <input type="email" class="form-control" name="email" value="{{ form.email.value|default:'' }}" required>
+                                    </div>
+                                    {{ form.email.errors }}
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small text-muted text-uppercase">Teléfono</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light"><i class="fas fa-phone text-muted"></i></span>
+                                        <input type="text" class="form-control" name="telefono" value="{{ form.telefono.value|default:'' }}">
+                                    </div>
+                                    {{ form.telefono.errors }}
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label small text-muted text-uppercase">Dirección</label>
+                                <textarea class="form-control" name="direccion" rows="2">{{ form.direccion.value|default:'' }}</textarea>
+                                {{ form.direccion.errors }}
+                            </div>
+
+                            {% if tipo == 'profesor' %}
+                            <!-- Apoderado Info (Only for Professor) -->
+                            <h5 class="mb-3 fw-bold text-dark border-bottom pb-2 mt-4">
+                                <i class="fas fa-users text-primary me-2"></i> Información de Apoderado <small class="text-muted ms-2 fw-normal">(Opcional)</small>
+                            </h5>
+                            
+                            <div class="mb-3">
                                 <div class="form-check form-switch">
-                                  {{ field }}
-                                  <label class="form-check-label font-weight-bold" for="{{ field.id_for_label }}">
-                                    <i class="fa fa-user-plus text-warning"></i> {{ field.label }}
-                                  </label>
-                                  {% if field.help_text %}
-                                    <br><small class="form-text text-muted">{{ field.help_text }}</small>
-                                  {% endif %}
-                                  {% for error in field.errors %}
-                                    <div class="text-danger small">
-                                      <i class="fa fa-exclamation-circle"></i> {{ error }}
-                                    </div>
-                                  {% endfor %}
+                                    {{ form.es_apoderado }}
+                                    <label class="form-check-label" for="{{ form.es_apoderado.id_for_label }}">¿Es también apoderado?</label>
                                 </div>
-                              {% endif %}
-                            {% endfor %}
-                          </div>
-                        </div>
-                        
-                        <div class="row" id="apoderado-fields">
-                          <div class="col-md-4">
-                            {% for field in form %}
-                              {% if field.name == 'parentesco_principal' %}
-                                <div class="form-group mb-3">
-                                  <label class="form-label font-weight-bold">
-                                    <i class="fa fa-heart text-danger"></i> {{ field.label }}
-                                  </label>
-                                  {{ field }}
-                                  {% if field.help_text %}
-                                    <small class="form-text text-muted">{{ field.help_text }}</small>
-                                  {% endif %}
-                                  {% for error in field.errors %}
-                                    <div class="text-danger small">
-                                      <i class="fa fa-exclamation-circle"></i> {{ error }}
-                                    </div>
-                                  {% endfor %}
-                                </div>
-                              {% endif %}
-                            {% endfor %}
-                          </div>
-                          
-                          <div class="col-md-4">
-                            {% for field in form %}
-                              {% if field.name == 'ocupacion' %}
-                                <div class="form-group mb-3">
-                                  <label class="form-label font-weight-bold">
-                                    <i class="fa fa-briefcase text-success"></i> {{ field.label }}
-                                  </label>
-                                  {{ field }}
-                                  {% if field.help_text %}
-                                    <small class="form-text text-muted">{{ field.help_text }}</small>
-                                  {% endif %}
-                                  {% for error in field.errors %}
-                                    <div class="text-danger small">
-                                      <i class="fa fa-exclamation-circle"></i> {{ error }}
-                                    </div>
-                                  {% endfor %}
-                                </div>
-                              {% endif %}
-                            {% endfor %}
-                          </div>
-                          
-                          <div class="col-md-4">
-                            {% for field in form %}
-                              {% if field.name == 'telefono_emergencia' %}
-                                <div class="form-group mb-3">
-                                  <label class="form-label font-weight-bold">
-                                    <i class="fa fa-phone-alt text-danger"></i> {{ field.label }}
-                                  </label>
-                                  {{ field }}
-                                  {% if field.help_text %}
-                                    <small class="form-text text-muted">{{ field.help_text }}</small>
-                                  {% endif %}
-                                  {% for error in field.errors %}
-                                    <div class="text-danger small">
-                                      <i class="fa fa-exclamation-circle"></i> {{ error }}
-                                    </div>
-                                  {% endfor %}
-                                </div>
-                              {% endif %}
-                            {% endfor %}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    {% endif %}
+                            </div>
 
-                    <!-- Botones de acción -->
-                    <div class="row mt-4">
-                      <div class="col-md-12 text-center">
-                        <button type="submit" class="btn btn-success btn-lg">
-                          <i class="fa fa-save"></i> Guardar Cambios
-                        </button>
-                        <a href="{% url 'listar_estudiantes' %}" class="btn btn-secondary btn-lg ml-2">
-                          <i class="fa fa-times"></i> Cancelar
+                            <div id="apoderado-fields" style="display: none;">
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <label class="form-label small text-muted text-uppercase">Parentesco Principal</label>
+                                        {{ form.parentesco_principal }}
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label small text-muted text-uppercase">Ocupación</label>
+                                        <input type="text" class="form-control" name="ocupacion" value="{{ form.ocupacion.value|default:'' }}">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label small text-muted text-uppercase">Teléfono Emergencia</label>
+                                        <input type="text" class="form-control" name="telefono_emergencia" value="{{ form.telefono_emergencia.value|default:'' }}">
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                        </div>
+
+                        <!-- Right Column: Account Settings -->
+                        <div class="col-md-4">
+                            <div class="bg-light p-4 rounded-3 border">
+                                <h5 class="mb-3 fw-bold text-dark">
+                                    <i class="fas fa-cog text-muted me-2"></i> Configuración
+                                </h5>
+
+                                <!-- Status Toggle -->
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <label class="form-label small text-muted text-uppercase mb-0">Estado de Cuenta</label>
+                                        <span id="status-badge" class="badge {% if form.is_active.value %}bg-success{% else %}bg-danger{% endif %}">
+                                            {% if form.is_active.value %}ACTIVO{% else %}INACTIVO{% endif %}
+                                        </span>
+                                    </div>
+                                    <div class="form-check form-switch">
+                                        {{ form.is_active }}
+                                        <label class="form-check-label" for="{{ form.is_active.id_for_label }}">Cuenta habilitada</label>
+                                    </div>
+                                </div>
+
+                                <hr class="text-muted">
+
+                                <!-- Username Field -->
+                                <div class="mb-3">
+                                    <label class="form-label small text-muted text-uppercase">Nombre de Usuario</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-white"><i class="fas fa-user text-muted"></i></span>
+                                        <input type="text" class="form-control" name="username" value="{{ form.username.value|default:'' }}" placeholder="Nombre de usuario">
+                                    </div>
+                                    {{ form.username.errors }}
+                                </div>
+
+                                <!-- Password Change -->
+                                <div class="mb-3">
+                                    <label class="form-label small text-muted text-uppercase">Contraseña</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-white"><i class="fas fa-lock text-muted"></i></span>
+                                        <input type="password" class="form-control" id="password" name="password" placeholder="Nueva contraseña">
+                                        <button class="btn btn-outline-secondary" type="button" onclick="togglePassword()">
+                                            <i class="fas fa-eye password-toggle"></i>
+                                        </button>
+                                    </div>
+                                    <div class="form-text">Dejar en blanco para mantener la actual.</div>
+                                    {{ form.password.errors }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="d-flex justify-content-end gap-2 mt-4 pt-4 border-top">
+                        <a href="{% if tipo == 'estudiante' %}{% url 'listar_estudiantes' %}{% else %}{% url 'listar_profesores' %}{% endif %}" class="btn btn-light border">
+                            Cancelar
                         </a>
+                        <button type="submit" class="btn btn-primary-custom px-4">
+                            <i class="fas fa-save me-2"></i> Guardar Cambios
+                        </button>
                         {% if tipo == 'profesor' %}
-                          <a href="{% url 'listar_apoderados' %}" class="btn btn-info btn-lg ml-2" target="_blank">
-                            <i class="fa fa-users"></i> Ver Apoderados
+                          <a href="{% url 'listar_apoderados' %}" class="btn btn-info text-white" target="_blank">
+                            <i class="fas fa-users me-2"></i> Ver Apoderados
                           </a>
                         {% endif %}
-                      </div>
                     </div>
                   </form>
                 </div>
               </div>
             {% endif %}
-          </div>
-        </div>
       </div>
     </div>
   </div>
 </div>
 
 <script>
+function togglePassword() {
+    var input = document.getElementById('password');
+    var icon = document.querySelector('.password-toggle');
+    if (input.type === "password") {
+        input.type = "text";
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+    } else {
+        input.type = "password";
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+    }
+}
+
 // Validación del formulario
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('modificar-form');

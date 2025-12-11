@@ -2008,6 +2008,7 @@
 <div class="right_col" role="main">
   <div class="container-fluid">
     <!-- Header de bienvenida -->
+    {% if user.perfil.tipo_usuario != 'profesor' and user.perfil.tipo_usuario != 'alumno' %}
     <div class="row mb-4">
       <div class="col-12">
         <div class="bg-white p-4 rounded shadow-sm border">
@@ -2036,6 +2037,7 @@
         </div>
       </div>
     </div>
+    {% endif %}
 
     {% if user.perfil.tipo_usuario == 'alumno' %}
     <!-- ################################################## -->

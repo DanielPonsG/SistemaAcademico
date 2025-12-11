@@ -1,235 +1,337 @@
 {% extends "index_master.html" %}
+
+{% block extra_css %}
+<style>
+    /* Modern Reset & Variables */
+    :root {
+        --primary: #4f46e5;
+        --primary-dark: #4338ca;
+        --secondary: #64748b;
+        --success: #10b981;
+        --danger: #ef4444;
+        --warning: #f59e0b;
+        --info: #3b82f6;
+        --dark: #0f172a;
+        --light: #f8fafc;
+        --white: #ffffff;
+        --border: #e2e8f0;
+        --text-main: #1e293b;
+        --text-muted: #64748b;
+        --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        --radius: 0.75rem;
+    }
+
+    /* Layout & Typography */
+    .modern-card {
+        background: var(--white);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-md);
+        border: 1px solid var(--border);
+        margin-bottom: 2rem;
+        overflow: hidden;
+    }
+
+    .card-header-custom {
+        background: linear-gradient(135deg, var(--dark) 0%, #1e293b 100%);
+        padding: 2rem;
+        color: white;
+        position: relative;
+    }
+
+    .card-header-custom::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--primary), var(--info));
+    }
+
+    .card-body-custom {
+        padding: 2.5rem;
+    }
+
+    /* Buttons */
+    .btn-light-custom {
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        font-weight: 600;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .btn-light-custom:hover {
+        background: rgba(255,255,255,0.2) !important;
+        color: white;
+    }
+
+  /* Design System from libro_anotaciones.html */
+  .annotations-screen { padding: 24px 18px 32px; background: linear-gradient(180deg, #eef2ff 0%, #f8fafc 45%, #ffffff 100%); min-height: calc(100vh - 120px); }
+  
+  .surface-card { background: #fff; border-radius: 18px; border: 1px solid rgba(148, 163, 184, 0.18); box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08); margin-bottom: 24px; }
+  .surface-card .card-heading { padding: 18px 20px; border-bottom: 1px solid rgba(148, 163, 184, 0.18); border-radius: 18px 18px 0 0; display: flex; align-items: center; justify-content: space-between; gap: 12px; background: linear-gradient(to right, #f8fafc, #fff); }
+  .surface-card .card-heading h3 { margin: 0; font-size: 18px; font-weight: 700; color: #1f2937; display: flex; align-items: center; gap: 10px; }
+  .surface-card .card-body { padding: 24px; border-radius: 0 0 18px 18px; }
+
+  .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px; }
+  .metric-card { position: relative; background: #fff; border-radius: 16px; border: 1px solid rgba(148, 163, 184, 0.22); padding: 18px 18px 16px; display: flex; align-items: center; gap: 12px; box-shadow: 0 10px 26px rgba(37, 56, 88, 0.08); overflow: hidden; }
+  .metric-card::before { content: ""; position: absolute; inset: 0; opacity: 0.08; border-radius: 16px; }
+  .metric-icon { width: 46px; height: 46px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; color: #1e1b4b; background: rgba(79, 70, 229, 0.14); flex-shrink: 0; }
+  
+  .metric-card.metric-primary::before { background: #4f46e5; }
+  .metric-card.metric-primary .metric-icon { background: rgba(79, 70, 229, 0.14); color: #4f46e5; }
+  
+  .metric-card.metric-positive::before { background: #22c55e; }
+  .metric-card.metric-positive .metric-icon { background: rgba(34, 197, 94, 0.14); color: #15803d; }
+  
+  .metric-card.metric-negative::before { background: #ef4444; }
+  .metric-card.metric-negative .metric-icon { background: rgba(239, 68, 68, 0.16); color: #b91c1c; }
+  
+  .metric-card.metric-warning::before { background: #f59e0b; }
+  .metric-card.metric-warning .metric-icon { background: rgba(245, 158, 11, 0.16); color: #b45309; }
+  
+  .metric-label { display: block; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: #94a3b8; margin-bottom: 2px; }
+  .metric-value { display: block; font-size: 28px; font-weight: 700; color: #1e293b; }
+
+  /* Timeline Styles Redesigned */
+  .timeline { position: relative; padding-left: 32px; }
+  .timeline::before { content: ''; position: absolute; left: 15px; top: 0; bottom: 0; width: 2px; background: #e2e8f0; border-radius: 2px; }
+  .timeline-item { position: relative; margin-bottom: 24px; }
+  .timeline-marker { position: absolute; left: -32px; top: 16px; width: 32px; height: 32px; border-radius: 50%; border: 4px solid #fff; box-shadow: 0 0 0 1px #e2e8f0; display: flex; align-items: center; justify-content: center; z-index: 1; background: #fff; }
+  .timeline-marker i { font-size: 12px; }
+  
+  .timeline-content { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); transition: transform 0.2s; }
+  .timeline-content:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); border-color: #cbd5e1; }
+  
+  .badge-pill { border-radius: 999px; padding: 4px 12px; font-size: 12px; font-weight: 600; }
+  
+  .student-header-grid { display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: center; }
+  @media (max-width: 768px) { .student-header-grid { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="right_col" role="main">
   <div class="container-fluid">
-    <h3><i class="fa fa-user-graduate"></i> Comportamiento de {{ estudiante.get_nombre_completo }}</h3>
     
-    <!-- Información del estudiante -->
-    <div class="row mb-4">
-      <div class="col-md-12">
-        <div class="card">
-          <div class="card-body">
-            <div class="row align-items-center">
-              <div class="col-md-6">
-                <h5 class="mb-1">{{ estudiante.get_nombre_completo }}</h5>
-                <div class="text-muted">
-                  <span><i class="fa fa-id-card"></i> RUT: {{ estudiante.numero_documento }}</span>
-                  <span class="ms-3"><i class="fa fa-school"></i> Curso: {{ curso_actual }}</span>
-                  <span class="ms-3"><i class="fa fa-calendar"></i> Desde: {{ estudiante.fecha_ingreso|date:"d/m/Y" }}</span>
+    <div class="modern-card mb-4">
+        <!-- Header -->
+        <div class="card-header-custom">
+            <div class="row" style="display: flex; align-items: center; flex-wrap: wrap;">
+                <div class="col-md-8">
+                    <h2 style="margin: 0; font-weight: 800; font-size: 2rem;">
+                        <i class="fas fa-chart-line me-2"></i> Detalle de Comportamiento
+                    </h2>
+                    <p style="margin: 0.5rem 0 0 0; opacity: 0.8;">
+                        Historial completo de {{ estudiante.get_nombre_completo }}
+                    </p>
                 </div>
-              </div>
-              <div class="col-md-6 text-end">
-                <div class="d-flex justify-content-end align-items-center">
-                  <div class="me-3">
-                    <span class="badge" style="background-color: {{ stats.color }}; font-size: 1.2em; padding: 0.5em 1em;">
-                      {{ stats.puntaje_total }} pts
-                    </span>
-                    <div class="mt-1">
-                      <strong style="color: {{ stats.color }};">{{ stats.nivel }}</strong>
-                    </div>
-                  </div>
-                  <div>
-                    <a href="{% url 'libro_anotaciones' %}" class="btn btn-secondary">
-                      <i class="fa fa-arrow-left"></i> Volver
+                <div class="col-md-4 text-right" style="text-align: right;">
+                    <a href="{% url 'libro_anotaciones' %}" class="btn btn-light-custom" style="background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2);">
+                        <i class="fas fa-arrow-left"></i> Volver
                     </a>
-                  </div>
                 </div>
-              </div>
             </div>
-          </div>
         </div>
-      </div>
+        
+        <div class="card-body-custom">
+             <div class="alert alert-info shadow-sm" style="background-color: #e0f2f1; border-color: #b2dfdb; color: #00695c;">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="fw-bold"><i class="fas fa-user-graduate"></i> Estudiante</h6>
+                        <p class="mb-0 fw-bold text-dark">{{ estudiante.get_nombre_completo }}</p>
+                        <small style="color: #546e7a;">RUT: {{ estudiante.numero_documento }}</small>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="fw-bold"><i class="fas fa-school"></i> Curso</h6>
+                        <p class="mb-0 fw-bold text-dark">{{ curso_actual }}</p>
+                        <small style="color: #546e7a;">Año: {{ estudiante.fecha_ingreso|date:"Y" }}</small>
+                    </div>
+                </div>
+                <hr class="my-2" style="border-color: #b2dfdb;">
+                <small style="color: #546e7a;">
+                    <i class="fas fa-info-circle"></i> 
+                    Visualización del historial de comportamiento y anotaciones del estudiante.
+                </small>
+            </div>
+        </div>
     </div>
 
-    <!-- Estadísticas del comportamiento -->
-    <div class="row mb-4">
-      <div class="col-md-3">
-        <div class="card text-center border-primary">
-          <div class="card-body">
-            <h5 class="card-title text-primary">{{ stats.total_anotaciones }}</h5>
-            <p class="card-text">Total Anotaciones</p>
-          </div>
+    <!-- Metrics Grid -->
+    <div class="metrics-grid">
+        <div class="metric-card metric-primary">
+            <div class="metric-icon"><i class="fas fa-clipboard-list"></i></div>
+            <div>
+                <span class="metric-label">Total Anotaciones</span>
+                <span class="metric-value">{{ stats.total_anotaciones }}</span>
+            </div>
         </div>
-      </div>
-      <div class="col-md-3">
-        <div class="card text-center border-success">
-          <div class="card-body">
-            <h5 class="card-title text-success">{{ stats.positivas }}</h5>
-            <p class="card-text">Positivas</p>
-          </div>
+        <div class="metric-card metric-positive">
+            <div class="metric-icon"><i class="fas fa-check"></i></div>
+            <div>
+                <span class="metric-label">Positivas</span>
+                <span class="metric-value">{{ stats.positivas }}</span>
+            </div>
         </div>
-      </div>
-      <div class="col-md-3">
-        <div class="card text-center border-danger">
-          <div class="card-body">
-            <h5 class="card-title text-danger">{{ stats.negativas }}</h5>
-            <p class="card-text">Negativas</p>
-          </div>
+        <div class="metric-card metric-negative">
+            <div class="metric-icon"><i class="fas fa-times"></i></div>
+            <div>
+                <span class="metric-label">Negativas</span>
+                <span class="metric-value">{{ stats.negativas }}</span>
+            </div>
         </div>
-      </div>
-      <div class="col-md-3">
-        <div class="card text-center border-warning">
-          <div class="card-body">
-            <h5 class="card-title text-warning">{{ stats.graves }}</h5>
-            <p class="card-text">Graves</p>
-          </div>
+        <div class="metric-card metric-warning">
+            <div class="metric-icon"><i class="fas fa-exclamation-triangle"></i></div>
+            <div>
+                <span class="metric-label">Graves</span>
+                <span class="metric-value">{{ stats.graves }}</span>
+            </div>
         </div>
-      </div>
     </div>
 
-    <!-- Filtros por fecha -->
-    <div class="card mb-4">
-      <div class="card-header">
-        <h5><i class="fa fa-calendar"></i> Filtrar por Período</h5>
-      </div>
-      <div class="card-body">
-        <form method="get" class="row g-3">
-          <div class="col-md-4">
-            <label class="form-label fw-bold">Desde</label>
-            <input type="date" name="fecha_desde" class="form-control" value="{{ fecha_desde }}">
-          </div>
-          <div class="col-md-4">
-            <label class="form-label fw-bold">Hasta</label>
-            <input type="date" name="fecha_hasta" class="form-control" value="{{ fecha_hasta }}">
-          </div>
-          <div class="col-md-4 d-flex align-items-end">
-            <button type="submit" class="btn btn-primary me-2">
-              <i class="fa fa-filter"></i> Filtrar
-            </button>
-            <a href="{% url 'detalle_comportamiento_estudiante' estudiante.id %}" class="btn btn-secondary">
-              <i class="fa fa-refresh"></i> Limpiar
-            </a>
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <!-- Gráfico de evolución (si hay datos) -->
-    {% if datos_grafico %}
-    <div class="card mb-4">
-      <div class="card-header">
-        <h5><i class="fa fa-chart-line"></i> Evolución del Comportamiento (Últimos 30 días)</h5>
-      </div>
-      <div class="card-body">
-        <canvas id="graficoComportamiento" style="max-height: 300px;"></canvas>
-      </div>
-    </div>
-    {% endif %}
-
-    <!-- Lista de anotaciones -->
-    <div class="card">
-      <div class="card-header">
-        <h5><i class="fa fa-list"></i> Historial de Anotaciones ({{ anotaciones.paginator.count }} registros)</h5>
-      </div>
-      <div class="card-body">
-        {% if anotaciones %}
-        <div class="timeline">
-          {% for anotacion in anotaciones %}
-          <div class="timeline-item">
-            <div class="timeline-marker" style="background-color: {{ anotacion.color_tipo }};"></div>
-            <div class="timeline-content">
-              <div class="card border-left" style="border-left: 4px solid {{ anotacion.color_tipo }};">
+    <!-- Content Grid -->
+    <div class="row">
+        <div class="col-lg-12">
+            
+            <!-- Chart -->
+            {% if datos_grafico %}
+            <div class="surface-card">
+                <div class="card-heading">
+                    <h3><i class="fas fa-chart-line text-primary"></i> Evolución del Comportamiento</h3>
+                    <span class="badge bg-light text-dark border">Últimos 30 días</span>
+                </div>
                 <div class="card-body">
-                  <div class="d-flex justify-content-between align-items-start mb-2">
-                    <div>
-                      <h6 class="mb-1">
-                        <i class="fa {{ anotacion.icono_tipo }}" style="color: {{ anotacion.color_tipo }};"></i>
-                        {{ anotacion.titulo }}
-                      </h6>
-                      <div class="text-muted small">
-                        <span><i class="fa fa-calendar"></i> {{ anotacion.fecha_creacion|date:"d/m/Y H:i" }}</span>
-                        <span class="ms-2"><i class="fa fa-user-tie"></i> {{ anotacion.profesor_autor.get_nombre_completo }}</span>
-                        {% if anotacion.asignatura %}
-                        <span class="ms-2"><i class="fa fa-book"></i> {{ anotacion.asignatura.nombre }}</span>
-                        {% endif %}
-                      </div>
+                    <div style="height: 300px; width: 100%;">
+                        <canvas id="graficoComportamiento"></canvas>
                     </div>
-                    
-                    <div class="text-end">
-                      <span class="badge" style="background-color: {{ anotacion.color_tipo }};">
-                        {% if anotacion.puntos > 0 %}+{% endif %}{{ anotacion.puntos }} pts
-                      </span>
-                      {% if anotacion.es_grave %}
-                      <br><span class="badge bg-warning mt-1">
-                        <i class="fa fa-exclamation-triangle"></i> Grave
-                      </span>
-                      {% endif %}
-                      {% if anotacion.requiere_atencion_apoderado %}
-                      <br><span class="badge bg-info mt-1">
-                        <i class="fa fa-phone"></i> Apoderado
-                      </span>
-                      {% endif %}
-                    </div>
-                  </div>
+                </div>
+            </div>
+            {% endif %}
 
-                  <p class="mb-2">{{ anotacion.descripcion }}</p>
-                  
-                  <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                      <span class="badge bg-secondary">{{ anotacion.get_categoria_display }}</span>
-                      <span class="badge bg-light text-dark ms-1">{{ anotacion.get_tipo_display }}</span>
+            <!-- Timeline -->
+            <div class="surface-card">
+                <div class="card-heading">
+                    <h3><i class="fas fa-history text-primary"></i> Historial de Anotaciones</h3>
+                    <span class="badge bg-light text-dark border">{{ anotaciones.paginator.count }} registros</span>
+                </div>
+                <div class="card-body">
+                    {% if anotaciones %}
+                    <div class="timeline mt-3">
+                        {% for anotacion in anotaciones %}
+                        <div class="timeline-item">
+                            <div class="timeline-marker" style="border-color: {{ anotacion.color_tipo }}; color: {{ anotacion.color_tipo }};">
+                                <i class="fas {{ anotacion.icono_tipo }}"></i>
+                            </div>
+                            <div class="timeline-content">
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <div>
+                                        <h5 class="fw-bold text-dark mb-1">{{ anotacion.titulo }}</h5>
+                                        <div class="d-flex flex-wrap gap-3 text-muted small">
+                                            <span><i class="far fa-calendar me-1"></i> {{ anotacion.fecha_creacion|date:"d M, Y H:i" }}</span>
+                                            <span><i class="far fa-user me-1"></i> {{ anotacion.profesor_autor.get_nombre_completo }}</span>
+                                            {% if anotacion.asignatura %}
+                                            <span><i class="fas fa-book me-1"></i> {{ anotacion.asignatura.nombre }}</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="badge-pill" style="background-color: {{ anotacion.color_tipo }}20; color: {{ anotacion.color_tipo }};">
+                                            {% if anotacion.puntos > 0 %}+{% endif %}{{ anotacion.puntos }} pts
+                                        </span>
+                                        {% if anotacion.es_grave %}
+                                        <div class="mt-1">
+                                            <span class="badge bg-danger badge-pill">Grave</span>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <p class="text-secondary mb-3" style="line-height: 1.6;">{{ anotacion.descripcion }}</p>
+                                
+                                <div class="d-flex gap-2">
+                                    <span class="badge bg-light text-dark border">{{ anotacion.get_categoria_display }}</span>
+                                    <span class="badge bg-light text-dark border">{{ anotacion.get_tipo_display }}</span>
+                                    {% if anotacion.requiere_atencion_apoderado %}
+                                    <span class="badge bg-warning text-dark"><i class="fas fa-exclamation-circle me-1"></i> Atención Apoderado</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
                     </div>
-                    
-                    {% if user_type != 'alumno' %}
-                    <div>
-                      <small class="text-muted">
-                        {{ anotacion.fecha_para_humanos }}
-                      </small>
+
+
+                    <!-- Pagination -->
+                    {% if anotaciones.has_other_pages %}
+                    <div class="d-flex justify-content-center mt-4 pt-3 border-top">
+                        <nav aria-label="Paginación">
+                            <ul class="pagination mb-0">
+                                {% if anotaciones.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link border-0 rounded-start" href="?page=1{% if fecha_desde %}&fecha_desde={{ fecha_desde }}{% endif %}{% if fecha_hasta %}&fecha_hasta={{ fecha_hasta }}{% endif %}">
+                                        <i class="fas fa-angle-double-left"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link border-0" href="?page={{ anotaciones.previous_page_number }}{% if fecha_desde %}&fecha_desde={{ fecha_desde }}{% endif %}{% if fecha_hasta %}&fecha_hasta={{ fecha_hasta }}{% endif %}">
+                                        <i class="fas fa-angle-left"></i>
+                                    </a>
+                                </li>
+                                {% endif %}
+
+                                <li class="page-item active">
+                                    <span class="page-link border-0 bg-primary">
+                                        {{ anotaciones.number }} / {{ anotaciones.paginator.num_pages }}
+                                    </span>
+                                </li>
+
+                                {% if anotaciones.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link border-0" href="?page={{ anotaciones.next_page_number }}{% if fecha_desde %}&fecha_desde={{ fecha_desde }}{% endif %}{% if fecha_hasta %}&fecha_hasta={{ fecha_hasta }}{% endif %}">
+                                        <i class="fas fa-angle-right"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link border-0 rounded-end" href="?page={{ anotaciones.paginator.num_pages }}{% if fecha_desde %}&fecha_desde={{ fecha_desde }}{% endif %}{% if fecha_hasta %}&fecha_hasta={{ fecha_hasta }}{% endif %}">
+                                        <i class="fas fa-angle-double-right"></i>
+                                    </a>
+                                </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
                     </div>
                     {% endif %}
-                  </div>
+
+                    {% else %}
+                    <div class="text-center py-5">
+                        <div class="mb-3">
+                            <div style="width: 80px; height: 80px; background: #f1f5f9; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+                                <i class="fas fa-clipboard-list fa-3x text-muted opacity-50"></i>
+                            </div>
+                        </div>
+                        <h5 class="text-dark fw-bold">No hay anotaciones</h5>
+                        <p class="text-muted">
+                            {% if fecha_desde or fecha_hasta %}
+                            No se encontraron registros en el período seleccionado.
+                            {% else %}
+                            Este estudiante no tiene anotaciones registradas.
+                            {% endif %}
+                        </p>
+                        {% if fecha_desde or fecha_hasta %}
+                        <a href="{% url 'detalle_comportamiento_estudiante' estudiante.id %}" class="btn btn-light border mt-2">
+                            <i class="fas fa-sync-alt me-2"></i> Limpiar Filtros
+                        </a>
+                        {% endif %}
+                    </div>
+                    {% endif %}
                 </div>
-              </div>
             </div>
-          </div>
-          {% endfor %}
         </div>
-
-        <!-- Paginación -->
-        {% if anotaciones.has_other_pages %}
-        <nav aria-label="Paginación de anotaciones" class="mt-4">
-          <ul class="pagination justify-content-center">
-            {% if anotaciones.has_previous %}
-              <li class="page-item">
-                <a class="page-link" href="?page=1{% if fecha_desde %}&fecha_desde={{ fecha_desde }}{% endif %}{% if fecha_hasta %}&fecha_hasta={{ fecha_hasta }}{% endif %}">Primera</a>
-              </li>
-              <li class="page-item">
-                <a class="page-link" href="?page={{ anotaciones.previous_page_number }}{% if fecha_desde %}&fecha_desde={{ fecha_desde }}{% endif %}{% if fecha_hasta %}&fecha_hasta={{ fecha_hasta }}{% endif %}">Anterior</a>
-              </li>
-            {% endif %}
-
-            <li class="page-item active">
-              <span class="page-link">
-                Página {{ anotaciones.number }} de {{ anotaciones.paginator.num_pages }}
-              </span>
-            </li>
-
-            {% if anotaciones.has_next %}
-              <li class="page-item">
-                <a class="page-link" href="?page={{ anotaciones.next_page_number }}{% if fecha_desde %}&fecha_desde={{ fecha_desde }}{% endif %}{% if fecha_hasta %}&fecha_hasta={{ fecha_hasta }}{% endif %}">Siguiente</a>
-              </li>
-              <li class="page-item">
-                <a class="page-link" href="?page={{ anotaciones.paginator.num_pages }}{% if fecha_desde %}&fecha_desde={{ fecha_desde }}{% endif %}{% if fecha_hasta %}&fecha_hasta={{ fecha_hasta }}{% endif %}">Última</a>
-              </li>
-            {% endif %}
-          </ul>
-        </nav>
-        {% endif %}
-
-        {% else %}
-        <div class="text-center py-5">
-          <i class="fa fa-clipboard fa-3x text-muted mb-3"></i>
-          <h5>No hay anotaciones</h5>
-          <p class="text-muted">
-            {% if fecha_desde or fecha_hasta %}
-              No hay anotaciones en el período seleccionado.
-            {% else %}
-              Este estudiante no tiene anotaciones registradas.
-            {% endif %}
-          </p>
-        </div>
-        {% endif %}
-      </div>
     </div>
   </div>
 </div>
@@ -263,19 +365,29 @@ document.addEventListener('DOMContentLoaded', function() {
             datasets: [{
                 label: 'Puntos Diarios',
                 data: puntos,
-                borderColor: '#0d6efd',
-                backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                borderColor: '#4f46e5',
+                backgroundColor: 'rgba(79, 70, 229, 0.1)',
                 borderWidth: 2,
                 fill: true,
-                tension: 0.3
+                tension: 0.4,
+                pointBackgroundColor: '#ffffff',
+                pointBorderColor: '#4f46e5',
+                pointBorderWidth: 2,
+                pointRadius: 4,
+                pointHoverRadius: 6
             }, {
-                label: 'Puntos Acumulados',
+                label: 'Acumulado',
                 data: puntosAcumulativos,
-                borderColor: '#198754',
-                backgroundColor: 'rgba(25, 135, 84, 0.1)',
+                borderColor: '#10b981',
+                backgroundColor: 'rgba(16, 185, 129, 0.05)',
                 borderWidth: 2,
+                borderDash: [5, 5],
                 fill: false,
-                tension: 0.3
+                tension: 0.4,
+                pointBackgroundColor: '#ffffff',
+                pointBorderColor: '#10b981',
+                pointBorderWidth: 2,
+                pointRadius: 4
             }]
         },
         options: {
@@ -284,91 +396,62 @@ document.addEventListener('DOMContentLoaded', function() {
             plugins: {
                 legend: {
                     position: 'top',
+                    labels: {
+                        usePointStyle: true,
+                        boxWidth: 8,
+                        font: {
+                            family: "'Inter', sans-serif",
+                            size: 12
+                        }
+                    }
                 },
-                title: {
-                    display: false
+                tooltip: {
+                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                    titleColor: '#1e293b',
+                    bodyColor: '#475569',
+                    borderColor: '#e2e8f0',
+                    borderWidth: 1,
+                    padding: 12,
+                    displayColors: true,
+                    boxPadding: 4
                 }
             },
             scales: {
                 y: {
                     beginAtZero: true,
                     grid: {
-                        color: 'rgba(0,0,0,0.1)'
+                        color: '#f1f5f9',
+                        drawBorder: false
+                    },
+                    ticks: {
+                        font: {
+                            family: "'Inter', sans-serif",
+                            size: 11
+                        },
+                        color: '#64748b'
                     }
                 },
                 x: {
                     grid: {
-                        color: 'rgba(0,0,0,0.1)'
+                        display: false,
+                        drawBorder: false
+                    },
+                    ticks: {
+                        font: {
+                            family: "'Inter', sans-serif",
+                            size: 11
+                        },
+                        color: '#64748b'
                     }
                 }
+            },
+            interaction: {
+                intersect: false,
+                mode: 'index'
             }
         }
     });
 });
 </script>
 {% endif %}
-
-<style>
-.card {
-    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-    border: 1px solid rgba(0, 0, 0, 0.125);
-}
-
-.card-header {
-    background-color: #f8f9fa;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.125);
-}
-
-.border-left {
-    border-left-width: 4px !important;
-}
-
-.timeline {
-    position: relative;
-    padding-left: 30px;
-}
-
-.timeline-item {
-    position: relative;
-    margin-bottom: 30px;
-}
-
-.timeline-item:before {
-    content: '';
-    position: absolute;
-    left: -22px;
-    top: 0;
-    bottom: -30px;
-    width: 2px;
-    background-color: #dee2e6;
-}
-
-.timeline-item:last-child:before {
-    bottom: 0;
-}
-
-.timeline-marker {
-    position: absolute;
-    left: -30px;
-    top: 10px;
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    border: 3px solid #fff;
-    box-shadow: 0 0 0 1px #dee2e6;
-}
-
-.timeline-content {
-    margin-left: 20px;
-}
-
-.badge {
-    font-size: 0.75em;
-}
-
-.border-primary { border-color: #0d6efd !important; }
-.border-success { border-color: #198754 !important; }
-.border-danger { border-color: #dc3545 !important; }
-.border-warning { border-color: #ffc107 !important; }
-</style>
 {% endblock %}

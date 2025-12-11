@@ -53,12 +53,24 @@
   .filter-actions button { border: none; background: linear-gradient(135deg, #2563eb, #1d4ed8); color: #fff; box-shadow: 0 12px 26px rgba(37, 99, 235, 0.25); }
   .filter-actions a { background: rgba(15, 23, 42, 0.05); border: 1px solid rgba(148, 163, 184, 0.35); color: #1f2937; }
 
-  .ranking-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
-  .ranking-card { border-radius: 16px; border: 1px solid rgba(148, 163, 184, 0.22); padding: 16px; background: #fff; box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08); position: relative; overflow: hidden; }
+  .ranking-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+  .ranking-card { border-radius: 16px; border: 1px solid rgba(148, 163, 184, 0.22); padding: 16px; background: #fff; box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08); position: relative; overflow: hidden; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+  .ranking-card:hover { transform: translateY(-3px); box-shadow: 0 14px 30px rgba(15, 23, 42, 0.12); }
   .ranking-card::before { content: ""; position: absolute; inset: 0; opacity: 0.12; border-radius: 16px; background: currentColor; }
   .ranking-card .ranking-header { position: relative; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
   .ranking-card .badge-score { border-radius: 999px; padding: 4px 12px; background: rgba(255, 255, 255, 0.86); font-weight: 600; }
   .ranking-card .ranking-meta { position: relative; display: flex; justify-content: space-between; align-items: center; margin-top: 12px; font-size: 12px; color: #475569; }
+
+  .course-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; }
+  .course-card { background: #fff; border-radius: 16px; border: 1px solid rgba(148, 163, 184, 0.22); padding: 20px; box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05); transition: all 0.2s ease; position: relative; overflow: hidden; }
+  .course-card:hover { transform: translateY(-3px); box-shadow: 0 12px 24px rgba(15, 23, 42, 0.1); border-color: rgba(99, 102, 241, 0.3); }
+  .course-card::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, #6366f1, #818cf8); }
+  .course-card .course-title { font-size: 18px; font-weight: 700; color: #1e293b; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+  .course-card .course-total { font-size: 12px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+  .course-card .stats-row { display: flex; justify-content: space-between; margin-top: 16px; padding-top: 16px; border-top: 1px solid #f1f5f9; }
+  .course-card .stat-item { text-align: center; flex: 1; }
+  .course-card .stat-value { font-size: 18px; font-weight: 700; line-height: 1.2; }
+  .course-card .stat-label { font-size: 11px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 2px; }
 
   .annotations-table { --row-accent: rgba(79, 70, 229, 0.15); }
   .annotations-table table { margin-bottom: 0; }
@@ -220,6 +232,32 @@
         </div>
       </div>
 
+      <!-- Charts Section -->
+      {% if user_type != 'alumno' and chart_data_cursos %}
+      <div class="row mb-4">
+          <div class="col-lg-4 col-md-12 mb-4 mb-lg-0">
+              <div class="surface-card h-100">
+                  <div class="card-heading">
+                      <h3><i class="fas fa-chart-pie text-primary"></i> Distribución General</h3>
+                  </div>
+                  <div class="card-body d-flex justify-content-center align-items-center" style="min-height: 300px;">
+                      <canvas id="chartGeneral"></canvas>
+                  </div>
+              </div>
+          </div>
+          <div class="col-lg-8 col-md-12">
+              <div class="surface-card h-100">
+                  <div class="card-heading">
+                      <h3><i class="fas fa-chart-bar text-primary"></i> Comportamiento por Curso</h3>
+                  </div>
+                  <div class="card-body" style="min-height: 300px;">
+                      <canvas id="chartCursos"></canvas>
+                  </div>
+              </div>
+          </div>
+      </div>
+      {% endif %}
+
       <div class="surface-card">
         <div class="card-heading">
           <h3><i class="fa fa-filter text-primary"></i> Filtros de búsqueda{% if request.GET %} activos{% endif %}</h3>
@@ -269,6 +307,45 @@
           </form>
         </div>
       </div>
+
+      <!-- Resumen por Curso (Grid) -->
+      {% if user_type != 'alumno' and resumen_cursos %}
+      <div class="surface-card mb-4">
+          <div class="card-heading">
+              <h3><i class="fas fa-th-large text-primary"></i> Resumen por Curso</h3>
+          </div>
+          <div class="card-body">
+              <div class="course-grid">
+                  {% for curso_stat in resumen_cursos %}
+                  <div class="course-card">
+                      <div class="d-flex justify-content-between align-items-start mb-2">
+                          <div class="course-title">
+                              <i class="fas fa-users text-primary opacity-75"></i>
+                              {{ curso_stat.curso }}
+                          </div>
+                          <span class="course-total">{{ curso_stat.total }} ANOTACIONES</span>
+                      </div>
+                      
+                      <div class="stats-row">
+                          <div class="stat-item">
+                              <div class="stat-value text-success">{{ curso_stat.positivas }}</div>
+                              <div class="stat-label">Positivas</div>
+                          </div>
+                          <div class="stat-item" style="border-left: 1px solid #f1f5f9; border-right: 1px solid #f1f5f9;">
+                              <div class="stat-value text-danger">{{ curso_stat.negativas }}</div>
+                              <div class="stat-label">Negativas</div>
+                          </div>
+                          <div class="stat-item">
+                              <div class="stat-value text-warning">{{ curso_stat.graves }}</div>
+                              <div class="stat-label">Graves</div>
+                          </div>
+                      </div>
+                  </div>
+                  {% endfor %}
+              </div>
+          </div>
+      </div>
+      {% endif %}
 
       {% if stats_estudiantes and user_type != 'alumno' %}
         <div class="surface-card">

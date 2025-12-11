@@ -367,6 +367,7 @@ class EventoCalendario(models.Model):
     cursos = models.ManyToManyField('Curso', blank=True, related_name='eventos')
     para_todos_los_cursos = models.BooleanField(default=False, verbose_name='Para todos los cursos')
     solo_profesores = models.BooleanField(default=False, verbose_name='Solo para profesores')
+    solo_apoderados = models.BooleanField(default=False, verbose_name='Solo para apoderados')
     
     # Quien creó el evento
     creado_por = models.ForeignKey(User, on_delete=models.CASCADE, related_name='eventos_creados', null=True, blank=True)
@@ -438,7 +439,7 @@ class Perfil(models.Model):
     ]
     
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    tipo_usuario = models.CharField(max_length=10, choices=TIPOS_USUARIO)
+    tipo_usuario = models.CharField(max_length=20, choices=TIPOS_USUARIO)
     
     # Campos de identificación
     tipo_documento = models.CharField(max_length=20, choices=TIPOS_DOCUMENTO, default='rut')

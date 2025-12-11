@@ -3,7 +3,7 @@ from django.urls import reverse
 from .models import Estudiante, Profesor, Apoderado, RelacionApoderadoEstudiante, EventoCalendario, Curso, HorarioCurso, Asignatura, PeriodoAcademico, Anotacion
 from .forms import EstudianteForm, ProfesorForm, ApoderadoForm, DirectorForm, EventoCalendarioForm, CursoForm, HorarioCursoForm, AsignaturaForm, AsignaturaCompletaForm, SeleccionCursoAlumnoForm, CalificacionForm, AsistenciaAlumnoForm, AsistenciaProfesorForm, RegistroMasivoAsistenciaForm, AnotacionForm, FiltroAnotacionesForm
 from django.db import models
-from django.db.models import Q, Avg
+from django.db.models import Q, Avg, Count
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
@@ -13,6 +13,7 @@ from django.forms import formset_factory
 from .models import Inscripcion, Grupo, Calificacion, AsistenciaAlumno, AsistenciaProfesor
 from datetime import date, datetime, timedelta
 from .decorators import admin_required, profesor_admin_required, all_users_required, profesor_con_asignaturas_required
+from django.views.decorators.http import require_POST
 from django.contrib import messages
 from django.utils import timezone
 import json
@@ -365,497 +366,300 @@ def listar_estudiantes(request):
     tipo_doc_estudiante = request.GET.get('tipo_doc_estudiante', '')
     fecha_ingreso = request.GET.get('fecha_ingreso', '')
     
-    # Filtros para profesores
-    q_profesor = request.GET.get('q_profesor', '')
-    genero_profesor = request.GET.get('genero_profesor', '')
-    especialidad_profesor = request.GET.get('especialidad_profesor', '')
-
-    # Obtener selección de pestaña solicitada
-    tab_activa = request.GET.get('tab', 'estudiantes') or 'estudiantes'
-    if tab_activa not in {'estudiantes', 'profesores'}:
-        tab_activa = 'estudiantes'
-
-    # Obtener todos los estudiantes y profesores (para estadísticas generales)
-    total_estudiantes_registrados = Estudiante.objects.count()
-    total_profesores_registrados = Profesor.objects.count()
-
     estudiantes = Estudiante.objects.select_related('user').all()
-    profesores = Profesor.objects.select_related('user').all()
 
-    # Aplicar filtros para estudiantes
     if q_estudiante:
         estudiantes = estudiantes.filter(
-            models.Q(primer_nombre__icontains=q_estudiante) |
-            models.Q(segundo_nombre__icontains=q_estudiante) |
-            models.Q(apellido_paterno__icontains=q_estudiante) |
-            models.Q(apellido_materno__icontains=q_estudiante) |
-            models.Q(codigo_estudiante__icontains=q_estudiante) |
-            models.Q(numero_documento__icontains=q_estudiante) |
-            models.Q(email__icontains=q_estudiante)
+            Q(primer_nombre__icontains=q_estudiante) |
+            Q(apellido_paterno__icontains=q_estudiante) |
+            Q(codigo_estudiante__icontains=q_estudiante)
         )
     
     if genero_estudiante:
         estudiantes = estudiantes.filter(genero=genero_estudiante)
-    
+        
     if tipo_doc_estudiante:
         estudiantes = estudiantes.filter(tipo_documento=tipo_doc_estudiante)
-    
-    if fecha_ingreso:
-        estudiantes = estudiantes.filter(fecha_ingreso=fecha_ingreso)
 
-    # Aplicar filtros para profesores
+    # Estadísticas
+    total_estudiantes = Estudiante.objects.count()
+    estudiantes_activos = Estudiante.objects.filter(user__is_active=True).count()
+    estudiantes_sin_curso = Estudiante.objects.filter(cursos__isnull=True).count()
+    cursos_count = Curso.objects.filter(anio=timezone.now().year).count()
+
+    context = {
+        'estudiantes': estudiantes,
+        'q_estudiante': q_estudiante,
+        'genero_estudiante': genero_estudiante,
+        'tipo_doc_estudiante': tipo_doc_estudiante,
+        'total_estudiantes': total_estudiantes,
+        'estudiantes_activos': estudiantes_activos,
+        'estudiantes_sin_curso': estudiantes_sin_curso,
+        'cursos_count': cursos_count,
+    }
+    return render(request, 'listar_estudiantes.html', context)
+
+@admin_required
+def listar_profesores(request):
+    q_profesor = request.GET.get('q_profesor', '')
+    genero_profesor = request.GET.get('genero_profesor', '')
+    especialidad_profesor = request.GET.get('especialidad_profesor', '')
+
+    profesores = Profesor.objects.select_related('user').all()
+
     if q_profesor:
         profesores = profesores.filter(
-            models.Q(primer_nombre__icontains=q_profesor) |
-            models.Q(segundo_nombre__icontains=q_profesor) |
-            models.Q(apellido_paterno__icontains=q_profesor) |
-            models.Q(apellido_materno__icontains=q_profesor) |
-            models.Q(codigo_profesor__icontains=q_profesor) |
-            models.Q(numero_documento__icontains=q_profesor) |
-            models.Q(email__icontains=q_profesor)
+            Q(primer_nombre__icontains=q_profesor) |
+            Q(apellido_paterno__icontains=q_profesor) |
+            Q(codigo_profesor__icontains=q_profesor)
         )
     
     if genero_profesor:
         profesores = profesores.filter(genero=genero_profesor)
-    
+        
     if especialidad_profesor:
         profesores = profesores.filter(especialidad__icontains=especialidad_profesor)
 
-    # Ordenar resultados
-    estudiantes = estudiantes.order_by('primer_nombre', 'apellido_paterno')
-    profesores = profesores.order_by('primer_nombre', 'apellido_paterno')
-
-    # Realizar las consultas y métricas finales
-    estudiantes = list(estudiantes)
-    profesores = list(profesores)
-
-    estudiantes_visibles = len(estudiantes)
-    profesores_visibles = len(profesores)
-    
-    # Obtener especialidades únicas para el filtro
-    especialidades = Profesor.objects.values_list('especialidad', flat=True).distinct().exclude(especialidad__isnull=True).exclude(especialidad__exact='')
-    
-    return render(request, 'listar_estudiantes.html', {
-        'estudiantes': estudiantes,
-        'profesores': profesores,
-        'estudiantes_filtrados': estudiantes,  # Para compatibilidad con template
-        'profesores_filtrados': profesores,    # Para compatibilidad con template
-        'total_estudiantes_registrados': total_estudiantes_registrados,
-        'total_profesores_registrados': total_profesores_registrados,
-        'estudiantes_visibles': estudiantes_visibles,
-        'profesores_visibles': profesores_visibles,
-        'total_estudiantes': estudiantes_visibles,
-        'total_profesores': profesores_visibles,
-        'especialidades': especialidades,
-        'tab_activa': tab_activa,
-    })
-
-@admin_required
-def listar_profesores(request):
-    """Vista para que el administrador gestione profesores"""
-    filtro_profesor = request.GET.get('filtro_profesor', '')
-    
-    # Obtener todos los profesores
-    profesores = Profesor.objects.select_related('user').all()
-    
-    # Aplicar filtros si existen
-    if filtro_profesor:
-        profesores = profesores.filter(
-            models.Q(primer_nombre__icontains=filtro_profesor) |
-            models.Q(apellido_paterno__icontains=filtro_profesor) |
-            models.Q(apellido_materno__icontains=filtro_profesor) |
-            models.Q(codigo_profesor__icontains=filtro_profesor) |
-            models.Q(email__icontains=filtro_profesor) |
-            models.Q(id__iexact=filtro_profesor)
-        )
-    
     # Estadísticas
-    total_profesores = profesores.count()
-    profesores_activos = profesores.filter(user__is_active=True).count()
-    profesores_con_asignaturas = profesores.filter(asignaturas__isnull=False).distinct().count()
-    
-    return render(request, 'listar_profesores.html', {
+    total_profesores = Profesor.objects.count()
+    profesores_activos = Profesor.objects.filter(user__is_active=True).count()
+    profesores_con_asignaturas = Profesor.objects.filter(asignaturas__isnull=False).distinct().count()
+    asignaturas_count = Asignatura.objects.count()
+
+    context = {
         'profesores': profesores,
-        'filtro_profesor': filtro_profesor,
+        'q_profesor': q_profesor,
+        'genero_profesor': genero_profesor,
+        'especialidad_profesor': especialidad_profesor,
         'total_profesores': total_profesores,
         'profesores_activos': profesores_activos,
         'profesores_con_asignaturas': profesores_con_asignaturas,
-    })
+        'asignaturas_count': asignaturas_count,
+    }
+    return render(request, 'listar_profesores.html', context)
 
 @admin_required
 def gestionar_profesor(request, profesor_id=None):
-    """Vista para agregar/editar profesores"""
-    from django.contrib.auth.models import User
-    from .models import Perfil
-    
     profesor = None
     if profesor_id:
-        try:
-            profesor = Profesor.objects.get(id=profesor_id)
-        except Profesor.DoesNotExist:
-            messages.error(request, 'El profesor no existe.')
-            return redirect('listar_profesores')
-    
-    if request.method == 'POST':
-        try:
-            # Datos del formulario
-            primer_nombre = request.POST.get('primer_nombre')
-            apellido_paterno = request.POST.get('apellido_paterno')
-            apellido_materno = request.POST.get('apellido_materno', '')
-            email = request.POST.get('email')
-            telefono = request.POST.get('telefono', '')
-            direccion = request.POST.get('direccion', '')
-            codigo_profesor = request.POST.get('codigo_profesor')
-            numero_documento = request.POST.get('numero_documento', '')
-            especialidad = request.POST.get('especialidad', '')
-            fecha_nacimiento = request.POST.get('fecha_nacimiento')
-            asignaturas_ids = request.POST.getlist('asignaturas')
-            
-            # Validaciones básicas
-            if not all([primer_nombre, apellido_paterno, email, codigo_profesor, numero_documento]):
-                messages.error(request, 'Todos los campos obligatorios deben ser completados.')
-                return render(request, 'gestionar_profesor.html', {
-                    'profesor': profesor,
-                    'asignaturas': Asignatura.objects.all(),
-                    'action': 'Editar' if profesor else 'Agregar',
-                })
-            
-            # Validar RUT
-            from smapp.forms import validar_rut, formatear_rut
-            rut_limpio = numero_documento.replace(".", "").replace("-", "").upper()
-            if not validar_rut(rut_limpio):
-                messages.error(request, 'El RUT ingresado no es válido.')
-                return render(request, 'gestionar_profesor.html', {
-                    'profesor': profesor,
-                    'asignaturas': Asignatura.objects.all(),
-                    'action': 'Editar' if profesor else 'Agregar',
-                })
-            
-            # Formatear RUT para almacenamiento consistente
-            numero_documento = rut_limpio
-            
-            if profesor:
-                # Editar profesor existente
-                profesor.primer_nombre = primer_nombre
-                profesor.apellido_paterno = apellido_paterno
-                profesor.apellido_materno = apellido_materno
-                profesor.email = email
-                profesor.telefono = telefono
-                profesor.direccion = direccion
-                profesor.codigo_profesor = codigo_profesor
-                profesor.numero_documento = numero_documento
-                profesor.especialidad = especialidad
-                
-                # Actualizar fecha de nacimiento si se proporciona
-                if fecha_nacimiento:
-                    from datetime import datetime
-                    try:
-                        profesor.fecha_nacimiento = datetime.strptime(fecha_nacimiento, '%Y-%m-%d').date()
-                    except ValueError:
-                        pass  # Mantener fecha existente si hay error
-                
-                profesor.save()
-                
-                # Actualizar asignaturas
-                profesor.asignaturas.set(asignaturas_ids)
-                
-                # Actualizar usuario asociado si existe
-                if profesor.user:
-                    profesor.user.first_name = primer_nombre
-                    profesor.user.last_name = f"{apellido_paterno} {apellido_materno}".strip()
-                    profesor.user.email = email
-                    profesor.user.save()
-                
-                messages.success(request, f'Profesor {primer_nombre} {apellido_paterno} actualizado correctamente.')
-                
-            else:
-                # Crear nuevo profesor
-                username = f"prof_{codigo_profesor.lower()}"
-                password = f"temp_{codigo_profesor}123"  # Contraseña temporal
-                
-                # Verificar si el username ya existe
-                if User.objects.filter(username=username).exists():
-                    counter = 1
-                    original_username = username
-                    while User.objects.filter(username=f"{original_username}_{counter}").exists():
-                        counter += 1
-                    username = f"{original_username}_{counter}"
-                
-                # Crear usuario
-                user = User.objects.create_user(
-                    username=username,
-                    email=email,
-                    password=password,
-                    first_name=primer_nombre,
-                    last_name=f"{apellido_paterno} {apellido_materno}".strip()
-                )
-                
-                # Crear perfil
-                perfil = Perfil.objects.create(
-                    user=user,
-                    tipo_usuario='profesor'
-                )
-                
-                # Crear profesor
-                fecha_nacimiento_obj = None
-                if fecha_nacimiento:
-                    from datetime import datetime
-                    try:
-                        fecha_nacimiento_obj = datetime.strptime(fecha_nacimiento, '%Y-%m-%d').date()
-                    except ValueError:
-                        fecha_nacimiento_obj = None
-                
-                # Si no se proporciona fecha de nacimiento, usar una fecha por defecto
-                if not fecha_nacimiento_obj:
-                    from datetime import date
-                    fecha_nacimiento_obj = date(1980, 1, 1)  # Fecha por defecto
-                
-                profesor = Profesor.objects.create(
-                    user=user,
-                    primer_nombre=primer_nombre,
-                    apellido_paterno=apellido_paterno,
-                    apellido_materno=apellido_materno,
-                    email=email,
-                    telefono=telefono,
-                    direccion=direccion,
-                    codigo_profesor=codigo_profesor,
-                    numero_documento=numero_documento,
-                    especialidad=especialidad,
-                    fecha_nacimiento=fecha_nacimiento_obj,
-                    genero='M'  # Valor por defecto, se puede agregar al formulario después
-                )
-                
-                # Asignar asignaturas
-                profesor.asignaturas.set(asignaturas_ids)
-                
-                messages.success(request, f'Profesor {primer_nombre} {apellido_paterno} creado correctamente.')
-                messages.info(request, f'Usuario: {username}, Contraseña temporal: {password}')
-            
-            return redirect('listar_profesores')
-            
-        except Exception as e:
-            messages.error(request, f'Error al guardar profesor: {str(e)}')
-    
-    context = {
-        'profesor': profesor,
-        'asignaturas': Asignatura.objects.all(),
-        'action': 'Editar' if profesor else 'Agregar',
-    }
-    
-    # Si estamos editando, formatear el RUT para mostrarlo
-    if profesor and profesor.numero_documento:
-        from smapp.forms import formatear_rut
-        context['rut_formateado'] = formatear_rut(profesor.numero_documento)
-    
-    return render(request, 'gestionar_profesor.html', context)
+        profesor = get_object_or_404(Profesor, id=profesor_id)
 
-@all_users_required
-def calendario(request):
-    """Vista del calendario con funcionalidad completa"""
-    from django.utils import timezone
-    from django.db.models import Q
-    from django.http import JsonResponse
-    import json
-    
-    # Determinar tipo de usuario y permisos
-    user_type = 'otro'
-    puede_crear_eventos = False
-    
-    # Lógica mejorada para detectar tipo de usuario
-    if request.user.is_superuser:
-        user_type = 'administrador'
-        puede_crear_eventos = True
+    if request.method == 'POST':
+        form = ProfesorForm(request.POST, request.FILES, instance=profesor)
+        if form.is_valid():
+            try:
+                # Si es nuevo profesor, crear usuario primero
+                if not profesor:
+                    username = form.cleaned_data.get('username')
+                    email = form.cleaned_data.get('email')
+                    password = form.cleaned_data.get('password')
+                    
+                    if User.objects.filter(username=username).exists():
+                        messages.error(request, 'El nombre de usuario ya existe.')
+                        return render(request, 'gestionar_profesor.html', {'form': form, 'profesor': profesor})
+                        
+                    user = User.objects.create_user(username=username, email=email, password=password)
+                    Perfil.objects.create(user=user, tipo_usuario='profesor')
+                    
+                    profesor_obj = form.save(commit=False)
+                    profesor_obj.user = user
+                    profesor_obj.save()
+                    form.save_m2m() # Guardar relaciones ManyToMany
+                    messages.success(request, 'Profesor creado exitosamente.')
+                else:
+                    # Actualizar profesor existente
+                    profesor_obj = form.save()
+                    
+                    # Actualizar datos de usuario si se proporcionaron
+                    user = profesor_obj.user
+                    if user:
+                        username = form.cleaned_data.get('username')
+                        email = form.cleaned_data.get('email')
+                        password = form.cleaned_data.get('password')
+                        is_active = form.cleaned_data.get('is_active')
+                        
+                        if username and username != user.username:
+                            if User.objects.filter(username=username).exclude(id=user.id).exists():
+                                messages.warning(request, 'El nombre de usuario ya está en uso. No se actualizó.')
+                            else:
+                                user.username = username
+                        
+                        if email:
+                            user.email = email
+                        if password:
+                            user.set_password(password)
+                            
+                        # Actualizar estado activo
+                        if is_active is not None:
+                            user.is_active = is_active
+                            
+                        user.save()
+                    
+                    messages.success(request, 'Profesor actualizado exitosamente.')
+                
+                return redirect('listar_profesores')
+            except Exception as e:
+                messages.error(request, f'Error al guardar: {str(e)}')
     else:
-        try:
-            if hasattr(request.user, 'perfil') and request.user.perfil:
-                user_type = request.user.perfil.tipo_usuario
-                puede_crear_eventos = user_type in ['administrador', 'director', 'profesor']
-            elif hasattr(request.user, 'profesor'):
-                user_type = 'profesor'
-                puede_crear_eventos = True
-            elif hasattr(request.user, 'estudiante'):
-                user_type = 'estudiante'
-            elif hasattr(request.user, 'apoderado'):
-                user_type = 'apoderado'
-        except Exception as e:
-            # Fallback para superusuarios sin perfil
-            if request.user.is_superuser or request.user.is_staff:
-                user_type = 'administrador'
-                puede_crear_eventos = True
+        form = ProfesorForm(instance=profesor)
+        # Pre-llenar datos del usuario si existe
+        if profesor and profesor.user:
+            form.initial['username'] = profesor.user.username
+            form.initial['email'] = profesor.user.email
+            form.initial['is_active'] = profesor.user.is_active
+
+    return render(request, 'gestionar_profesor.html', {'form': form, 'profesor': profesor})
+
+@admin_required
+def gestionar_estudiante(request, estudiante_id=None):
+    estudiante = None
+    if estudiante_id:
+        estudiante = get_object_or_404(Estudiante, id=estudiante_id)
+
+    if request.method == 'POST':
+        form = EstudianteForm(request.POST, request.FILES, instance=estudiante)
+        if form.is_valid():
+            try:
+                # Si es nuevo estudiante, crear usuario primero
+                if not estudiante:
+                    username = form.cleaned_data.get('username')
+                    email = form.cleaned_data.get('email')
+                    password = form.cleaned_data.get('password')
+                    
+                    if User.objects.filter(username=username).exists():
+                        messages.error(request, 'El nombre de usuario ya existe.')
+                        return render(request, 'gestionar_estudiante.html', {'form': form, 'estudiante': estudiante})
+                        
+                    user = User.objects.create_user(username=username, email=email, password=password)
+                    Perfil.objects.create(user=user, tipo_usuario='alumno')
+                    
+                    estudiante_obj = form.save(commit=False)
+                    estudiante_obj.user = user
+                    estudiante_obj.save()
+                    messages.success(request, 'Estudiante creado exitosamente.')
+                else:
+                    # Actualizar estudiante existente
+                    estudiante_obj = form.save()
+                    
+                    # Actualizar datos de usuario si se proporcionaron
+                    user = estudiante_obj.user
+                    if user:
+                        username = form.cleaned_data.get('username')
+                        email = form.cleaned_data.get('email')
+                        password = form.cleaned_data.get('password')
+                        is_active = form.cleaned_data.get('is_active')
+                        
+                        if username and username != user.username:
+                            if User.objects.filter(username=username).exclude(id=user.id).exists():
+                                messages.warning(request, 'El nombre de usuario ya está en uso. No se actualizó.')
+                            else:
+                                user.username = username
+                        
+                        if email:
+                            user.email = email
+                            
+                        if password:
+                            user.set_password(password)
+                            
+                        # Actualizar estado activo
+                        if is_active is not None:
+                            user.is_active = is_active
+                            
+                        user.save()
+                    
+                    messages.success(request, 'Estudiante actualizado exitosamente.')
+                
+                return redirect('listar_estudiantes')
+            except Exception as e:
+                messages.error(request, f'Error al guardar: {str(e)}')
+    else:
+        form = EstudianteForm(instance=estudiante)
+        if not estudiante:
+             form.initial['is_active'] = True
+        elif estudiante.user:
+            form.initial['username'] = estudiante.user.username
+            form.initial['email'] = estudiante.user.email
+            form.initial['is_active'] = estudiante.user.is_active
+
+    return render(request, 'gestionar_estudiante.html', {'form': form, 'estudiante': estudiante})
+
+@login_required
+def calendario(request):
+    from datetime import datetime
     
-    print(f"DEBUG: Usuario {request.user.username}, tipo: {user_type}, puede crear: {puede_crear_eventos}")  # Debug
+    # Filtros
+    fecha_filtro = request.GET.get('fecha', '')
+    curso_filtro = request.GET.get('curso', '')
+    estudiante_id = request.GET.get('estudiante_id', '')
     
-    # Obtener filtros
-    fecha_filtro = request.GET.get('fecha_filtro', '')
-    curso_filtro = request.GET.get('curso_filtro', '')
-    estudiante_id = request.GET.get('estudiante_id', '')  # Nuevo filtro para apoderados
+    # Determinar tipo de usuario
+    user_type = 'otro'
+    if hasattr(request.user, 'perfil'):
+        user_type = request.user.perfil.tipo_usuario
+    elif request.user.is_superuser:
+        user_type = 'administrador'
+        
+    puede_crear_eventos = user_type in ['administrador', 'director', 'profesor']
     
-    # Base de eventos según tipo de usuario
-    eventos_base = EventoCalendario.objects.all()
+    # Obtener cursos para el modal (si tiene permisos)
+    cursos_modal = []
+    if puede_crear_eventos:
+        if user_type in ['administrador', 'director']:
+            cursos_modal = Curso.objects.all().order_by('nivel', 'paralelo', 'anio')
+        elif user_type == 'profesor':
+            try:
+                profesor = request.user.profesor
+                cursos_modal = Curso.objects.filter(
+                    Q(profesor_jefe=profesor) | Q(asignaturas__profesores=profesor)
+                ).distinct().order_by('nivel', 'paralelo', 'anio')
+            except:
+                cursos_modal = []
     
-    # Filtrar eventos por permisos de usuario
+    # Obtener eventos base
+    eventos = EventoCalendario.objects.all()
+    
+    # Filtrar por permisos
     if user_type == 'estudiante':
-        # Estudiantes ven eventos de sus cursos o eventos generales (NO los de solo profesores)
         try:
             estudiante = request.user.estudiante
-            cursos_estudiante = estudiante.cursos.all()
-            eventos_base = eventos_base.filter(
-                Q(para_todos_los_cursos=True) | Q(cursos__in=cursos_estudiante)
-            ).filter(solo_profesores=False).distinct()
+            curso = estudiante.get_curso_actual()
+            eventos = eventos.filter(
+                Q(para_todos_los_cursos=True) | 
+                Q(cursos=curso)
+            ).distinct()
         except:
-            eventos_base = eventos_base.filter(
-                para_todos_los_cursos=True,
-                solo_profesores=False
-            )
+            eventos = eventos.none()
     elif user_type == 'profesor':
-        # Profesores ven eventos de sus cursos asignados, eventos generales y eventos solo para profesores
         try:
             profesor = request.user.profesor
-            cursos_profesor = Curso.objects.filter(
-                Q(profesor_jefe=profesor) | Q(asignaturas__profesores=profesor)
-            ).distinct()
-            eventos_base = eventos_base.filter(
-                Q(para_todos_los_cursos=True) | Q(cursos__in=cursos_profesor) | Q(solo_profesores=True)
+            cursos_profesor = profesor.get_cursos_asignados()
+            eventos = eventos.filter(
+                Q(para_todos_los_cursos=True) | 
+                Q(cursos__in=cursos_profesor) |
+                Q(solo_profesores=True) |
+                Q(creado_por=request.user)
             ).distinct()
         except:
-            eventos_base = eventos_base.filter(
-                Q(para_todos_los_cursos=True) | Q(solo_profesores=True)
-            )
+            eventos = eventos.none()
     elif user_type == 'apoderado':
-        # Apoderados ven eventos según el estudiante seleccionado
-        try:
-            apoderado = request.user.apoderado
-            estudiantes_a_cargo = Estudiante.objects.filter(
-                apoderados__apoderado=apoderado,
-                apoderados__activa=True
-            )
-            
-            if estudiante_id:
-                # Si se especifica un estudiante, filtrar por ese estudiante
-                try:
-                    estudiante_seleccionado = get_object_or_404(Estudiante, id=estudiante_id)
-                    # Verificar que el apoderado tiene acceso a este estudiante
-                    if estudiante_seleccionado in estudiantes_a_cargo:
-                        cursos_estudiante = estudiante_seleccionado.cursos.all()
-                        eventos_base = eventos_base.filter(
-                            Q(para_todos_los_cursos=True) | Q(cursos__in=cursos_estudiante)
-                        ).filter(solo_profesores=False).distinct()
-                    else:
-                        # El apoderado no tiene acceso a este estudiante, mostrar solo eventos generales
-                        eventos_base = eventos_base.filter(
-                            para_todos_los_cursos=True,
-                            solo_profesores=False
-                        )
-                except:
-                    # Error al obtener el estudiante, mostrar solo eventos generales
-                    eventos_base = eventos_base.filter(
-                        para_todos_los_cursos=True,
-                        solo_profesores=False
-                    )
-            else:
-                # Sin estudiante específico, mostrar eventos de todos los estudiantes a cargo
-                if estudiantes_a_cargo.exists():
-                    cursos_todos_estudiantes = Curso.objects.filter(
-                        estudiantes__in=estudiantes_a_cargo
-                    ).distinct()
-                    eventos_base = eventos_base.filter(
-                        Q(para_todos_los_cursos=True) | Q(cursos__in=cursos_todos_estudiantes)
-                    ).filter(solo_profesores=False).distinct()
-                else:
-                    eventos_base = eventos_base.filter(
-                        para_todos_los_cursos=True,
-                        solo_profesores=False
-                    )
-        except:
-            eventos_base = eventos_base.filter(
-                para_todos_los_cursos=True,
-                solo_profesores=False
-            )
-    # Administradores y directores ven todos los eventos (sin filtro adicional)
-    
-    # Aplicar filtros de búsqueda
-    eventos = eventos_base
+        # Lógica para apoderado
+        eventos = eventos.filter(
+            Q(para_todos_los_cursos=True) | 
+            Q(solo_apoderados=True)
+        ).distinct()
+
+    # Aplicar filtros de UI
     if fecha_filtro:
         try:
-            from datetime import datetime
             fecha_obj = datetime.strptime(fecha_filtro, '%Y-%m-%d').date()
             eventos = eventos.filter(fecha=fecha_obj)
-        except ValueError:
+        except:
             pass
-    
-    if curso_filtro and user_type in ['administrador', 'director']:
+            
+    if curso_filtro:
         eventos = eventos.filter(cursos__id=curso_filtro)
-    
-    # Manejar creación de evento (AJAX POST)
-    if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        if not puede_crear_eventos:
-            return JsonResponse({'success': False, 'error': 'Sin permisos para crear eventos'})
-        
-        try:
-            # Validaciones de servidor
-            titulo = request.POST.get('titulo', '').strip()
-            fecha = request.POST.get('fecha')
-            hora_inicio = request.POST.get('hora_inicio') or None
-            hora_fin = request.POST.get('hora_fin') or None
-            
-            # Validar campos obligatorios
-            if not titulo:
-                return JsonResponse({'success': False, 'error': 'El título es obligatorio'})
-            if not fecha:
-                return JsonResponse({'success': False, 'error': 'La fecha es obligatoria'})
-            
-            # Validar horas
-            if hora_inicio and hora_fin:
-                from datetime import datetime
-                inicio = datetime.strptime(hora_inicio, '%H:%M').time()
-                fin = datetime.strptime(hora_fin, '%H:%M').time()
-                if inicio >= fin:
-                    return JsonResponse({'success': False, 'error': 'La hora de inicio debe ser menor que la hora de fin'})
-            
-            # Crear evento
-            dirigido_a = request.POST.get('dirigido_a', 'todos')
-            evento = EventoCalendario.objects.create(
-                titulo=titulo,
-                descripcion=request.POST.get('descripcion', ''),
-                fecha=fecha,
-                hora_inicio=hora_inicio,
-                hora_fin=hora_fin,
-                tipo_evento=request.POST.get('tipo_evento', 'general'),
-                prioridad=request.POST.get('prioridad', 'media'),
-                para_todos_los_cursos=dirigido_a == 'todos',
-                solo_profesores=dirigido_a == 'solo_profesores',
-                creado_por=request.user
-            )
-            
-            # Asignar cursos específicos si es necesario
-            if dirigido_a == 'cursos_especificos':
-                cursos_ids = request.POST.getlist('cursos_especificos')
-                if not cursos_ids:
-                    return JsonResponse({'success': False, 'error': 'Debes seleccionar al menos un curso específico'})
-                
-                # Validar que el usuario tenga permisos sobre los cursos seleccionados
-                if user_type == 'profesor':
-                    profesor = request.user.profesor
-                    cursos_permitidos = Curso.objects.filter(
-                        Q(profesor_jefe=profesor) | Q(asignaturas__profesores=profesor)
-                    ).values_list('id', flat=True)
-                    
-                    cursos_no_permitidos = [cid for cid in cursos_ids if int(cid) not in cursos_permitidos]
-                    if cursos_no_permitidos:
-                        return JsonResponse({'success': False, 'error': 'No tienes permisos para crear eventos en algunos de los cursos seleccionados'})
-                
-                evento.cursos.set(cursos_ids)
-            
-            return JsonResponse({
-                'success': True, 
-                'evento_id': evento.id,
-                'message': 'Evento creado exitosamente'
-            })
-            
-        except Exception as e:
-            return JsonResponse({'success': False, 'error': f'Error al crear el evento: {str(e)}'})
-    
-    # Preparar datos para el calendario alternativo
+
+    # Preparar JSON (usando todos los eventos filtrados)
     eventos_json = []
     for evento in eventos:
         eventos_json.append({
@@ -866,83 +670,41 @@ def calendario(request):
             'backgroundColor': evento.color_por_tipo,
             'borderColor': evento.color_por_tipo,
             'textColor': '#fff',
-            'tipo': evento.tipo_evento,  # Tipo original del evento
+            'tipo': evento.tipo_evento,
             'extendedProps': {
                 'description': evento.descripcion or '',
-                'responsable': evento.creado_por.first_name if evento.creado_por and evento.creado_por.first_name else (evento.creado_por.username if evento.creado_por else 'Sistema'),
+                'responsable': evento.creado_por.get_full_name() if evento.creado_por else 'Sistema',
                 'tipo': evento.get_tipo_evento_display(),
-                'tipoOriginal': evento.tipo_evento,
                 'prioridad': evento.get_prioridad_display()
             }
         })
     
-    print(f"DEBUG: Preparando {len(eventos_json)} eventos para FullCalendar")  # Debug
+    # Filtrar eventos para la lista lateral (solo futuros y ordenados)
+    from django.utils import timezone
+    from datetime import timedelta
     
-    # Calcular estadísticas para las tarjetas
-    from datetime import datetime, timedelta
-    hoy = datetime.now().date()
+    hoy = timezone.now().date()
+    eventos_futuros = eventos.filter(fecha__gte=hoy).order_by('fecha', 'hora_inicio')
+    
+    # Calcular métricas
     inicio_semana = hoy - timedelta(days=hoy.weekday())
     fin_semana = inicio_semana + timedelta(days=6)
     
-    eventos_hoy = eventos_base.filter(fecha=hoy).count()
-    eventos_semana = eventos_base.filter(fecha__range=[inicio_semana, fin_semana]).count()
-    
     eventos_count = {
-        'hoy': eventos_hoy,
-        'semana': eventos_semana
+        'hoy': eventos.filter(fecha=hoy).count(),
+        'semana': eventos.filter(fecha__range=[inicio_semana, fin_semana]).count()
     }
-    
-    # Obtener cursos disponibles para filtros y modal
-    cursos = []
-    estudiantes_a_cargo = []
-    estudiante_seleccionado = None
-    
-    if user_type in ['administrador', 'director']:
-        cursos = Curso.objects.filter(anio=timezone.now().year).order_by('nivel', 'paralelo')
-    elif user_type == 'profesor':
-        try:
-            profesor = request.user.profesor
-            cursos = Curso.objects.filter(
-                Q(profesor_jefe=profesor) | Q(asignaturas__profesores=profesor),
-                anio=timezone.now().year
-            ).distinct().order_by('nivel', 'paralelo')
-        except:
-            cursos = []
-    elif user_type == 'apoderado':
-        try:
-            apoderado = request.user.apoderado
-            estudiantes_a_cargo = Estudiante.objects.filter(
-                apoderados__apoderado=apoderado,
-                apoderados__activa=True
-            ).order_by('primer_nombre', 'apellido_paterno')
-            
-            # Si hay un estudiante_id seleccionado, verificar que sea válido
-            if estudiante_id:
-                try:
-                    estudiante_candidato = Estudiante.objects.get(id=estudiante_id)
-                    if estudiante_candidato in estudiantes_a_cargo:
-                        estudiante_seleccionado = estudiante_candidato
-                except Estudiante.DoesNotExist:
-                    pass
-        except:
-            estudiantes_a_cargo = []
     
     context = {
-        'eventos': eventos.order_by('fecha'),  # Todos los eventos ordenados por fecha
         'eventos_json': json.dumps(eventos_json),
-        'eventos_count': eventos_count,
-        'cursos': cursos,
-        'fecha_filtro': fecha_filtro,
-        'curso_filtro': curso_filtro,
-        'estudiante_id': estudiante_id,  # Para apoderados
-        'estudiantes_a_cargo': estudiantes_a_cargo,  # Para apoderados
-        'estudiante_seleccionado': estudiante_seleccionado,  # Para apoderados
-        'puede_crear_eventos': puede_crear_eventos,
+        'eventos': eventos_futuros, # Lista de próximos eventos
+        'eventos_count': eventos_count, # Métricas
         'user_type': user_type,
+        'puede_crear_eventos': puede_crear_eventos,
         'tipos_evento': EventoCalendario.TIPO_EVENTO_CHOICES,
         'prioridades': EventoCalendario.PRIORIDAD_CHOICES,
+        'cursos': cursos_modal,
     }
-    
     return render(request, 'calendario_alternativo.html', context)
 
 @login_required
@@ -1703,6 +1465,7 @@ def agregar_evento(request):
     """Vista para agregar un nuevo evento al calendario"""
     from django.utils import timezone
     from django.db.models import Q
+    from django.http import JsonResponse
     
     # Determinar tipo de usuario y permisos
     user_type = 'otro'
@@ -1725,7 +1488,12 @@ def agregar_evento(request):
                 user_type = 'administrador'
                 puede_crear_eventos = True
     
+    is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+
     if not puede_crear_eventos:
+        if is_ajax:
+            return JsonResponse({'success': False, 'error': 'No tienes permisos para crear eventos.'}, status=403)
+        
         context = {
             'user_type': user_type,
             'required_types': ['administrador', 'director', 'profesor'],
@@ -1760,9 +1528,11 @@ def agregar_evento(request):
             
             # Validar campos obligatorios
             if not titulo:
+                if is_ajax: return JsonResponse({'success': False, 'error': 'El título es obligatorio'})
                 messages.error(request, 'El título es obligatorio')
                 return render(request, 'agregar_evento.html', {'cursos': cursos})
             if not fecha:
+                if is_ajax: return JsonResponse({'success': False, 'error': 'La fecha es obligatoria'})
                 messages.error(request, 'La fecha es obligatoria')
                 return render(request, 'agregar_evento.html', {'cursos': cursos})
             
@@ -1773,9 +1543,11 @@ def agregar_evento(request):
                     inicio = datetime.strptime(hora_inicio, '%H:%M').time()
                     fin = datetime.strptime(hora_fin, '%H:%M').time()
                     if inicio >= fin:
+                        if is_ajax: return JsonResponse({'success': False, 'error': 'La hora de inicio debe ser menor que la hora de fin'})
                         messages.error(request, 'La hora de inicio debe ser menor que la hora de fin')
                         return render(request, 'agregar_evento.html', {'cursos': cursos})
                 except ValueError:
+                    if is_ajax: return JsonResponse({'success': False, 'error': 'Formato de hora inválido'})
                     messages.error(request, 'Formato de hora inválido')
                     return render(request, 'agregar_evento.html', {'cursos': cursos})
             
@@ -1790,6 +1562,7 @@ def agregar_evento(request):
                 prioridad=prioridad,
                 para_todos_los_cursos=dirigido_a == 'todos',
                 solo_profesores=dirigido_a == 'solo_profesores',
+                solo_apoderados=dirigido_a == 'solo_apoderados',
                 creado_por=request.user
             )
             
@@ -1797,6 +1570,7 @@ def agregar_evento(request):
             if dirigido_a == 'cursos_especificos':
                 cursos_ids = request.POST.getlist('cursos_especificos')
                 if not cursos_ids:
+                    if is_ajax: return JsonResponse({'success': False, 'error': 'Debes seleccionar al menos un curso específico'})
                     messages.error(request, 'Debes seleccionar al menos un curso específico')
                     evento.delete()
                     return render(request, 'agregar_evento.html', {'cursos': cursos})
@@ -1810,16 +1584,21 @@ def agregar_evento(request):
                     
                     cursos_no_permitidos = [cid for cid in cursos_ids if int(cid) not in cursos_permitidos]
                     if cursos_no_permitidos:
+                        if is_ajax: return JsonResponse({'success': False, 'error': 'No tienes permisos para crear eventos en algunos de los cursos seleccionados'})
                         messages.error(request, 'No tienes permisos para crear eventos en algunos de los cursos seleccionados')
                         evento.delete()
                         return render(request, 'agregar_evento.html', {'cursos': cursos})
                 
                 evento.cursos.set(cursos_ids)
             
+            if is_ajax:
+                return JsonResponse({'success': True, 'message': f'Evento "{titulo}" creado exitosamente'})
+            
             messages.success(request, f'Evento "{titulo}" creado exitosamente')
             return redirect('calendario')
             
         except Exception as e:
+            if is_ajax: return JsonResponse({'success': False, 'error': f'Error al crear el evento: {str(e)}'})
             messages.error(request, f'Error al crear el evento: {str(e)}')
             return render(request, 'agregar_evento.html', {'cursos': cursos})
     
@@ -3193,6 +2972,7 @@ def ingresar_notas(request):
         'asignatura_seleccionada': asignatura_seleccionada,
         'estudiantes_curso_asignatura': estudiantes_curso_asignatura,
         'user_type': user_type or 'unknown',
+        'anio_actual': anio_actual,
     }
     return render(request, 'ingresar_notas.html', context)
 
@@ -4183,6 +3963,10 @@ def registrar_asistencia_profesor(request):
         if user_type not in ['director', 'administrador', 'profesor']:
             messages.error(request, 'No tienes permisos para acceder a esta sección.')
             return redirect('inicio')
+            
+        # Si es profesor, redirigir a asistencia de alumnos
+        if user_type == 'profesor':
+            return redirect('registrar_asistencia_alumno')
     else:
         messages.error(request, 'Usuario sin perfil definido.')
         return redirect('inicio')
@@ -4281,6 +4065,10 @@ def gestionar_horarios(request, curso_id=None):
     from django.shortcuts import get_object_or_404
     curso = get_object_or_404(Curso, id=curso_id)
     asignaturas = curso.asignaturas.all().order_by('nombre')
+    # Si el curso no tiene asignaturas asignadas, mostrar todas (fallback)
+    if not asignaturas.exists():
+        asignaturas = Asignatura.objects.all().order_by('nombre')
+        
     profesores = Profesor.objects.all().order_by('primer_nombre', 'apellido_paterno')
     dias_semana = HorarioCurso.DIAS_SEMANA
     horarios = HorarioCurso.objects.filter(curso=curso).order_by('dia', 'hora_inicio')
@@ -4518,7 +4306,7 @@ def editar_evento(request, evento_id):
         return redirect('calendario')
     
     if request.method == 'POST':
-        form = EventoCalendarioForm(request.POST, instance=evento, editando=True)
+        form = EventoCalendarioForm(request.POST, instance=evento, editando=True, user=request.user)
         if form.is_valid():
             try:
                 evento_actualizado = form.save()
@@ -4532,7 +4320,7 @@ def editar_evento(request, evento_id):
         else:
             messages.error(request, 'Por favor corrige los errores en el formulario.')
     else:
-        form = EventoCalendarioForm(instance=evento, editando=True)
+        form = EventoCalendarioForm(instance=evento, editando=True, user=request.user)
     
     # Obtener cursos disponibles para el contexto
     cursos = []
@@ -4818,7 +4606,28 @@ def agregar_asignatura(request):
 @login_required
 def editar_asignatura(request, asignatura_id):
     """Vista para editar asignatura"""
-    context = {'user': request.user, 'asignatura_id': asignatura_id}
+    asignatura = get_object_or_404(Asignatura, id=asignatura_id)
+    
+    if request.method == 'POST':
+        form = AsignaturaForm(request.POST, instance=asignatura)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Asignatura actualizada exitosamente.')
+            return redirect('listar_asignaturas')
+        else:
+            messages.error(request, 'Por favor corrija los errores en el formulario.')
+    else:
+        form = AsignaturaForm(instance=asignatura)
+    
+    profesores = Profesor.objects.all().order_by('primer_nombre', 'apellido_paterno')
+    
+    context = {
+        'user': request.user, 
+        'asignatura': asignatura,
+        'form': form,
+        'profesores': profesores,
+        'titulo': 'Editar Asignatura'
+    }
     return render(request, 'editar_asignatura.html', context)
 
 @login_required
@@ -5380,6 +5189,29 @@ def libro_anotaciones(request):
         curso_actual = estudiante_actual.get_curso_actual()
         if curso_actual:
             estadisticas_estudiante['curso_actual'] = curso_actual
+            
+    # Preparar datos para gráficos (JSON)
+    import json
+    chart_data_cursos = []
+    if user_type != 'alumno':
+        # Agrupar por curso (quitando ordenamiento previo para agrupar correctamente)
+        datos_curso = anotaciones.order_by().values('curso__nivel', 'curso__paralelo').annotate(
+            total=Count('id'),
+            positivas=Count('id', filter=Q(tipo='positiva')),
+            negativas=Count('id', filter=Q(tipo='negativa')),
+            graves=Count('id', filter=Q(es_grave=True))
+        ).order_by('curso__nivel', 'curso__paralelo')
+        
+        for d in datos_curso:
+            if d['curso__nivel'] and d['curso__paralelo']:
+                nombre_curso = f"{d['curso__nivel']} {d['curso__paralelo']}"
+                chart_data_cursos.append({
+                    'curso': nombre_curso,
+                    'total': d['total'],
+                    'positivas': d['positivas'],
+                    'negativas': d['negativas'],
+                    'graves': d['graves']
+                })
     
     context = {
         'anotaciones': anotaciones_paginas,
@@ -5392,6 +5224,7 @@ def libro_anotaciones(request):
         'profesor_actual': profesor_actual,
         'estudiante_actual': estudiante_actual,
         'cursos_disponibles': cursos_disponibles,
+        'resumen_cursos': chart_data_cursos,
     }
     
     return render(request, 'libro_anotaciones.html', context)
@@ -5657,9 +5490,10 @@ def detalle_comportamiento_estudiante(request, estudiante_id):
     datos_grafico = {}
     for anotacion in anotaciones_grafico:
         fecha = anotacion['fecha_creacion__date']
-        if fecha not in datos_grafico:
-            datos_grafico[fecha] = 0
-        datos_grafico[fecha] += anotacion['puntos']
+        fecha_str = fecha.strftime('%Y-%m-%d')
+        if fecha_str not in datos_grafico:
+            datos_grafico[fecha_str] = 0
+        datos_grafico[fecha_str] += anotacion['puntos']
     
     context = {
         'estudiante': estudiante,
@@ -5698,63 +5532,37 @@ def ajax_obtener_estudiantes_curso(request):
                 return JsonResponse(data)
             except Curso.DoesNotExist:
                 return JsonResponse({'error': 'Curso no encontrado'}, status=404)
-        
-        return JsonResponse({'error': 'ID de curso requerido'}, status=400)
+            return JsonResponse({'error': 'ID de curso requerido'}, status=400)
     
     return JsonResponse({'error': 'Método no permitido'}, status=405)
 
-@login_required  
+@login_required
 def ajax_obtener_estudiantes_filtro(request):
-    """Vista AJAX para obtener estudiantes por curso en filtros"""
+    """Vista AJAX para buscar estudiantes por nombre o RUT"""
     if request.method == 'GET':
-        curso_id = request.GET.get('curso_id')
+        query = request.GET.get('q', '')
         
-        if curso_id:
-            try:
-                curso = Curso.objects.get(id=curso_id)
-                
-                # Verificar permisos según el tipo de usuario
-                user_type = None
-                profesor_actual = None
-                
-                if hasattr(request.user, 'perfil'):
-                    user_type = request.user.perfil.tipo_usuario
-                    
-                    if user_type == 'profesor':
-                        try:
-                            profesor_actual = request.user.profesor
-                            cursos_disponibles = profesor_actual.get_cursos_asignados()
-                            # Si no tiene el curso asignado, pero es profesor, permitir si tiene estudiantes
-                            if curso not in cursos_disponibles:
-                                # Verificar si al menos tiene estudiantes en común
-                                estudiantes = curso.estudiantes.all()
-                                if not estudiantes.exists():
-                                    return JsonResponse({'error': 'Sin permisos para este curso'}, status=403)
-                        except:
-                            # Si hay error obteniendo el profesor, permitir la consulta
-                            pass
-                
-                estudiantes = curso.estudiantes.all().order_by('primer_nombre', 'apellido_paterno')
-                
-                data = {
-                    'estudiantes': [
-                        {
-                            'id': est.id,
-                            'nombre': est.get_nombre_completo(),
-                            'rut': est.numero_documento
-                        }
-                        for est in estudiantes
-                    ]
-                }
-                
-                return JsonResponse(data)
-                
-            except Curso.DoesNotExist:
-                return JsonResponse({'error': 'Curso no encontrado'}, status=404)
-            except Exception as e:
-                return JsonResponse({'error': str(e)}, status=500)
-        else:
-            return JsonResponse({'error': 'ID de curso requerido'}, status=400)
+        if query:
+            estudiantes = Estudiante.objects.filter(
+                Q(primer_nombre__icontains=query) |
+                Q(apellido_paterno__icontains=query) |
+                Q(numero_documento__icontains=query)
+            ).order_by('primer_nombre', 'apellido_paterno')[:20]  # Limit results
+            
+            data = {
+                'estudiantes': [
+                    {
+                        'id': est.id,
+                        'nombre': est.get_nombre_completo(),
+                        'rut': est.numero_documento,
+                        'curso': str(est.get_curso_actual()) if est.get_curso_actual() else 'Sin curso'
+                    }
+                    for est in estudiantes
+                ]
+            }
+            return JsonResponse(data)
+        
+        return JsonResponse({'estudiantes': []})
     
     return JsonResponse({'error': 'Método no permitido'}, status=405)
 
@@ -5784,3 +5592,27 @@ def reporte_comportamiento_cursos(request):
         'datos_cursos': datos_cursos
     }
     return render(request, 'reporte_comportamiento_cursos.html', context)
+
+@admin_required
+@require_POST
+def reset_password_profesor(request, profesor_id):
+    """
+    Resetea la contraseña de un profesor y devuelve la nueva contraseña.
+    """
+    try:
+        profesor = get_object_or_404(Profesor, id=profesor_id)
+        if not profesor.user:
+             return JsonResponse({'success': False, 'error': 'El profesor no tiene un usuario asociado.'})
+        
+        # Generar contraseña aleatoria segura
+        import secrets
+        import string
+        alphabet = string.ascii_letters + string.digits
+        new_password = ''.join(secrets.choice(alphabet) for i in range(10))
+        
+        profesor.user.set_password(new_password)
+        profesor.user.save()
+        
+        return JsonResponse({'success': True, 'new_password': new_password})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})

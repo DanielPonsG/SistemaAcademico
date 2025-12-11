@@ -1,0 +1,39 @@
+====================================================
+     GUÍA DE SUBIDA MANUAL A SUPABASE
+====================================================
+
+Debido a restricciones de red en tu equipo/institución (Inacap),
+no es posible conectar directamente desde aquí a Supabase.
+
+HEMOS GENERADO UN ARCHIVO SQL CON TU BASE DE DATOS:
+Archivo: migracion_supabase_final.sql
+
+PASOS PARA SUBIR LOS DATOS:
+
+1. Entra a tu proyecto en Supabase:
+   https://supabase.com/dashboard/project/dxnjraijhvumhxvzgioy
+
+2. Ve a la sección "SQL Editor" (icono de hoja con código en la barra lateral).
+
+3. Haz clic en "New Query" (o "New snippet").
+
+4. Abre el archivo "migracion_supabase_final.sql" que está en tu carpeta de proyecto.
+   (Puedes usar el Bloc de Notas o VS Code).
+
+5. Copia TODO el contenido del archivo.
+
+6. Pégalo en el editor SQL de Supabase.
+
+7. Haz clic en "Run" (botón verde abajo a la derecha).
+
+Esto creará todas las tablas y datos en la nube.
+
+====================================================
+     NOTA SOBRE LA CONEXIÓN
+====================================================
+Tu archivo .env ha sido configurado para usar Supabase.
+Sin embargo, si intentas ejecutar "python manage.py runserver" en ESTA red,
+es probable que falle por los bloqueos detectados.
+
+Si necesitas trabajar localmente, cambia el .env para usar tu base de datos local:
+DATABASE_URL=postgresql://postgres:inacap@localhost:5432/sam

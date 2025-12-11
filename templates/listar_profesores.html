@@ -1,705 +1,488 @@
 {% extends "index_master.html" %}
+{% load static %}
 
 {% block extra_css %}
 <style>
-.teachers-page {
-  display: flex;
-  flex-direction: column;
-  gap: 1.75rem;
-  padding: 1.5rem 0 2.5rem;
-}
-
-.teachers-alerts {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.teachers-alerts .alert {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 1rem 1.25rem;
-  border-radius: 16px;
-  border: 1px solid rgba(59, 130, 246, 0.18);
-  background: #ffffff;
-  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
-}
-
-.teachers-alerts .btn-close {
-  margin-left: auto;
-  box-shadow: none;
-}
-
-.teachers-header {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1.5rem;
-  background: #ffffff;
-  border-radius: 24px;
-  padding: 1.75rem 2rem;
-  box-shadow: 0 20px 48px rgba(15, 23, 42, 0.12);
-}
-
-.teachers-header__title {
-  margin: 0;
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: #0f172a;
-}
-
-.teachers-header__subtitle {
-  margin: 0.4rem 0 0;
-  color: #64748b;
-  max-width: 560px;
-}
-
-.teachers-header__cta {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  padding: 0.7rem 1.45rem;
-  border-radius: 14px;
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
-  color: #ffffff;
-  font-weight: 600;
-  text-decoration: none;
-  box-shadow: 0 16px 32px rgba(37, 99, 235, 0.35);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.teachers-header__cta:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 22px 40px rgba(37, 99, 235, 0.45);
-}
-
-.teachers-stats {
-  display: grid;
-  gap: 1.1rem;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-}
-
-.teachers-stat-card {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 1.25rem 1.4rem;
-  border-radius: 22px;
-  color: #ffffff;
-  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.15);
-  overflow: hidden;
-}
-
-.teachers-stat-card::after {
-  content: "";
-  position: absolute;
-  inset: auto -25% -35% auto;
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.18);
-}
-
-.teachers-stat-card__icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 54px;
-  height: 54px;
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.18);
-  font-size: 1.45rem;
-}
-
-.teachers-stat-card__metric {
-  margin: 0;
-  font-size: 2.15rem;
-  font-weight: 700;
-  line-height: 1.1;
-}
-
-.teachers-stat-card__label {
-  margin: 0.25rem 0 0;
-  font-size: 0.92rem;
-  opacity: 0.9;
-}
-
-.teachers-stat-card--primary {
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
-}
-
-.teachers-stat-card--success {
-  background: linear-gradient(135deg, #16a34a, #15803d);
-}
-
-.teachers-stat-card--info {
-  background: linear-gradient(135deg, #0ea5e9, #0369a1);
-}
-
-.teachers-stat-card--warning {
-  background: linear-gradient(135deg, #f97316, #ea580c);
-}
-
-.teachers-search {
-  background: #ffffff;
-  border-radius: 22px;
-  padding: 1.75rem 2rem;
-  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.teachers-search__title {
-  margin: 0;
-  font-weight: 700;
-  color: #0f172a;
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-}
-
-.teachers-search__title i {
-  color: #2563eb;
-}
-
-.teachers-search__form {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  align-items: center;
-}
-
-.teachers-search__field {
-  position: relative;
-  flex: 1 1 280px;
-}
-
-.teachers-search__input {
-  width: 100%;
-  padding: 0.8rem 1rem 0.8rem 2.8rem;
-  border-radius: 14px;
-  border: 1px solid rgba(148, 163, 184, 0.4);
-  background: #f8fafc;
-  font-size: 0.95rem;
-  transition: border-color 0.2s ease, background 0.2s ease;
-}
-
-.teachers-search__input:focus {
-  outline: none;
-  border-color: rgba(37, 99, 235, 0.45);
-  background: #ffffff;
-  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
-}
-
-.teachers-search__icon {
-  position: absolute;
-  top: 50%;
-  left: 1rem;
-  transform: translateY(-50%);
-  color: #64748b;
-}
-
-.teachers-search__actions {
-  display: inline-flex;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-}
-
-.teachers-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.45rem;
-  border-radius: 14px;
-  padding: 0.65rem 1.45rem;
-  font-weight: 600;
-  border: none;
-  cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
-  text-decoration: none;
-}
-
-.teachers-btn--primary {
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
-  color: #ffffff;
-  box-shadow: 0 12px 26px rgba(37, 99, 235, 0.28);
-}
-
-.teachers-btn--primary:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 18px 36px rgba(37, 99, 235, 0.36);
-}
-
-.teachers-btn--ghost {
-  background: rgba(15, 23, 42, 0.05);
-  color: #1f2937;
-  border: 1px solid rgba(148, 163, 184, 0.35);
-}
-
-.teachers-btn--ghost:hover {
-  background: rgba(15, 23, 42, 0.08);
-}
-
-.teachers-table {
-  background: #ffffff;
-  border-radius: 26px;
-  box-shadow: 0 24px 52px rgba(15, 23, 42, 0.12);
-  overflow: hidden;
-}
-
-.teachers-table__head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 1rem;
-  padding: 1.9rem 2.1rem 0.9rem;
-}
-
-.teachers-table__title {
-  margin: 0;
-  font-size: 1.4rem;
-  font-weight: 700;
-  color: #0f172a;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.6rem;
-}
-
-.teachers-table__title i {
-  color: #2563eb;
-  font-size: 1.1rem;
-}
-
-.teachers-table__meta {
-  font-size: 0.92rem;
-  color: #64748b;
-}
-
-.teachers-table__scroll {
-  padding: 0 2.1rem 2rem;
-  overflow-x: auto;
-}
-
-.teachers-table__table {
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
-  min-width: 860px;
-}
-
-.teachers-table__table thead th {
-  background: #f8fafc;
-  color: #475569;
-  font-weight: 600;
-  padding: 0.95rem 1rem;
-  text-transform: uppercase;
-  font-size: 0.78rem;
-  letter-spacing: 0.06em;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.35);
-}
-
-.teachers-table__table tbody tr:not(.teachers-empty-row) td {
-  padding: 1.1rem 1rem;
-  border-bottom: 1px solid rgba(226, 232, 240, 0.7);
-  vertical-align: top;
-}
-
-.teachers-table__table tbody tr:hover:not(.teachers-empty-row) {
-  background: rgba(37, 99, 235, 0.04);
-}
-
-.teachers-table__teacher {
-  display: flex;
-  gap: 0.9rem;
-  align-items: flex-start;
-}
-
-.teachers-table__avatar {
-  width: 46px;
-  height: 46px;
-  border-radius: 16px;
-  background: rgba(37, 99, 235, 0.12);
-  color: #1d4ed8;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.2rem;
-}
-
-.teachers-table__name {
-  font-weight: 700;
-  color: #0f172a;
-  margin-bottom: 0.15rem;
-  display: block;
-  line-height: 1.3;
-}
-
-.teachers-table__code {
-  font-size: 0.88rem;
-  color: #0ea5e9;
-  font-weight: 600;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-}
-
-.teachers-table__badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  background: rgba(148, 163, 184, 0.18);
-  color: #475569;
-  border-radius: 999px;
-  padding: 0.25rem 0.75rem;
-  font-size: 0.78rem;
-  margin-top: 0.4rem;
-}
-
-.teachers-table__meta {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  font-size: 0.8rem;
-  color: #94a3b8;
-  margin-top: 0.35rem;
-}
-
-.teachers-contact {
-  display: grid;
-  gap: 0.45rem;
-}
-
-.teachers-contact span {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  color: #475569;
-  font-size: 0.9rem;
-}
-
-.teachers-status {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  border-radius: 999px;
-  padding: 0.35rem 0.85rem;
-  font-size: 0.86rem;
-  font-weight: 600;
-  border: 1px solid;
-}
-
-.teachers-status--active {
-  background: rgba(34, 197, 94, 0.12);
-  color: #047857;
-  border-color: rgba(34, 197, 94, 0.35);
-}
-
-.teachers-status--inactive {
-  background: rgba(148, 163, 184, 0.15);
-  color: #475569;
-  border-color: rgba(148, 163, 184, 0.35);
-}
-
-.teachers-assignments {
-  display: flex;
-  flex-direction: column;
-  gap: 0.45rem;
-}
-
-.teachers-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  border-radius: 999px;
-  padding: 0.35rem 0.9rem;
-  font-size: 0.82rem;
-  font-weight: 600;
-  background: rgba(37, 99, 235, 0.12);
-  color: #1d4ed8;
-}
-
-.teachers-chip--success {
-  background: rgba(34, 197, 94, 0.13);
-  color: #059669;
-}
-
-.teachers-chip--muted {
-  background: rgba(148, 163, 184, 0.16);
-  color: #475569;
-}
-
-.teachers-chip__note {
-  display: block;
-  font-size: 0.78rem;
-  color: #94a3b8;
-  margin-top: 0.25rem;
-}
-
-.teachers-actions {
-  display: inline-flex;
-  gap: 0.55rem;
-  align-items: center;
-}
-
-.teachers-action-btn {
-  width: 40px;
-  height: 40px;
-  border-radius: 14px;
-  border: 1px solid rgba(148, 163, 184, 0.3);
-  background: #f8fafc;
-  color: #1f2937;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
-  cursor: pointer;
-}
-
-.teachers-action-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.15);
-}
-
-.teachers-action-btn--primary {
-  background: rgba(37, 99, 235, 0.12);
-  color: #1d4ed8;
-  border-color: rgba(37, 99, 235, 0.26);
-}
-
-.teachers-action-btn--danger {
-  background: rgba(239, 68, 68, 0.12);
-  color: #b91c1c;
-  border-color: rgba(239, 68, 68, 0.28);
-}
-
-.teachers-action-btn--warning {
-  background: rgba(234, 179, 8, 0.15);
-  color: #b45309;
-  border-color: rgba(234, 179, 8, 0.26);
-}
-
-.teachers-action-btn a {
-  color: inherit;
-}
-
-.teachers-empty {
-  padding: 3.2rem 2rem;
-  text-align: center;
-  color: #64748b;
-}
-
-.teachers-empty i {
-  font-size: 2.6rem;
-  color: #94a3b8;
-  margin-bottom: 1rem;
-}
-
-.teachers-empty h5 {
-  color: #0f172a;
-  font-weight: 600;
-  margin-bottom: 0.6rem;
-}
-
-.teachers-empty a {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  margin-top: 1rem;
-  padding: 0.7rem 1.5rem;
-  border-radius: 14px;
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
-  color: #ffffff;
-  text-decoration: none;
-  font-weight: 600;
-  box-shadow: 0 16px 34px rgba(37, 99, 235, 0.32);
-}
-
-.teachers-empty a:hover {
-  box-shadow: 0 20px 42px rgba(37, 99, 235, 0.4);
-}
-
-@media (max-width: 991px) {
-  .teachers-header {
-    padding: 1.5rem 1.5rem;
+  /* Premium Design for Professors Page */
+  .professors-page {
+    padding: 2rem;
+    background-color: #f8f9fa;
+    min-height: 100vh;
+    font-family: 'Inter', sans-serif;
   }
 
-  .teachers-search,
-  .teachers-table {
+  /* Header Section */
+  .professors-header {
+    background: white;
+    padding: 1.5rem 2rem;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .professors-title h2 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .professors-title h2 i {
+    color: #8b5cf6; /* Purple for professors */
+  }
+
+  .professors-subtitle {
+    color: #64748b;
+    margin: 0.5rem 0 0;
+    font-size: 0.95rem;
+  }
+
+  .btn-new-professor {
+    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.2);
+    text-decoration: none;
+  }
+
+  .btn-new-professor:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(124, 58, 237, 0.3);
+    color: white;
+  }
+
+  /* Stats Cards */
+  .professors-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .professors-stat-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 16px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: transform 0.3s ease;
+    border: 1px solid rgba(0,0,0,0.05);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .professors-stat-card:hover {
+    transform: translateY(-5px);
+  }
+
+  .professors-stat-card::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 6px;
+  }
+
+  .professors-stat-card--primary::after { background: #8b5cf6; }
+  .professors-stat-card--success::after { background: #10b981; }
+  .professors-stat-card--info::after { background: #0ea5e9; }
+  .professors-stat-card--warning::after { background: #f59e0b; }
+
+  .professors-stat-card__icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+  }
+
+  .professors-stat-card--primary .professors-stat-card__icon { background: #f5f3ff; color: #8b5cf6; }
+  .professors-stat-card--success .professors-stat-card__icon { background: #ecfdf5; color: #10b981; }
+  .professors-stat-card--info .professors-stat-card__icon { background: #e0f2fe; color: #0ea5e9; }
+  .professors-stat-card--warning .professors-stat-card__icon { background: #fffbeb; color: #f59e0b; }
+
+  .professors-stat-card__metric {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
+    line-height: 1.2;
+  }
+
+  .professors-stat-card__label {
+    color: #64748b;
+    font-size: 0.875rem;
+    margin: 0;
+  }
+
+  /* Search Section */
+  .professors-search-section {
+    background: white;
+    padding: 2rem;
     border-radius: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    margin-bottom: 2rem;
   }
 
-  .teachers-table__table {
-    min-width: 760px;
-  }
-}
-
-@media (max-width: 767px) {
-  .teachers-page {
-    gap: 1.35rem;
-    padding: 1.2rem 0 2rem;
-  }
-
-  .teachers-header__title {
-    font-size: 1.45rem;
+  .professors-search-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
   }
 
-  .teachers-header__cta {
+  .professors-search-title i {
+    color: #8b5cf6;
+  }
+
+  .professors-search-form {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+  }
+
+  .professors-search-input-wrapper {
+    flex: 1;
+    position: relative;
+  }
+
+  .professors-search-input-wrapper i {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+  }
+
+  .professors-search-input {
     width: 100%;
+    padding: 1rem 1rem 1rem 3rem;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background: #f8fafc;
+  }
+
+  .professors-search-input:focus {
+    border-color: #8b5cf6;
+    background: white;
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.1);
+  }
+
+  .btn-search {
+    background: #8b5cf6;
+    color: white;
+    border: none;
+    padding: 0 2rem;
+    height: 54px;
+    border-radius: 12px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+  }
+
+  .btn-search:hover {
+    background: #7c3aed;
+    transform: translateY(-1px);
+  }
+
+  /* Table Section */
+  .professors-table-container {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    padding: 1.5rem;
+    overflow: hidden;
+  }
+
+  .professors-table-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  .professors-table-header h3 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
+  }
+
+  .professors-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  .professors-table th {
+    background: #f8fafc;
+    color: #64748b;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    padding: 1rem 1.5rem;
+    text-align: left;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  .professors-table td {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
+    color: #334155;
+  }
+
+  .professors-table tr:last-child td {
+    border-bottom: none;
+  }
+
+  .professors-table tr:hover td {
+    background: #f8fafc;
+  }
+
+  .professor-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .professor-avatar {
+    width: 40px;
+    height: 40px;
+    background: #f5f3ff;
+    color: #8b5cf6;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
     justify-content: center;
+    font-weight: 600;
+    font-size: 1.1rem;
   }
 
-  .teachers-search__form {
-    flex-direction: column;
-    align-items: stretch;
+  .professor-details h4 {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #1e293b;
   }
 
-  .teachers-search__actions {
+  .professor-meta {
+    display: flex;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+    color: #64748b;
+    margin-top: 0.25rem;
+  }
+
+  .professor-meta span {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  .status-badge {
+    padding: 0.35rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .status-badge--active {
+    background: #ecfdf5;
+    color: #10b981;
+  }
+
+  .status-badge--inactive {
+    background: #fef2f2;
+    color: #ef4444;
+  }
+
+  .status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  .action-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
     justify-content: center;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-right: 0.25rem;
   }
 
-  .teachers-table__head {
-    padding: 1.4rem 1.6rem 0.8rem;
+  .action-btn--edit {
+    background: #f5f3ff;
+    color: #8b5cf6;
   }
 
-  .teachers-table__scroll {
-    padding: 0 1.6rem 1.6rem;
+  .action-btn--edit:hover {
+    background: #8b5cf6;
+    color: white;
   }
-}
+
+  .action-btn--delete {
+    background: #fef2f2;
+    color: #ef4444;
+  }
+
+  .action-btn--delete:hover {
+    background: #ef4444;
+    color: white;
+  }
+
+  .action-btn--key {
+    background: #fffbeb;
+    color: #f59e0b;
+  }
+
+  .action-btn--key:hover {
+    background: #f59e0b;
+    color: white;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: #64748b;
+  }
+
+  .empty-state i {
+    font-size: 3rem;
+    color: #cbd5e1;
+    margin-bottom: 1rem;
+  }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="right_col" role="main">
-  <div class="container-fluid teachers-page">
-    <div class="d-none">
-      <form id="teachers-csrf-form">{% csrf_token %}</form>
-    </div>
-
-    {% if messages %}
-      <div class="teachers-alerts">
-        {% for message in messages %}
-          <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
-            {% with tags=message.tags|default:'' %}
-              {% if 'success' in tags %}
-                <i class="fas fa-check-circle text-success"></i>
-              {% elif 'warning' in tags %}
-                <i class="fas fa-exclamation-triangle text-warning"></i>
-              {% elif 'error' in tags or 'danger' in tags %}
-                <i class="fas fa-times-circle text-danger"></i>
-              {% else %}
-                <i class="fas fa-info-circle text-primary"></i>
-              {% endif %}
-            {% endwith %}
-            {{ message }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-          </div>
-        {% endfor %}
+  <div class="container-fluid professors-page">
+    
+    <!-- Header -->
+    <header class="professors-header">
+      <div class="professors-title">
+        <h2><i class="fas fa-chalkboard-teacher"></i> Gestión de Profesores</h2>
+        <p class="professors-subtitle">Administra el cuerpo docente, asignaciones y accesos al sistema.</p>
       </div>
-    {% endif %}
-
-    <section class="teachers-header">
-      <div>
-        <h1 class="teachers-header__title">
-          <i class="fas fa-chalkboard-teacher text-primary me-2"></i>Gestión de Profesores
-        </h1>
-        <p class="teachers-header__subtitle">Administra la nómina docente, asignaciones y accesos al sistema académico desde un panel moderno y ordenado.</p>
-      </div>
-      <a href="{% url 'agregar' %}?tipo=profesor" class="teachers-header__cta">
-        <i class="fas fa-plus"></i>
-        <span>Nuevo profesor</span>
+      <a href="{% url 'gestionar_profesor' %}" class="btn-new-professor">
+        <i class="fas fa-plus"></i> Nuevo profesor
       </a>
+    </header>
+
+    <!-- Stats -->
+    <section class="professors-stats">
+      <article class="professors-stat-card professors-stat-card--primary">
+        <span class="professors-stat-card__icon"><i class="fas fa-users"></i></span>
+        <div>
+          <p class="professors-stat-card__metric">{{ total_profesores|default:"0" }}</p>
+          <p class="professors-stat-card__label">Profesores registrados</p>
+        </div>
+      </article>
+      
+      <article class="professors-stat-card professors-stat-card--success">
+        <span class="professors-stat-card__icon"><i class="fas fa-user-check"></i></span>
+        <div>
+          <p class="professors-stat-card__metric">{{ profesores_activos|default:"0" }}</p>
+          <p class="professors-stat-card__label">Profesores activos</p>
+        </div>
+      </article>
+      
+      <article class="professors-stat-card professors-stat-card--info">
+        <span class="professors-stat-card__icon"><i class="fas fa-book"></i></span>
+        <div>
+          <p class="professors-stat-card__metric">{{ profesores_con_asignaturas|default:"0" }}</p>
+          <p class="professors-stat-card__label">Con carga académica</p>
+        </div>
+      </article>
+      
+      <article class="professors-stat-card professors-stat-card--warning">
+        <span class="professors-stat-card__icon"><i class="fas fa-layer-group"></i></span>
+        <div>
+          <p class="professors-stat-card__metric">{{ asignaturas_count|default:"0" }}</p>
+          <p class="professors-stat-card__label">Total asignaturas</p>
+        </div>
+      </article>
     </section>
 
-    <section class="teachers-stats">
-      <article class="teachers-stat-card teachers-stat-card--primary">
-        <span class="teachers-stat-card__icon"><i class="fas fa-users"></i></span>
-        <div>
-          <p class="teachers-stat-card__metric">{{ total_profesores }}</p>
-          <p class="teachers-stat-card__label">Profesores registrados</p>
-        </div>
-      </article>
-      <article class="teachers-stat-card teachers-stat-card--success">
-        <span class="teachers-stat-card__icon"><i class="fas fa-user-check"></i></span>
-        <div>
-          <p class="teachers-stat-card__metric">{{ profesores_activos }}</p>
-          <p class="teachers-stat-card__label">Docentes activos</p>
-        </div>
-      </article>
-      <article class="teachers-stat-card teachers-stat-card--info">
-        <span class="teachers-stat-card__icon"><i class="fas fa-book"></i></span>
-        <div>
-          <p class="teachers-stat-card__metric">{{ profesores_con_asignaturas }}</p>
-          <p class="teachers-stat-card__label">Con asignaturas asignadas</p>
-        </div>
-      </article>
-      <article class="teachers-stat-card teachers-stat-card--warning">
-        <span class="teachers-stat-card__icon"><i class="fas fa-layer-group"></i></span>
-        <div>
-          <p class="teachers-stat-card__metric">{{ asignaturas.count }}</p>
-          <p class="teachers-stat-card__label">Asignaturas disponibles</p>
-        </div>
-      </article>
-    </section>
-
-    <section class="teachers-search">
-      <h2 class="teachers-search__title"><i class="fas fa-search"></i>Filtra el listado docente</h2>
-      <form method="get" class="teachers-search__form">
-        <div class="teachers-search__field">
-          <span class="teachers-search__icon"><i class="fas fa-search"></i></span>
-          <input
-            type="text"
-            name="filtro_profesor"
-            class="teachers-search__input"
-            placeholder="Buscar por nombre, apellido, código o correo"
-            value="{{ filtro_profesor }}"
-            autocomplete="off"
+    <!-- Search -->
+    <section class="professors-search-section">
+      <h3 class="professors-search-title">
+        <i class="fas fa-search"></i> Filtra el listado docente
+      </h3>
+      <form method="get" class="professors-search-form">
+        <div class="professors-search-input-wrapper">
+          <i class="fas fa-search"></i>
+          <input 
+            type="text" 
+            name="q_profesor" 
+            class="professors-search-input" 
+            placeholder="Buscar por nombre, apellido o código..." 
+            value="{{ q_profesor }}"
           >
         </div>
-        <div class="teachers-search__actions">
-          <button type="submit" class="teachers-btn teachers-btn--primary">
-            <i class="fas fa-search"></i>
-            <span>Buscar</span>
-          </button>
-          {% if filtro_profesor %}
-            <a href="{% url 'listar_profesores' %}" class="teachers-btn teachers-btn--ghost">
-              <i class="fas fa-times"></i>
-              <span>Limpiar</span>
-            </a>
-          {% endif %}
-        </div>
+        <button type="submit" class="btn-search">
+          <i class="fas fa-filter"></i> Buscar
+        </button>
       </form>
     </section>
 
-    <section class="teachers-table">
-      <div class="teachers-table__head">
-        <h3 class="teachers-table__title">
-          <i class="fas fa-scroll"></i>
-          Listado de profesores
-        </h3>
-        <span class="teachers-table__meta">
-          {% if filtro_profesor %}
-            Filtro aplicado: "{{ filtro_profesor }}"
-          {% else %}
-            Total docentes: {{ total_profesores }}
-          {% endif %}
-        </span>
+    <!-- Table -->
+    <section class="professors-table-container">
+      <div class="professors-table-header">
+        <h3><i class="fas fa-list"></i> Listado de profesores</h3>
       </div>
 
       {% if profesores %}
-        <div class="teachers-table__scroll">
-          <table class="teachers-table__table">
+        <div class="table-responsive">
+          <table class="professors-table">
             <thead>
               <tr>
                 <th>Código</th>
                 <th>Profesor</th>
                 <th>Contacto</th>
+                <th>Especialidad</th>
                 <th>Estado</th>
-                <th>Asignaciones</th>
                 <th>Acciones</th>
               </tr>
             </thead>
@@ -707,102 +490,75 @@
               {% for profesor in profesores %}
                 <tr>
                   <td>
-                    <span class="teachers-table__code">
-                      <i class="fas fa-hashtag"></i>
-                      {{ profesor.codigo_profesor|default:"—" }}
+                    <span style="font-family: monospace; color: #8b5cf6; font-weight: 600;">
+                      #{{ profesor.codigo_profesor|default:"--" }}
                     </span>
                   </td>
                   <td>
-                    <div class="teachers-table__teacher">
-                      <span class="teachers-table__avatar"><i class="fas fa-chalkboard-teacher"></i></span>
-                      <div>
-                        <span class="teachers-table__name">
-                          {{ profesor.primer_nombre }} {{ profesor.segundo_nombre|default:"" }} {{ profesor.apellido_paterno }} {{ profesor.apellido_materno|default:"" }}
-                        </span>
-                        {% if profesor.user %}
-                          <span class="teachers-table__badge">
-                            <i class="fas fa-user"></i>
-                            Usuario: {{ profesor.user.username }}
-                          </span>
+                    <div class="professor-info">
+                      <div class="professor-avatar">
+                        {{ profesor.primer_nombre|first }}{{ profesor.apellido_paterno|first }}
+                      </div>
+                      <div class="professor-details">
+                        <h4>{{ profesor.primer_nombre }} {{ profesor.apellido_paterno }}</h4>
+                        <div class="professor-meta">
+                          <span><i class="fas fa-id-card"></i> {{ profesor.rut }}</span>
+                          {% if profesor.user %}
+                            <span><i class="fas fa-user"></i> {{ profesor.user.username }}</span>
+                          {% endif %}
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="professor-details">
+                      <div class="professor-meta" style="flex-direction: column; gap: 0.25rem;">
+                        {% if profesor.email %}
+                          <span><i class="fas fa-envelope"></i> {{ profesor.email }}</span>
                         {% endif %}
-                        {% if profesor.fecha_contratacion %}
-                          <span class="teachers-table__meta">
-                            <i class="fas fa-calendar"></i>
-                            Ingreso: {{ profesor.fecha_contratacion|date:"d/m/Y" }}
-                          </span>
+                        {% if profesor.telefono %}
+                          <span><i class="fas fa-phone"></i> {{ profesor.telefono }}</span>
                         {% endif %}
                       </div>
                     </div>
                   </td>
                   <td>
-                    <div class="teachers-contact">
-                      <span>
-                        <i class="fas fa-envelope"></i>
-                        {{ profesor.email|default:"Sin correo" }}
-                      </span>
-                      <span>
-                        <i class="fas fa-phone"></i>
-                        {{ profesor.telefono|default:"Sin teléfono" }}
-                      </span>
-                    </div>
-                  </td>
-                  <td>
-                    {% if profesor.user and profesor.user.is_active %}
-                      <span class="teachers-status teachers-status--active">
-                        <i class="fas fa-circle"></i>
-                        Activo
+                    {% if profesor.especialidad %}
+                      <span class="status-badge status-badge--active" style="background: #f5f3ff; color: #7c3aed;">
+                        <i class="fas fa-star"></i> {{ profesor.especialidad }}
                       </span>
                     {% else %}
-                      <span class="teachers-status teachers-status--inactive">
-                        <i class="fas fa-circle"></i>
-                        Inactivo
+                      <span class="status-badge status-badge--inactive" style="background: #f1f5f9; color: #64748b;">
+                        Sin especialidad
                       </span>
                     {% endif %}
                   </td>
                   <td>
-                    <div class="teachers-assignments">
-                      {% if profesor.cursos_jefatura.exists %}
-                        {% for curso in profesor.cursos_jefatura.all %}
-                          <span class="teachers-chip teachers-chip--success">
-                            <i class="fas fa-user-tie"></i>
-                            {{ curso.get_nivel_display }}{{ curso.paralelo }} · Profesor jefe
-                          </span>
-                        {% endfor %}
-                      {% else %}
-                        <span class="teachers-chip teachers-chip--muted">
-                          <i class="fas fa-minus"></i>
-                          Sin curso jefe asignado
-                        </span>
-                        {% if profesor.especialidad %}
-                          <span class="teachers-chip__note">Especialidad: {{ profesor.especialidad }}</span>
-                        {% endif %}
-                      {% endif %}
-                    </div>
+                    {% if profesor.user and profesor.user.is_active %}
+                      <span class="status-badge status-badge--active">
+                        <span class="status-dot"></span> Activo
+                      </span>
+                    {% else %}
+                      <span class="status-badge status-badge--inactive">
+                        <span class="status-dot"></span> Inactivo
+                      </span>
+                    {% endif %}
                   </td>
                   <td>
-                    <div class="teachers-actions">
-                      <a
-                        href="{% url 'modificar' %}?tipo=profesor&id={{ profesor.id }}"
-                        class="teachers-action-btn teachers-action-btn--primary"
-                        title="Editar profesor"
-                      >
+                    <div style="display: flex;">
+                      <a href="{% url 'gestionar_profesor' profesor.id %}" class="action-btn action-btn--edit" title="Editar">
                         <i class="fas fa-edit"></i>
                       </a>
-                      <button
-                        type="button"
-                        class="teachers-action-btn teachers-action-btn--danger"
-                        onclick="confirmarEliminacion('{{ profesor.primer_nombre }} {{ profesor.apellido_paterno }}', {{ profesor.id }})"
-                        title="Eliminar profesor"
-                      >
-                        <i class="fas fa-trash"></i>
-                      </button>
+                      <form method="post" action="{% url 'eliminar' %}?tipo=profesor" style="display: inline;" onsubmit="return confirm('¿Está seguro de eliminar este profesor?');">
+                        {% csrf_token %}
+                        <input type="hidden" name="eliminar_por_id" value="true">
+                        <input type="hidden" name="id_a_eliminar" value="{{ profesor.id }}">
+                        <button type="submit" class="action-btn action-btn--delete" title="Eliminar">
+                          <i class="fas fa-trash"></i>
+                        </button>
+                      </form>
                       {% if profesor.user %}
-                        <button
-                          type="button"
-                          class="teachers-action-btn teachers-action-btn--warning"
-                          onclick="resetPassword({{ profesor.id }})"
-                          title="Resetear contraseña"
-                        >
+                        <button type="button" class="action-btn action-btn--key" title="Resetear contraseña" onclick="resetPassword('{{ profesor.id }}')">
                           <i class="fas fa-key"></i>
                         </button>
                       {% endif %}
@@ -814,22 +570,10 @@
           </table>
         </div>
       {% else %}
-        <div class="teachers-empty">
+        <div class="empty-state">
           <i class="fas fa-chalkboard-teacher"></i>
-          <h5>No se encontraron profesores</h5>
-          {% if filtro_profesor %}
-            <p>No hay docentes que coincidan con el filtro "{{ filtro_profesor }}".</p>
-            <a href="{% url 'listar_profesores' %}">
-              <i class="fas fa-redo"></i>
-              Ver todos los profesores
-            </a>
-          {% else %}
-            <p>Aún no hay profesores registrados en el sistema.</p>
-            <a href="{% url 'agregar' %}?tipo=profesor">
-              <i class="fas fa-plus"></i>
-              Agregar primer profesor
-            </a>
-          {% endif %}
+          <h4>No se encontraron profesores</h4>
+          <p>Intenta ajustar los filtros de búsqueda o agrega un nuevo profesor.</p>
         </div>
       {% endif %}
     </section>
@@ -837,41 +581,27 @@
 </div>
 
 <script>
-function confirmarEliminacion(nombreProfesor, profesorId) {
-  if (confirm(`¿Está seguro de que desea eliminar al profesor "${nombreProfesor}"?\n\nEsta acción no se puede deshacer.`)) {
-    window.location.href = `/profesores/eliminar/${profesorId}/`;
-  }
-}
-
 function resetPassword(profesorId) {
-  const csrfInput = document.querySelector('#teachers-csrf-form [name=csrfmiddlewaretoken]');
-  const csrfToken = csrfInput ? csrfInput.value : '';
-
-  if (!csrfToken) {
-    alert('No se pudo obtener el token CSRF. Intente refrescar la página.');
-    return;
-  }
-
-  if (confirm('¿Está seguro de que desea resetear la contraseña de este profesor?')) {
-    fetch(`/reset-password-profesor/${profesorId}/`, {
-      method: 'POST',
-      headers: {
-        'X-CSRFToken': csrfToken,
-      },
-    })
-      .then(response => response.json())
-      .then(data => {
-        if (data.success) {
-          alert(`Contraseña reseteada. Nueva contraseña: ${data.new_password}`);
-        } else {
-          alert('Error al resetear la contraseña');
-        }
-      })
-      .catch(error => {
-        alert('Error al resetear la contraseña');
-        console.error('Error:', error);
-      });
-  }
+    if(confirm('¿Está seguro de resetear la contraseña de este profesor?')) {
+        fetch(`/reset-password-profesor/${profesorId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if(data.success) {
+                alert('Contraseña reseteada exitosamente. Nueva contraseña: ' + data.new_password);
+            } else {
+                alert('Error: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Ocurrió un error al procesar la solicitud.');
+        });
+    }
 }
 </script>
 {% endblock %}

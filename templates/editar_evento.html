@@ -1,264 +1,347 @@
 {% extends "index_master.html" %}
 {% load widget_tweaks %}
 
+{% block extra_css %}
+<style>
+    /* Modern Reset & Variables */
+    :root {
+        --primary: #4f46e5;
+        --primary-dark: #4338ca;
+        --secondary: #64748b;
+        --success: #10b981;
+        --danger: #ef4444;
+        --warning: #f59e0b;
+        --info: #3b82f6;
+        --dark: #0f172a;
+        --light: #f8fafc;
+        --white: #ffffff;
+        --border: #e2e8f0;
+        --text-main: #1e293b;
+        --text-muted: #64748b;
+        --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        --radius: 0.75rem;
+    }
+
+    /* Layout & Typography */
+    .event-form-container {
+        font-family: 'Inter', 'Segoe UI', sans-serif;
+        background-color: #f1f5f9;
+        padding: 2rem;
+        min-height: 100vh;
+    }
+
+    .modern-card {
+        background: var(--white);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-md);
+        border: 1px solid var(--border);
+        margin-bottom: 2rem;
+        overflow: hidden;
+    }
+
+    .card-header-custom {
+        background: linear-gradient(135deg, var(--dark) 0%, #1e293b 100%);
+        padding: 2rem;
+        color: white;
+        position: relative;
+    }
+
+    .card-header-custom::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--primary), var(--info));
+    }
+
+    .card-body-custom {
+        padding: 2.5rem;
+    }
+
+    /* Form Elements */
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        display: block;
+        font-weight: 600;
+        color: var(--text-main);
+        margin-bottom: 0.5rem;
+        font-size: 0.95rem;
+    }
+
+    .form-control {
+        display: block;
+        width: 100%;
+        height: 45px;
+        padding: 0.75rem 1rem;
+        font-size: 1rem;
+        line-height: 1.5;
+        color: var(--text-main);
+        background-color: #fff;
+        background-clip: padding-box;
+        border: 1px solid var(--border);
+        border-radius: 0.5rem;
+        box-shadow: var(--shadow-sm);
+        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    }
+
+    .form-control:focus {
+        border-color: var(--primary);
+        outline: 0;
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    }
+
+    .btn-custom {
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        border-radius: 0.5rem;
+        transition: all 0.2s;
+    }
+
+    .btn-primary-custom {
+        background-color: var(--primary);
+        color: white;
+        border: none;
+    }
+
+    .btn-primary-custom:hover {
+        background-color: var(--primary-dark);
+        transform: translateY(-1px);
+    }
+    
+    .btn-secondary-custom {
+        background-color: var(--white);
+        color: var(--text-main);
+        border: 1px solid var(--border);
+    }
+    
+    .btn-secondary-custom:hover {
+        background-color: var(--light);
+        border-color: var(--secondary);
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="right_col" role="main">
-  <div class="container-fluid">
-    <!-- Header -->
-    <div class="row mb-4">
-      <div class="col-12">
-        <div class="d-flex align-items-center">
-          <a href="{% url 'calendario' %}" class="btn btn-outline-secondary me-3" title="Volver al calendario">
-            <i class="fas fa-arrow-left"></i>
-          </a>
-          <div>
-            <h1 class="mb-1">
-              <i class="fas fa-edit text-primary me-2"></i>Editar Evento
-            </h1>
-            <p class="text-muted mb-0">Modifica la información del evento: <strong>{{ evento.titulo }}</strong></p>
-          </div>
+    <div class="event-form-container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8 col-md-10">
+                <!-- Header Navigation -->
+                <div class="d-flex align-items-center mb-4">
+                    <a href="{% url 'calendario' %}" class="btn btn-secondary-custom me-3">
+                        <i class="fas fa-arrow-left"></i> Volver
+                    </a>
+                    <div>
+                        <h2 class="mb-1 fw-bold text-dark">Editar Evento</h2>
+                        <p class="text-muted mb-0">Gestión de calendario académico</p>
+                    </div>
+                </div>
+
+                <!-- Main Card -->
+                <div class="modern-card">
+                    <div class="card-header-custom">
+                        <h3 class="mb-0"><i class="fas fa-edit me-2"></i>{{ evento.titulo }}</h3>
+                        <p class="mb-0 opacity-75 mt-2">Modifica los detalles del evento a continuación</p>
+                    </div>
+
+                    <div class="card-body-custom">
+                        <form method="post" id="editarEventoForm">
+                            {% csrf_token %}
+                            
+                            <!-- Basic Info Section -->
+                            <h5 class="mb-4 text-primary fw-bold border-bottom pb-2">Información General</h5>
+                            
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <div class="form-group">
+                                        <label class="form-label">{{ form.titulo.label }} <span class="text-danger">*</span></label>
+                                        {% render_field form.titulo class="form-control" placeholder="Ej: Reunión de Apoderados" %}
+                                        {% if form.titulo.errors %}
+                                            <div class="text-danger small mt-1">{{ form.titulo.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label class="form-label">{{ form.fecha.label }} <span class="text-danger">*</span></label>
+                                        {% render_field form.fecha class="form-control" type="date" %}
+                                        {% if form.fecha.errors %}
+                                            <div class="text-danger small mt-1">{{ form.fecha.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">{{ form.hora_inicio.label }}</label>
+                                        {% render_field form.hora_inicio class="form-control" type="time" %}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">{{ form.hora_fin.label }}</label>
+                                        {% render_field form.hora_fin class="form-control" type="time" %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Details Section -->
+                            <h5 class="mb-4 mt-4 text-primary fw-bold border-bottom pb-2">Detalles y Clasificación</h5>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">{{ form.tipo_evento.label }}</label>
+                                        {% render_field form.tipo_evento class="form-control" %}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">{{ form.prioridad.label }}</label>
+                                        {% render_field form.prioridad class="form-control" %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">{{ form.descripcion.label }}</label>
+                                {% render_field form.descripcion class="form-control" rows="4" placeholder="Describe los detalles del evento..." %}
+                            </div>
+
+                            <!-- Audience Section -->
+                            <h5 class="mb-4 mt-4 text-primary fw-bold border-bottom pb-2">Audiencia</h5>
+
+                            <div class="bg-light p-4 rounded-3 mb-4 border">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold mb-3">¿A quién va dirigido este evento?</label>
+                                    
+                                    <div class="d-flex flex-column gap-2">
+                                        <!-- Opción: Para todos -->
+                                        <div class="form-check custom-radio mb-2">
+                                            <input class="form-check-input" type="radio" name="audiencia" id="audiencia_todos" value="todos" 
+                                                {% if evento.para_todos_los_cursos %}checked{% endif %}>
+                                            <label class="form-check-label" for="audiencia_todos">
+                                                <i class="fas fa-globe me-2 text-success"></i>Para todos los cursos (General)
+                                            </label>
+                                        </div>
+
+                                        <!-- Opción: Solo Profesores -->
+                                        <div class="form-check custom-radio mb-2">
+                                            <input class="form-check-input" type="radio" name="audiencia" id="audiencia_profesores" value="profesores"
+                                                {% if evento.solo_profesores %}checked{% endif %}>
+                                            <label class="form-check-label" for="audiencia_profesores">
+                                                <i class="fas fa-chalkboard-teacher me-2 text-info"></i>Solo para Profesores
+                                            </label>
+                                        </div>
+
+                                        <!-- Opción: Solo Apoderados -->
+                                        <div class="form-check custom-radio mb-2">
+                                            <input class="form-check-input" type="radio" name="audiencia" id="audiencia_apoderados" value="apoderados"
+                                                {% if evento.solo_apoderados %}checked{% endif %}>
+                                            <label class="form-check-label" for="audiencia_apoderados">
+                                                <i class="fas fa-user-friends me-2 text-warning"></i>Solo para Apoderados
+                                            </label>
+                                        </div>
+
+                                        <!-- Opción: Cursos Específicos -->
+                                        <div class="form-check custom-radio mb-2">
+                                            <input class="form-check-input" type="radio" name="audiencia" id="audiencia_cursos" value="cursos"
+                                                {% if not evento.para_todos_los_cursos and not evento.solo_profesores and not evento.solo_apoderados %}checked{% endif %}>
+                                            <label class="form-check-label" for="audiencia_cursos">
+                                                <i class="fas fa-layer-group me-2 text-primary"></i>Cursos Específicos
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Hidden Checkboxes mapped to model fields -->
+                                <div class="d-none">
+                                    {% render_field form.para_todos_los_cursos %}
+                                    {% render_field form.solo_profesores %}
+                                    {% render_field form.solo_apoderados %}
+                                </div>
+
+                                <div id="cursosEspecificos" class="mt-3 ps-4 border-start border-3 border-primary" style="display: none;">
+                                    <label class="form-label mb-3 fw-bold text-primary">Seleccionar Cursos:</label>
+                                    <div class="row g-3" style="max-height: 200px; overflow-y: auto;">
+                                        {% for curso in form.cursos %}
+                                            <div class="col-md-4 col-sm-6">
+                                                <div class="form-check">
+                                                    {{ curso.tag }}
+                                                    <label class="form-check-label" for="{{ curso.id_for_label }}">
+                                                        {{ curso.choice_label }}
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Actions -->
+                            <div class="d-flex justify-content-end gap-3 mt-5">
+                                <a href="{% url 'calendario' %}" class="btn btn-secondary-custom me-2">Cancelar</a>
+                                <button type="submit" class="btn btn-primary-custom px-5">
+                                    <i class="fas fa-save me-2"></i>Guardar Cambios
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
     </div>
-
-    <!-- Mensajes -->
-    {% if messages %}
-      {% for message in messages %}
-        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-          <i class="fas fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}exclamation-triangle{% else %}info-circle{% endif %} me-2"></i>
-          {{ message }}
-          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-      {% endfor %}
-    {% endif %}
-
-    <div class="row justify-content-center">
-      <div class="col-lg-8">
-        <div class="card shadow-sm">
-          <div class="card-header bg-warning text-dark">
-            <h5 class="mb-0">
-              <i class="fas fa-calendar-edit me-2"></i>Editando: {{ evento.titulo }}
-            </h5>
-          </div>
-          
-          <div class="card-body p-4">
-            <form method="post" id="editarEventoForm">
-              {% csrf_token %}
-              
-              <!-- Información básica -->
-              <div class="row mb-3">
-                <div class="col-md-8">
-                  <label class="form-label fw-bold">
-                    <i class="fas fa-heading me-1 text-primary"></i>{{ form.titulo.label }} *
-                  </label>
-                  {% render_field form.titulo %}
-                  {% if form.titulo.errors %}
-                    <div class="text-danger mt-1">
-                      {% for error in form.titulo.errors %}
-                        <small>{{ error }}</small>
-                      {% endfor %}
-                    </div>
-                  {% endif %}
-                </div>
-                
-                <div class="col-md-4">
-                  <label class="form-label fw-bold">
-                    <i class="fas fa-calendar me-1 text-primary"></i>{{ form.fecha.label }} *
-                  </label>
-                  {% render_field form.fecha %}
-                  {% if form.fecha.errors %}
-                    <div class="text-danger mt-1">
-                      {% for error in form.fecha.errors %}
-                        <small>{{ error }}</small>
-                      {% endfor %}
-                    </div>
-                  {% endif %}
-                </div>
-              </div>
-              
-              <!-- Horas -->
-              <div class="row mb-3">
-                <div class="col-md-6">
-                  <label class="form-label fw-bold">
-                    <i class="fas fa-clock me-1 text-primary"></i>{{ form.hora_inicio.label }}
-                  </label>
-                  {% render_field form.hora_inicio %}
-                  {% if form.hora_inicio.errors %}
-                    <div class="text-danger mt-1">
-                      {% for error in form.hora_inicio.errors %}
-                        <small>{{ error }}</small>
-                      {% endfor %}
-                    </div>
-                  {% endif %}
-                  <small class="form-text text-muted">{{ form.hora_inicio.help_text }}</small>
-                </div>
-                
-                <div class="col-md-6">
-                  <label class="form-label fw-bold">
-                    <i class="fas fa-clock me-1 text-primary"></i>{{ form.hora_fin.label }}
-                  </label>
-                  {% render_field form.hora_fin %}
-                  {% if form.hora_fin.errors %}
-                    <div class="text-danger mt-1">
-                      {% for error in form.hora_fin.errors %}
-                        <small>{{ error }}</small>
-                      {% endfor %}
-                    </div>
-                  {% endif %}
-                  <small class="form-text text-muted">{{ form.hora_fin.help_text }}</small>
-                </div>
-              </div>
-              
-              <!-- Tipo y prioridad -->
-              <div class="row mb-3">
-                <div class="col-md-6">
-                  <label class="form-label fw-bold">
-                    <i class="fas fa-tag me-1 text-primary"></i>{{ form.tipo_evento.label }}
-                  </label>
-                  {% render_field form.tipo_evento %}
-                  {% if form.tipo_evento.errors %}
-                    <div class="text-danger mt-1">
-                      {% for error in form.tipo_evento.errors %}
-                        <small>{{ error }}</small>
-                      {% endfor %}
-                    </div>
-                  {% endif %}
-                </div>
-                
-                <div class="col-md-6">
-                  <label class="form-label fw-bold">
-                    <i class="fas fa-exclamation-circle me-1 text-primary"></i>{{ form.prioridad.label }}
-                  </label>
-                  {% render_field form.prioridad %}
-                  {% if form.prioridad.errors %}
-                    <div class="text-danger mt-1">
-                      {% for error in form.prioridad.errors %}
-                        <small>{{ error }}</small>
-                      {% endfor %}
-                    </div>
-                  {% endif %}
-                </div>
-              </div>
-              
-              <!-- Descripción -->
-              <div class="mb-3">
-                <label class="form-label fw-bold">
-                  <i class="fas fa-align-left me-1 text-primary"></i>{{ form.descripcion.label }}
-                </label>
-                {% render_field form.descripcion %}
-                {% if form.descripcion.errors %}
-                  <div class="text-danger mt-1">
-                    {% for error in form.descripcion.errors %}
-                      <small>{{ error }}</small>
-                    {% endfor %}
-                  </div>
-                {% endif %}
-                <small class="form-text text-muted">{{ form.descripcion.help_text }}</small>
-              </div>
-              
-              <!-- Dirigido a -->
-              <div class="mb-4">
-                <label class="form-label fw-bold">
-                  <i class="fas fa-users me-1 text-primary"></i>Dirigido a
-                </label>
-                
-                <div class="row">
-                  <div class="col-md-4">
-                    <div class="form-check">
-                      {% render_field form.para_todos_los_cursos %}
-                      <label class="form-check-label" for="{{ form.para_todos_los_cursos.id_for_label }}">
-                        {{ form.para_todos_los_cursos.label }}
-                      </label>
-                    </div>
-                  </div>
-                  
-                  <div class="col-md-4">
-                    <div class="form-check">
-                      {% render_field form.solo_profesores %}
-                      <label class="form-check-label" for="{{ form.solo_profesores.id_for_label }}">
-                        {{ form.solo_profesores.label }}
-                      </label>
-                    </div>
-                  </div>
-                </div>
-                
-                <!-- Cursos específicos -->
-                <div id="cursosEspecificos" class="mt-3" style="{% if evento.para_todos_los_cursos or evento.solo_profesores %}display: none;{% endif %}">
-                  <label class="form-label fw-bold">
-                    <i class="fas fa-school me-1 text-primary"></i>{{ form.cursos.label }}
-                  </label>
-                  
-                  <div class="row">
-                    {% for curso in form.cursos %}
-                      <div class="col-md-6 mb-2">
-                        <div class="form-check">
-                          {{ curso.tag }}
-                          <label class="form-check-label" for="{{ curso.id_for_label }}">
-                            {{ curso.choice_label }}
-                          </label>
-                        </div>
-                      </div>
-                    {% endfor %}
-                  </div>
-                  
-                  {% if form.cursos.errors %}
-                    <div class="text-danger mt-1">
-                      {% for error in form.cursos.errors %}
-                        <small>{{ error }}</small>
-                      {% endfor %}
-                    </div>
-                  {% endif %}
-                </div>
-              </div>
-
-              <!-- Errores no de campo -->
-              {% if form.non_field_errors %}
-                <div class="alert alert-danger">
-                  {% for error in form.non_field_errors %}
-                    <div>{{ error }}</div>
-                  {% endfor %}
-                </div>
-              {% endif %}
-
-              <!-- Botones de acción -->
-              <div class="d-flex justify-content-between">
-                <a href="{% url 'calendario' %}" class="btn btn-secondary">
-                  <i class="fas fa-times me-1"></i>Cancelar
-                </a>
-                
-                <div>
-                  <button type="submit" class="btn btn-warning">
-                    <i class="fas fa-save me-1"></i>Actualizar Evento
-                  </button>
-                </div>
-              </div>
-            </form>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
 </div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  // Manejar visibilidad de cursos específicos
-  const paraTodos = document.getElementById('{{ form.para_todos_los_cursos.id_for_label }}');
-  const soloProfesores = document.getElementById('{{ form.solo_profesores.id_for_label }}');
+  // Elementos del DOM
+  const radiosAudiencia = document.querySelectorAll('input[name="audiencia"]');
   const cursosDiv = document.getElementById('cursosEspecificos');
   
-  function toggleCursosEspecificos() {
-    if (paraTodos && soloProfesores && cursosDiv) {
-      if (paraTodos.checked || soloProfesores.checked) {
-        cursosDiv.style.display = 'none';
-      } else {
+  // Checkboxes ocultos del modelo
+  const checkParaTodos = document.getElementById('{{ form.para_todos_los_cursos.id_for_label }}');
+  const checkSoloProfesores = document.getElementById('{{ form.solo_profesores.id_for_label }}');
+  const checkSoloApoderados = document.getElementById('{{ form.solo_apoderados.id_for_label }}');
+  
+  function actualizarVisibilidad() {
+    // Obtener valor seleccionado
+    let seleccionado = 'cursos'; // Default
+    radiosAudiencia.forEach(radio => {
+        if (radio.checked) seleccionado = radio.value;
+    });
+    
+    // Actualizar visibilidad de cursos
+    if (seleccionado === 'cursos') {
         cursosDiv.style.display = 'block';
-      }
+        // Scroll suave si se selecciona cursos
+        // cursosDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    } else {
+        cursosDiv.style.display = 'none';
     }
+    
+    // Sincronizar checkboxes ocultos
+    if (checkParaTodos) checkParaTodos.checked = (seleccionado === 'todos');
+    if (checkSoloProfesores) checkSoloProfesores.checked = (seleccionado === 'profesores');
+    if (checkSoloApoderados) checkSoloApoderados.checked = (seleccionado === 'apoderados');
   }
   
-  if (paraTodos) paraTodos.addEventListener('change', toggleCursosEspecificos);
-  if (soloProfesores) soloProfesores.addEventListener('change', toggleCursosEspecificos);
+  // Event listeners
+  radiosAudiencia.forEach(radio => {
+      radio.addEventListener('change', actualizarVisibilidad);
+  });
+  
+  // Inicializar estado
+  actualizarVisibilidad();
   
   // Validación del formulario
   document.getElementById('editarEventoForm').addEventListener('submit', function(e) {
@@ -283,12 +366,17 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }
     
-    // Validar cursos específicos
-    if (paraTodos && soloProfesores && !paraTodos.checked && !soloProfesores.checked) {
+    // Validar selección de audiencia
+    let seleccionado = 'cursos';
+    radiosAudiencia.forEach(radio => {
+        if (radio.checked) seleccionado = radio.value;
+    });
+    
+    if (seleccionado === 'cursos') {
       const cursosSeleccionados = document.querySelectorAll('input[name="cursos"]:checked');
       if (cursosSeleccionados.length === 0) {
         e.preventDefault();
-        alert('Debes seleccionar al menos un curso específico o marcar una opción general.');
+        alert('Debes seleccionar al menos un curso específico.');
         if (cursosDiv) cursosDiv.scrollIntoView({ behavior: 'smooth' });
         return false;
       }

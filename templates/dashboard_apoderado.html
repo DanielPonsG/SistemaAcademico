@@ -540,47 +540,60 @@
             </div>
 
             <!-- Schedule Preview -->
-            {% if info.horarios_semana %}
-              <div class="section-card">
-                <div class="section-header">
-                  <div class="section-title">
-                    <i class="far fa-clock"></i> Horario Semanal
-                  </div>
-                  <a href="{% url 'ver_horario_estudiante_apoderado' info.estudiante.id %}" class="btn btn-sm btn-outline-primary">Ver Completo</a>
+            <div class="section-card">
+              <div class="section-header">
+                <div class="section-title">
+                  <i class="far fa-clock"></i> Horario Semanal
                 </div>
+                <a href="{% url 'ver_horario_estudiante_apoderado' info.estudiante.id %}" class="btn btn-sm btn-outline-primary">
+                  <i class="fas fa-external-link-alt me-1"></i> Ver Completo
+                </a>
+              </div>
+              
+              {% if info.horarios_semana %}
                 <div class="table-responsive">
-                  <table class="table table-sm table-borderless">
-                    <thead class="text-muted small">
+                  <table class="table table-bordered table-sm mb-0" style="font-size: 0.8rem;">
+                    <thead class="bg-light text-center">
                       <tr>
-                        <th>Hora</th>
-                        <th>Lun</th>
-                        <th>Mar</th>
-                        <th>Mié</th>
-                        <th>Jue</th>
-                        <th>Vie</th>
+                        <th style="width: 15%;">Hora</th>
+                        <th style="width: 17%;">Lun</th>
+                        <th style="width: 17%;">Mar</th>
+                        <th style="width: 17%;">Mié</th>
+                        <th style="width: 17%;">Jue</th>
+                        <th style="width: 17%;">Vie</th>
                       </tr>
                     </thead>
-                    <tbody style="font-size: 0.85rem;">
+                    <tbody>
                       {% for hora, clases in info.horarios_semana.items|slice:":5" %}
                         <tr>
-                          <td class="fw-bold text-secondary" style="white-space: nowrap;">{{ hora }}</td>
+                          <td class="text-center align-middle fw-bold text-muted bg-light">{{ hora }}</td>
                           {% for dia_code in "01234"|make_list %}
-                            <td class="text-center">
+                            <td class="p-1 align-middle text-center">
                               {% for clase in clases %}
                                 {% if dia_code == '0' and clase.dia == 'LU' %}
-                                  <div class="badge bg-light text-dark border">{{ clase.asignatura.nombre|truncatechars:10 }}</div>
+                                  <div class="p-1 rounded bg-primary text-white fw-bold small mb-1 shadow-sm" style="font-size: 0.75rem;">
+                                    {{ clase.asignatura.nombre|truncatechars:12 }}
+                                  </div>
                                 {% endif %}
                                 {% if dia_code == '1' and clase.dia == 'MA' %}
-                                  <div class="badge bg-light text-dark border">{{ clase.asignatura.nombre|truncatechars:10 }}</div>
+                                  <div class="p-1 rounded bg-primary text-white fw-bold small mb-1 shadow-sm" style="font-size: 0.75rem;">
+                                    {{ clase.asignatura.nombre|truncatechars:12 }}
+                                  </div>
                                 {% endif %}
                                 {% if dia_code == '2' and clase.dia == 'MI' %}
-                                  <div class="badge bg-light text-dark border">{{ clase.asignatura.nombre|truncatechars:10 }}</div>
+                                  <div class="p-1 rounded bg-primary text-white fw-bold small mb-1 shadow-sm" style="font-size: 0.75rem;">
+                                    {{ clase.asignatura.nombre|truncatechars:12 }}
+                                  </div>
                                 {% endif %}
                                 {% if dia_code == '3' and clase.dia == 'JU' %}
-                                  <div class="badge bg-light text-dark border">{{ clase.asignatura.nombre|truncatechars:10 }}</div>
+                                  <div class="p-1 rounded bg-primary text-white fw-bold small mb-1 shadow-sm" style="font-size: 0.75rem;">
+                                    {{ clase.asignatura.nombre|truncatechars:12 }}
+                                  </div>
                                 {% endif %}
                                 {% if dia_code == '4' and clase.dia == 'VI' %}
-                                  <div class="badge bg-light text-dark border">{{ clase.asignatura.nombre|truncatechars:10 }}</div>
+                                  <div class="p-1 rounded bg-primary text-white fw-bold small mb-1 shadow-sm" style="font-size: 0.75rem;">
+                                    {{ clase.asignatura.nombre|truncatechars:12 }}
+                                  </div>
                                 {% endif %}
                               {% endfor %}
                             </td>
@@ -590,8 +603,13 @@
                     </tbody>
                   </table>
                 </div>
-              </div>
-            {% endif %}
+              {% else %}
+                <div class="text-center py-4 text-muted">
+                  <i class="far fa-calendar-times fa-2x mb-2"></i>
+                  <p class="mb-0">No hay horario disponible para visualizar.</p>
+                </div>
+              {% endif %}
+            </div>
 
           </div>
 

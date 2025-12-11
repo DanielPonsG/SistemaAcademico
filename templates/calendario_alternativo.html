@@ -316,6 +316,11 @@
                 <input type="radio" name="dirigido_a" value="solo_profesores" onchange="toggleCursosModal(false)"> Solo profesores
               </label>
             </div>
+            <div class="radio">
+              <label>
+                <input type="radio" name="dirigido_a" value="solo_apoderados" onchange="toggleCursosModal(false)"> Solo apoderados
+              </label>
+            </div>
             {% if cursos %}
             <div class="radio">
               <label>
@@ -561,7 +566,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         $.ajax({
-            url: window.location.href,
+            url: "{% url 'agregar_evento' %}",
             type: 'POST',
             data: formData,
             processData: false,

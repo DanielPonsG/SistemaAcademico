@@ -1,229 +1,276 @@
 {% extends "index_master.html" %}
+{% load static %}
 {% load widget_tweaks %}
 
 {% block extra_css %}
 <style>
-  :root {
-    --primary-color: #4f46e5;
-    --primary-light: #eef2ff;
-    --text-dark: #1e293b;
-    --text-gray: #64748b;
-    --bg-light: #f8fafc;
-    --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    --card-shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  }
-
-  .guardians-screen {
+  /* Premium Design for Guardians Page */
+  .guardians-page {
     padding: 2rem;
-    background-color: var(--bg-light);
-    min-height: calc(100vh - 60px);
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background-color: #f8f9fa;
+    min-height: 100vh;
+    font-family: 'Inter', sans-serif;
   }
 
   /* Header Section */
-  .page-header {
+  .guardians-header {
+    background: white;
+    padding: 1.5rem 2rem;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    margin-bottom: 2rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 2rem;
     flex-wrap: wrap;
     gap: 1rem;
   }
 
-  .header-title h1 {
-    font-size: 1.875rem;
-    font-weight: 800;
-    color: var(--text-dark);
+  .guardians-title h2 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #1e293b;
     margin: 0;
-    letter-spacing: -0.025em;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
   }
 
-  .header-title p {
-    color: var(--text-gray);
-    margin-top: 0.5rem;
+  .guardians-title h2 i {
+    color: #4f46e5; /* Indigo for guardians */
+  }
+
+  .guardians-subtitle {
+    color: #64748b;
+    margin: 0.5rem 0 0;
     font-size: 0.95rem;
   }
 
-  .btn-premium {
+  .btn-new-guardian {
     background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
     color: white;
-    padding: 0.75rem 1.5rem;
-    border-radius: 0.75rem;
-    font-weight: 600;
     border: none;
-    box-shadow: 0 4px 6px rgba(79, 70, 229, 0.2);
-    transition: all 0.2s ease;
-    display: inline-flex;
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    font-weight: 600;
+    display: flex;
     align-items: center;
     gap: 0.5rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
+    text-decoration: none;
   }
 
-  .btn-premium:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 6px 12px rgba(79, 70, 229, 0.3);
+  .btn-new-guardian:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(79, 70, 229, 0.3);
     color: white;
   }
 
-  /* Metrics Grid */
-  .metrics-grid {
+  /* Stats Cards */
+  .guardians-stats {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
     gap: 1.5rem;
     margin-bottom: 2rem;
   }
 
-  .metric-card {
+  .guardians-stat-card {
     background: white;
-    border-radius: 1rem;
     padding: 1.5rem;
-    box-shadow: var(--card-shadow);
-    border: 1px solid rgba(226, 232, 240, 0.8);
+    border-radius: 16px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
     display: flex;
     align-items: center;
-    gap: 1.25rem;
-    transition: transform 0.2s ease;
+    gap: 1rem;
+    transition: transform 0.3s ease;
+    border: 1px solid rgba(0,0,0,0.05);
+    position: relative;
+    overflow: hidden;
   }
 
-  .metric-card:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--card-shadow-hover);
+  .guardians-stat-card:hover {
+    transform: translateY(-5px);
   }
 
-  .metric-icon-wrapper {
-    width: 56px;
-    height: 56px;
-    border-radius: 1rem;
+  .guardians-stat-card::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 6px;
+  }
+
+  .guardians-stat-card--primary::after { background: #4f46e5; }
+  .guardians-stat-card--success::after { background: #10b981; }
+  .guardians-stat-card--info::after { background: #0ea5e9; }
+  .guardians-stat-card--warning::after { background: #f59e0b; }
+
+  .guardians-stat-card__icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 1.5rem;
-    flex-shrink: 0;
   }
 
-  .metric-blue { background: #e0e7ff; color: #4338ca; }
-  .metric-green { background: #dcfce7; color: #15803d; }
-  .metric-purple { background: #f3e8ff; color: #7e22ce; }
+  .guardians-stat-card--primary .guardians-stat-card__icon { background: #eef2ff; color: #4f46e5; }
+  .guardians-stat-card--success .guardians-stat-card__icon { background: #ecfdf5; color: #10b981; }
+  .guardians-stat-card--info .guardians-stat-card__icon { background: #e0f2fe; color: #0ea5e9; }
+  .guardians-stat-card--warning .guardians-stat-card__icon { background: #fffbeb; color: #f59e0b; }
 
-  .metric-content h3 {
-    font-size: 1.75rem;
+  .guardians-stat-card__metric {
+    font-size: 1.5rem;
     font-weight: 700;
-    color: var(--text-dark);
+    color: #1e293b;
     margin: 0;
     line-height: 1.2;
   }
 
-  .metric-content span {
-    color: var(--text-gray);
+  .guardians-stat-card__label {
+    color: #64748b;
     font-size: 0.875rem;
-    font-weight: 500;
+    margin: 0;
   }
 
-  /* Main Content Card */
-  .content-card {
+  /* Search Section */
+  .guardians-search-section {
     background: white;
-    border-radius: 1.25rem;
-    box-shadow: var(--card-shadow);
-    border: 1px solid rgba(226, 232, 240, 0.8);
-    overflow: hidden;
+    padding: 2rem;
+    border-radius: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    margin-bottom: 2rem;
   }
 
-  /* Filters Toolbar */
-  .filters-toolbar {
-    padding: 1.5rem;
-    border-bottom: 1px solid #f1f5f9;
-    background: #fff;
+  .guardians-search-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 1.5rem;
   }
 
-  .filters-form {
-    display: flex;
+  .search-form-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr auto;
     gap: 1rem;
-    align-items: center;
-    flex-wrap: wrap;
+    align-items: end;
   }
 
-  .search-box {
-    flex: 1;
-    min-width: 280px;
-    position: relative;
+  .form-group {
+    margin-bottom: 0;
   }
 
-  .search-box i {
-    position: absolute;
-    left: 1rem;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #94a3b8;
+  .form-label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #64748b;
+    margin-bottom: 0.5rem;
   }
 
-  .search-box input {
+  .form-control, .form-select {
     width: 100%;
-    padding: 0.75rem 1rem 0.75rem 2.75rem;
-    border: 1px solid #e2e8f0;
-    border-radius: 0.75rem;
+    height: 54px;
+    padding: 0 1.25rem;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    font-size: 1rem;
     background: #f8fafc;
+    color: #334155;
     transition: all 0.2s;
   }
 
-  .search-box input:focus {
+  .form-control:focus, .form-select:focus {
+    border-color: #4f46e5;
     background: white;
-    border-color: var(--primary-color);
     outline: none;
-    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
   }
 
-  .filter-select {
-    min-width: 180px;
-    padding: 0.75rem 2.5rem 0.75rem 1rem;
-    border: 1px solid #e2e8f0;
-    border-radius: 0.75rem;
-    background-color: #f8fafc;
-    cursor: pointer;
-    appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 0.75rem center;
-    background-size: 1rem;
+  .btn-search {
+    background: #4f46e5;
+    color: white;
+    border: none;
+    padding: 0 2rem;
+    height: 54px;
+    border-radius: 12px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
   }
 
-  /* Table Styles */
-  .table-container {
-    overflow-x: auto;
+  .btn-search:hover {
+    background: #4338ca;
+    transform: translateY(-1px);
   }
 
-  .premium-table {
+  .btn-clear {
+    background: #f1f5f9;
+    color: #64748b;
+    border: none;
+    padding: 0 1.5rem;
+    height: 54px;
+    border-radius: 12px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+    text-decoration: none;
+  }
+
+  .btn-clear:hover {
+    background: #e2e8f0;
+    color: #475569;
+  }
+
+  /* Table Section */
+  .guardians-table-container {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    padding: 1.5rem;
+    overflow: hidden;
+  }
+
+  .guardians-table {
     width: 100%;
     border-collapse: separate;
     border-spacing: 0;
   }
 
-  .premium-table th {
+  .guardians-table th {
     background: #f8fafc;
-    padding: 1rem 1.5rem;
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--text-gray);
+    color: #64748b;
     font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    padding: 1rem 1.5rem;
+    text-align: left;
     border-bottom: 1px solid #e2e8f0;
-    white-space: nowrap;
   }
 
-  .premium-table td {
-    padding: 1.25rem 1.5rem;
+  .guardians-table td {
+    padding: 1rem 1.5rem;
     border-bottom: 1px solid #f1f5f9;
     vertical-align: middle;
-    color: var(--text-dark);
+    color: #334155;
   }
 
-  .premium-table tr:last-child td {
+  .guardians-table tr:last-child td {
     border-bottom: none;
   }
 
-  .premium-table tr:hover td {
-    background-color: #f8fafc;
+  .guardians-table tr:hover td {
+    background: #f8fafc;
   }
 
-  /* Avatar & User Info */
   .user-cell {
     display: flex;
     align-items: center;
@@ -231,45 +278,45 @@
   }
 
   .avatar-circle {
-    width: 48px;
-    height: 48px;
+    width: 40px;
+    height: 40px;
+    background: #eef2ff;
+    color: #4f46e5;
     border-radius: 50%;
-    background: linear-gradient(135deg, #6366f1, #818cf8);
-    color: white;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: 700;
-    font-size: 1.1rem;
-    box-shadow: 0 2px 4px rgba(99, 102, 241, 0.2);
+    font-weight: 600;
+    font-size: 1rem;
+    text-transform: uppercase;
   }
 
   .user-info h4 {
     margin: 0;
     font-size: 0.95rem;
     font-weight: 600;
-    color: var(--text-dark);
+    color: #1e293b;
   }
 
   .user-info span {
-    font-size: 0.85rem;
-    color: var(--text-gray);
+    display: block;
+    font-size: 0.8rem;
+    color: #64748b;
+    margin-top: 2px;
   }
 
-  /* Badges & Chips */
   .status-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.375rem;
-    padding: 0.375rem 0.75rem;
-    border-radius: 9999px;
+    padding: 0.35rem 0.75rem;
+    border-radius: 20px;
     font-size: 0.75rem;
     font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
   }
 
-  .badge-green { background: #dcfce7; color: #166534; }
-  .badge-gray { background: #f1f5f9; color: #64748b; }
-  .badge-blue { background: #e0e7ff; color: #4338ca; }
+  .status-badge--blue { background: #e0f2fe; color: #0ea5e9; }
+  .status-badge--green { background: #ecfdf5; color: #10b981; }
 
   .student-chips {
     display: flex;
@@ -278,43 +325,48 @@
   }
 
   .student-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.375rem;
-    padding: 0.25rem 0.625rem;
     background: #f1f5f9;
-    border-radius: 0.5rem;
-    font-size: 0.8rem;
-    color: var(--text-dark);
-    border: 1px solid #e2e8f0;
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    color: #475569;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
   }
 
-  .student-chip i { color: #6366f1; font-size: 0.75rem; }
-
-  /* Action Buttons */
   .action-btn {
-    width: 36px;
-    height: 36px;
-    border-radius: 0.5rem;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    color: var(--text-gray);
+    border: none;
+    cursor: pointer;
     transition: all 0.2s;
-    background: transparent;
-    border: 1px solid transparent;
+    margin-right: 0.25rem;
+    text-decoration: none;
   }
 
-  .action-btn:hover {
-    background: #f1f5f9;
-    color: var(--primary-color);
-    border-color: #e2e8f0;
+  .action-btn--edit {
+    background: #eff6ff;
+    color: #3b82f6;
   }
 
-  .action-btn.delete:hover {
+  .action-btn--edit:hover {
+    background: #3b82f6;
+    color: white;
+  }
+
+  .action-btn--delete {
     background: #fef2f2;
     color: #ef4444;
-    border-color: #fee2e2;
+  }
+
+  .action-btn--delete:hover {
+    background: #ef4444;
+    color: white;
   }
 
   /* Empty State */
@@ -345,18 +397,16 @@
   }
 
   @media (max-width: 768px) {
-    .guardians-screen { padding: 1rem; }
-    .filters-form { flex-direction: column; align-items: stretch; }
-    .search-box, .filter-select { width: 100%; }
+    .guardians-page { padding: 1rem; }
+    .search-form-grid { grid-template-columns: 1fr; }
     .user-cell { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
-    .avatar-circle { width: 40px; height: 40px; font-size: 1rem; }
   }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="right_col" role="main">
-  <div class="guardians-screen">
+  <div class="guardians-page">
 
     {% if messages %}
       {% for message in messages %}
@@ -368,209 +418,213 @@
     {% endif %}
 
     <!-- Header -->
-    <div class="page-header">
-      <div class="header-title">
-        <h1>Gestión de Apoderados</h1>
-        <p>Administra la información de los responsables y sus estudiantes a cargo</p>
+    <div class="guardians-header">
+      <div class="guardians-title">
+        <h2><i class="fa fa-users"></i> Gestión de Apoderados</h2>
+        <p class="guardians-subtitle">Administra la información de los responsables y sus estudiantes a cargo</p>
       </div>
-      <a href="{% url 'agregar' %}?tipo=apoderado" class="btn-premium">
+      <a href="{% url 'agregar' %}?tipo=apoderado" class="btn-new-guardian">
         <i class="fa fa-plus"></i> Nuevo Apoderado
       </a>
     </div>
 
     <!-- Metrics -->
-    <div class="metrics-grid">
-      <div class="metric-card">
-        <div class="metric-icon-wrapper metric-blue">
+    <div class="guardians-stats">
+      <div class="guardians-stat-card guardians-stat-card--primary">
+        <div class="guardians-stat-card__icon">
           <i class="fa fa-users"></i>
         </div>
-        <div class="metric-content">
-          <h3>{{ total_apoderados }}</h3>
-          <span>Total Registrados</span>
+        <div>
+          <h3 class="guardians-stat-card__metric">{{ total_apoderados }}</h3>
+          <p class="guardians-stat-card__label">Total Registrados</p>
         </div>
       </div>
-      <div class="metric-card">
-        <div class="metric-icon-wrapper metric-green">
+      <div class="guardians-stat-card guardians-stat-card--success">
+        <div class="guardians-stat-card__icon">
           <i class="fa fa-chalkboard-teacher"></i>
         </div>
-        <div class="metric-content">
-          <h3>{{ apoderados_profesores }}</h3>
-          <span>Son Profesores</span>
+        <div>
+          <h3 class="guardians-stat-card__metric">{{ apoderados_profesores }}</h3>
+          <p class="guardians-stat-card__label">Son Profesores</p>
         </div>
       </div>
-      <div class="metric-card">
-        <div class="metric-icon-wrapper metric-purple">
+      <div class="guardians-stat-card guardians-stat-card--info">
+        <div class="guardians-stat-card__icon">
           <i class="fa fa-user-shield"></i>
         </div>
-        <div class="metric-content">
-          <h3>{{ apoderados_externos }}</h3>
-          <span>Externos</span>
+        <div>
+          <h3 class="guardians-stat-card__metric">{{ apoderados_externos }}</h3>
+          <p class="guardians-stat-card__label">Externos</p>
         </div>
       </div>
     </div>
 
-    <!-- Main Content -->
-    <div class="content-card">
-      <!-- Filters -->
-      <div class="filters-toolbar">
-        <form method="get" class="filters-form">
-          <div class="search-box">
-            <i class="fa fa-search"></i>
-            <input type="text" name="q_apoderado" value="{{ q_apoderado }}" placeholder="Buscar por nombre, RUT o email..." autocomplete="off">
-          </div>
-          
-          <select name="parentesco" class="filter-select" onchange="this.form.submit()">
-            <option value="">Todos los parentescos</option>
+    <!-- Search & Filters -->
+    <div class="guardians-search-section">
+      <form method="get" class="search-form-grid">
+        <div class="form-group">
+          <label class="form-label">Buscar</label>
+          <input type="text" name="q_apoderado" class="form-control" value="{{ q_apoderado }}" placeholder="Buscar por nombre, RUT o email..." autocomplete="off">
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Parentesco</label>
+          <select name="parentesco" class="form-select" onchange="this.form.submit()">
+            <option value="">Todos</option>
             {% for codigo, nombre in parentesco_choices %}
               <option value="{{ codigo }}" {% if parentesco == codigo %}selected{% endif %}>{{ nombre }}</option>
             {% endfor %}
           </select>
+        </div>
 
-          <select name="es_profesor" class="filter-select" onchange="this.form.submit()">
-            <option value="">Tipo: Todos</option>
+        <div class="form-group">
+          <label class="form-label">Tipo</label>
+          <select name="es_profesor" class="form-select" onchange="this.form.submit()">
+            <option value="">Todos</option>
             <option value="si" {% if es_profesor == 'si' %}selected{% endif %}>Es Profesor</option>
             <option value="no" {% if es_profesor == 'no' %}selected{% endif %}>No es Profesor</option>
           </select>
+        </div>
 
+        <div style="display: flex; gap: 0.5rem;">
+          <button type="submit" class="btn-search">
+            <i class="fa fa-search"></i>
+          </button>
           {% if q_apoderado or parentesco or es_profesor %}
-            <a href="{% url 'listar_apoderados' %}" class="btn btn-link text-danger" style="text-decoration: none;">
-              <i class="fa fa-times"></i> Limpiar
+            <a href="{% url 'listar_apoderados' %}" class="btn-clear">
+              <i class="fa fa-times"></i>
             </a>
           {% endif %}
-        </form>
-      </div>
+        </div>
+      </form>
+    </div>
 
-      <!-- Table -->
-      <div class="table-container">
-        {% if page_obj %}
-          <table class="premium-table">
-            <thead>
+    <!-- Table -->
+    <div class="guardians-table-container">
+      {% if page_obj %}
+        <table class="guardians-table">
+          <thead>
+            <tr>
+              <th>Apoderado</th>
+              <th>Contacto</th>
+              <th>Parentesco</th>
+              <th>Estudiantes Asignados</th>
+              <th class="text-right">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for apoderado in page_obj %}
               <tr>
-                <th>Apoderado</th>
-                <th>Contacto</th>
-                <th>Parentesco</th>
-                <th>Estudiantes Asignados</th>
-                <th class="text-right">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for apoderado in page_obj %}
-                <tr>
-                  <td>
-                    <div class="user-cell">
-                      <div class="avatar-circle">
-                        {{ apoderado.primer_nombre.0 }}{{ apoderado.apellido_paterno.0 }}
-                      </div>
-                      <div class="user-info">
-                        <h4>{{ apoderado.get_nombre_completo }}</h4>
-                        <span>{{ apoderado.numero_documento }}</span>
-                      </div>
+                <td>
+                  <div class="user-cell">
+                    <div class="avatar-circle">
+                      {{ apoderado.primer_nombre.0 }}{{ apoderado.apellido_paterno.0 }}
                     </div>
-                  </td>
-                  <td>
-                    <div style="display: flex; flex-direction: column; gap: 4px;">
-                      {% if apoderado.email %}
-                        <span class="text-muted small"><i class="fa fa-envelope mr-1"></i> {{ apoderado.email }}</span>
-                      {% endif %}
-                      {% if apoderado.telefono %}
-                        <span class="text-muted small"><i class="fa fa-phone mr-1"></i> {{ apoderado.telefono }}</span>
-                      {% endif %}
+                    <div class="user-info">
+                      <h4>{{ apoderado.get_nombre_completo }}</h4>
+                      <span>{{ apoderado.numero_documento }}</span>
                     </div>
-                  </td>
-                  <td>
-                    <span class="status-badge badge-blue">
-                      {{ apoderado.get_parentesco_principal_display }}
-                    </span>
-                    {% if apoderado.profesor %}
-                      <span class="status-badge badge-green ml-1" title="Es profesor del establecimiento">
-                        <i class="fa fa-chalkboard-teacher"></i> Docente
-                      </span>
+                  </div>
+                </td>
+                <td>
+                  <div style="display: flex; flex-direction: column; gap: 4px;">
+                    {% if apoderado.email %}
+                      <span class="text-muted small"><i class="fa fa-envelope mr-1"></i> {{ apoderado.email }}</span>
                     {% endif %}
-                  </td>
-                  <td>
-                    <div class="student-chips">
-                      {% with relaciones=apoderado.get_estudiantes_a_cargo %}
-                        {% if relaciones %}
-                          {% for relacion in relaciones|slice:":3" %}
-                            <span class="student-chip">
-                              <i class="fa fa-user-graduate"></i>
-                              {{ relacion.estudiante.primer_nombre }} {{ relacion.estudiante.apellido_paterno }}
-                            </span>
-                          {% endfor %}
-                          {% if relaciones.count > 3 %}
-                            <span class="student-chip" style="background: #e2e8f0;">
-                              +{{ relaciones.count|add:"-3" }} más
-                            </span>
-                          {% endif %}
-                        {% else %}
-                          <span class="text-muted small" style="font-style: italic;">Sin asignaciones</span>
+                    {% if apoderado.telefono %}
+                      <span class="text-muted small"><i class="fa fa-phone mr-1"></i> {{ apoderado.telefono }}</span>
+                    {% endif %}
+                  </div>
+                </td>
+                <td>
+                  <span class="status-badge status-badge--blue">
+                    {{ apoderado.get_parentesco_principal_display }}
+                  </span>
+                  {% if apoderado.profesor %}
+                    <span class="status-badge status-badge--green ml-1" title="Es profesor del establecimiento">
+                      <i class="fa fa-chalkboard-teacher"></i> Docente
+                    </span>
+                  {% endif %}
+                </td>
+                <td>
+                  <div class="student-chips">
+                    {% with relaciones=apoderado.get_estudiantes_a_cargo %}
+                      {% if relaciones %}
+                        {% for relacion in relaciones|slice:":3" %}
+                          <span class="student-chip">
+                            <i class="fa fa-user-graduate"></i>
+                            {{ relacion.estudiante.primer_nombre }} {{ relacion.estudiante.apellido_paterno }}
+                          </span>
+                        {% endfor %}
+                        {% if relaciones.count > 3 %}
+                          <span class="student-chip" style="background: #e2e8f0;">
+                            +{{ relaciones.count|add:"-3" }} más
+                          </span>
                         {% endif %}
-                      {% endwith %}
-                    </div>
-                  </td>
-                  <td class="text-right">
-                    <div class="d-flex justify-content-end gap-2">
-                      <a href="{% url 'gestionar_apoderado' apoderado_id=apoderado.id %}" class="action-btn" title="Editar">
-                        <i class="fa fa-pencil-alt"></i>
-                      </a>
-                      <a href="{% url 'detalle_apoderado' apoderado_id=apoderado.id %}" class="action-btn" title="Ver Detalle">
-                        <i class="fa fa-eye"></i>
-                      </a>
-                      <a href="{% url 'eliminar_apoderado' apoderado_id=apoderado.id %}" class="action-btn delete" title="Eliminar" onclick="return confirm('¿Está seguro de eliminar este apoderado?')">
-                        <i class="fa fa-trash-alt"></i>
-                      </a>
-                    </div>
-                  </td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        {% else %}
-          <div class="empty-state">
-            <div class="empty-icon">
-              <i class="fa fa-search"></i>
-            </div>
-            <h3>No se encontraron resultados</h3>
-            <p class="text-muted">Intenta ajustar los filtros o busca por otro término.</p>
-            <a href="{% url 'listar_apoderados' %}" class="btn btn-outline-primary mt-3">Limpiar filtros</a>
+                      {% else %}
+                        <span class="text-muted small" style="font-style: italic;">Sin asignaciones</span>
+                      {% endif %}
+                    {% endwith %}
+                  </div>
+                </td>
+                <td class="text-right">
+                  <div class="d-flex justify-content-end gap-2">
+                    <a href="{% url 'gestionar_apoderado' apoderado_id=apoderado.id %}" class="action-btn action-btn--edit" title="Editar">
+                      <i class="fa fa-edit"></i>
+                    </a>
+                    <a href="{% url 'eliminar_apoderado' apoderado_id=apoderado.id %}" class="action-btn action-btn--delete" title="Eliminar" onclick="return confirm('¿Está seguro de eliminar este apoderado?')">
+                      <i class="fa fa-trash-alt"></i>
+                    </a>
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <div class="empty-state">
+          <div class="empty-icon">
+            <i class="fa fa-search"></i>
           </div>
-        {% endif %}
-      </div>
-
-      <!-- Pagination -->
-      {% if page_obj.has_other_pages %}
-        <div class="pagination-container">
-          <nav aria-label="Page navigation">
-            <ul class="pagination mb-0">
-              {% if page_obj.has_previous %}
-                <li class="page-item">
-                  <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if q_apoderado %}&q_apoderado={{ q_apoderado }}{% endif %}{% if parentesco %}&parentesco={{ parentesco }}{% endif %}{% if es_profesor %}&es_profesor={{ es_profesor }}{% endif %}" aria-label="Previous">
-                    <span aria-hidden="true">&laquo;</span>
-                  </a>
-                </li>
-              {% endif %}
-              
-              {% for i in page_obj.paginator.page_range %}
-                {% if page_obj.number == i %}
-                  <li class="page-item active"><span class="page-link">{{ i }}</span></li>
-                {% elif i > page_obj.number|add:'-3' and i < page_obj.number|add:'3' %}
-                  <li class="page-item"><a class="page-link" href="?page={{ i }}{% if q_apoderado %}&q_apoderado={{ q_apoderado }}{% endif %}{% if parentesco %}&parentesco={{ parentesco }}{% endif %}{% if es_profesor %}&es_profesor={{ es_profesor }}{% endif %}">{{ i }}</a></li>
-                {% endif %}
-              {% endfor %}
-
-              {% if page_obj.has_next %}
-                <li class="page-item">
-                  <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if q_apoderado %}&q_apoderado={{ q_apoderado }}{% endif %}{% if parentesco %}&parentesco={{ parentesco }}{% endif %}{% if es_profesor %}&es_profesor={{ es_profesor }}{% endif %}" aria-label="Next">
-                    <span aria-hidden="true">&raquo;</span>
-                  </a>
-                </li>
-              {% endif %}
-            </ul>
-          </nav>
+          <h3>No se encontraron resultados</h3>
+          <p class="text-muted">Intenta ajustar los filtros o busca por otro término.</p>
+          <a href="{% url 'listar_apoderados' %}" class="btn btn-outline-primary mt-3">Limpiar filtros</a>
         </div>
       {% endif %}
     </div>
 
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+      <div class="pagination-container">
+        <nav aria-label="Page navigation">
+          <ul class="pagination mb-0">
+            {% if page_obj.has_previous %}
+              <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if q_apoderado %}&q_apoderado={{ q_apoderado }}{% endif %}{% if parentesco %}&parentesco={{ parentesco }}{% endif %}{% if es_profesor %}&es_profesor={{ es_profesor }}{% endif %}" aria-label="Previous">
+                  <span aria-hidden="true">&laquo;</span>
+                </a>
+              </li>
+            {% endif %}
+            
+            {% for i in page_obj.paginator.page_range %}
+              {% if page_obj.number == i %}
+                <li class="page-item active"><span class="page-link">{{ i }}</span></li>
+              {% elif i > page_obj.number|add:'-3' and i < page_obj.number|add:'3' %}
+                <li class="page-item"><a class="page-link" href="?page={{ i }}{% if q_apoderado %}&q_apoderado={{ q_apoderado }}{% endif %}{% if parentesco %}&parentesco={{ parentesco }}{% endif %}{% if es_profesor %}&es_profesor={{ es_profesor }}{% endif %}">{{ i }}</a></li>
+              {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+              <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if q_apoderado %}&q_apoderado={{ q_apoderado }}{% endif %}{% if parentesco %}&parentesco={{ parentesco }}{% endif %}{% if es_profesor %}&es_profesor={{ es_profesor }}{% endif %}" aria-label="Next">
+                  <span aria-hidden="true">&raquo;</span>
+                </a>
+              </li>
+            {% endif %}
+          </ul>
+        </nav>
+      </div>
+    {% endif %}
   </div>
 </div>
 {% endblock %}

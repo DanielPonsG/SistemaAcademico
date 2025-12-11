@@ -1,594 +1,626 @@
-{% extends "index_master.html" %}
-{% load widget_tweaks %}
+{% extends 'index_master.html' %}
 {% load static %}
+{% load widget_tweaks %}
+
+{% block titulo %}
+    {% if es_edicion %}Editar{% else %}Agregar{% endif %} 
+    {% if tipo == 'profesor' %}Profesor{% elif tipo == 'apoderado' %}Apoderado{% elif tipo == 'director' %}Director{% else %}Estudiante{% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Modern Reset & Variables for Bootstrap 3 override */
+    :root {
+        --primary: #4f46e5;
+        --primary-dark: #4338ca;
+        --secondary: #64748b;
+        --success: #10b981;
+        --danger: #ef4444;
+        --warning: #f59e0b;
+        --info: #3b82f6;
+        --dark: #0f172a;
+        --light: #f8fafc;
+        --white: #ffffff;
+        --border: #e2e8f0;
+        --text-main: #1e293b;
+        --text-muted: #64748b;
+        --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        --radius: 0.75rem;
+    }
+
+    /* Layout & Typography */
+    .modern-card {
+        background: var(--white);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-md);
+        border: 1px solid var(--border);
+        margin-bottom: 2rem;
+        overflow: hidden;
+    }
+
+    .card-header-custom {
+        background: linear-gradient(135deg, var(--dark) 0%, #1e293b 100%);
+        padding: 2rem;
+        color: white;
+        position: relative;
+    }
+
+    .card-header-custom::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--primary), var(--info));
+    }
+
+    .card-body-custom {
+        padding: 2.5rem;
+    }
+
+    /* Form Elements Override */
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        display: block;
+        font-weight: 600;
+        color: var(--text-main);
+        margin-bottom: 0.5rem;
+        font-size: 0.95rem;
+    }
+
+    .form-control, .form-select {
+        display: block;
+        width: 100%;
+        height: 45px;
+        padding: 0.75rem 1rem;
+        font-size: 1rem;
+        line-height: 1.5;
+        color: var(--text-main);
+        background-color: #fff;
+        background-clip: padding-box;
+        border: 1px solid var(--border);
+        border-radius: 0.5rem;
+        box-shadow: var(--shadow-sm);
+        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: var(--primary);
+        outline: 0;
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    }
+
+    /* Buttons */
+    .btn-custom {
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.5rem;
+        font-weight: 600;
+        transition: all 0.2s;
+        border: none;
+    }
+
+    .btn-primary-custom {
+        background-color: var(--primary);
+        color: white;
+        box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);
+    }
+
+    .btn-primary-custom:hover {
+        background-color: var(--primary-dark);
+        transform: translateY(-1px);
+        box-shadow: 0 6px 8px -1px rgba(79, 70, 229, 0.3);
+        color: white;
+    }
+
+    .btn-light-custom {
+        background-color: white;
+        color: var(--text-muted);
+        border: 1px solid var(--border);
+    }
+
+    .btn-light-custom:hover {
+        background-color: #f8fafc;
+        color: var(--text-main);
+    }
+
+    /* Section Titles */
+    .section-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--secondary);
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #f1f5f9;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    /* Input Groups */
+    .input-group-custom {
+        position: relative;
+        display: flex;
+        width: 100%;
+    }
+
+    .input-group-icon {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-muted);
+        z-index: 10;
+    }
+
+    .input-with-icon {
+        padding-left: 2.75rem !important;
+    }
+
+    .password-toggle {
+        position: absolute;
+        right: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        cursor: pointer;
+        color: var(--text-muted);
+        z-index: 10;
+    }
+
+    /* Alerts */
+    .alert-custom {
+        border-radius: 0.5rem;
+        border: none;
+        box-shadow: var(--shadow-sm);
+        padding: 1rem 1.5rem;
+        margin-bottom: 2rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .alert-success-custom {
+        background-color: #dcfce7;
+        color: #166534;
+    }
+
+    .alert-error-custom {
+        background-color: #fee2e2;
+        color: #991b1b;
+    }
+
+    .required-mark {
+        color: var(--danger);
+        margin-left: 2px;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<style>
-  :root {
-    --primary-gradient: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
-    --secondary-gradient: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-    --success-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    --dark-bg: #0f172a;
-    --card-bg: #ffffff;
-    --text-main: #1e293b;
-    --text-muted: #64748b;
-    --border-color: #e2e8f0;
-    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    --radius-lg: 1rem;
-  }
-
-  .user-form-container {
-    padding: 2rem;
-    background-color: #f8fafc;
-    min-height: 100vh;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  }
-
-  .form-card {
-    background: var(--card-bg);
-    border-radius: var(--radius-lg);
-    border: 1px solid var(--border-color);
-    box-shadow: var(--shadow-md);
-    overflow: hidden;
-  }
-
-  .form-header {
-    background: var(--dark-bg);
-    padding: 2rem;
-    color: white;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .form-header::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 100%;
-    height: 100%;
-    background: radial-gradient(circle at 100% 0%, rgba(99, 102, 241, 0.2) 0%, transparent 50%);
-    pointer-events: none;
-  }
-
-  .form-header h2 {
-    font-weight: 800;
-    margin-bottom: 0.5rem;
-    background: linear-gradient(to right, #fff, #cbd5e1);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-
-  .form-section-title {
-    font-size: 0.875rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--text-muted);
-    font-weight: 700;
-    margin-bottom: 1.5rem;
-    padding-bottom: 0.5rem;
-    border-bottom: 1px solid var(--border-color);
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  .form-control,
-  .form-select {
-    border-radius: 0.5rem;
-    border: 1px solid var(--border-color);
-    padding: 0.75rem 1rem;
-    font-size: 0.95rem;
-    transition: all 0.2s;
-  }
-
-  .form-control:focus,
-  .form-select:focus {
-    border-color: #6366f1;
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-  }
-
-  .form-label {
-    font-weight: 600;
-    color: var(--text-main);
-    margin-bottom: 0.5rem;
-    font-size: 0.9rem;
-  }
-
-  .required-field::after {
-    content: " *";
-    color: #ef4444;
-  }
-
-  .btn-gradient-primary {
-    background: var(--primary-gradient);
-    border: none;
-    color: white;
-    padding: 0.75rem 1.5rem;
-    border-radius: 0.5rem;
-    font-weight: 600;
-    transition: transform 0.2s, box-shadow 0.2s;
-  }
-
-  .btn-gradient-primary:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
-    color: white;
-  }
-
-  .info-badge {
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
-    font-size: 0.85rem;
-    backdrop-filter: blur(4px);
-  }
-
-  .user-type-selector {
-    background: white;
-    padding: 1rem;
-    border-radius: 0.5rem;
-    border: 1px solid var(--border-color);
-    margin-bottom: 2rem;
-  }
-</style>
-
-<div class="user-form-container">
-  <div class="row">
-    <div class="col-12">
-      <div class="form-card">
-        <!-- Header -->
-        <div class="form-header">
-          <div class="d-flex justify-content-between align-items-start relative" style="z-index: 2;">
-            <div>
-              <h2>
-                <i class="fas {% if es_edicion %}fa-user-edit{% else %}fa-user-plus{% endif %} me-2"></i>
-                {% if es_edicion %}Editar{% else %}Agregar{% endif %}
-                {% if tipo == 'profesor' %}Profesor
-                {% elif tipo == 'apoderado' %}Apoderado
-                {% elif tipo == 'director' %}Director
-                {% else %}Estudiante{% endif %}
-              </h2>
-              <p class="text-white-50 mb-0">
-                {% if es_edicion %}
-                Modifique los datos del usuario seleccionado.
-                {% else %}
-                Complete el formulario para registrar un nuevo usuario en el sistema.
-                {% endif %}
-              </p>
-            </div>
-            <a href="{% if tipo == 'apoderado' %}{% url 'listar_apoderados' %}{% elif tipo == 'profesor' %}{% url 'listar_profesores' %}{% elif tipo == 'director' %}{% url 'inicio' %}{% else %}{% url 'listar_estudiantes' %}{% endif %}"
-              class="btn btn-outline-light btn-sm backdrop-blur">
-              <i class="fas fa-arrow-left me-1"></i>Volver
-            </a>
-          </div>
-        </div>
-
-        <div class="card-body p-4">
-          {% if mensaje %}
-          <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm mb-4" role="alert">
-            <div class="d-flex align-items-center">
-              <i class="fas fa-check-circle fs-4 me-3 text-success"></i>
-              <div>{{ mensaje }}</div>
-            </div>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-          </div>
-          {% endif %}
-
-          {% if form.non_field_errors %}
-          <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm mb-4" role="alert">
-            <div class="d-flex align-items-center">
-              <i class="fas fa-exclamation-circle fs-4 me-3 text-danger"></i>
-              <div>
-                {% for error in form.non_field_errors %}
-                {{ error }}{% if not forloop.last %}<br>{% endif %}
+<div class="right_col" role="main">
+    
+    <!-- Messages Area -->
+    {% if messages %}
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-12">
+                {% for message in messages %}
+                <div class="alert alert-custom {% if message.tags == 'success' %}alert-success-custom{% else %}alert-error-custom{% endif %}">
+                    <i class="fas {% if message.tags == 'success' %}fa-check-circle{% else %}fa-exclamation-circle{% endif %} fa-lg"></i>
+                    <div>{{ message }}</div>
+                </div>
                 {% endfor %}
-              </div>
             </div>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-          </div>
-          {% endif %}
-
-          {% if not es_edicion %}
-          <div class="user-type-selector shadow-sm">
-            <form id="tipoUsuarioForm" method="get" action="{% url 'agregar' %}">
-              <div class="row align-items-center">
-                <div class="col-md-6">
-                  <label for="tipo" class="form-label mb-0 me-3">Tipo de usuario a registrar:</label>
-                </div>
-                <div class="col-md-6">
-                  <select name="tipo" id="tipo" class="form-select" onchange="confirmarCambioTipo(this)">
-                    <option value="estudiante" {% if tipo == 'estudiante' %}selected{% endif %}>Alumno</option>
-                    <option value="profesor" {% if tipo == 'profesor' %}selected{% endif %}>Profesor</option>
-                    <option value="apoderado" {% if tipo == 'apoderado' %}selected{% endif %}>Apoderado</option>
-                    <option value="director" {% if tipo == 'director' %}selected{% endif %}>Director</option>
-                  </select>
-                </div>
-              </div>
-            </form>
-          </div>
-          {% endif %}
-
-          <form id="registroForm" method="post" autocomplete="off" novalidate>
-            {% csrf_token %}
-
-            <!-- Sección 1: Información Personal -->
-            <div class="mb-5">
-              <h6 class="form-section-title"><i class="fas fa-user-circle text-primary"></i> Información Personal</h6>
-
-              {% if tipo == 'director' %}
-              <div class="row g-4 mb-4">
-                <div class="col-md-6">
-                  <label for="{{ form.first_name.id_for_label }}" class="form-label required-field">Nombre</label>
-                  {{ form.first_name|add_class:"form-control" }}
-                  {% if form.first_name.errors %}<div class="text-danger small mt-1">{{ form.first_name.errors }}</div>
-                  {% endif %}
-                </div>
-                <div class="col-md-6">
-                  <label for="{{ form.last_name.id_for_label }}" class="form-label required-field">Apellido</label>
-                  {{ form.last_name|add_class:"form-control" }}
-                  {% if form.last_name.errors %}<div class="text-danger small mt-1">{{ form.last_name.errors }}</div>{% endif %}
-                </div>
-              </div>
-              {% else %}
-              <div class="row g-4 mb-4">
-                <div class="col-md-6">
-                  <label for="{{ form.primer_nombre.id_for_label }}" class="form-label required-field">Primer Nombre</label>
-                  {{ form.primer_nombre|add_class:"form-control" }}
-                  {% if form.primer_nombre.errors %}<div class="text-danger small mt-1">{{ form.primer_nombre.errors }}
-                  </div>{% endif %}
-                </div>
-                <div class="col-md-6">
-                  <label for="{{ form.segundo_nombre.id_for_label }}" class="form-label">Segundo Nombre (opcional)</label>
-                  {{ form.segundo_nombre|add_class:"form-control" }}
-                  {% if form.segundo_nombre.errors %}<div class="text-danger small mt-1">{{ form.segundo_nombre.errors
-                    }}</div>{% endif %}
-                </div>
-              </div>
-              <div class="row g-4 mb-4">
-                <div class="col-md-6">
-                  <label for="{{ form.apellido_paterno.id_for_label }}" class="form-label required-field">Apellido Paterno</label>
-                  {{ form.apellido_paterno|add_class:"form-control" }}
-                  {% if form.apellido_paterno.errors %}<div class="text-danger small mt-1">{{
-                    form.apellido_paterno.errors }}</div>{% endif %}
-                </div>
-                <div class="col-md-6">
-                  <label for="{{ form.apellido_materno.id_for_label }}" class="form-label">Apellido Materno (opcional)</label>
-                  {{ form.apellido_materno|add_class:"form-control" }}
-                  {% if form.apellido_materno.errors %}<div class="text-danger small mt-1">{{
-                    form.apellido_materno.errors }}</div>{% endif %}
-                </div>
-              </div>
-              {% endif %}
-
-              <div class="row g-4 mb-4">
-                <div class="col-md-4">
-                  <label for="{{ form.tipo_documento.id_for_label }}" class="form-label required-field">Tipo de Documento</label>
-                  {{ form.tipo_documento|add_class:"form-select" }}
-                  {% if form.tipo_documento.errors %}<div class="text-danger small mt-1">{{ form.tipo_documento.errors
-                    }}</div>{% endif %}
-                </div>
-                <div class="col-md-8">
-                  <label for="{{ form.numero_documento.id_for_label }}" class="form-label required-field">Número de Documento</label>
-                  <div class="input-group">
-                    <span class="input-group-text bg-light border-end-0"><i
-                        class="fas fa-id-card text-muted"></i></span>
-                    {{ form.numero_documento|add_class:"form-control border-start-0 ps-0" }}
-                    <span class="input-group-text bg-white border-start-0">
-                      <i class="fas fa-check-circle text-success d-none" id="rut-valid"></i>
-                      <i class="fas fa-times-circle text-danger d-none" id="rut-invalid"></i>
-                    </span>
-                  </div>
-                  <div class="form-text small">Formato: 12.345.678-9</div>
-                  {% if form.numero_documento.errors %}<div class="text-danger small mt-1">{{
-                    form.numero_documento.errors }}</div>{% endif %}
-                </div>
-              </div>
-
-              <div class="row g-4 mb-4">
-                <div class="col-md-6">
-                  <label for="{{ form.fecha_nacimiento.id_for_label }}" class="form-label required-field">Fecha de Nacimiento</label>
-                  {{ form.fecha_nacimiento|add_class:"form-control" }}
-                  <div class="form-text small mt-1">
-                    Edad calculada: <span id="edad-calculada" class="fw-bold text-primary"></span>
-                  </div>
-                  {% if form.fecha_nacimiento.errors %}<div class="text-danger small mt-1">{{
-                    form.fecha_nacimiento.errors }}</div>{% endif %}
-                </div>
-                <div class="col-md-6">
-                  <label for="{{ form.genero.id_for_label }}" class="form-label required-field">Género</label>
-                  {{ form.genero|add_class:"form-select" }}
-                  {% if form.genero.errors %}<div class="text-danger small mt-1">{{ form.genero.errors }}</div>{% endif %}
-                </div>
-              </div>
-            </div>
-
-            <!-- Sección 2: Información de Contacto -->
-            <div class="mb-5">
-              <h6 class="form-section-title"><i class="fas fa-address-card text-primary"></i> Información de Contacto
-              </h6>
-
-              <div class="row g-4 mb-4">
-                <div class="col-md-6">
-                  <label for="{{ form.email.id_for_label }}" class="form-label required-field">Correo Electrónico</label>
-                  <div class="input-group">
-                    <span class="input-group-text bg-light border-end-0"><i
-                        class="fas fa-envelope text-muted"></i></span>
-                    {{ form.email|add_class:"form-control border-start-0 ps-0" }}
-                  </div>
-                  {% if form.email.errors %}<div class="text-danger small mt-1">{{ form.email.errors }}</div>{% endif %}
-                </div>
-                <div class="col-md-6">
-                  <label for="{{ form.telefono.id_for_label }}" class="form-label">Teléfono (opcional)</label>
-                  <div class="input-group">
-                    <span class="input-group-text bg-light border-end-0"><i class="fas fa-phone text-muted"></i></span>
-                    {{ form.telefono|add_class:"form-control border-start-0 ps-0" }}
-                  </div>
-                  {% if form.telefono.errors %}<div class="text-danger small mt-1">{{ form.telefono.errors }}</div>{% endif %}
-                </div>
-              </div>
-
-              <div class="mb-3">
-                <label for="{{ form.direccion.id_for_label }}" class="form-label">Dirección (opcional)</label>
-                {{ form.direccion|add_class:"form-control" }}
-                {% if form.direccion.errors %}<div class="text-danger small mt-1">{{ form.direccion.errors }}</div>{% endif %}
-              </div>
-
-              {% if tipo == 'apoderado' %}
-              <div class="row g-4 mb-4">
-                <div class="col-md-6">
-                  <label for="{{ form.telefono_emergencia.id_for_label }}" class="form-label">Teléfono de Emergencia (opcional)</label>
-                  {{ form.telefono_emergencia|add_class:"form-control" }}
-                  {% if form.telefono_emergencia.errors %}<div class="text-danger small mt-1">{{
-                    form.telefono_emergencia.errors }}</div>{% endif %}
-                </div>
-              </div>
-              {% endif %}
-            </div>
-
-            <!-- Sección 3: Información Académica / Específica -->
-            <div class="mb-5">
-              <h6 class="form-section-title">
-                {% if tipo == 'profesor' %}<i class="fas fa-chalkboard-teacher text-primary"></i> Datos Académicos
-                {% elif tipo == 'apoderado' %}<i class="fas fa-users text-primary"></i> Datos Familiares
-                {% elif tipo == 'director' %}<i class="fas fa-briefcase text-primary"></i> Datos Laborales
-                {% else %}<i class="fas fa-graduation-cap text-primary"></i> Datos Académicos{% endif %}
-              </h6>
-
-              {% if tipo == 'profesor' %}
-              <div class="row g-4 mb-4">
-                <div class="col-md-6">
-                  <label for="{{ form.codigo_profesor.id_for_label }}" class="form-label required-field">Código de Profesor</label>
-                  {{ form.codigo_profesor|add_class:"form-control" }}
-                  {% if form.codigo_profesor.errors %}<div class="text-danger small mt-1">{{ form.codigo_profesor.errors
-                    }}</div>{% endif %}
-                </div>
-                <div class="col-md-6">
-                  <label for="{{ form.especialidad.id_for_label }}" class="form-label required-field">Especialidad</label>
-                  {{ form.especialidad|add_class:"form-control" }}
-                  {% if form.especialidad.errors %}<div class="text-danger small mt-1">{{ form.especialidad.errors }}
-                  </div>{% endif %}
-                </div>
-              </div>
-              {% elif tipo == 'apoderado' %}
-              <div class="row g-4 mb-4">
-                <div class="col-md-6">
-                  <label for="{{ form.codigo_apoderado.id_for_label }}" class="form-label required-field">Código de Apoderado</label>
-                  {{ form.codigo_apoderado|add_class:"form-control" }}
-                  {% if form.codigo_apoderado.errors %}<div class="text-danger small mt-1">{{
-                    form.codigo_apoderado.errors }}</div>{% endif %}
-                </div>
-                <div class="col-md-6">
-                  <label for="{{ form.parentesco_principal.id_for_label }}" class="form-label required-field">Parentesco Principal</label>
-                  {{ form.parentesco_principal|add_class:"form-control" }}
-                  {% if form.parentesco_principal.errors %}<div class="text-danger small mt-1">{{
-                    form.parentesco_principal.errors }}</div>{% endif %}
-                </div>
-              </div>
-              <div class="row g-4 mb-4">
-                <div class="col-md-6">
-                  <label for="{{ form.ocupacion.id_for_label }}" class="form-label">Ocupación (opcional)</label>
-                  {{ form.ocupacion|add_class:"form-control" }}
-                  {% if form.ocupacion.errors %}<div class="text-danger small mt-1">{{ form.ocupacion.errors }}</div>{% endif %}
-                </div>
-              </div>
-              <div class="mb-4">
-                <label for="{{ form.estudiantes.id_for_label }}" class="form-label">Estudiantes a Cargo (opcional)</label>
-                {{ form.estudiantes|add_class:"form-select" }}
-                <div class="form-text small">{{ form.estudiantes.help_text }}</div>
-                {% if form.estudiantes.errors %}<div class="text-danger small mt-1">{{ form.estudiantes.errors }}</div>
-                {% endif %}
-              </div>
-              {% elif tipo == 'director' %}
-              <div class="row g-4 mb-4">
-                <div class="col-md-6">
-                  <label for="{{ form.cargo.id_for_label }}" class="form-label required-field">Cargo</label>
-                  {{ form.cargo|add_class:"form-control" }}
-                  {% if form.cargo.errors %}<div class="text-danger small mt-1">{{ form.cargo.errors }}</div>{% endif %}
-                </div>
-                <div class="col-md-6">
-                  <label for="{{ form.fecha_ingreso.id_for_label }}" class="form-label required-field">Fecha de Ingreso</label>
-                  {{ form.fecha_ingreso|add_class:"form-control" }}
-                  {% if form.fecha_ingreso.errors %}<div class="text-danger small mt-1">{{ form.fecha_ingreso.errors }}
-                  </div>{% endif %}
-                </div>
-              </div>
-              {% else %}
-              <!-- Estudiante -->
-              <div class="row g-4 mb-4">
-                <div class="col-md-6">
-                  <label for="{{ form.codigo_estudiante.id_for_label }}" class="form-label required-field">Código de Estudiante</label>
-                  {{ form.codigo_estudiante|add_class:"form-control" }}
-                  {% if form.codigo_estudiante.errors %}<div class="text-danger small mt-1">{{
-                    form.codigo_estudiante.errors }}</div>{% endif %}
-                </div>
-              </div>
-              {% endif %}
-            </div>
-
-            <!-- Sección 4: Credenciales -->
-            <div class="mb-5">
-              <h6 class="form-section-title"><i class="fas fa-key text-primary"></i> Credenciales de Acceso</h6>
-
-              <div class="row g-4 mb-4">
-                <div class="col-md-6">
-                  <label for="{{ form.username.id_for_label }}" class="form-label required-field">Nombre de Usuario</label>
-                  <div class="input-group">
-                    <span class="input-group-text bg-light border-end-0"><i class="fas fa-user text-muted"></i></span>
-                    {{ form.username|add_class:"form-control border-start-0 ps-0" }}
-                  </div>
-                  <div class="form-text small">{{ form.username.help_text }}</div>
-                  {% if form.username.errors %}<div class="text-danger small mt-1">{{ form.username.errors }}</div>{% endif %}
-                </div>
-                <div class="col-md-6">
-                  <label for="{{ form.password.id_for_label }}"
-                    class="form-label {% if not es_edicion %}required-field{% endif %}">Contraseña</label>
-                  <div class="input-group">
-                    <span class="input-group-text bg-light border-end-0"><i class="fas fa-lock text-muted"></i></span>
-                    {{ form.password|add_class:"form-control border-start-0 ps-0" }}
-                  </div>
-                  {% if form.password.errors %}<div class="text-danger small mt-1">{{ form.password.errors }}</div>{% endif %}
-                </div>
-              </div>
-
-              {% if tipo == 'director' %}
-              <div class="row g-4 mb-4">
-                <div class="col-md-6">
-                  <label for="{{ form.password_confirm.id_for_label }}" class="form-label required-field">Confirmar Contraseña</label>
-                  <div class="input-group">
-                    <span class="input-group-text bg-light border-end-0"><i class="fas fa-lock text-muted"></i></span>
-                    {{ form.password_confirm|add_class:"form-control border-start-0 ps-0" }}
-                  </div>
-                  {% if form.password_confirm.errors %}<div class="text-danger small mt-1">{{
-                    form.password_confirm.errors }}</div>{% endif %}
-                </div>
-              </div>
-              {% endif %}
-            </div>
-
-            <!-- Acciones -->
-            <div class="d-flex justify-content-end gap-3 pt-3 border-top">
-              {% if not es_edicion %}
-              <button type="button" class="btn btn-light border px-4" onclick="limpiarFormulario()">
-                <i class="fas fa-eraser me-2"></i>Limpiar
-              </button>
-              {% endif %}
-              <button type="submit" class="btn btn-gradient-primary px-5">
-                <i class="fas fa-save me-2"></i>
-                {% if es_edicion %}Actualizar{% else %}Registrar{% endif %}
-                {% if tipo == 'profesor' %}Profesor
-                {% elif tipo == 'apoderado' %}Apoderado
-                {% elif tipo == 'director' %}Director
-                {% else %}Estudiante{% endif %}
-              </button>
-            </div>
-          </form>
         </div>
-      </div>
     </div>
-  </div>
+    {% endif %}
+
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="modern-card">
+                    <!-- Header -->
+                    <div class="card-header-custom">
+                        <div class="row" style="display: flex; align-items: center; flex-wrap: wrap;">
+                            <div class="col-md-8">
+                                <h2 style="margin: 0; font-weight: 800; font-size: 2rem;">
+                                    <i class="fas {% if es_edicion %}fa-user-edit{% else %}fa-user-plus{% endif %} me-2"></i>
+                                    {% if es_edicion %}Editar{% else %}Agregar{% endif %} 
+                                    {% if tipo == 'profesor' %}Profesor{% elif tipo == 'apoderado' %}Apoderado{% elif tipo == 'director' %}Director{% else %}Estudiante{% endif %}
+                                </h2>
+                                <p style="margin: 0.5rem 0 0 0; opacity: 0.8;">
+                                    {% if es_edicion %}
+                                        Modifique los datos del usuario seleccionado
+                                    {% else %}
+                                        Complete la información para registrar un nuevo usuario
+                                    {% endif %}
+                                </p>
+                            </div>
+                            <div class="col-md-4 text-right" style="text-align: right;">
+                                <a href="{% if tipo == 'apoderado' %}{% url 'listar_apoderados' %}{% elif tipo == 'profesor' %}{% url 'listar_profesores' %}{% elif tipo == 'director' %}{% url 'inicio' %}{% else %}{% url 'listar_estudiantes' %}{% endif %}" class="btn btn-light-custom" style="background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2);">
+                                    <i class="fas fa-arrow-left"></i> Volver
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-body-custom">
+                        <form method="post" novalidate id="registroForm" autocomplete="off">
+                            {% csrf_token %}
+                            
+                            <div class="row">
+                                <!-- Left Column: Form Fields -->
+                                <div class="col-md-8">
+                                    
+                                    <!-- Personal Information -->
+                                    <div class="section-title">
+                                        <i class="fas fa-user"></i> Información Personal
+                                    </div>
+
+                                    {% if tipo == 'director' %}
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label class="form-label">Nombre <span class="required-mark">*</span></label>
+                                                {{ form.first_name|add_class:"form-control" }}
+                                                {{ form.first_name.errors }}
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label class="form-label">Apellido <span class="required-mark">*</span></label>
+                                                {{ form.last_name|add_class:"form-control" }}
+                                                {{ form.last_name.errors }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% else %}
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label class="form-label">Primer Nombre <span class="required-mark">*</span></label>
+                                                {{ form.primer_nombre|add_class:"form-control" }}
+                                                {{ form.primer_nombre.errors }}
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label class="form-label">Segundo Nombre</label>
+                                                {{ form.segundo_nombre|add_class:"form-control" }}
+                                                {{ form.segundo_nombre.errors }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label class="form-label">Apellido Paterno <span class="required-mark">*</span></label>
+                                                {{ form.apellido_paterno|add_class:"form-control" }}
+                                                {{ form.apellido_paterno.errors }}
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label class="form-label">Apellido Materno</label>
+                                                {{ form.apellido_materno|add_class:"form-control" }}
+                                                {{ form.apellido_materno.errors }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label class="form-label">Tipo Documento <span class="required-mark">*</span></label>
+                                                {{ form.tipo_documento|add_class:"form-select" }}
+                                                {{ form.tipo_documento.errors }}
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label class="form-label">Número Documento <span class="required-mark">*</span></label>
+                                                <div class="input-group-custom">
+                                                    <i class="fas fa-id-card input-group-icon"></i>
+                                                    {{ form.numero_documento|add_class:"form-control input-with-icon" }}
+                                                </div>
+                                                {{ form.numero_documento.errors }}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label class="form-label">Fecha Nacimiento <span class="required-mark">*</span></label>
+                                                {{ form.fecha_nacimiento|add_class:"form-control" }}
+                                                {{ form.fecha_nacimiento.errors }}
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label class="form-label">Género <span class="required-mark">*</span></label>
+                                                {{ form.genero|add_class:"form-select" }}
+                                                {{ form.genero.errors }}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Contact Info -->
+                                    <div class="section-title" style="margin-top: 2rem;">
+                                        <i class="fas fa-address-book"></i> Contacto
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label class="form-label">Email <span class="required-mark">*</span></label>
+                                                <div class="input-group-custom">
+                                                    <i class="fas fa-envelope input-group-icon"></i>
+                                                    {{ form.email|add_class:"form-control input-with-icon" }}
+                                                </div>
+                                                {{ form.email.errors }}
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label class="form-label">Teléfono</label>
+                                                <div class="input-group-custom">
+                                                    <i class="fas fa-phone input-group-icon"></i>
+                                                    {{ form.telefono|add_class:"form-control input-with-icon" }}
+                                                </div>
+                                                {{ form.telefono.errors }}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="form-label">Dirección</label>
+                                        {{ form.direccion|add_class:"form-control" }}
+                                        {{ form.direccion.errors }}
+                                    </div>
+
+                                    {% if tipo == 'apoderado' %}
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label class="form-label">Teléfono Emergencia</label>
+                                                {{ form.telefono_emergencia|add_class:"form-control" }}
+                                                {{ form.telefono_emergencia.errors }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+
+                                    <!-- Specific Info -->
+                                    <div class="section-title" style="margin-top: 2rem;">
+                                        {% if tipo == 'profesor' %}<i class="fas fa-chalkboard-teacher"></i> Datos Académicos
+                                        {% elif tipo == 'apoderado' %}<i class="fas fa-users"></i> Datos Familiares
+                                        {% elif tipo == 'director' %}<i class="fas fa-briefcase"></i> Datos Laborales
+                                        {% else %}<i class="fas fa-graduation-cap"></i> Datos Académicos{% endif %}
+                                    </div>
+
+                                    {% if tipo == 'profesor' %}
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label class="form-label">Código Profesor <span class="required-mark">*</span></label>
+                                                {{ form.codigo_profesor|add_class:"form-control" }}
+                                                {{ form.codigo_profesor.errors }}
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label class="form-label">Especialidad <span class="required-mark">*</span></label>
+                                                {{ form.especialidad|add_class:"form-control" }}
+                                                {{ form.especialidad.errors }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% elif tipo == 'apoderado' %}
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label class="form-label">Código Apoderado <span class="required-mark">*</span></label>
+                                                {{ form.codigo_apoderado|add_class:"form-control" }}
+                                                {{ form.codigo_apoderado.errors }}
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label class="form-label">Parentesco Principal <span class="required-mark">*</span></label>
+                                                {{ form.parentesco_principal|add_class:"form-control" }}
+                                                {{ form.parentesco_principal.errors }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label class="form-label">Ocupación</label>
+                                                {{ form.ocupacion|add_class:"form-control" }}
+                                                {{ form.ocupacion.errors }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Estudiantes a Cargo</label>
+                                        {{ form.estudiantes|add_class:"form-select" }}
+                                        <p class="help-block small text-muted">{{ form.estudiantes.help_text }}</p>
+                                        {{ form.estudiantes.errors }}
+                                    </div>
+                                    {% elif tipo == 'director' %}
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label class="form-label">Cargo <span class="required-mark">*</span></label>
+                                                {{ form.cargo|add_class:"form-control" }}
+                                                {{ form.cargo.errors }}
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label class="form-label">Fecha Ingreso <span class="required-mark">*</span></label>
+                                                {{ form.fecha_ingreso|add_class:"form-control" }}
+                                                {{ form.fecha_ingreso.errors }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% else %}
+                                    <!-- Estudiante -->
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label class="form-label">Código Estudiante <span class="required-mark">*</span></label>
+                                                {{ form.codigo_estudiante|add_class:"form-control" }}
+                                                {{ form.codigo_estudiante.errors }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+
+                                </div>
+
+                                <!-- Right Column: Settings -->
+                                <div class="col-md-4">
+                                    <div style="background: #f8fafc; padding: 1.5rem; border-radius: 1rem; border: 1px solid #e2e8f0;">
+                                        <h4 style="margin-top: 0; margin-bottom: 1.5rem; font-weight: 700; color: var(--dark);">
+                                            <i class="fas fa-cog text-muted me-2"></i> Configuración
+                                        </h4>
+
+                                        {% if not es_edicion %}
+                                        <div class="form-group">
+                                            <label class="form-label">Tipo de Usuario</label>
+                                            <select id="tipo_selector" class="form-select" onchange="cambiarTipo(this.value)">
+                                                <option value="estudiante" {% if tipo == 'estudiante' %}selected{% endif %}>Alumno</option>
+                                                <option value="profesor" {% if tipo == 'profesor' %}selected{% endif %}>Profesor</option>
+                                                <option value="apoderado" {% if tipo == 'apoderado' %}selected{% endif %}>Apoderado</option>
+                                                <option value="director" {% if tipo == 'director' %}selected{% endif %}>Director</option>
+                                            </select>
+                                            <p class="help-block small text-muted" style="margin-top: 5px;">Seleccione el tipo de usuario a registrar.</p>
+                                        </div>
+                                        <hr style="border-color: #e2e8f0;">
+                                        {% endif %}
+
+                                        <div class="form-group">
+                                            <label class="form-label">Nombre de Usuario <span class="required-mark">*</span></label>
+                                            <div class="input-group-custom">
+                                                <i class="fas fa-user input-group-icon"></i>
+                                                {{ form.username|add_class:"form-control input-with-icon" }}
+                                            </div>
+                                            {{ form.username.errors }}
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label class="form-label">Contraseña <span class="required-mark">*</span></label>
+                                            <div class="input-group-custom">
+                                                <i class="fas fa-lock input-group-icon"></i>
+                                                {{ form.password|add_class:"form-control input-with-icon" }}
+                                                <i class="fas fa-eye password-toggle" onclick="togglePassword()"></i>
+                                            </div>
+                                            {{ form.password.errors }}
+                                        </div>
+
+                                        {% if tipo == 'director' %}
+                                        <div class="form-group">
+                                            <label class="form-label">Confirmar Contraseña <span class="required-mark">*</span></label>
+                                            <div class="input-group-custom">
+                                                <i class="fas fa-lock input-group-icon"></i>
+                                                {{ form.password_confirm|add_class:"form-control input-with-icon" }}
+                                            </div>
+                                            {{ form.password_confirm.errors }}
+                                        </div>
+                                        {% endif %}
+
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Actions -->
+                            <div class="row" style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid #f1f5f9;">
+                                <div class="col-md-12 text-right" style="text-align: right; display: flex; justify-content: flex-end; gap: 1rem;">
+                                    <a href="{% if tipo == 'apoderado' %}{% url 'listar_apoderados' %}{% elif tipo == 'profesor' %}{% url 'listar_profesores' %}{% elif tipo == 'director' %}{% url 'inicio' %}{% else %}{% url 'listar_estudiantes' %}{% endif %}" class="btn btn-light-custom btn-custom">
+                                        Cancelar
+                                    </a>
+                                    <button type="submit" class="btn btn-primary-custom btn-custom">
+                                        <i class="fas fa-save"></i> {% if es_edicion %}Guardar Cambios{% else %}Registrar Usuario{% endif %}
+                                    </button>
+                                </div>
+                            </div>
+
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+{% endblock %}
 
+{% block extra_js %}
 <script>
-  function confirmarCambioTipo(select) {
-    const form = document.getElementById('registroForm');
-    const inputs = form.querySelectorAll('input:not([type="hidden"]), select, textarea');
-    let hasData = false;
+    function cambiarTipo(tipo) {
+        // Check if form has data
+        var hasData = false;
+        $('input[type="text"], input[type="email"]').each(function() {
+            if($(this).val()) hasData = true;
+        });
 
-    inputs.forEach(input => {
-      if (input.value && input.value.trim() !== '') hasData = true;
+        if(hasData) {
+            if(confirm('Al cambiar el tipo de usuario se perderán los datos ingresados. ¿Desea continuar?')) {
+                window.location.href = "{% url 'agregar' %}?tipo=" + tipo;
+            } else {
+                // Reset selector
+                var currentType = "{% if tipo %}{{ tipo }}{% else %}estudiante{% endif %}";
+                $('#tipo_selector').val(currentType);
+            }
+        } else {
+            window.location.href = "{% url 'agregar' %}?tipo=" + tipo;
+        }
+    }
+
+    function togglePassword() {
+        var input = document.getElementById('id_password');
+        var icon = document.querySelector('.password-toggle');
+        if (input.type === "password") {
+            input.type = "text";
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        } else {
+            input.type = "password";
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        }
+    }
+
+    $(document).ready(function() {
+        // RUT Formatting
+        function formatearRUT(rut) {
+            if (!rut) return '';
+            var rutLimpio = rut.replace(/[^0-9kK]/g, '');
+            if (rutLimpio.length < 2) return rut;
+            
+            var numero = rutLimpio.slice(0, -1);
+            var dv = rutLimpio.slice(-1).toUpperCase();
+            
+            var numeroFormateado = '';
+            for (var i = numero.length - 1; i >= 0; i--) {
+                var pos = numero.length - 1 - i;
+                if (pos > 0 && pos % 3 === 0) numeroFormateado = '.' + numeroFormateado;
+                numeroFormateado = numero[i] + numeroFormateado;
+            }
+            return numeroFormateado + '-' + dv;
+        }
+
+        $('#id_numero_documento').on('input', function() {
+            var val = $(this).val().replace(/[^0-9kK]/g, '');
+            if(val.length > 1) $(this).val(formatearRUT(val));
+        });
     });
-
-    if (hasData) {
-      if (confirm('Al cambiar el tipo de usuario se perderán los datos ingresados. ¿Desea continuar?')) {
-        document.getElementById('tipoUsuarioForm').submit();
-      } else {
-        // Revertir selección (esto es complicado sin guardar el valor previo, 
-        // pero recargar la página funciona como "cancelar")
-        window.location.reload();
-      }
-    } else {
-      document.getElementById('tipoUsuarioForm').submit();
-    }
-  }
-
-  function limpiarFormulario() {
-    if (confirm('¿Está seguro de que desea limpiar todos los campos?')) {
-      document.getElementById('registroForm').reset();
-      document.querySelectorAll('.is-valid, .is-invalid').forEach(el => {
-        el.classList.remove('is-valid', 'is-invalid');
-      });
-      document.getElementById('edad-calculada').textContent = '';
-      document.getElementById('rut-valid').classList.add('d-none');
-      document.getElementById('rut-invalid').classList.add('d-none');
-    }
-  }
-
-  document.addEventListener('DOMContentLoaded', function () {
-    // Validación RUT
-    const rutInput = document.querySelector('input[name="numero_documento"]');
-    if (rutInput) {
-      rutInput.addEventListener('input', function () {
-        let valor = this.value.replace(/[^0-9kK]/g, '');
-        if (valor.length > 1) {
-          // Formato simple
-          let cuerpo = valor.slice(0, -1);
-          let dv = valor.slice(-1).toUpperCase();
-          this.value = cuerpo.replace(/\B(?=(\d{3})+(?!\d))/g, ".") + "-" + dv;
-
-          // Validar
-          if (validarRut(valor)) {
-            this.classList.remove('is-invalid');
-            this.classList.add('is-valid');
-            document.getElementById('rut-valid').classList.remove('d-none');
-            document.getElementById('rut-invalid').classList.add('d-none');
-          } else {
-            this.classList.add('is-invalid');
-            this.classList.remove('is-valid');
-            document.getElementById('rut-valid').classList.add('d-none');
-            document.getElementById('rut-invalid').classList.remove('d-none');
-          }
-        }
-      });
-    }
-
-    // Cálculo Edad
-    const fechaInput = document.querySelector('input[name="fecha_nacimiento"]');
-    if (fechaInput) {
-      const calcularEdad = () => {
-        if (fechaInput.value) {
-          const hoy = new Date();
-          const cumpleanos = new Date(fechaInput.value);
-          let edad = hoy.getFullYear() - cumpleanos.getFullYear();
-          const m = hoy.getMonth() - cumpleanos.getMonth();
-          if (m < 0 || (m === 0 && hoy.getDate() < cumpleanos.getDate())) {
-            edad--;
-          }
-          document.getElementById('edad-calculada').textContent = edad + " años";
-        }
-      };
-      fechaInput.addEventListener('change', calcularEdad);
-      calcularEdad(); // Calcular al inicio si hay valor
-    }
-  });
-
-  function validarRut(rutCompleto) {
-    if (!/^[0-9]+[-|‐]{1}[0-9kK]{1}$/.test(rutCompleto)) return false;
-    const tmp = rutCompleto.split('-');
-    let digv = tmp[1];
-    const rut = tmp[0];
-    if (digv == 'K') digv = 'k';
-    return (dv(rut) == digv);
-  }
-
-  function dv(T) {
-    let M = 0, S = 1;
-    for (; T; T = Math.floor(T / 10))
-      S = (S + T % 10 * (9 - M++ % 6)) % 11;
-    return S ? S - 1 : 'k';
-  }
 </script>
 {% endblock %}

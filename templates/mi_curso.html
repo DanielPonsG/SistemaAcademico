@@ -4,7 +4,8 @@
 <div class="right_col" role="main">
   <div class="container-fluid">
     
-    <!-- Header de la página -->
+    <!-- Header de la página eliminado para alumnos -->
+    {% if not es_alumno %}
     <div class="row mb-4">
       <div class="col-12">
         <div class="bg-white p-4 rounded shadow-sm border">
@@ -33,6 +34,7 @@
         </div>
       </div>
     </div>
+    {% endif %}
 
     {% if es_alumno and curso_actual %}
 

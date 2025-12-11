@@ -541,7 +541,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 submitBtn.html('<i class="fa fa-spinner fa-spin"></i> Creando...').prop('disabled', true);
                 
                 $.ajax({
-                    url: window.location.href,
+                    url: "{% url 'agregar_evento' %}",
                     type: 'POST',
                     data: formData,
                     processData: false,

@@ -1,5 +1,268 @@
 {% extends "index_master.html" %}
 {% load custom_filters %}
+
+{% block extra_css %}
+<style>
+    /* Modern Reset & Variables */
+    :root {
+        --primary: #4f46e5;
+        --primary-dark: #4338ca;
+        --secondary: #64748b;
+        --success: #10b981;
+        --danger: #ef4444;
+        --warning: #f59e0b;
+        --info: #3b82f6;
+        --dark: #0f172a;
+        --light: #f8fafc;
+        --white: #ffffff;
+        --border: #e2e8f0;
+        --text-main: #1e293b;
+        --text-muted: #64748b;
+        --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        --radius: 0.75rem;
+    }
+
+    /* Layout & Typography */
+    .modern-card {
+        background: var(--white);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-md);
+        border: 1px solid var(--border);
+        margin-bottom: 2rem;
+        overflow: hidden;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .modern-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .card-header-custom {
+        background: linear-gradient(135deg, var(--dark) 0%, #1e293b 100%);
+        padding: 1.5rem 2rem;
+        color: white;
+        position: relative;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .card-header-custom::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--primary), var(--info));
+    }
+
+    .card-body-custom {
+        padding: 2rem;
+    }
+
+    /* Stats Cards */
+    .stat-card {
+        background: var(--white);
+        border-radius: var(--radius);
+        padding: 1.5rem;
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow-sm);
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        transition: all 0.2s;
+    }
+
+    .stat-card:hover {
+        border-color: var(--primary);
+        box-shadow: var(--shadow-md);
+    }
+
+    .stat-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+
+    .stat-info h6 {
+        margin: 0;
+        color: var(--text-muted);
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .stat-info h3 {
+        margin: 0;
+        color: var(--text-main);
+        font-weight: 700;
+    }
+
+    /* Modern Table */
+    .table-modern {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    .table-modern th {
+        background-color: #f8fafc;
+        color: var(--text-muted);
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.05em;
+        padding: 1rem;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .table-modern td {
+        padding: 1rem;
+        border-bottom: 1px solid var(--border);
+        vertical-align: middle;
+        color: var(--text-main);
+    }
+
+    .table-modern tr:last-child td {
+        border-bottom: none;
+    }
+
+    .table-modern tbody tr {
+        transition: background-color 0.2s;
+    }
+
+    .table-modern tbody tr:hover {
+        background-color: #f8fafc;
+    }
+
+    /* Badges & Buttons */
+    .badge-modern {
+        padding: 0.5em 0.8em;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+
+    .btn-action {
+        padding: 0.4rem 0.8rem;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        transition: all 0.2s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+    .btn-action:hover {
+        transform: translateY(-1px);
+    }
+
+    /* Course Hero Styles (copied from mi_curso.html for consistency) */
+    .course-hero {
+        background: radial-gradient(circle at 0% 0%, rgba(59,130,246,0.15), transparent 55%), linear-gradient(135deg, #0f172a, #1e3a8a);
+        color: #fff;
+        padding: 2.5rem;
+        border-radius: 1.25rem;
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 22px 45px -20px rgba(15,23,42,0.6);
+        margin-bottom: 2rem;
+    }
+
+    .course-hero::after {
+        content: "";
+        position: absolute;
+        right: -80px;
+        top: -80px;
+        width: 220px;
+        height: 220px;
+        background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 70%);
+    }
+
+    .course-hero__content {
+        display: flex;
+        gap: 1.5rem;
+        align-items: flex-start;
+    }
+
+    .course-hero__icon {
+        width: 64px;
+        height: 64px;
+        display: grid;
+        place-items: center;
+        border-radius: 20px;
+        background: rgba(255,255,255,0.12);
+        font-size: 1.75rem;
+        flex-shrink: 0;
+    }
+
+    .course-hero__chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: rgba(255,255,255,0.12);
+        padding: 0.35rem 0.85rem;
+        border-radius: 999px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        margin-bottom: 0.5rem;
+    }
+
+    .course-hero__title {
+        font-size: 2.4rem;
+        font-weight: 700;
+        margin-bottom: 0.4rem;
+        color: #fff;
+    }
+
+    .course-hero__subtitle {
+        margin-bottom: 1rem;
+        color: rgba(255,255,255,0.82);
+        max-width: 720px;
+    }
+
+    .course-hero__metrics {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 1rem;
+    }
+
+    .course-hero-metric {
+        background: rgba(15,23,42,0.3);
+        border: 1px solid rgba(148,163,184,0.2);
+        border-radius: 1rem;
+        padding: 1.4rem 1.2rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        font-size: 0.75rem;
+        color: rgba(226,232,240,0.85);
+    }
+
+    .course-hero-metric strong {
+        font-size: 1.9rem;
+        color: #fff;
+        letter-spacing: normal;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="right_col" role="main">
   <div class="container-fluid">
@@ -63,62 +326,87 @@
     </div>
     {% endif %}
 
-    <!-- Card informativa para estudiantes -->
+    <!-- Card informativa para estudiantes (Estilo Hero) -->
     {% if user_type == 'alumno' and curso_seleccionado %}
-    <div class="card mb-4 bg-light">
-      <div class="card-body">
-        <div class="row align-items-center">
-          <div class="col-md-6">
-            <h5 class="card-title mb-1">
-              <i class="fas fa-graduation-cap me-2 text-primary"></i>
-              Mis Notas - {{ curso_seleccionado.get_nivel_display }}{{ curso_seleccionado.paralelo }}
-            </h5>
-            <p class="text-muted mb-0">
-              Profesor Jefe: {{ curso_seleccionado.profesor_jefe.get_nombre_completo }}
-            </p>
-          </div>
-          <div class="col-md-6">
-            {% if promedio_general_estudiante %}
-            <div class="text-end">
-              <small class="text-muted d-block">Promedio General</small>
-              <span class="badge fs-5 {% if promedio_general_estudiante >= 6.0 %}bg-success{% elif promedio_general_estudiante >= 4.0 %}bg-warning{% else %}bg-danger{% endif %}">
-                {{ promedio_general_estudiante }}
-              </span>
+    <section class="course-hero">
+        <div class="course-hero__content">
+            <div class="course-hero__icon">
+                <i class="fas fa-graduation-cap text-white"></i>
             </div>
-            {% endif %}
-          </div>
+            <div>
+                <span class="course-hero__chip">
+                    <i class="fas fa-book-reader"></i> Mis Notas
+                </span>
+                <h2 class="course-hero__title">{{ curso_seleccionado.get_nivel_display }}{{ curso_seleccionado.paralelo }}</h2>
+                <p class="course-hero__subtitle">
+                    <i class="fas fa-user-tie me-2"></i>
+                    Profesor Jefe: {{ curso_seleccionado.profesor_jefe.get_nombre_completo }}
+                </p>
+            </div>
         </div>
         
-        <!-- Selector de asignatura para estudiantes -->
-        <form method="get" class="mt-3">
-          <div class="row">
-            <div class="col-md-8">
-              <label for="asignatura_id" class="form-label">Ver notas por asignatura:</label>
-              <select name="asignatura_id" id="asignatura_id" class="form-select" onchange="this.form.submit()">
-                <option value="">-- Todas las asignaturas (resumen) --</option>
-                {% for asignatura in asignaturas_curso %}
-                  <option value="{{ asignatura.id }}" {% if asignatura_seleccionada and asignatura.id == asignatura_seleccionada.id %}selected{% endif %}>
-                    {{ asignatura.nombre }}
-                  </option>
-                {% endfor %}
-              </select>
+        <div class="course-hero__metrics">
+            <div class="course-hero-metric">
+                <span>Promedio General</span>
+                {% if promedio_general_estudiante %}
+                    <strong>{{ promedio_general_estudiante }}</strong>
+                {% else %}
+                    <strong>--</strong>
+                {% endif %}
             </div>
-          </div>
-        </form>
-      </div>
+            <div class="course-hero-metric">
+                <span>Estado</span>
+                {% if promedio_general_estudiante %}
+                    {% if promedio_general_estudiante >= 6.0 %}
+                        <strong class="text-success">Excelente</strong>
+                    {% elif promedio_general_estudiante >= 4.0 %}
+                        <strong class="text-warning">Aprobado</strong>
+                    {% else %}
+                        <strong class="text-danger">Reprobado</strong>
+                    {% endif %}
+                {% else %}
+                    <strong>--</strong>
+                {% endif %}
+            </div>
+            <div class="course-hero-metric">
+                <span>Asignaturas</span>
+                <strong>{{ asignaturas_curso|length }}</strong>
+            </div>
+        </div>
+    </section>
+
+    <!-- Selector de asignatura para estudiantes -->
+    <div class="modern-card mb-4">
+        <div class="card-body-custom py-3">
+            <form method="get" class="row align-items-center">
+                <div class="col-md-auto">
+                    <label for="asignatura_id" class="form-label mb-0 fw-bold text-muted">Filtrar por Asignatura:</label>
+                </div>
+                <div class="col-md-6">
+                    <select name="asignatura_id" id="asignatura_id" class="form-select border-0 bg-light fw-medium" onchange="this.form.submit()" style="box-shadow: none;">
+                        <option value="">-- Todas las asignaturas (Vista Resumen) --</option>
+                        {% for asignatura in asignaturas_curso %}
+                            <option value="{{ asignatura.id }}" {% if asignatura_seleccionada and asignatura.id == asignatura_seleccionada.id %}selected{% endif %}>
+                                {{ asignatura.nombre }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </form>
+        </div>
     </div>
     {% endif %}
 
     <!-- Tabla de Notas -->
-    <div class="card">
-      <div class="card-header">
-        <h5 class="mb-0">
-          <i class="fas fa-list me-2"></i>
+    <div class="modern-card">
+      <div class="card-header-custom">
+        <h5 class="mb-0 fw-bold">
+          <i class="fas fa-list-alt me-2"></i>
           {% if user_type == 'alumno' %}
             {% if asignatura_seleccionada %}
-              Mis Notas - {{ asignatura_seleccionada.nombre }}
+              Detalle de Notas - {{ asignatura_seleccionada.nombre }}
             {% else %}
-              Mis Notas por Asignatura
+              Resumen de Notas por Asignatura
             {% endif %}
           {% else %}
             {% if asignatura_seleccionada %}
@@ -131,7 +419,7 @@
           {% endif %}
         </h5>
         {% if curso_seleccionado and not asignatura_seleccionada and user_type != 'alumno' %}
-          <small class="text-muted">Vista consolidada de todas las asignaturas del curso</small>
+          <small class="text-white-50">Vista consolidada de todas las asignaturas del curso</small>
         {% endif %}
       </div>
       <div class="card-body p-0">
@@ -248,46 +536,50 @@
         <!-- Vista especial para estudiantes - Resumen por asignatura -->
         {% if user_type == 'alumno' and not asignatura_seleccionada and promedios_por_asignatura %}
         <div class="table-responsive">
-          <table class="table table-hover mb-0">
-            <thead class="table-light">
+          <table class="table-modern mb-0">
+            <thead>
               <tr>
-                <th>Asignatura</th>
+                <th class="ps-4">Asignatura</th>
                 <th class="text-center">Promedio</th>
                 <th class="text-center">Total Notas</th>
                 <th class="text-center">Estado</th>
-                <th class="text-center">Acciones</th>
+                <th class="text-center pe-4">Acciones</th>
               </tr>
             </thead>
             <tbody>
               {% for asignatura_id, datos in promedios_por_asignatura.items %}
                 <tr>
-                  <td class="fw-bold">{{ datos.asignatura.nombre }}</td>
+                  <td class="ps-4 fw-bold text-primary">{{ datos.asignatura.nombre }}</td>
                   <td class="text-center">
                     {% if datos.promedio != '--' %}
-                      <span class="badge fs-6 {% if datos.promedio >= 6.0 %}bg-success{% elif datos.promedio >= 4.0 %}bg-warning{% else %}bg-danger{% endif %}">
+                      <span class="badge-modern {% if datos.promedio >= 6.0 %}bg-success text-white{% elif datos.promedio >= 4.0 %}bg-warning text-dark{% else %}bg-danger text-white{% endif %}">
                         {{ datos.promedio }}
                       </span>
                     {% else %}
-                      <span class="text-muted">{{ datos.promedio }}</span>
+                      <span class="text-muted small">--</span>
                     {% endif %}
                   </td>
-                  <td class="text-center">{{ datos.total_notas }}</td>
+                  <td class="text-center">
+                    <span class="badge bg-light text-dark border">{{ datos.total_notas }}</span>
+                  </td>
                   <td class="text-center">
                     {% if datos.estado != '--' %}
-                      <span class="badge {% if datos.estado == 'Aprobado' %}bg-success{% else %}bg-danger{% endif %}">
-                        {{ datos.estado }}
-                      </span>
+                      {% if datos.estado == 'Aprobado' %}
+                        <span class="text-success fw-bold"><i class="fas fa-check-circle me-1"></i>Aprobado</span>
+                      {% else %}
+                        <span class="text-danger fw-bold"><i class="fas fa-times-circle me-1"></i>Reprobado</span>
+                      {% endif %}
                     {% else %}
-                      <span class="text-muted">{{ datos.estado }}</span>
+                      <span class="text-muted small">--</span>
                     {% endif %}
                   </td>
-                  <td class="text-center">
+                  <td class="text-center pe-4">
                     {% if datos.total_notas > 0 %}
-                      <a href="?asignatura_id={{ datos.asignatura.id }}" class="btn btn-sm btn-outline-primary">
-                        <i class="fas fa-eye me-1"></i>Ver detalles
+                      <a href="?asignatura_id={{ datos.asignatura.id }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                        Ver detalles <i class="fas fa-arrow-right ms-1"></i>
                       </a>
                     {% else %}
-                      <span class="text-muted">Sin notas</span>
+                      <span class="text-muted small fst-italic">Sin notas registradas</span>
                     {% endif %}
                   </td>
                 </tr>
@@ -299,42 +591,50 @@
         <!-- Vista normal para estudiantes y otros usuarios -->
         {% elif estudiantes_tabla and evaluaciones %}
         <div class="table-responsive">
-          <table class="table table-hover mb-0 notas-table">
-            <thead class="table-light">
+          <table class="table-modern mb-0">
+            <thead>
               <tr>
                 {% if user_type != 'alumno' %}
-                <th>Estudiante</th>
+                <th class="ps-4">Estudiante</th>
                 {% endif %}
                 {% for ev in evaluaciones %}
                   <th class="text-center">
                     {% if user_type == 'alumno' %}
-                      {% if ev.fecha %}
-                        {{ ev.nombre }}<br><small class="text-muted">{{ ev.fecha|date:"d/m/Y" }} (#{{ forloop.counter }})</small>
-                      {% else %}
-                        {{ ev.nombre }}<br><small class="text-muted">(#{{ forloop.counter }})</small>
-                      {% endif %}
+                      <div class="d-flex flex-column align-items-center">
+                        <span class="fw-bold text-dark">{{ ev.nombre }}</span>
+                        {% if ev.fecha %}
+                          <span class="badge bg-light text-muted border mt-1 fw-normal">{{ ev.fecha|date:"d/m" }}</span>
+                        {% else %}
+                          <span class="badge bg-light text-muted border mt-1 fw-normal">#{{ forloop.counter }}</span>
+                        {% endif %}
+                      </div>
                     {% else %}
                       {{ ev.nombre }}
                     {% endif %}
                   </th>
                 {% endfor %}
-                <th class="text-center">Promedio</th>
+                <th class="text-center pe-4">Promedio</th>
               </tr>
             </thead>
             <tbody>
               {% for estudiante in estudiantes_tabla %}
                 <tr>
                   {% if user_type != 'alumno' %}
-                  <td class="fw-bold">{{ estudiante.get_nombre_completo }}</td>
+                  <td class="ps-4 fw-bold">{{ estudiante.get_nombre_completo }}</td>
                   {% endif %}
                   {% with notas_estudiante=notas_por_estudiante|get_item:estudiante %}
                     {% if user_type == 'alumno' %}
                       <!-- Para alumnos, mostrar todas las notas directamente -->
                       {% for nota in notas_estudiante %}
-                        <td class="text-center nota-celda">
-                          <span class="badge fs-6 {% if nota.puntaje >= 6.0 %}bg-success{% elif nota.puntaje >= 4.0 %}bg-warning{% else %}bg-danger{% endif %}">
-                            {{ nota.puntaje }}
-                          </span>
+                        <td class="text-center">
+                          <div class="d-flex flex-column align-items-center">
+                            <span class="badge-modern fs-6 {% if nota.puntaje >= 6.0 %}bg-success text-white{% elif nota.puntaje >= 4.0 %}bg-warning text-dark{% else %}bg-danger text-white{% endif %} shadow-sm">
+                              {{ nota.puntaje }}
+                            </span>
+                            {% if nota.porcentaje > 0 %}
+                              <small class="text-muted mt-1" style="font-size: 0.7rem;">{{ nota.porcentaje }}%</small>
+                            {% endif %}
+                          </div>
                         </td>
                       {% endfor %}
                     {% else %}
@@ -363,14 +663,14 @@
                       {% endfor %}
                     {% endif %}
                   {% endwith %}
-                  <td class="text-center">
+                  <td class="text-center pe-4">
                     {% with datos=promedios_estudiantes|get_item:estudiante.id %}
                       {% if datos.promedio != '--' %}
-                        <strong class="badge fs-6 {% if datos.promedio >= 6.0 %}bg-success{% elif datos.promedio >= 4.0 %}bg-warning{% else %}bg-danger{% endif %}">
+                        <span class="badge-modern fs-6 {% if datos.promedio >= 6.0 %}bg-success text-white{% elif datos.promedio >= 4.0 %}bg-warning text-dark{% else %}bg-danger text-white{% endif %} shadow-sm">
                           {{ datos.promedio }}
-                        </strong>
+                        </span>
                       {% else %}
-                        <strong>{{ datos.promedio }}</strong>
+                        <span class="text-muted fw-bold">{{ datos.promedio }}</span>
                       {% endif %}
                     {% endwith %}
                   </td>
@@ -381,7 +681,11 @@
         </div>
         {% else %}
           <div class="text-center py-5">
-            <p class="text-muted">No hay notas registradas para este curso/asignatura.</p>
+            <div class="mb-3">
+              <i class="fas fa-clipboard-list fa-3x text-muted opacity-50"></i>
+            </div>
+            <h5 class="text-muted fw-normal">No hay notas registradas</h5>
+            <p class="text-muted small">Las evaluaciones aparecerán aquí una vez que sean calificadas.</p>
           </div>
         {% endif %}
       </div>

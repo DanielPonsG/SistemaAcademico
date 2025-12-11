@@ -1131,3 +1131,78 @@ def eliminar_relacion_apoderado(request, relacion_id):
         return redirect('detalle_apoderado', apoderado_id=apoderado_id)
         
     return render(request, 'confirmar_eliminar_relacion.html', {'relacion': relacion})
+
+
+@login_required
+def contacto_establecimiento(request):
+    """Vista para ver el contacto del establecimiento (Directores y Profesores)"""
+    
+    # Verificar si es apoderado
+    apoderado = None
+    try:
+        if hasattr(request.user, 'apoderado'):
+            apoderado = request.user.apoderado
+    except:
+        pass
+        
+    if not apoderado and hasattr(request.user, 'profesor') and hasattr(request.user.profesor, 'apoderado_profile'):
+        apoderado = request.user.profesor.apoderado_profile
+            
+    if not apoderado:
+        messages.error(request, "No tienes perfil de apoderado.")
+        return redirect('inicio')
+
+    # Obtener directores
+    from .models import Perfil
+    directores = Perfil.objects.filter(tipo_usuario='director').select_related('user')
+    
+    # Obtener estudiantes a cargo
+    from .models import RelacionApoderadoEstudiante
+    estudiantes_a_cargo = RelacionApoderadoEstudiante.objects.filter(
+        apoderado=apoderado
+    ).select_related('estudiante')
+    
+    estudiantes_info = []
+    
+    for relacion in estudiantes_a_cargo:
+        estudiante = relacion.estudiante
+        curso_actual = estudiante.get_curso_actual()
+        
+        profesor_jefe = None
+        if curso_actual:
+            profesor_jefe = curso_actual.profesor_jefe
+            
+        # Obtener profesores de asignatura
+        from .models import Inscripcion
+        inscripciones = Inscripcion.objects.filter(estudiante=estudiante).select_related(
+            'grupo__asignatura', 'grupo__profesor'
+        )
+        
+        profesores_map = {}
+        for inscripcion in inscripciones:
+            profesor = inscripcion.grupo.profesor
+            asignatura = inscripcion.grupo.asignatura
+            
+            if profesor:
+                if profesor.id not in profesores_map:
+                    profesores_map[profesor.id] = {
+                        'profesor': profesor,
+                        'asignaturas': []
+                    }
+                profesores_map[profesor.id]['asignaturas'].append(asignatura.nombre)
+        
+        profesores_asignatura = list(profesores_map.values())
+        
+        estudiantes_info.append({
+            'estudiante': estudiante,
+            'curso': curso_actual,
+            'profesor_jefe': profesor_jefe,
+            'profesores_asignatura': profesores_asignatura
+        })
+        
+    context = {
+        'directores': directores,
+        'estudiantes_info': estudiantes_info,
+    }
+    
+    return render(request, 'contacto_establecimiento.html', context)

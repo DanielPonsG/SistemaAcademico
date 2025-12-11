@@ -1,0 +1,363 @@
+{% extends "index_master.html" %}
+
+{% block extra_css %}
+<style>
+    /* Modern Reset & Variables */
+    :root {
+        --primary: #4f46e5;
+        --primary-dark: #4338ca;
+        --secondary: #64748b;
+        --success: #10b981;
+        --danger: #ef4444;
+        --warning: #f59e0b;
+        --info: #3b82f6;
+        --dark: #0f172a;
+        --light: #f8fafc;
+        --white: #ffffff;
+        --border: #e2e8f0;
+        --text-main: #1e293b;
+        --text-muted: #64748b;
+        --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        --radius: 0.75rem;
+    }
+
+    /* Contact Card Styles */
+    .contact-card {
+        background: var(--white);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-md);
+        border: 1px solid var(--border);
+        overflow: hidden;
+        margin-bottom: 1.5rem;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .contact-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .contact-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        background: linear-gradient(to right, #f8fafc, #ffffff);
+    }
+
+    .contact-avatar {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background: var(--primary);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        font-weight: 600;
+        box-shadow: 0 2px 4px rgba(79, 70, 229, 0.2);
+    }
+
+    .contact-avatar.director {
+        background: var(--dark);
+        box-shadow: 0 2px 4px rgba(15, 17, 42, 0.2);
+    }
+
+    .contact-avatar.jefe {
+        background: var(--success);
+        box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2);
+    }
+
+    .contact-info h4 {
+        margin: 0 0 0.25rem 0;
+        color: var(--text-main);
+        font-weight: 700;
+        font-size: 1.1rem;
+    }
+
+    .contact-role {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        font-weight: 600;
+    }
+
+    .contact-body {
+        padding: 1.5rem;
+    }
+
+    .contact-detail {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 0.75rem;
+        color: var(--text-main);
+        font-size: 0.95rem;
+    }
+
+    .contact-detail i {
+        color: var(--primary);
+        width: 20px;
+        text-align: center;
+    }
+
+    .contact-detail a {
+        color: var(--primary);
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+    .contact-detail a:hover {
+        text-decoration: underline;
+    }
+
+    /* Section Headers */
+    .section-title {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 2px solid var(--border);
+        color: var(--dark);
+    }
+
+    .section-title i {
+        color: var(--primary);
+        font-size: 1.5rem;
+    }
+
+    .section-title h3 {
+        margin: 0;
+        font-weight: 700;
+        font-size: 1.5rem;
+    }
+
+    /* Student Tabs */
+    .nav-pills .nav-link {
+        color: var(--text-muted);
+        background: var(--white);
+        border: 1px solid var(--border);
+        margin-right: 0.5rem;
+        border-radius: 0.5rem;
+        padding: 0.75rem 1.25rem;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+
+    .nav-pills .nav-link.active {
+        background: var(--primary);
+        color: white;
+        border-color: var(--primary);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .nav-pills .nav-link:hover:not(.active) {
+        background: #f1f5f9;
+        color: var(--text-main);
+    }
+
+    .subject-badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        background: #eff6ff;
+        color: var(--primary-dark);
+        border-radius: 999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        margin-top: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="right_col" role="main">
+  <div class="container-fluid">
+    
+    <!-- Header -->
+    <div class="row" style="margin-bottom: 20px;">
+      <div class="col-xs-12">
+        <div style="background: #fff; padding: 20px; border-radius: 10px; border: 1px solid #e2e8f0; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+          <div style="display: flex; align-items: center;">
+            <div style="margin-right: 20px;">
+              <i class="fas fa-address-book fa-3x" style="color: #4f46e5;"></i>
+            </div>
+            <div>
+              <h1 style="margin: 0 0 5px 0; font-size: 24px; color: #1e293b; font-weight: 600;">Contacto del Establecimiento</h1>
+              <p style="margin: 0; color: #64748b;">Información de contacto de directivos y profesores.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Directores Section -->
+    {% if directores %}
+    <div class="row" style="margin-bottom: 30px;">
+      <div class="col-xs-12">
+        <div class="section-title">
+          <i class="fas fa-building"></i>
+          <h3>Dirección</h3>
+        </div>
+        <div class="row">
+          {% for director in directores %}
+          <div class="col-md-6 col-lg-4">
+            <div class="contact-card">
+              <div class="contact-header">
+                <div class="contact-avatar director">
+                  {{ director.user.first_name.0 }}{{ director.user.last_name.0 }}
+                </div>
+                <div class="contact-info">
+                  <h4>{{ director.user.first_name }} {{ director.user.last_name }}</h4>
+                  <div class="contact-role">{{ director.cargo|default:"Director" }}</div>
+                </div>
+              </div>
+              <div class="contact-body">
+                <div class="contact-detail">
+                  <i class="fas fa-envelope"></i>
+                  {% if director.user.email %}
+                    <a href="mailto:{{ director.user.email }}">{{ director.user.email }}</a>
+                  {% else %}
+                    <span class="text-muted">No disponible</span>
+                  {% endif %}
+                </div>
+                {% if director.telefono %}
+                <div class="contact-detail">
+                  <i class="fas fa-phone"></i>
+                  <a href="tel:{{ director.telefono }}">{{ director.telefono }}</a>
+                </div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Students Section -->
+    {% if estudiantes_info %}
+    <div class="row">
+      <div class="col-xs-12">
+        <div class="section-title">
+          <i class="fas fa-chalkboard-teacher"></i>
+          <h3>Profesores por Estudiante</h3>
+        </div>
+
+        <!-- Student Tabs -->
+        <ul class="nav nav-pills" style="margin-bottom: 20px;" id="pills-tab">
+          {% for info in estudiantes_info %}
+          <li class="{% if forloop.first %}active{% endif %}">
+            <a href="#pills-{{ info.estudiante.id }}" data-toggle="pill">
+              <i class="fas fa-user-graduate" style="margin-right: 8px;"></i>{{ info.estudiante.primer_nombre }} {{ info.estudiante.apellido_paterno }}
+            </a>
+          </li>
+          {% endfor %}
+        </ul>
+
+        <!-- Tab Content -->
+        <div class="tab-content" id="pills-tabContent">
+          {% for info in estudiantes_info %}
+          <div class="tab-pane fade {% if forloop.first %}in active{% endif %}" 
+               id="pills-{{ info.estudiante.id }}">
+            
+            <!-- Profesor Jefe -->
+            {% if info.profesor_jefe %}
+            <h5 style="margin-bottom: 15px; color: #64748b; font-weight: 600;">Profesor Jefe</h5>
+            <div class="row" style="margin-bottom: 20px;">
+              <div class="col-md-6 col-lg-4">
+                <div class="contact-card">
+                  <div class="contact-header">
+                    <div class="contact-avatar jefe">
+                      {{ info.profesor_jefe.primer_nombre.0 }}{{ info.profesor_jefe.apellido_paterno.0 }}
+                    </div>
+                    <div class="contact-info">
+                      <h4>{{ info.profesor_jefe.get_nombre_completo }}</h4>
+                      <div class="contact-role">Profesor Jefe - {{ info.curso.nombre }}</div>
+                    </div>
+                  </div>
+                  <div class="contact-body">
+                    <div class="contact-detail">
+                      <i class="fas fa-envelope"></i>
+                      {% if info.profesor_jefe.email %}
+                        <a href="mailto:{{ info.profesor_jefe.email }}">{{ info.profesor_jefe.email }}</a>
+                      {% else %}
+                        <span class="text-muted">No disponible</span>
+                      {% endif %}
+                    </div>
+                    {% if info.profesor_jefe.telefono %}
+                    <div class="contact-detail">
+                      <i class="fas fa-phone"></i>
+                      <a href="tel:{{ info.profesor_jefe.telefono }}">{{ info.profesor_jefe.telefono }}</a>
+                    </div>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+            </div>
+            {% endif %}
+
+            <!-- Subject Teachers -->
+            {% if info.profesores_asignatura %}
+            <h5 style="margin-bottom: 15px; color: #64748b; font-weight: 600;">Profesores de Asignatura</h5>
+            <div class="row">
+              {% for prof_data in info.profesores_asignatura %}
+              <div class="col-md-6 col-lg-4">
+                <div class="contact-card">
+                  <div class="contact-header">
+                    <div class="contact-avatar">
+                      {{ prof_data.profesor.primer_nombre.0 }}{{ prof_data.profesor.apellido_paterno.0 }}
+                    </div>
+                    <div class="contact-info">
+                      <h4>{{ prof_data.profesor.get_nombre_completo }}</h4>
+                      <div class="contact-role">Docente</div>
+                    </div>
+                  </div>
+                  <div class="contact-body">
+                    <div class="contact-detail">
+                      <i class="fas fa-envelope"></i>
+                      {% if prof_data.profesor.email %}
+                        <a href="mailto:{{ prof_data.profesor.email }}">{{ prof_data.profesor.email }}</a>
+                      {% else %}
+                        <span class="text-muted">No disponible</span>
+                      {% endif %}
+                    </div>
+                    {% if prof_data.profesor.telefono %}
+                    <div class="contact-detail">
+                      <i class="fas fa-phone"></i>
+                      <a href="tel:{{ prof_data.profesor.telefono }}">{{ prof_data.profesor.telefono }}</a>
+                    </div>
+                    {% endif %}
+                    <div class="mt-2">
+                      {% for asignatura in prof_data.asignaturas %}
+                        <span class="subject-badge">{{ asignatura }}</span>
+                      {% endfor %}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+            {% else %}
+            <div class="alert alert-info">
+              <i class="fas fa-info-circle" style="margin-right: 10px;"></i>No hay profesores de asignatura registrados para este estudiante.
+            </div>
+            {% endif %}
+
+          </div>
+          {% endfor %}
+        </div>
+
+      </div>
+    </div>
+    {% endif %}
+
+  </div>
+</div>
+{% endblock %}

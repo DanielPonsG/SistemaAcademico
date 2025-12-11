@@ -102,6 +102,15 @@ class EstudianteForm(forms.ModelForm):
         required=False
     )
 
+    is_active = forms.BooleanField(
+        label="Cuenta activa",
+        widget=forms.CheckboxInput(attrs={
+            'class': 'form-check-input'
+        }),
+        required=False,
+        initial=True
+    )
+
     class Meta:
         model = Estudiante
         fields = [
@@ -220,6 +229,7 @@ class EstudianteForm(forms.ModelForm):
             # Si tiene usuario, llenar los campos de usuario
             if self.instance.user:
                 self.fields['username'].initial = self.instance.user.username
+                self.fields['is_active'].initial = self.instance.user.is_active
                 self.fields['password'].widget.attrs['placeholder'] = 'Dejar vacío para mantener contraseña actual'
 
 class ProfesorForm(forms.ModelForm):
@@ -238,6 +248,15 @@ class ProfesorForm(forms.ModelForm):
             'placeholder': 'Ingrese contraseña (dejar vacío para mantener actual)'
         }),
         required=False
+    )
+
+    is_active = forms.BooleanField(
+        label="Cuenta activa",
+        widget=forms.CheckboxInput(attrs={
+            'class': 'form-check-input'
+        }),
+        required=False,
+        initial=True
     )
     
     # Campo para indicar si también es apoderado
@@ -365,6 +384,7 @@ class ProfesorForm(forms.ModelForm):
             # Si tiene usuario, llenar los campos de usuario
             if self.instance.user:
                 self.fields['username'].initial = self.instance.user.username
+                self.fields['is_active'].initial = self.instance.user.is_active
                 self.fields['password'].widget.attrs['placeholder'] = 'Dejar vacío para mantener contraseña actual'
 
     def clean_numero_documento(self):
@@ -582,23 +602,10 @@ class ProfesorForm(forms.ModelForm):
         return profesor
 
 class EventoCalendarioForm(forms.ModelForm):
-    # Campo para seleccionar cursos específicos
-    cursos_especificos = forms.ModelMultipleChoiceField(
-        queryset=Curso.objects.none(),
-        widget=forms.SelectMultiple(attrs={
-            'class': 'form-select',
-            'multiple': True,
-            'size': '6'
-        }),
-        label='Cursos específicos',
-        required=False,
-        help_text='Selecciona los cursos que verán este evento (opcional si es para todos)'
-    )
-    
     class Meta:
         model = EventoCalendario
         fields = ['titulo', 'descripcion', 'fecha', 'hora_inicio', 'hora_fin', 
-                 'tipo_evento', 'prioridad', 'para_todos_los_cursos']
+                 'tipo_evento', 'prioridad', 'para_todos_los_cursos', 'solo_profesores', 'solo_apoderados', 'cursos']
         widgets = {
             'titulo': forms.TextInput(attrs={
                 'class': 'form-control',
@@ -629,7 +636,16 @@ class EventoCalendarioForm(forms.ModelForm):
             }),
             'para_todos_los_cursos': forms.CheckboxInput(attrs={
                 'class': 'form-check-input'
-            })
+            }),
+            'solo_profesores': forms.CheckboxInput(attrs={
+                'class': 'form-check-input'
+            }),
+            'solo_apoderados': forms.CheckboxInput(attrs={
+                'class': 'form-check-input'
+            }),
+            'cursos': forms.CheckboxSelectMultiple(attrs={
+                'class': 'form-check-input'
+            }),
         }
     
     def __init__(self, *args, **kwargs):
@@ -641,7 +657,7 @@ class EventoCalendarioForm(forms.ModelForm):
             # Configurar cursos disponibles según el tipo de usuario
             anio_actual = timezone.now().year
             
-            if user.is_superuser or user.groups.filter(name='Director').exists():
+            if user.is_superuser or (hasattr(user, 'perfil') and user.perfil.tipo_usuario in ['administrador', 'director']):
                 # Admin y Director ven todos los cursos
                 cursos_disponibles = Curso.objects.filter(anio=anio_actual)
             elif hasattr(user, 'profesor'):
@@ -655,7 +671,9 @@ class EventoCalendarioForm(forms.ModelForm):
             else:
                 cursos_disponibles = Curso.objects.none()
             
-            self.fields['cursos_especificos'].queryset = cursos_disponibles.order_by('nivel', 'paralelo')
+            self.fields['cursos'].queryset = cursos_disponibles.order_by('nivel', 'paralelo')
+            self.fields['cursos'].label = "Cursos específicos"
+            self.fields['cursos'].required = False
     
     def clean(self):
         cleaned_data = super().clean()
@@ -663,7 +681,9 @@ class EventoCalendarioForm(forms.ModelForm):
         hora_inicio = cleaned_data.get('hora_inicio')
         hora_fin = cleaned_data.get('hora_fin')
         para_todos = cleaned_data.get('para_todos_los_cursos')
-        cursos_especificos = cleaned_data.get('cursos_especificos')
+        solo_profesores = cleaned_data.get('solo_profesores')
+        solo_apoderados = cleaned_data.get('solo_apoderados')
+        cursos = cleaned_data.get('cursos')
         
         # Validar fecha no sea en el pasado
         if not self.editando and fecha and fecha < timezone.now().date():
@@ -678,9 +698,9 @@ class EventoCalendarioForm(forms.ModelForm):
             )
         
         # Validar asignación de cursos
-        if not para_todos and not cursos_especificos:
+        if not para_todos and not solo_profesores and not solo_apoderados and not cursos:
             raise forms.ValidationError(
-                'Debes seleccionar al menos un curso específico o marcar "Para todos los cursos".'
+                'Debes seleccionar al menos un curso específico o marcar una opción general.'
             )
         
         return cleaned_data
@@ -693,12 +713,10 @@ class EventoCalendarioForm(forms.ModelForm):
         
         if commit:
             evento.save()
+            self.save_m2m() # Guardar relaciones ManyToMany (cursos)
             
-            # Asignar cursos específicos si no es para todos
-            if not evento.para_todos_los_cursos:
-                cursos_especificos = self.cleaned_data.get('cursos_especificos', [])
-                evento.cursos.set(cursos_especificos)
-            else:
+            # Limpiar cursos si es para todos o solo profesores/apoderados
+            if evento.para_todos_los_cursos or evento.solo_profesores or evento.solo_apoderados:
                 evento.cursos.clear()
         
         return evento
@@ -936,7 +954,13 @@ class HorarioCursoForm(forms.ModelForm):
         
         if curso:
             # Filtrar asignaturas del curso
-            self.fields['asignatura'].queryset = curso.asignaturas.all().order_by('nombre')
+            asignaturas_curso = curso.asignaturas.all().order_by('nombre')
+            # Si el curso tiene asignaturas asignadas, usarlas. Si no, mostrar todas (fallback)
+            if asignaturas_curso.exists():
+                self.fields['asignatura'].queryset = asignaturas_curso
+            else:
+                self.fields['asignatura'].queryset = Asignatura.objects.all().order_by('nombre')
+                
             self.fields['asignatura'].empty_label = "-- Seleccionar asignatura --"
             
             # Obtener profesores disponibles
