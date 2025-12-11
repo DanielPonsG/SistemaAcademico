@@ -31,6 +31,10 @@ except ImportError:
 
 ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'testserver', '.vercel.app', '.now.sh', '*']
 
+CSRF_TRUSTED_ORIGINS = [
+    'https://*.vercel.app',
+]
+
 
 # Application definition
 
