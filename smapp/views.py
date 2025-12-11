@@ -164,6 +164,10 @@ def modificar(request):
                         username = form.cleaned_data.get('username')
                         password = form.cleaned_data.get('password')
                         
+                        # Si hay usuario existente y no se especificó username, usar el actual
+                        if not username and profesor_guardado.user:
+                            username = profesor_guardado.user.username
+
                         if username:
                             if profesor_guardado.user:
                                 # Actualizar usuario existente
@@ -242,6 +246,10 @@ def modificar(request):
                         username = form.cleaned_data.get('username')
                         password = form.cleaned_data.get('password')
                         
+                        # Si hay usuario existente y no se especificó username, usar el actual
+                        if not username and estudiante_guardado.user:
+                            username = estudiante_guardado.user.username
+
                         if username:
                             if estudiante_guardado.user:
                                 # Actualizar usuario existente

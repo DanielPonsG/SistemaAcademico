@@ -499,6 +499,13 @@
                   <form method="post" novalidate id="modificar-form">
                     {% csrf_token %}
                     
+                    {% if form.errors %}
+                        <div class="alert alert-danger">
+                            <strong>Error:</strong> Por favor corrija los errores en el formulario.
+                            {{ form.non_field_errors }}
+                        </div>
+                    {% endif %}
+                    
                     <div class="row g-4">
                         <!-- Left Column: Personal Info -->
                         <div class="col-md-8">
@@ -579,7 +586,7 @@
                             <div class="row g-3 mb-3">
                                 <div class="col-md-6">
                                     <label class="form-label small text-muted text-uppercase">Fecha Nacimiento</label>
-                                    <input type="date" class="form-control" name="fecha_nacimiento" value="{{ form.fecha_nacimiento.value|date:'Y-m-d'|default:'' }}">
+                                    <input type="date" class="form-control" name="fecha_nacimiento" value="{% if form.fecha_nacimiento.value|date:'Y-m-d' %}{{ form.fecha_nacimiento.value|date:'Y-m-d' }}{% else %}{{ form.fecha_nacimiento.value|default:'' }}{% endif %}">
                                     {{ form.fecha_nacimiento.errors }}
                                 </div>
                                 {% if tipo == 'profesor' %}

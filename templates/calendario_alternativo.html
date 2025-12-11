@@ -414,8 +414,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
     var eventosRaw = {{ eventos_json|safe|default:"[]" }};
     var eventosNormalizados = Array.isArray(eventosRaw) ? eventosRaw.map(function(evento) {
-        var fechaEvento = new Date(evento.start);
-        var fechaNormalizada = new Date(fechaEvento.getFullYear(), fechaEvento.getMonth(), fechaEvento.getDate());
+        // Parse YYYY-MM-DD manually to avoid timezone issues
+        var parts = evento.start.split('T')[0].split('-');
+        var year = parseInt(parts[0], 10);
+        var month = parseInt(parts[1], 10) - 1; // Months are 0-indexed
+        var day = parseInt(parts[2], 10);
+        
+        var fechaNormalizada = new Date(year, month, day);
         return {
             id: evento.id,
             titulo: evento.title,
